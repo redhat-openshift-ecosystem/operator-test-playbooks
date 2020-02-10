@@ -1,0 +1,4 @@
+---
+oc_bin_path: oc
+olm_operator_files_path: "{{ playbook_dir }}/../../operators/olm-operator-files"
+openshift_namespace: test-operator

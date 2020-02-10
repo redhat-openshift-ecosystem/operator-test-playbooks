@@ -1,0 +1,2 @@
+operator_work_dir: /tmp/cvp/operator-files
+check_verify_result: true

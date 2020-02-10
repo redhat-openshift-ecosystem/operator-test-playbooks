@@ -1,0 +1,57 @@
+---
+- name: Deploy the operator on an OCP cluster with OLM as part of the operator testing pipeline
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars_files:
+    - "{{ playbook_dir }}/../../../config/ansible/vault.yml"
+
+  vars:
+    openshift_namespace: "test-operator"
+    operator_work_dir: "/home/jenkins/agent/test-operator"
+    scorecard_cr_dir: "/home/jenkins/agent/scorecard-cr-files"
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    olm_operator_files_path: "{{ work_dir }}/olm-operator-files"
+    quay_token: "{{ cvp_vault.quay_token }}"
+    quay_namespace: "cvpops"
+    oc_bin_path: "oc"
+    jq_bin_path : "/usr/bin/jq"
+    yq_bin_path: "/usr/local/bin/yq"
+    testing_bin_path: "/usr/local/bin"
+    scorecard_first_cr: true
+    run_scorecard: true
+    current_channel: '' # Added to avoid a bug with undefined variables
+
+  tasks:
+    - name: "Login to the testing OpenShift instance"
+      shell: "{{ oc_bin_path }} login {{ openshift_url }} -u system:admin --insecure-skip-tls-verify"
+      register: login_result
+      retries: 20
+      delay: 10
+      until: login_result.rc == 0
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: openshift_url is defined
+
+    - name: "Parse operator metadata needed to run the tests"
+      include_role:
+        name: parse_operator_metadata
+
+    - name: "Inject operator scorecard data into the operator metadata"
+      include_role:
+        name: inject_scorecard_metadata
+      when: run_scorecard|bool
+
+    - name: "Attempt to push the test operator and deploy it with OLM"
+      block:
+        - name: "Deploy operator with olm"
+          include_role:
+            name: deploy_olm_operator
+      always:
+        - name: "Remove the quay release of the test operator in the testing namespace"
+          shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" -X DELETE https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test/{{ quay_release }}/helm"
+          when:
+            - quay_release is defined
+            - package_name is defined
+          no_log: true

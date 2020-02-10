@@ -1,0 +1,67 @@
+---
+- name: "Create directory for the binaries needed for operator testing"
+  file:
+    path: "{{ testing_bin_path }}"
+    state: directory
+
+- set_fact:
+    operator_sdk_bin_path: "{{ testing_bin_path}}/operator-sdk"
+    oc_bin_path: "{{ testing_bin_path}}/oc"
+    jq_bin_path: "{{ testing_bin_path }}/jq"
+    yq_bin_path: "{{ testing_bin_path }}/yq"
+    go_bin_path: "{{ testing_bin_path }}/go/bin/go"
+    offline_cataloger_bin_path: "offline-cataloger"
+
+# Install the oc client to talk to any Openshift cluster
+- name: "Download and extract OpenShift client binary(oc) to {{ testing_bin_path }}"
+  unarchive:
+    src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
+    dest: "{{ testing_bin_path }}"
+    remote_src: yes
+
+- name: "Download and extract go binary to {{ testing_bin_path }}"
+  unarchive:
+    src: "https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "{{ testing_bin_path }}"
+    remote_src: yes
+
+- name: "Download operator-sdk for running operator scorecard tests"
+  shell: "curl -o {{ operator_sdk_bin_path }} -L https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu && chmod +x {{ operator_sdk_bin_path }}"
+
+- name: "Download jq 1.6"
+  shell: "curl -Lo {{ jq_bin_path }} https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x {{ jq_bin_path }}"
+
+- name: "Download yq 2.2.1"
+  shell: "curl -Lo {{ yq_bin_path }} https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64 && chmod +x {{ yq_bin_path }}"
+
+- name: "Check if operator-courier is installed"
+  shell: "operator-courier -v"
+  register: operator_courier_version_result
+  ignore_errors: true
+
+- name: "Install operator-courier if not already installed"
+  shell: "pip3 install operator-courier=={{ operator_courier_version }}"
+  when:
+    - operator_courier_version_result.rc is defined
+    - operator_courier_version_result.rc != 0
+
+- name: "Check if offline-cataloger is installed"
+  shell: "offline-cataloger -h"
+  register: offline_cataloger_help_result
+  ignore_errors: true
+
+- name: "Git clone offline-cataloger repo with the offline-cataloger command"
+  git:
+    repo: 'https://github.com/kevinrizza/offline-cataloger.git'
+    dest: /tmp/offline-cataloger
+    version: "master"
+    force: true
+  when:
+    - offline_cataloger_help_result.rc is defined
+    - offline_cataloger_help_result.rc != 0
+
+- set_fact:
+    offline_cataloger_bin_path: "{{ go_bin_path }} run -mod=vendor ./cmd/offline-cataloger/main.go"
+  when:
+    - offline_cataloger_help_result.rc is defined
+    - offline_cataloger_help_result.rc != 0

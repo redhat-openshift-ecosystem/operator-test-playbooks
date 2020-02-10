@@ -1,0 +1,22 @@
+---
+- name: "Delete all processed resources in the deploy directory"
+  shell: "for f in $(find {{ olm_operator_files_path }} -maxdepth 1 -name \"*.yml\"); do {{ oc_bin_path }} delete --ignore-not-found=true -f $f; done"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  ignore_errors: true
+
+- name: "Delete the operator owned CRDs if any"
+  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  with_items: "{{ crd_paths|default([]) }}"
+  loop_control:
+    loop_var: owned_crd_path
+
+- name: "Delete the project {{ openshift_namespace }}"
+  shell: "{{ oc_bin_path }} delete project {{ openshift_namespace }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when:
+      - openshift_namespace_result is defined
+      - openshift_namespace_result.rc == 0

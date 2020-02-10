@@ -1,0 +1,56 @@
+---
+- name: Prepare OCP 4.1 configuration for installation on AWS
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars_files:
+    - "{{ playbook_dir }}/../../../config/ansible/vault.yml"
+
+  vars:
+    cluster_name: "test-cluster"
+    aws_region: "us-east-2"
+
+  tasks:
+    - set_fact:
+        ocp_install_directory: "{{ lookup('env', 'WORKSPACE') }}/operators/ocp-cluster-deployment/{{ cluster_name }}"
+
+    - name: "Ensure that the ocp install directory exists and is empty"
+      file:
+        path: "{{ ocp_install_directory }}"
+        state: "{{ item }}"
+      with_items:
+        - absent
+        - directory
+
+    - name: "Inject cluster name: {{ cluster_name }} and region: {{ aws_region }} into the install config"
+      template:
+        src: "{{ lookup('env', 'WORKSPACE') }}/operators/ocp-cluster-deployment/install-config.yaml.j2"
+        dest: "{{ ocp_install_directory }}/install-config.yaml"
+
+    - name: "Inject secrets into the install-config"
+      blockinfile:
+        path: "{{ ocp_install_directory }}/install-config.yaml"
+        block: "{{ cvp_vault.ocp_40_secrets | to_nice_yaml }}"
+        insertafter: EOF
+        marker: ""
+      no_log: true
+
+    - file:
+        path: "{{ lookup('env', 'HOME') }}/.aws"
+        state: directory
+        mode: 0700
+
+    - copy:
+        content: "{{ cvp_vault.aws_credentials }}"
+        dest: "{{ lookup('env', 'HOME') }}/.aws/credentials"
+
+    - file:
+        path: "{{ lookup('env', 'HOME') }}/.ssh"
+        state: directory
+        mode: 0700
+
+    - copy:
+        content: "{{ cvp_vault.ssh_private_key }}"
+        dest: "{{ lookup('env', 'HOME') }}/.ssh/private_key"
+        mode: 0600

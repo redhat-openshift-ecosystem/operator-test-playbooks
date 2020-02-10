@@ -1,0 +1,18 @@
+---
+- name: Parse operator metadata for usage
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    operator_work_dir: "/home/jenkins/test-operator"
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    jq_bin_path : "/usr/bin/jq"
+    yq_bin_path: "/usr/local/bin/yq"
+    testing_bin_path: "/usr/local/bin"
+    current_channel: '' # Added to avoid a bug with undefined variables
+
+  tasks:
+    - name: "Parse operator metadata needed to run the tests"
+      include_role:
+        name: parse_operator_metadata

@@ -1,0 +1,18 @@
+---
+- name: Run operator catalog initialization test on the operator metadata
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    operator_work_dir: "/home/jenkins/test-operator"
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    offline_cataloger_bin_path: "/usr/local/bin/offline-cataloger"
+    production_quay_namespace: "redhat-operators"
+    go_bin_path: "go"
+    check_initializer_result: false
+
+  tasks:
+    - name: "Run operator catalog initialization test on the operator metadata"
+      include_role:
+        name: operator_catalog_initialization_test
