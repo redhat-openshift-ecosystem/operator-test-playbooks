@@ -17,28 +17,30 @@
     check_scorecard_results: false
 
   tasks:
-    - name: "Find all extracted CRs from alm-examples"
-      shell: "find \"{{ scorecard_cr_dir }}\" -name \"*.cr.yaml\" -print"
-      register: scorecard_cr_files_result
+    - name: "Operator scorecard tests"
+      block:
+        - name: "Find all extracted CRs from alm-examples"
+          shell: "find \"{{ scorecard_cr_dir }}\" -name \"*.cr.yaml\" -print"
+          register: scorecard_cr_files_result
 
-    - name: "Run scorecard tests on the deployed operator"
-      include_role:
-        name: operator_scorecard_tests
-      with_items: "{{ scorecard_cr_files_result.stdout_lines }}"
-      loop_control:
-        loop_var: cr_path
+        - name: "Run scorecard tests on the deployed operator"
+          include_role:
+            name: operator_scorecard_tests
+          with_items: "{{ scorecard_cr_files_result.stdout_lines }}"
+          loop_control:
+            loop_var: cr_path
+      always:
+        - name: "Get the pod container logs of the operator after running scorecard tests"
+          shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
+          register: operator_container_result
+          ignore_errors: true
+          environment:
+            KUBECONFIG: "{{ kubeconfig_path }}"
+          no_log: true
 
-    - name: "Get the pod container logs of the operator after running scorecard tests"
-      shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
-      register: operator_container_result
-      ignore_errors: true
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-      no_log: true
-
-    - name: "Output the operator container log to a debug file"
-      copy:
-        content: "{{ operator_container_result.stdout }}"
-        dest: "{{ work_dir }}/scorecard-operator-container-debug.txt"
-      when:
-        - operator_container_result.stdout != ""
+        - name: "Output the operator container log to a debug file"
+          copy:
+            content: "{{ operator_container_result.stdout }}"
+            dest: "{{ work_dir }}/scorecard-operator-container-debug.txt"
+          when:
+            - operator_container_result.stdout != ""

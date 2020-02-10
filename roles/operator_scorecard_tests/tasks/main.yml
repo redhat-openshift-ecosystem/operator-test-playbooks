@@ -32,7 +32,7 @@
     msg: "Scorecard Basic Tests passed: {{ scorecard_results_passed_result.stdout }}"
 
 - name: "Delete the operator CR"
-  shell: "{{ oc_bin_path }} delete -f {{ cr_path }} --ignore-not-found=true"
+  shell: "{{ oc_bin_path }} delete -f {{ cr_path }} --ignore-not-found=true --grace-period=60 --timeout=120s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
