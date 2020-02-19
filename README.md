@@ -4,6 +4,7 @@
 
 The operator testing can be run locally using the Ansible playbook at `local-test-operator.yml`.
 The playbook roles that run the operator tests used in this are identical to ones used as part of the CVP operator testing pipeline.
+
 One notable exception is the package name uniqueness test which requires access to an internal database.
 
 The playbook finishes successfully if all enabled tests pass. The logs and files for the test run can be found at `/tmp/operator-test` directory by default.
@@ -23,6 +24,10 @@ The user needs to be currently logged into a working OCP cluster that will be us
 
 The path to the kubeconfig file for the OCP cluster needs to be supplied as the `kubeconfig_path` parameter, 
 for example: `-e kubeconfig_path=~/testing/kubeconfig`
+
+For rapid prototyping, you can spin up an OCP cluster using [Red Hat CodeReady Workspaces](https://developers.redhat.com/products/codeready-workspaces/download)
+
+You can then specify your kubeconfig as follows: `-e kubeconfig_path= ~/.crc/cache/crc_libvirt_4.2.14/kubeconfig`
 
 #### 3. A valid quay.io namespace (for ISV and Community operators only)
 
