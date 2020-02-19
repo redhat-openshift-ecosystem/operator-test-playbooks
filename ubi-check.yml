@@ -1,0 +1,100 @@
+---
+  # This playbook creates a pod to run a given container image.
+  #
+  # The expected result is for the pod to create a file named
+  #  <pod-name>.log containing the output of 'ls /etc/yum.repos.d'.
+  #
+  # If errors are encountered <pod-name>.json is created for debugging
+  # and will contain the output of 'oc get pod <pod-name> -o json.'
+- name: Run a container to determine if it is UBI-based
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    openshift_namespace: "default"
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    oc_bin_path: "oc"
+    pod_name: "cvp-ubi-check"
+
+  tasks:
+  - name: "Login to the testing OpenShift instance"
+    shell: "{{ oc_bin_path }} login {{ openshift_url }} --token={{ openshift_token }} --insecure-skip-tls-verify"
+    register: login_result
+    retries: 10
+    delay: 10
+    until: login_result.rc == 0
+    no_log: true
+
+  - name: "Create the spec file"
+    template:
+      src: "ubi-check-pod.yml.j2"
+      dest: "{{ work_dir }}/{{ pod_name }}.yml"
+
+  - name: "Display the spec file"
+    shell: "cat {{ work_dir }}/{{ pod_name }}.yml"
+    register: pod_yaml
+
+  - debug:
+      msg: "Pod yaml contents: {{ pod_yaml.stdout }}"
+
+  - name: "Create pod"
+    shell: "{{ oc_bin_path }} create -f {{ work_dir }}/{{ pod_name }}.yml -n {{ openshift_namespace }}"
+    register: create_pod
+    retries: 10
+    delay: 10
+    until: create_pod.rc == 0
+    ignore_errors: true
+
+  - name: "Wait for pod to complete"
+    shell: "{{ oc_bin_path }} get pod {{ pod_name }} -o jsonpath={.status.phase} -n {{ openshift_namespace }}"
+    register: pod_status
+    retries: 30
+    delay: 10
+    until: pod_status.stdout == "Succeeded"
+    ignore_errors: true
+    when: create_pod.rc == 0
+
+  - name: "Get debug"
+    shell: "{{ oc_bin_path }} get pod {{ pod_name }} -o=json -n {{ openshift_namespace }}"
+    register: get_debug
+    retries: 10
+    delay: 10
+    ignore_errors: true
+    when: pod_status.stdout != "Succeeded"
+
+  - name: "Create debug log"
+    copy:
+      content: "{{ get_debug.stdout | from_json | to_nice_json }}"
+      dest: "{{ work_dir }}/{{ pod_name }}.json"
+    ignore_errors: true
+    when:
+      - pod_status.stdout != "Succeeded"
+      - get_debug.rc == 0
+
+  - name: "Get command output from container"
+    shell: "{{ oc_bin_path }} logs {{ pod_name }} -n {{ openshift_namespace }}"
+    register: pod_log
+    retries: 10
+    delay: 10
+    ignore_errors: true
+    when: pod_status.stdout == "Succeeded"
+
+  - name: "Output the pod log to a file"
+    copy:
+      content: "{{ pod_log.stdout }}"
+      dest: "{{ work_dir }}/{{ pod_name }}.log"
+    when: pod_log.stdout is defined
+    ignore_errors: true
+
+  - name: "Delete the pod"
+    shell: "{{ oc_bin_path }} delete pod {{ pod_name }} -n {{ openshift_namespace }}"
+    retries: 10
+    delay: 10
+    ignore_errors: true
+
+  - name: "Fail if errors encountered"
+    fail:
+      msg: "Errors encountered running container in pod"
+    when: (create_pod.rc != 0) or
+          (pod_status is defined and pod_status.stdout != "Succeeded")

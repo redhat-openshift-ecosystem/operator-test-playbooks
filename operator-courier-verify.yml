@@ -1,0 +1,15 @@
+---
+- name: Run operator courier verification test on the operator metadata
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    operator_work_dir: "/home/jenkins/agent/test-operator"
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    check_verify_result: false
+
+  tasks:
+    - name: "Run operator courier verification test on the operator metadata"
+      include_role:
+        name: operator_courier_verify
