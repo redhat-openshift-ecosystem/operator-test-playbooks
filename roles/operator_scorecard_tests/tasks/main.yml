@@ -19,7 +19,7 @@
     dest: "{{ work_dir }}/osdk-scorecard.yml"
 
 - name: "Run operator-sdk scorecard tests on the deployed operator in json form"
-  shell: "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --config {{ work_dir }}/osdk-scorecard.yml > {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"
+  shell: "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --selector='test in (checkspectest,checkstatustest)' --config {{ work_dir }}/osdk-scorecard.yml > {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   ignore_errors: true
@@ -41,4 +41,4 @@
     msg: 'Operator scorecard basic tests failed, check scorecard_results.txt for more details'
   when:
     - check_scorecard_results|bool
-    - scorecard_results_passed_result.stdout|int < 3
+    - scorecard_results_passed_result.stdout|int < 2
