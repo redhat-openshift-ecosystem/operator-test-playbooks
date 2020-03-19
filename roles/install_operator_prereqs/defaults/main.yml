@@ -1,6 +1,6 @@
 ---
 testing_bin_path: /tmp/cvp/bin
 operator_sdk_version: v0.15.1
-oc_version: 4.3.1
+oc_version: 4.3.5
 operator_courier_version: 2.1.7
 go_version: 1.13.7

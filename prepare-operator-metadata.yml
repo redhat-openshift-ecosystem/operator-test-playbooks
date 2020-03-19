@@ -5,7 +5,7 @@
   gather_facts: false
 
   vars:
-    operator_work_dir: "/home/jenkins/agent/test-operator"
+    operator_work_dir: "/home/jenkins/test-operator"
     operator_dir: "/tmp/test"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
     jq_bin_path : "/usr/bin/jq"
