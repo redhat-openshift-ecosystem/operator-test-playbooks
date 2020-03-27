@@ -1,0 +1,18 @@
+---
+- name: Cleanup leftover operator resources
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    openshift_namespace: "test-operator"
+    oc_bin_path: "oc"
+    kubeconfig_path: ""
+    crd_paths: []
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    olm_operator_files_path: "{{ work_dir }}/olm-operator-files"
+
+  tasks:
+    - name: "Cleanup created resources on the OCP cluster"
+      include_role:
+        name: cleanup_operator_resources
