@@ -55,6 +55,17 @@
     ignore_errors: true
     when: create_pod.rc == 0
 
+  - name: "Inject kube_objects on OpenShift cluster for Operator certification"
+    block:
+    - name: "Inject openshift kube_objects"
+      include_role:
+        name: inject_openshift_kube_objects
+      vars:
+        rsa_private_key: "{{ lookup('env', 'HOME') }}/.ssh/private_key"
+    when:
+      - kube_objects is defined
+      - kube_objects != "N/A"  
+
   - name: "Get debug"
     shell: "{{ oc_bin_path }} get pod {{ pod_name }} -o=json -n {{ openshift_namespace }}"
     register: get_debug

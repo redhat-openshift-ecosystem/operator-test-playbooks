@@ -23,6 +23,7 @@
         operator_work_dir: "{{ work_dir }}/operator-files"
         olm_operator_files_path: "{{ work_dir }}/olm-operator-files"
         scorecard_cr_dir: "{{ work_dir }}/scorecard-cr-files"
+        kube_objects_dir: "{{ work_dir }}/kube_objects"
         testing_bin_path: "{{ work_dir }}/bin"
         oc_bin_path: "{{ testing_bin_path }}/oc"
         jq_bin_path: "{{ testing_bin_path }}/jq"

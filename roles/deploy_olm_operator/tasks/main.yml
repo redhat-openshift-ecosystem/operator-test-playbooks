@@ -37,6 +37,19 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+- name: "Inject kube_objects on OpenShift cluster for Operator certification"
+  block:
+    - name: "Inject openshift kube_objects"
+      include_role:
+        name: inject_openshift_kube_objects
+      vars:
+        rsa_private_key: "{{ lookup('env', 'HOME') }}/.ssh/private_key"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when:
+    - kube_objects is defined
+    - kube_objects != "N/A"    
+
 - name: "Create the olm operator files directory"
   shell: "mkdir -p {{ olm_operator_files_path }}"
 
