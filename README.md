@@ -66,6 +66,27 @@ The rest of the required binaries are downloaded by the playbook to a temporary 
 If we, for some reason, want to skip the download (for example if we already have the required binaries at that location from a previous playbook run), 
 we can set the `run_prereqs` parameter in this way: ``-e run_prereqs=false``
 
+#### 7. The parameters required to support image pull secrets
+
+##### 1. The kube_objects(a kubernetes resource)
+
+The kube_objects is a kubernetes resource requires to be injected to the openshift cluster.
+
+The kube_objects can be passed as a parameter to the playbook
+for example: `-e kube_objects=kube_objects`
+
+##### 2. A shared symmetric key
+
+If the kube_objects is a secret and in the encrypted form, a shared symmetric key is required to decrypt the kube_objects.
+
+The symmetric_key can be passed as a parameter to the playbook
+for example: `-e symmetric_key=symmetric_key`
+
+##### 3. The RSA private key is required to decrypt the symmetric key 
+
+The path where the private key is stored can be supplied as `rsa_private_key` parameter,
+for example: `-e rsa_private_key=~/.ssh/private_key`
+
 ### Selecting operator tests
 
 If we want to enable or disable individual tests, we can use these parameters and set them to true or false:
@@ -104,6 +125,19 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
     -e quay_namespace="${QUAY_NAMESPACE}" \
     -e production_quay_namespace="certified-operators" \
     -e operator_dir="${OPERATOR_DIR}"
+```
+If we want to run full operator testing with image pull secrets and certified-operators
+
+```bash
+ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml \
+    -e kubeconfig_path="${KUBECONFIG_PATH}" \
+    -e quay_token="${QUAY_TOKEN}" \
+    -e quay_namespace="${QUAY_NAMESPACE}" \
+    -e production_quay_namespace="certified-operators" \
+    -e operator_dir="${OPERATOR_DIR}" \
+    -e kube_objects="${KUBE_OBJECTS}" \
+    -e symmetric_key="${SYMMETRIC_KEY}" \
+    -e rsa_private_key="${PRIVATE_KEY}"
 ```
 
 #### 3. Testing community operators
