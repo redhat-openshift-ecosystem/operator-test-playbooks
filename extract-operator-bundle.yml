@@ -1,0 +1,23 @@
+---
+- name: Extract and parse the operator bundle image for testing usage
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    operator_work_dir: "/home/jenkins/agent/test-operator"
+    operator_bundle_dir: "/tmp/operator-bundle"
+    testing_bin_path: "/usr/local/bin"
+    jq_bin_path: "/usr/bin/jq"
+    yq_bin_path: "/usr/local/bin/yq"
+    umoci_bin_path: "/usr/local/bin/umoci"
+
+  tasks:
+    - name: "Extract the operator bundle image into files needed to run the tests"
+      include_role:
+        name: extract_operator_bundle
+
+    - name: "Parse the operator bundle image, manifest and metadata"
+      include_role:
+        name: parse_operator_bundle

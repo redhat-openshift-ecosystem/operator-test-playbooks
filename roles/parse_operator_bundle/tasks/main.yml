@@ -1,0 +1,97 @@
+---
+- name: "Inspect the bundle image with skopeo"
+  shell: "skopeo inspect docker://{{ bundle_image }}"
+  register: skopeo_inspect_result
+
+- name: "Save the skopeo inspect output to a log file"
+  copy:
+    content: "{{ skopeo_inspect_result.stdout }}"
+    dest: "{{ work_dir }}/bundle-skopeo-inspect.json"
+  when:
+    - skopeo_inspect_result is defined
+    - skopeo_inspect_result.stdout != ""
+
+- set_fact:
+    skopeo_inspect_json: "{{ skopeo_inspect_result.stdout | from_json }}"
+
+- set_fact:
+    is_bundle_image: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.operator.bundle'] }}"
+    package_name: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1'] }}"
+    default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
+    current_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}" # using default channel since the bundle only has one
+    ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
+    is_backport: false
+
+- set_fact:
+    is_backport: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.backport'] }}"
+  when: skopeo_inspect_json.Labels['com.redhat.delivery.backport'] is defined
+
+- name: "Determine the clusterserviceversion (CSV) path in the operator metadata directory"
+  shell: "egrep -lR \"kind:\\s*?ClusterServiceVersion*?\" {{ operator_work_dir }}/manifests/*"
+  register: csv_path_result
+
+- name: "Determine the directory of the current clusterserviceversion"
+  shell: "dirname {{ csv_path_result.stdout }}"
+  register: current_csv_dir_result
+
+- set_fact:
+    csv_path: "{{ csv_path_result.stdout }}"
+    current_csv_dir: "{{ current_csv_dir_result.stdout }}"
+
+- name: "Determine the current clusterserviceversion name"
+  shell: "{{ yq_bin_path }} read {{ csv_path }} 'metadata.name'"
+  register: current_csv_result
+
+- name: "Determine the customresurcedefinition (CRD) paths in the operator metadata directory"
+  shell: "egrep -l \"kind:\\s*?CustomResourceDefinition*?\" {{ current_csv_dir }}/*"
+  register: crd_paths_result
+  ignore_errors: true
+
+- set_fact:
+    current_csv: "{{ current_csv_result.stdout }}"
+    crd_paths: "{{ crd_paths_result.stdout_lines }}"
+
+- name: "Determine operator pod name in the CSV"
+  shell: "{{ yq_bin_path }} read {{ csv_path }} 'spec.install.spec.deployments[0].name'"
+  register: operator_pod_name_result
+
+- name: "Determine operator container name in the CSV"
+  shell: "{{ yq_bin_path }} read {{ csv_path }} 'spec.install.spec.deployments[0].spec.template.spec.containers[0].name'"
+  register: operator_container_name_result
+
+- name: "Determine operator capabilities in the CSV"
+  shell: "{{ yq_bin_path }} read {{ csv_path }} 'metadata.annotations.capabilities'"
+  register: operator_capabilities_result
+
+- set_fact:
+    operator_pod_name: "{{ operator_pod_name_result.stdout }}"
+    operator_container_name: "{{ operator_container_name_result.stdout }}"
+    operator_capabilities: "{{ operator_capabilities_result.stdout }}"
+
+# Check operator's support for InstallModes, see https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/design/operatorgroups.md#installmodes-and-supported-operatorgroups
+- name: "Check if operator install mode supports AllNamespaces"
+  shell: "{{ yq_bin_path }} read --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"AllNamespaces\").supported'"
+  register: operator_allnamespaces_support_result
+
+- name: "Check if operator install mode supports OwnNamespace"
+  shell: "{{ yq_bin_path }} read --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"OwnNamespace\").supported'"
+  register: operator_ownnamespace_support_result
+
+- name: "Check if operator install mode supports SingleNamespace"
+  shell: "{{ yq_bin_path }} read --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"SingleNamespace\").supported'"
+  register: operator_singlenamespace_support_result
+
+- name: "Check if operator install mode supports MultiNamespace"
+  shell: "{{ yq_bin_path }} read --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"MultiNamespace\").supported'"
+  register: operator_multinamespace_support_result
+
+- set_fact:
+    operator_allnamespaces_support: "{{ operator_allnamespaces_support_result.stdout if operator_allnamespaces_support_result.stdout != '' else false }}"
+    operator_ownnamespace_support: "{{ operator_ownnamespace_support_result.stdout if operator_ownnamespace_support_result.stdout != '' else false }}"
+    operator_singlenamespace_support: "{{ operator_singlenamespace_support_result.stdout if operator_singlenamespace_support_result.stdout != '' else false }}"
+    operator_multinamespace_support: "{{ operator_multinamespace_support_result.stdout if operator_multinamespace_support_result.stdout != '' else false }}"
+
+- name: "Output all collected data to a yaml file in work dir"
+  template:
+    src: "parsed_operator_data.yml.j2"
+    dest: "{{ work_dir }}/parsed_operator_data.yml"
