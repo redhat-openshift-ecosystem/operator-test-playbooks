@@ -1,23 +1,123 @@
----
-- name: Prepare OCP 4.1 configuration for installation on AWS
-  hosts: all
+# Extra_vars for the running this playbook
+# 1. cluster_name: Name of the cluster to be provisioned
+# 2. pipeline_repo_path : path to pipeline_repo 
+# 3. aws_region: region on which the ocp_cluster needs to be deployed
+# 4. pipeline_repo_url: url from which the pipeline needs to be cloned 
+#                       if the pipeline_repo_path is empty
+# 5. openshift_install: Boolean value to specify whether to install openshift 
+#                       with generated config
+# 6. openshift_installer_log_level: Logging level of openshift installer
+#                                   defaults to info
+# 7. ocp_install_directory: Directory in which the cluster config files are generated
+#                           by default it is fetched from pipleline_repo_path
+# 8. vault_file: path to vault_file where passwords are stored
+# 9. ocp_install_config_template: ocp_config file template path
+# 10. ocp_installer_url: url to tar file of ocp_installer with ocp version appended to it
+
+# pipeline repo path is directory where the pipeline repo exists 
+
+# vault file is needed for decrypting credentials for openshift run
+# vault file is inside the pipeline_repo_path
+
+# All we need is pipeline_repo_path to be intialized 
+# if the folder is empty, the playbook clones the contents of the pipeline repo url
+
+- name: "Prepare OCP 4.x configuration for installation on AWS"
+  hosts: localhost
   become: false
   gather_facts: false
+  pre_tasks:
+    # set the default variable using set_fact
+    - name: "Set default varibles such that they can be overridden by extra-vars and environment variables"
+      set_fact:
+        cluster_name: "{{ cluster_name | default('test-cluster') }}"
+        aws_region: "{{ aws_region | default('us-east-2') }}"
+        # pipeline_repo_path defaults to WORKSPACE environment varibable
+        pipeline_repo_path: "{{ pipeline_repo_path | default(lookup('env', 'WORKSPACE')) }}"
+        pipeline_repo_url: ""
+        openshift_install: "{{ openshift_install | default(false) }}"
+        openshift_installer_log_level: "{{ openshift_installer_log_level | default('info') }}"
 
-  vars_files:
-    - "{{ playbook_dir }}/../../../config/ansible/vault.yml"
+    - name: "Set OCP install directory & vault_file path"
+      # Note: all the set_fact variables are fetched from extra-vars passed to playbook
+      # if the variables are not found they would be assuming the default variables
+      set_fact:
+        ocp_install_directory: "{{ ocp_install_directory |
+                                   default(pipeline_repo_path+'/operators/ocp-cluster-deployment/') }}"
+        vault_file: "{{ vault_file |
+                        default(pipeline_repo_path+'/config/ansible/vault.yml')}}"
+        ocp_install_config_template: "{{ ocp_install_config_template |
+                                         default(pipeline_repo_path+'/operators/ocp-cluster-deployment/install-config.yaml.j2') }}"
+        ocp_installer_url:  "{{ ocp_installer_url |
+                                default('https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz') }}"
 
-  vars:
-    cluster_name: "test-cluster"
-    aws_region: "us-east-2"
+
+    # Check if the pipeline_repo_path exists or not
+    # pipeline_repo_path contains the pipeline repo path which is a clone of
+    - name: "check if the pipeline_repo_path exists"
+      stat:
+        path: "{{ pipeline_repo_path }}"
+      register: does_pipeline_repo_path_exists
+
+    # debug message displays if path exists or not 
+    # and if the path is a directory
+    - name: "Debug: Check if the path exists"
+      debug:
+        msg: "Path exists and is a directory"
+      when: does_pipeline_repo_path_exists.stat.isdir is defined and does_pipeline_repo_path_exists.stat.isdir
+    
+    - name: "get the number of files inside the folder"
+      find:
+        paths: "/{{ pipeline_repo_path }}/"
+      register: filesFound
+
+    - name: "set default for is pipeline_repo_path empty"
+      set_fact:
+        is_empty_pipeline_repo_path: true
+
+    - name: "is pipeline_repo_path empty ?"
+      set_fact:
+        is_empty_pipeline_repo_path: false
+      when: filesFound.matched > 0
+
+    # check if the path is a git directory 
+    - name: "Check if its a git directory"
+      shell: "git rev-parse --is-inside-work-tree"
+      args:
+        chdir: "{{ pipeline_repo_path }}"
+      when: not is_empty_pipeline_repo_path
+      register: check_pipeline_repo_is_git  
+
+    # if its a git directory try pulling the latest updates
+    # Note: This pull command works only when you are on vpn
+    # since https://gitlab.sat.engineering.redhat.com/cvp/pipeline.git
+    # is a internal repository
+    - name: "update the repo if its git repo"
+      shell: "git pull --rebase origin master"
+      args:
+        chdir: "{{ pipeline_repo_path }}"
+      when: not check_pipeline_repo_is_git.skipped
+      ignore_errors: true
+    # if its a git directory try pulling the latest updates
+    # Note: this pull command works only when you are on vpn
+    # since https://gitlab.sat.engineering.redhat.com/cvp/pipeline.git
+    # is a internal repository
+    - name: "clone the pipeline repo into pipeline_repo_path"
+      git:
+        repo: "{{ pipeline_repo_url }}"
+        dest: "{{ pipeline_repo_path }}"
+        clone: yes
+      when: is_empty_pipeline_repo_path
+
+    # vault file needs to be included for further run of aws cluster 
+    - name: "Include vault file from pipeline"
+      include_vars:
+        file: "{{ pipeline_repo_path }}/config/ansible/vault.yml"
 
   tasks:
-    - set_fact:
-        ocp_install_directory: "{{ lookup('env', 'WORKSPACE') }}/operators/ocp-cluster-deployment/{{ cluster_name }}"
-
     - name: "Ensure that the ocp install directory exists and is empty"
       file:
-        path: "{{ ocp_install_directory }}"
+        path: "{{ ocp_install_directory }}/{{ cluster_name }}"
         state: "{{ item }}"
       with_items:
         - absent
@@ -25,32 +125,51 @@
 
     - name: "Inject cluster name: {{ cluster_name }} and region: {{ aws_region }} into the install config"
       template:
-        src: "{{ lookup('env', 'WORKSPACE') }}/operators/ocp-cluster-deployment/install-config.yaml.j2"
-        dest: "{{ ocp_install_directory }}/install-config.yaml"
+        src: "{{ ocp_install_config_template }}"
+        dest: "{{ ocp_install_directory }}/{{ cluster_name }}/install-config.yaml"
 
     - name: "Inject secrets into the install-config"
       blockinfile:
-        path: "{{ ocp_install_directory }}/install-config.yaml"
+        path: "{{ ocp_install_directory }}/{{ cluster_name }}/install-config.yaml"
         block: "{{ cvp_vault.ocp_40_secrets | to_nice_yaml }}"
         insertafter: EOF
         marker: ""
       no_log: true
 
-    - file:
+    - name: "Make sure the .aws directory exists insde home directory"
+      file:
         path: "{{ lookup('env', 'HOME') }}/.aws"
         state: directory
         mode: 0700
 
-    - copy:
+    - name: "Copy contents of aws_credentials into credentials folder"
+      copy:
         content: "{{ cvp_vault.aws_credentials }}"
         dest: "{{ lookup('env', 'HOME') }}/.aws/credentials"
 
-    - file:
+    - name: "Make sure the .ssh folder exists inside home directory"
+      file:
         path: "{{ lookup('env', 'HOME') }}/.ssh"
         state: directory
         mode: 0700
 
-    - copy:
+    - name: "Copy the private key into ~/.ssh folder"
+      copy:
         content: "{{ cvp_vault.ssh_private_key }}"
         dest: "{{ lookup('env', 'HOME') }}/.ssh/private_key"
         mode: 0600
+    - block:
+      - name: "Download the ocp installer binary"
+        get_url:
+          url: "{{ ocp_installer_url }}"
+          dest: "{{ ocp_install_directory }}"
+      - name: "Unarchive the contents of openshift installer"
+        unarchive:
+          src: "{{ ocp_install_directory }}/{{ ocp_installer_url.split('/')[-1] }}"
+          dest: "{{ ocp_install_directory }}"
+      - name: "Install openshift with the generated configuration"
+        shell:
+          cmd: "./openshift-install create cluster --dir {{ cluster_name }} --log-level {{ openshift_installer_log_level }}"
+        args:
+          chdir: "{{ ocp_install_directory }}"
+      when: openshift_install | bool

@@ -119,3 +119,14 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
     -e run_imagesource=false
 ```
 
+#### 4. Creating openshift config file for installing openshift cluster on AWS
+```bash
+ansible-playbook -vv -i "localhost," --connection=local  \
+ansible-playbook -i "localhost," --connection=local prepare-ocp4-aws-config.yml \
+    --vault-password-file /path/to/vault_passwd_file \
+    -e cluster_name="test_cluster" \
+    -e pipeline_repo_path=/path/to/pipelinerepo \
+    -e aws_region="us-east-2" \
+    -e openshift_install=true \ // optional: if true installs openshift cluster on aws
+    -e openshift_installer_log_level=debug
+```
