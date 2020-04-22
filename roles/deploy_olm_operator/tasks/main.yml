@@ -48,7 +48,8 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   when:
     - kube_objects is defined
-    - kube_objects != "N/A"    
+    - kube_objects != "N/A"
+    - kube_objects != "null"  
 
 - name: "Create the olm operator files directory"
   shell: "mkdir -p {{ olm_operator_files_path }}"
