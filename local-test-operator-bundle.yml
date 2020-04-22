@@ -1,0 +1,34 @@
+---
+- name: Test the operator bundle image
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_prereqs: true
+    run_lint: true
+    run_catalog_init: true
+    work_dir: "/tmp/operator-test"
+    testing_bin_path: "{{ work_dir }}/bin"
+    current_channel: '' # Added to avoid a potential bug with undefined variables
+
+  tasks:
+    - set_fact:
+        operator_work_dir: "{{ work_dir }}/operator-files"
+        operator_bundle_dir: "{{ work_dir }}/operator-bundle"
+        jq_bin_path: "{{ testing_bin_path }}/jq"
+        yq_bin_path: "{{ testing_bin_path }}/yq"
+        umoci_bin_path: "{{ testing_bin_path }}/umoci"
+
+    - name: "Install operator testing prerequisites"
+      include_role:
+        name: install_operator_prereqs
+      when: run_prereqs|bool
+
+    - name: "Extract the operator bundle image into files needed to run the tests"
+      include_role:
+        name: extract_operator_bundle
+
+    - name: "Parse the operator bundle image, manifest and metadata"
+      include_role:
+        name: parse_operator_bundle
