@@ -1,0 +1,19 @@
+---
+- name: Validate the operator bundle image data with operator-sdk
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    operator_work_dir: "/home/jenkins/agent/test-operator"
+    testing_bin_path: "/usr/local/bin"
+    jq_bin_path: "/usr/bin/jq"
+    yq_bin_path: "/usr/local/bin/yq"
+    operator_sdk_bin_path: "/usr/local/bin/operator-sdk"
+    check_validation_result: false
+
+  tasks:
+    - name: "Validate the operator bundle image data with operator-sdk"
+      include_role:
+        name: validate_operator_bundle
