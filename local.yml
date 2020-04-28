@@ -1,0 +1,107 @@
+---
+- name: Test
+  hosts: all
+  become: false
+  gather_facts: false
+  vars:
+    run_host_init: true
+    run_prereqs: true
+    run_upstream: false
+    run_lint: true
+    run_catalog_init: true
+    run_deploy: true
+    run_scorecard: true
+    run_imagesource: true
+    run_cleanup: true
+    run_remove_catalog_repo: true
+    run_manifest_test: false
+    run_bundle_test: true
+    work_dir: "/tmp/operator-test"
+    operator_dir: "dummy" # so operator-courier will be installed
+    operator_input_image: ""
+    operator_input_image_convert: true
+    image_protocol: "docker://"
+    bundle_image: "dummy" # so skopeo and umoci will be installed
+    operator_work_dir: "{{ work_dir }}/operator-files"
+    testing_bin_path: "{{ work_dir }}/bin"
+    jq_bin_path: "{{ testing_bin_path }}/jq"
+    yq_bin_path: "{{ testing_bin_path }}/yq"
+    go_bin_path: "{{ testing_bin_path }}/go/bin/go"
+    operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+    umoci_bin_path: "{{ testing_bin_path }}/umoci"
+    opm_bin_path: "{{ testing_bin_path }}/opm"
+    offline_cataloger_bin_path: "offline-cataloger"
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+    when: run_upstream|bool
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+      when: run_upstream|bool
+
+    - set_fact:
+        work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
+        operator_dir: "{{ operator_dir | default('dummy') }}"
+        operator_input_image: "{{ operator_input_image | default('') }}"
+        operator_input_image_convert: "{{ operator_input_image_convert | default('true') }}"
+        image_protocol: "{{ image_protocol | default('docker://') }}"
+        bundle_image: "{{ bundle_image | default('dummy') }}"
+        run_host_init: "{{ run_host_init | default(true) }}"
+        run_prereqs: "{{ run_prereqs | default(true) }}"
+        run_upstream: "{{ run_upstream | default(false) }}"
+        run_lint: "{{ run_lint | default(true) }}"
+        run_catalog_init: "{{ run_catalog_init | default(true) }}"
+        run_deploy: "{{ run_deploy | default(true) }}"
+        run_scorecard: "{{ run_scorecard | default(true) }}"
+        run_imagesource: "{{ run_imagesource | default(true) }}"
+        run_cleanup: "{{ run_cleanup | default(true) }}"
+        run_remove_catalog_repo: "{{ run_remove_catalog_repo | default(true) }}"
+        operator_format: "bundle"
+      tags:
+        - always
+
+  roles:
+    - { role: install_base_packages, tags: ["base"], when: run_host_init|bool }
+    - { role: install_docker, tags: ["docker"], when: run_host_init|bool }
+    - { role: install_kubectl, tags: ["kubectl"], when: run_host_init|bool }
+    - { role: install_kind, tags: ["kind"], when: run_host_init|bool }
+    - { role: prepare_catalog_repo_upstream, tags: ["always"], when: run_upstream|bool }
+    - { role: detect_format, tags: ["always"], when: run_upstream|bool }
+
+  tasks:
+    - set_fact:
+        run_manifest_test: "{{ run_manifest_test | default(false) }}"
+        run_bundle_test: "{{ run_bundle_test | default(true) }}"
+        image_protocol: "{{ image_protocol | default('docker://') }}"
+        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+      tags:
+        - always
+        - test
+        - pure_test
+
+    - set_fact:
+        run_prereqs: false
+      tags:
+        - never
+        - pure_test
+
+- name: Running operator manifest test
+  import_playbook: local-test-operator.yml
+  when:
+    - run_upstream|bool
+    - run_manifest_test|bool
+  tags:
+    - test
+    - pure_test
+
+- name: Running operator bundle test
+  import_playbook: local-test-operator-bundle.yml
+  when:
+    - run_upstream|bool
+    - run_bundle_test|bool
+  tags:
+    - test
+    - pure_test

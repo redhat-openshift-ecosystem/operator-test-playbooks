@@ -1,0 +1,25 @@
+---
+- name: Prepare comunity operator directory
+  block:
+
+    - name: Remove catalog directory
+      file:
+        path: "{{ catalog_repo_dir }}"
+        state: absent
+      when: run_remove_catalog_repo|bool
+
+    - name: "Check if community operators directory exists"
+      stat:
+        path: "{{ catalog_repo_dir }}"
+      register: operator_dir_st
+
+    - name: "Git clone community operators : {{ catalog_repo }} branch: {{ catalog_repo_branch }}"
+      git:
+        repo: "{{ catalog_repo }}"
+        dest: "{{ catalog_repo_dir }}"
+        version: "{{ catalog_repo_branch }}"
+        force: true
+      when: not operator_dir_st.stat.exists
+  when: operator_input_image == ""
+  tags:
+    - catalog_build

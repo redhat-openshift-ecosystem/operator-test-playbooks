@@ -1,4 +1,5 @@
 ---
-oc_bin_path: oc
+oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
 olm_operator_files_path: "{{ playbook_dir }}/../../operators/olm-operator-files"
 openshift_namespace: test-operator
+kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"

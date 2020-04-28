@@ -1,0 +1,109 @@
+- name: Handle bundle image from source image
+  block:
+    - name: Set input image
+      set_fact:
+        bundle_image: "{{ operator_input_image | regex_replace('[A-z]*://', '') }}"
+        operator_name: "{{ operator_input_image.split(':')[0] | regex_replace('[A-z]*://', '') | basename }}"
+        operator_version: "{{ operator_input_image.split(':')[1] }}"
+    # - fail:
+    #     msg: "{{ operator_name }} {{ operator_version }}"
+    - name: Remove bundle image {{ bundle_image }}
+      shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
+  when: not operator_input_image_convert|bool
+
+- name: Handle bundle image from source dir
+  block:
+    - name: "Ensure that the operator manifest to bundle directory is empty"
+      file:
+        state: "absent"
+        path: "{{ operator_bundle_src_dir }}"
+    - name: "Ensure that the operator manifest to bundle directory is created"
+      file:
+        state: "directory"
+        path: "{{ operator_bundle_src_dir }}"
+    - name: "Copy manifest format files to {{ operator_bundle_src_dir }}"
+      copy:
+        src: "{{ operator_dir }}"
+        dest: "{{ operator_bundle_src_dir }}"
+        remote_src: yes
+
+    - set_fact:
+        operator_name: "{{ operator_dir | basename }}"
+
+    - set_fact:
+        bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_name }}:v{{ operator_version }}"
+        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/manifests/{{ operator_name }}.v{{ operator_version }}.clusterserviceversion.yaml"
+        annotation_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/metadata/annotations.yaml"
+
+    - set_fact:
+        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/{{ csv_file_path | basename }}"
+      when: operator_format == "manifest"
+
+    - name: Ensure replaces is removed in this test
+      block:
+        - name: Check if csv file exists
+          stat:
+            path: "{{ clusterserviceversion_bundle_file_path }}"
+          register: clusterserviceversion_bundle_file_st
+
+        - name: Fail if csv file doesn't exists
+          fail:
+          when: not clusterserviceversion_bundle_file_st.stat.exists
+
+        - name: Ensure replaces is removed in the csv file
+          lineinfile:
+            path: '{{ clusterserviceversion_bundle_file_path }}'
+            regexp: '^\s*replaces:'
+            state: absent
+
+    - name: Remove bundle image {{ bundle_image }}
+      shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
+
+    - name: "Read the variables from annotations.yaml"
+      block:
+        - name: Check if annotation file exists
+          stat:
+            path: "{{ annotation_file_path }}"
+          register: annotation_file_st
+
+        - name: Fail if annotation file doesn't exists
+          fail:
+          when: not annotation_file_st.stat.exists
+
+        - name: "Getting content of annotation.yaml file"
+          shell: "cat {{ annotation_file_path }}"
+          register: annotation_data
+
+        - name: Set facts
+          set_fact:
+            annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
+
+        - name: Set annotation variables
+          set_fact:
+            operator_channel_default: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channel.default.v1'] }}"
+            operator_channels: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'] }}"
+            operator_manifest_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1'] }}"
+            operator_metadata_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1'] }}"
+            operator_package_name: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] }}"
+        - name: "Generate bundle image {{ bundle_image }} from bundle format"
+          shell:
+            cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
+            chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
+      when: operator_format == "bundle"
+
+    - name: "Generate bundle image {{ bundle_image }} from bundle format"
+      shell:
+        cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
+        chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
+      when: operator_format == "bundle"
+
+    - name: "Generate bundle image {{ bundle_image }} from manifest format"
+      shell:
+        cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }} --package {{ operator_name }} -t {{ bundle_image }} -b {{ opm_container_tool }}"
+        chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
+      when: operator_format == "manifest"
+
+    - name: Push bundle image {{ bundle_image }}
+      shell: "{{ opm_container_tool }} push {{ bundle_image }}"
+
+  when: operator_input_image_convert|bool

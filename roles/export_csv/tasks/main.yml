@@ -1,0 +1,59 @@
+---
+- name: Find csv file (bundle)
+  block:
+    - name: Searching for file cvs file (bundle)
+      find:
+        paths: "{{ op_csv_dir }}/manifests/"
+        recurse: no
+        file_type: file
+        patterns: '*.clusterserviceversion.yaml'
+      register: csv_find_bundle
+    - fail:
+        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+      when: csv_find_bundle.files|length == 0
+    - set_fact:
+        csv_file_path: "{{ csv_find_bundle.files[0].path }}"
+  when: operator_format == "bundle"
+
+- name: Find csv file (manifest)
+  block:
+    - name: Searching for file cvs file (manifest)
+      find:
+        paths: "{{ op_csv_dir }}"
+        recurse: no
+        file_type: file
+        patterns: '*.clusterserviceversion.yaml'
+      register: csv_find_manifest
+    - fail:
+        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+      when: csv_find_manifest.files|length == 0
+    - set_fact:
+        csv_file_path: "{{ csv_find_manifest.files[0].path }}"
+  when: operator_format == "manifest"
+
+- debug:
+    var: csv_file_path
+    verbosity: 2
+
+- name: "Include the package path into the operator_vars (upstream only)"
+  block:
+  - name: Check if package file exists
+    stat:
+      path: "{{ csv_file_path }}"
+    register: csv_file_st
+  - name: Fail if package file doesn't exists
+    fail:
+    when: not csv_file_st.stat.exists
+  - name: "Getting content of package file"
+    shell: "cat {{ csv_file_path }}"
+    register: csv_data
+  - name: Set facts
+    set_fact:
+      operator_vars_tmp: "{{ csv_data.stdout | from_yaml }}"
+  - name: Set facts
+    set_fact:
+      operator_vars: "{{ operator_vars_tmp | from_yaml }}"
+
+- debug:
+    var: operator_vars
+    verbosity: 3

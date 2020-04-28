@@ -1,6 +1,6 @@
 ---
 - name: "Inspect the bundle image with skopeo"
-  shell: "skopeo inspect docker://{{ bundle_image }}"
+  shell: "skopeo inspect {{ image_protocol }}{{ bundle_image }}"
   register: skopeo_inspect_result
 
 - name: "Save the skopeo inspect output to a log file"
@@ -15,16 +15,19 @@
     skopeo_inspect_json: "{{ skopeo_inspect_result.stdout | from_json }}"
 
 - set_fact:
-    is_bundle_image: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.operator.bundle'] }}"
+    is_bundle_image: true
     package_name: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1'] }}"
     default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
     current_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}" # using default channel since the bundle only has one
-    ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
-    # if backport label missing, an empty is_backport means not set.
+    ocp_versions: []
     is_backport: ""
 
 - set_fact:
-    # if backport label missing, an empty is_backport means not set.
+    is_bundle_image: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.operator.bundle'] }}"
+    ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
+  when: not run_upstream|bool
+
+- set_fact:
     is_backport: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.backport'] }}"
   when: skopeo_inspect_json.Labels['com.redhat.delivery.backport'] is defined
 

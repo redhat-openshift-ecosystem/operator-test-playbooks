@@ -13,17 +13,19 @@
   loop_control:
     loop_var: owned_crd_path
 
-- name: "Verify if {{ openshift_namespace }} project exists"
-  shell: "{{ oc_bin_path }} project {{ openshift_namespace }}"
-  register: openshift_namespace_check_result
-  ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+- block:
+  - name: "Verify if {{ openshift_namespace }} project exists"
+    shell: "{{ oc_bin_path }} project {{ openshift_namespace }}"
+    register: openshift_namespace_check_result
+    ignore_errors: true
+    environment:
+      KUBECONFIG: "{{ kubeconfig_path }}"
 
-- name: "Delete the project {{ openshift_namespace }}"
-  shell: "{{ oc_bin_path }} delete project {{ openshift_namespace }} --grace-period=1"
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  when:
-      - openshift_namespace_check_result is defined
-      - openshift_namespace_check_result.rc == 0
+  - name: "Delete the project {{ openshift_namespace }}"
+    shell: "{{ oc_bin_path }} delete project {{ openshift_namespace }} --grace-period=1"
+    environment:
+      KUBECONFIG: "{{ kubeconfig_path }}"
+    when:
+        - openshift_namespace_check_result is defined
+        - openshift_namespace_check_result.rc == 0
+  when: not run_upstream|bool

@@ -16,6 +16,13 @@
   shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_work_dir }} > {{ work_dir}}/validation-output.txt 2>&1"
   register: sdk_validation_result
   ignore_errors: true
+  when: not run_upstream|bool
+
+- name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
+  shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} > {{ work_dir}}/validation-output.txt 2>&1"
+  register: sdk_validation_result
+  ignore_errors: true
+  when: run_upstream|bool
 
 - name: "Output the return code of operator-sdk bundle validate command to a debug file"
   copy:

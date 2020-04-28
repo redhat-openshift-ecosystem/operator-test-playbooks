@@ -1,0 +1,200 @@
+---
+- set_fact:
+    quay_release: "0.0.1"
+    upstream_namespace_param: "{{ '-n test-operators' if run_upstream else '' }}"
+    olm_operator_files_path: /tmp/operator-test/olm-operator-files
+
+- name: "Check operator version (upstream only)"
+  shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
+  register: op_ver
+
+- name: "Create the olm operator files directory"
+  file:
+    path: "{{ olm_operator_files_path }}"
+    state: directory
+    mode: '0755'
+
+- name: "Copy namespace file"
+  template:
+    src: "namespace.yml.js2"
+    dest: "{{ olm_operator_files_path }}/namespace.yml"
+
+- name: "Create the namespace"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/namespace.yml"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Process the operatorgroup template"
+  template:
+    src: "{{ 'operatorgroup_upstream.yml.j2' if run_upstream else \"operatorgroup.yml.j2\" }}"
+    dest: "{{ olm_operator_files_path }}/operatorgroup.processed.yml"
+
+- name: "Process the subscription template"
+  template:
+    src: "{{ 'subscription_upstream.yml.j2' if run_upstream else \"subscription.yml.j2\" }}"
+    dest: "{{ olm_operator_files_path }}/subscription.yml"
+
+- name: "Process the catalogsource template"
+  template:
+    src: "catalogsource_upstream.yml.j2"
+    dest: "{{ olm_operator_files_path }}/catalogsource.yml"
+
+
+- name: "Create all processed resources in the deploy directory"
+  shell: 'for f in $(find {{ olm_operator_files_path }} -maxdepth 1 -name "*processed.yml"); do {{ oc_bin_path }} apply -f $f; done'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Create the catalogsource"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml"
+
+- name: "Wait for the operatorsource pod to start up"
+  shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep test-operators- | grep Running"
+  register: operator_source_result
+  retries: 60
+  delay: 10
+  until: operator_source_result.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: not run_upstream|bool
+
+- name: "Wait for the operator {{ package_name }} to be in packagemanifests"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  register: packagemanifest_presence
+  retries: 60
+  delay: 5
+  until: packagemanifest_presence.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Create the subscription"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/subscription.yml"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Wait for the operator {{ operator_pod_name }} pod to start up"
+  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running"
+  register: operator_result
+  retries: 90
+  delay: 10
+  until: operator_result.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
+  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  register: operator_uptime
+  retries: 15
+  delay: 5
+  until: operator_uptime.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Get the details of the deployed CSVs"
+  shell: "{{ oc_bin_path }} describe csvs {{ upstream_namespace_param }}"
+  register: csv_describe_result
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Output the CSV description to a debug file"
+  copy:
+    content: "{{ csv_describe_result.stdout }}"
+    dest: "{{ work_dir }}/olm-operator-csv-debug.txt"
+  when: csv_describe_result.stdout != ""
+
+- name: "Get the pod status of the deployed operator"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
+  register: operator_pod_result
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: csv_describe_result.stdout != ""
+
+- name: "Output the operator pod log to a debug file"
+  copy:
+    content: "{{ operator_pod_result.stdout }}"
+    dest: "{{ work_dir }}/olm-operator-pod-debug.txt"
+  when:
+    - csv_describe_result.stdout != ""
+    - operator_pod_result.stdout != ""
+
+- name: "Get the pod container logs of the deployed operator"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
+  register: operator_container_result
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: csv_describe_result.stdout != ""
+
+- name: "Output the operator container log to a debug file"
+  copy:
+    content: "{{ operator_container_result.stdout }}"
+    dest: "{{ work_dir }}/olm-operator-container-debug.txt"
+  when:
+    - csv_describe_result.stdout != ""
+    - operator_container_result.stdout != ""
+
+- name: "Get the catalogsource pod log (upstream)"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
+  register: catalog_source_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: run_upstream|bool
+
+- name: "Output the catalogsource log to a debug file"
+  copy:
+    content: "{{ catalog_source_result.stdout }}"
+    dest: "{{ work_dir }}/olm-catalog-source-debug.txt"
+  when: catalog_source_result.stdout is defined
+
+- name: "Get the catalog-operator pod log (upstream)"
+  shell: "{{ oc_bin_path }} get --output=name pods -n olm | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n olm | tail -n 100"
+  register: catalog_operator_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: run_upstream|bool
+
+- name: "Output the catalog-operator log to a debug file"
+  copy:
+    content: "{{ catalog_operator_result.stdout }}"
+    dest: "{{ work_dir }}/olm-catalog-operator-debug.txt"
+  when: catalog_operator_result.stdout is defined
+
+- name: "Get the InstallPlan debug output"
+  shell: "{{ oc_bin_path }} describe installplan -n {{ openshift_namespace }}"
+  register: installplan_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Get the InstallPlan debug output"
+  shell: "{{ oc_bin_path }} describe installplan {{ upstream_namespace_param }}"
+  register: installplan_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Output the InstallPlan debug output to a debug file"
+  copy:
+    content: "{{ installplan_result.stdout }}"
+    dest: "{{ work_dir }}/olm-installplan-debug.txt"
+  when: installplan_result.stdout is defined
+
+- fail:
+    msg: 'Operator was not found among packagemanifests'
+  when:
+    - packagemanifest_presence.rc != 0
+    - run_upstream|bool
+
+- fail:
+    msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
+  when: operator_result.rc != 0
+
+- fail:
+    msg: 'Operator was not capable to stay healthy for a specific time'
+  when:
+    - operator_uptime.rc != 0
+    - run_upstream|bool

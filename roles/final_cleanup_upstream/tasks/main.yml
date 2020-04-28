@@ -1,0 +1,2 @@
+- name: "Delete namespace"
+  shell: "{{ oc_bin_path }} delete -f {{ olm_operator_files_path }}/namespace.yml"
