@@ -8,6 +8,7 @@
     - "{{ playbook_dir }}/../../../config/ansible/vault.yml"
 
   vars:
+    run_upstream: false
     openshift_namespace: "test-operator"
     operator_work_dir: "/home/jenkins/agent/test-operator"
     scorecard_cr_dir: "/home/jenkins/agent/scorecard-cr-files"
@@ -15,13 +16,17 @@
     olm_operator_files_path: "{{ work_dir }}/olm-operator-files"
     quay_token: "{{ cvp_vault.quay_token }}"
     quay_namespace: "cvpops"
-    oc_bin_path: "oc"
+    run_upstream: false
+    distro_type: "{{ 'upstream' if run_upstream else '' }}"
+    oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
     jq_bin_path : "/usr/bin/jq"
     yq_bin_path: "/usr/local/bin/yq"
     testing_bin_path: "/usr/local/bin"
     scorecard_first_cr: true
     run_scorecard: true
     current_channel: '' # Added to avoid a bug with undefined variables
+
+
 
   tasks:
     - name: "Login to the testing OpenShift instance"
@@ -32,7 +37,9 @@
       until: login_result.rc == 0
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-      when: openshift_url is defined
+      when:
+      - openshift_url is defined
+      - not run_upstream|bool
 
     - name: "Parse operator metadata needed to run the tests"
       include_role:

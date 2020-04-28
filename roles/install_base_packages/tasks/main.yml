@@ -1,0 +1,50 @@
+---
+
+- name: "Install required system packages"
+  package:
+    name:
+      - curl
+      - ca-certificates
+      - python3-pip
+      - python3-setuptools
+    state: latest
+    update_cache: yes
+  become: yes
+  tags:
+    - install
+    - host_build
+    - image_build
+
+- name: "Install required for Ubuntu system only"
+  block:
+    - name: Install packages via system package manager
+      package:
+        name:
+          - software-properties-common
+          - virtualenv
+        state: latest
+        update_cache: yes
+    - name: Install python modules
+      pip:
+        name:
+          - docker
+  become: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  tags:
+    - install
+    - host_build
+    - image_build
+
+- name: "Install required for RedHat/CentOS system only"
+  package:
+    name:
+      - python3-virtualenv
+      - python3-dockerpty
+    state: latest
+    update_cache: yes
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  tags:
+      - install
+      - host_build
+      - image_build

@@ -3,10 +3,13 @@
   file:
     path: "{{ testing_bin_path }}"
     state: directory
+  tags:
+    - install
+    - image_build
 
 - set_fact:
     operator_sdk_bin_path: "{{ testing_bin_path}}/operator-sdk"
-    oc_bin_path: "{{ testing_bin_path}}/oc"
+    oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
     jq_bin_path: "{{ testing_bin_path }}/jq"
     yq_bin_path: "{{ testing_bin_path }}/yq"
     go_bin_path: "{{ testing_bin_path }}/go/bin/go"
@@ -19,87 +22,128 @@
     src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: yes
+  when: not run_upstream|bool
+  tags:
+    - install
+    - image_build
 
 - name: "Download and extract go binary to {{ testing_bin_path }}"
   unarchive:
     src: "https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: yes
+  tags:
+    - install
+    - image_build
 
 - name: "Download operator-sdk for running operator scorecard tests"
   shell: "curl -o {{ operator_sdk_bin_path }} -L https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu && chmod +x {{ operator_sdk_bin_path }}"
+  tags:
+    - install
+    - image_build
 
 - name: "Download jq 1.6"
   shell: "curl -Lo {{ jq_bin_path }} https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x {{ jq_bin_path }}"
+  tags:
+    - install
+    - image_build
 
 - name: "Download yq 2.2.1"
   shell: "curl -Lo {{ yq_bin_path }} https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64 && chmod +x {{ yq_bin_path }}"
+  tags:
+    - install
+    - image_build
 
 - name: "Install prerequisites specific to legacy operator manifest testing"
   block:
-  - name: "Check if operator-courier is installed"
-    shell: "operator-courier -v"
-    register: operator_courier_version_result
-    ignore_errors: true
+    - name: "Check if operator-courier is installed"
+      shell: "operator-courier -v"
+      register: operator_courier_version_result
+      ignore_errors: true
 
-  - name: "Install operator-courier if not already installed"
-    shell: "pip3 install operator-courier=={{ operator_courier_version }}"
-    when:
-      - operator_courier_version_result.rc is defined
-      - operator_courier_version_result.rc != 0
+    - name: "Install operator-courier if not already installed"
+      shell: "pip3 install operator-courier=={{ operator_courier_version }}"
+      when:
+        - operator_courier_version_result.rc is defined
+        - operator_courier_version_result.rc != 0
 
-  - name: "Check if offline-cataloger is installed"
-    shell: "offline-cataloger -h"
-    register: offline_cataloger_help_result
-    ignore_errors: true
+    - name: "Check if offline-cataloger is installed"
+      shell: "offline-cataloger -h"
+      register: offline_cataloger_help_result
+      ignore_errors: true
+      when: not run_upstream|bool
 
-  - name: "Git clone offline-cataloger repo with the offline-cataloger command"
-    git:
-      repo: 'https://github.com/kevinrizza/offline-cataloger.git'
-      dest: /tmp/offline-cataloger
-      version: "master"
-      force: true
-    when:
-      - offline_cataloger_help_result.rc is defined
-      - offline_cataloger_help_result.rc != 0
+    - name: "Git clone offline-cataloger repo with the offline-cataloger command"
+      git:
+        repo: "https://github.com/kevinrizza/offline-cataloger.git"
+        dest: /tmp/offline-cataloger
+        version: "master"
+        force: true
+      when:
+        - offline_cataloger_help_result.rc is defined
+        - offline_cataloger_help_result.rc != 0
 
-  - set_fact:
-      offline_cataloger_bin_path: "{{ go_bin_path }} run -mod=vendor ./cmd/offline-cataloger/main.go"
-    when:
-      - offline_cataloger_help_result.rc is defined
-      - offline_cataloger_help_result.rc != 0
+    - set_fact:
+        offline_cataloger_bin_path: "{{ go_bin_path }} run -mod=vendor ./cmd/offline-cataloger/main.go"
+      when:
+        - offline_cataloger_help_result.rc is defined
+        - offline_cataloger_help_result.rc != 0
   when:
     - operator_dir is defined
     - operator_dir != ""
+  tags:
+    - install
+    - image_build
 
 - name: "Install prerequisites specific to operator bundle image testing"
   block:
-  - name: "Check if skopeo is installed"
-    shell: "skopeo -h"
-    register: skopeo_help_result
-    ignore_errors: true
+    - name: "Check if skopeo is installed"
+      shell: "skopeo -h"
+      register: skopeo_help_result
+      ignore_errors: true
 
-  - name: "Install skopeo"
-    package:
-      name: skopeo
-      state: present
-    become: true
-    when:
-      - skopeo_help_result.rc is defined
-      - skopeo_help_result.rc != 0
+    - name: "Install skopeo"
+      package:
+        name: skopeo
+        state: present
+      become: true
+      when:
+        - skopeo_help_result.rc is defined
+        - skopeo_help_result.rc != 0
 
-  - name: "Check if umoci is installed"
-    shell: "{{ umoci_bin_path }} -h"
-    register: umoci_help_result
-    ignore_errors: true
+    - name: "Check if umoci is installed"
+      shell: "{{ umoci_bin_path }} -h"
+      register: umoci_help_result
+      ignore_errors: true
 
-  - name: "Install umoci if not installed"
-    shell: "curl -o {{ umoci_bin_path }} -L https://github.com/openSUSE/umoci/releases/download/{{ umoci_version }}/umoci.amd64 && chmod +x {{ umoci_bin_path }}"
-    when:
-      - umoci_help_result.rc is defined
-      - umoci_help_result.rc != 0
-
+    - name: "Install umoci if not installed"
+      shell: "curl -o {{ umoci_bin_path }} -L https://github.com/openSUSE/umoci/releases/download/{{ umoci_version }}/umoci.amd64 && chmod +x {{ umoci_bin_path }}"
+      when:
+        - umoci_help_result.rc is defined
+        - umoci_help_result.rc != 0
   when:
     - bundle_image is defined
     - bundle_image != ""
+  tags:
+    - install
+    - image_build
 
+# - name: "Check if OLM is needed"
+#   shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
+#   register: olm_needed
+#   ignore_errors: true
+#   when:
+#     - run_upstream|bool
+
+# - name: "Install OLM"
+#   block:
+#     - name: "Installing OLM"
+#       shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_ver }}"
+
+#     - name: "Delete catalogsource"
+#       shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+#       ignore_errors: true
+
+#   when:
+#     - olm_needed.stdout != "operatorgroup"
+#     - run_upstream|bool

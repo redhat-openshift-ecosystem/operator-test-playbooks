@@ -6,7 +6,7 @@
       paths: "{{ operator_work_dir }}"
       file_type: file
       contains: 'packageName'
-    register: package_path_result 
+    register: package_path_result
 
     # assuming only one file matches the file path
   - name: "set variable for package_path from package_path_result"
@@ -159,5 +159,5 @@
         msg: "{{ ansible_failed_result }}"
 
     - name: "Result of failure"
-      fail: 
+      fail:
         msg: "Ansible playbook while preparing the operator metadata failed"

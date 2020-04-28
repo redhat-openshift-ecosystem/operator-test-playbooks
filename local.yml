@@ -1,0 +1,38 @@
+---
+- name: Test
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_upstream: false
+    run_remove_catalog_repo: true
+    distro_type: "{{ 'upstream' if run_upstream else '' }}"
+    work_dir: "/tmp/operator-test"
+    operator_dir: "dummy" # so operator-courier will be installed
+    operator_work_dir: "{{ work_dir }}/operator-files"
+    testing_bin_path: "{{ work_dir }}/bin"
+    oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+    jq_bin_path: "{{ testing_bin_path }}/jq"
+    yq_bin_path: "{{ testing_bin_path }}/yq"
+    go_bin_path: "{{ testing_bin_path }}/go/bin/go"
+    operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+    offline_cataloger_bin_path: "offline-cataloger"
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+    when: run_upstream|bool
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+
+  roles:
+    - { role: install_base_packages, tags: ["base"] }
+    - { role: install_docker, tags: ["docker"] }
+    - { role: install_kubectl, tags: ["kubectl"] }
+    - { role: install_kind, tags: ["kind"] }
+    - { role: install_operator_prereqs, tags: ["operator_prereqs"] }
+    - { role: build_catalog_upstream, tags: ["operator_catalog"] }
+    # - { role: operator_courier_verify, tags: ["pure_test", "operator_courier_verify"] }

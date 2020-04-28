@@ -1,0 +1,67 @@
+---
+- name: Prepare comunity operator directory
+  block:
+
+    - name: Remove catalog directory
+      file:
+        path: "{{ catalog_repo_dir }}"
+        state: absent
+      when: run_remove_catalog_repo|bool
+
+    - name: "Check if community operators directory exists"
+      stat:
+        path: "{{ catalog_repo_dir }}"
+      register: operator_dir_st
+
+    - name: "Git clone community operators : {{ catalog_repo }} branch: {{ catalog_repo_branch }}"
+      git:
+        repo: "{{ catalog_repo }}"
+        dest: "{{ catalog_repo_dir }}"
+        version: "{{ catalog_repo_branch }}"
+        force: true
+      when: not operator_dir_st.stat.exists
+  tags:
+    - catalog_build
+
+# #future feature
+# - name: "Quay login"
+#   shell: "docker login -u=\"{{ quay_namespace }}+test\" -p={{ quay_token }} quay.io"
+#   no_log: True
+
+- name: "Build catalog image from '{{ catalog_repo_dir }}/{{ catalog_dockerfile }}'"
+  docker_image:
+    name: "{{ catalog_image_registry }}/{{ catalog_image_namespace }}/{{ catalog_image_name }}"
+    build:
+      pull: yes
+      path: "{{ catalog_repo_dir }}"
+      dockerfile: "{{ catalog_repo_dir }}/{{ catalog_dockerfile }}"
+      args:
+        PERMISSIVE_LOAD: false
+    tag: "{{ catalog_image_tag }}"
+    push: yes
+    source: build
+  tags:
+    - catalog_build
+
+- name: "Delete previous catalog deployment (it may fail if not exists)"
+  shell: "{{ oc_bin_path }} delete deployment {{ catalog_source_name }} -n {{ catalog_source_namespace }}"
+  ignore_errors: yes
+  tags:
+    - catalog_build
+
+- name: "Copy namespace file"
+  template:
+    src: "namespace.yml.js2"
+    dest: "/tmp/namespace.yml"
+  tags:
+    - catalog_build
+
+- name: "Create the namespace"
+  shell: "{{ oc_bin_path }} apply -f /tmp/namespace.yml"
+  tags:
+    - catalog_build
+
+- name: "Deploy catalog image as deployment '{{ catalog_source_name }}' in '{{ catalog_source_namespace }}' namespace"
+  shell: "{{ oc_bin_path }} create deployment {{ catalog_source_name }} --image={{ catalog_image_registry }}/{{ catalog_image_namespace }}/{{ catalog_image_name }}:{{ catalog_image_tag }} -n={{ catalog_source_namespace }}"
+  tags:
+    - catalog_build

@@ -5,6 +5,7 @@
   gather_facts: false
 
   vars:
+    run_upstream: false
     operator_work_dir: "/home/jenkins/agent/test-operator"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
     check_verify_result: false

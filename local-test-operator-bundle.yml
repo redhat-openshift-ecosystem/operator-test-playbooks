@@ -5,6 +5,7 @@
   gather_facts: false
 
   vars:
+    run_upstream: false
     run_prereqs: true
     run_lint: true
     run_catalog_init: true

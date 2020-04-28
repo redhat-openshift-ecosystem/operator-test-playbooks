@@ -1,0 +1,76 @@
+---
+- name: "Docker installaion on ubuntu"
+  block:
+    - name: "Install aptitude using apt"
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+    - name: "Add Docker GPG apt Key"
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: "Add Docker Repository"
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: "Update apt and install docker-ce"
+      apt: update_cache=yes name=docker-ce state=latest
+  become: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  tags:
+    - install
+    - host_build
+
+- name: "Docker installaion on redhat"
+  block:
+    - name: Add Docker CE repository
+      shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
+
+    - name: "Install docker-ce"
+      yum:
+        name: docker-ce
+        state: latest
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  tags:
+    - install
+    - host_build
+
+- name: Ensure group "docker" exists
+  group:
+    name: "{{ docker_group }}"
+    state: present
+  become: yes
+  tags:
+    - install
+    - host_build
+
+- name: Add ansible user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+  become: yes
+  tags:
+    - install
+    - host_build
+
+- name: reset ssh connection
+  meta: reset_connection
+  tags:
+    - install
+    - host_build
+
+- name: Ensure docker service started
+  service:
+    name: docker
+    state: started
+  become: yes
+  tags:
+    - install
+    - host_build
+
+
+

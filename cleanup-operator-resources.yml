@@ -5,8 +5,9 @@
   gather_facts: false
 
   vars:
+    run_upstream: false
     openshift_namespace: "test-operator"
-    oc_bin_path: "oc"
+    oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
     kubeconfig_path: ""
     crd_paths: []
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
