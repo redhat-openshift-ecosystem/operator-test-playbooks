@@ -6,7 +6,7 @@
 
   vars:
     openshift_namespace: "test-operator"
-    oc_bin_path: "oc"
+    oc_bin_path: "{{ '/snap/bin/kubectl' if (distro_type == 'upstream') else 'oc' }}"
     kubeconfig_path: ""
     crd_paths: []
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"

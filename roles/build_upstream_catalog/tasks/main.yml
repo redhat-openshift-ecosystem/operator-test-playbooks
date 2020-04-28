@@ -1,0 +1,34 @@
+---
+- name: "Git clone community operators"
+  git:
+    repo: 'https://github.com/operator-framework/community-operators.git'
+    dest: "{{ catalog_repo_dir }}"
+    version: master
+    force: true
+
+- name: "Copy Dockerfile"
+  template:
+    src: "upstream.Dockerfile"
+    dest: "/tmp/upstream.Dockerfile"
+
+- name: "Clear old build log"
+  file:
+    path: "/tmp/build.log"
+    state: absent
+
+- name: "Run catalog build"
+  shell: "docker build --build-arg PERMISSIVE_LOAD=false -f /tmp/upstream.Dockerfile -t operatorhub-catalog:dev {{ catalog_repo_dir }} > /tmp/build.log"
+  register: build_image_output
+
+#temporary for testing
+- name: "Quay login"
+  shell: "docker login -u=\"{{ quay_namespace }}+test\" -p={{ quay_token }} quay.io"
+  no_log: True
+
+#temporary for testing
+- name: "Quay tag"
+  shell: "docker tag operatorhub-catalog:dev quay.io/{{ quay_namespace }}/catalog"
+
+#temporary for testing
+- name: "Quay push"
+  shell: "docker push quay.io/{{ quay_namespace }}/catalog"

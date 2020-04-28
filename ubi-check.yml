@@ -14,10 +14,19 @@
   vars:
     openshift_namespace: "test-operator"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
-    oc_bin_path: "oc"
+    oc_bin_path: "{{ '/snap/bin/kubectl' if (distro_type == 'upstream') else 'oc' }}"
     pod_name: "cvp-ubi-check"
 
   tasks:
+  - name: "Login to the testing OpenShift instance"
+    shell: "{{ oc_bin_path }} login {{ openshift_url }} --token={{ openshift_token }} --insecure-skip-tls-verify"
+    register: login_result
+    retries: 10
+    delay: 10
+    until: login_result.rc == 0
+    no_log: true
+    when: (distro_type is undefined) or (distro_type != "upstream")
+
   - name: "Create the spec file"
     template:
       src: "ubi-check-pod.yml.j2"

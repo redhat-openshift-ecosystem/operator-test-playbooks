@@ -6,7 +6,7 @@
 
 - set_fact:
     operator_sdk_bin_path: "{{ testing_bin_path}}/operator-sdk"
-    oc_bin_path: "{{ testing_bin_path}}/oc"
+    oc_bin_path: "{{ '/snap/bin/kubectl' if (distro_type == 'upstream') else \"{{ testing_bin_path }}/oc\" }}"
     jq_bin_path: "{{ testing_bin_path }}/jq"
     yq_bin_path: "{{ testing_bin_path }}/yq"
     go_bin_path: "{{ testing_bin_path }}/go/bin/go"
@@ -19,6 +19,7 @@
     src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: yes
+  when: (distro_type is undefined) or (distro_type != "upstream")
 
 - name: "Download and extract go binary to {{ testing_bin_path }}"
   unarchive:
@@ -102,4 +103,37 @@
   when:
     - bundle_image is defined
     - bundle_image != ""
+
+- fail: msg="Please define something like -e 'KIND_VER=v0.7.0'"
+  when: (distro_type == "upstream") and (KIND_ver == '')
+
+- fail: msg="Please define something like -e 'KIND_KUBE_VER=v1.17.0'"
+  when: (distro_type == "upstream") and (KIND_kube_ver == '')
+
+- name: "Install KIND {{ KIND_ver }}"
+  block:
+    - name: "Download KIND"
+      shell: "curl -Lo {{ KIND_bin_path }} https://github.com/kubernetes-sigs/kind/releases/download/{{ KIND_ver }}/kind-linux-amd64"
+
+    - name: "chmod"
+      file:
+        path: "{{ KIND_bin_path }}"
+        mode: +x
+
+    - name: "Check KIND cluster"
+      shell: "{{ KIND_bin_path }} get clusters"
+      register: cluster_found
+      ignore_errors: yes
+
+    - name: "Start KIND"
+      shell: "{{ KIND_bin_path }} create cluster --name operator-test --wait 1m --image kindest/node:{{ KIND_kube_ver }} --verbosity 1"
+      when: cluster_found.stdout != "operator-test"
+
+    - name: "Install kubectl"
+      snap:
+        name: kubectl
+        classic: yes
+      become: yes
+
+  when: (distro_type == "upstream")
 

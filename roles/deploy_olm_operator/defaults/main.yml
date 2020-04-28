@@ -1,4 +1,4 @@
-oc_bin_path: oc
+oc_bin_path: "{{ '/snap/bin/kubectl' if (distro_type == 'upstream') else 'oc' }}"
 openshift_namespace: test-operator
 current_channel: alpha
 operator_work_dir: /home/jenkins/agent/test-operator

@@ -13,7 +13,7 @@
     operator_sdk_bin_path: "/usr/local/bin/operator-sdk"
     jq_bin_path: "/usr/bin/jq"
     yq_bin_path: "/usr/local/bin/yq"
-    oc_bin_path: "oc"
+    oc_bin_path: "{{ '/snap/bin/kubectl' if (distro_type == 'upstream') else 'oc' }}"
     check_scorecard_results: false
 
   tasks:

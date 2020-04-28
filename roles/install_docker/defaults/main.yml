@@ -1,0 +1,6 @@
+operator_work_dir: /tmp/cvp/operator-files
+operator_repo: /tmp/community-operators
+check_verify_result: true
+catalog_repo_dir: /tmp/community-operators-for-catalog
+docker_user_no_sudo: ubuntu
+
