@@ -5,6 +5,7 @@
   gather_facts: false
 
   vars:
+    run_upstream: false
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
     operator_work_dir: "/home/jenkins/agent/test-operator"
     testing_bin_path: "/usr/local/bin"

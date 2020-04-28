@@ -1,23 +1,36 @@
 ---
-- name: Test the operator on a OCP 4.0 cluster with OLM
+- name: Test the operator on a kind/OCP 4.0 cluster with OLM
   hosts: all
   become: false
   gather_facts: false
 
   vars:
     run_prereqs: true
+    run_upstream: false
     run_lint: true
     run_catalog_init: true
     run_deploy: true
     run_scorecard: true
     run_imagesource: true
     run_cleanup: true
+    run_remove_catalog_repo: true
+    run_manifest_test: false
     scorecard_first_cr: true
     openshift_namespace: "test-operator"
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"
     current_channel: '' # Added to avoid a potential bug with undefined variables
+    olm_ver: 0.14.1
 
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+    when: run_upstream|bool
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+      when: run_upstream|bool
   tasks:
     - set_fact:
         operator_work_dir: "{{ work_dir }}/operator-files"
@@ -25,7 +38,7 @@
         scorecard_cr_dir: "{{ work_dir }}/scorecard-cr-files"
         kube_objects_dir: "{{ work_dir }}/kube_objects"
         testing_bin_path: "{{ work_dir }}/bin"
-        oc_bin_path: "{{ testing_bin_path }}/oc"
+        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
         jq_bin_path: "{{ testing_bin_path }}/jq"
         yq_bin_path: "{{ testing_bin_path }}/yq"
         go_bin_path: "{{ testing_bin_path }}/go/bin/go"
@@ -41,23 +54,59 @@
       file:
         path: "{{ scorecard_cr_dir }}"
         state: absent
-      when: run_scorecard|bool
+      when:
+        - run_scorecard|bool
+        - not run_upstream|bool
 
     - name: "Create the scorecard CR directory"
       file:
         path: "{{ scorecard_cr_dir }}"
         state: directory
-      when: run_scorecard|bool
+      when:
+        - run_scorecard|bool
+        - not run_upstream|bool
 
     - name: "Install operator testing prerequisites"
       include_role:
         name: install_operator_prereqs
       when: run_prereqs|bool
 
+    - name: "OLM"
+      block:
+        - name: "Check if OLM is needed"
+          shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
+          register: olm_needed
+          ignore_errors: true
+
+        - name: "Install OLM"
+          block:
+            - name: "Installing OLM"
+              shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_ver }}"
+
+            - name: "Delete catalogsource"
+              shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+              ignore_errors: true
+          when:
+            - olm_needed.stdout != "operatorgroup"
+      when: run_upstream|bool
+
+    - name: "Build upstream catalog"
+      include_role:
+        name: build_catalog_upstream
+      when: run_upstream|bool
+
     - name: "Run operator-courier nest to copy the operator metadata in nested format to the work dir"
       shell: "operator-courier nest {{ operator_dir }} {{ operator_work_dir }}"
+      when: not run_upstream|bool
 
-    - name: "Parse operator metadata needed to run the tests"
+    - name: Copy the operator metadata in nested format to the work dir
+      copy:
+        src: "{{ operator_dir }}/"
+        dest: "{{ operator_work_dir }}"
+        remote_src: yes
+      when: run_upstream|bool
+
+    - name: "Parse operator metadata needed to run the tests (Openshift)"
       include_role:
         name: parse_operator_metadata
 
@@ -69,14 +118,18 @@
     - name: "Run catalog initialization test on operator metadata"
       include_role:
         name: operator_catalog_initialization_test
-      when: run_catalog_init|bool
+      when:
+        - run_catalog_init|bool
+        - not run_upstream|bool
 
     - name: "Operator deployment and scorecard/imagesource tests"
       block:
         - name: "Inject operator scorecard data into the operator metadata"
           include_role:
             name: inject_scorecard_metadata
-          when: run_scorecard|bool
+          when:
+            - run_scorecard|bool
+            - not run_upstream|bool
 
         - name: "Get all registry images on the OpenShift cluster before deploying the operator"
           shell: "{{ oc_bin_path }} get is --all-namespaces -o json | jq '.items[].spec.tags[] | select(.from.kind == \"DockerImage\") | .from.name' --raw-output | sort -u"
@@ -84,6 +137,7 @@
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
           no_log: true
+          when: not run_upstream|bool
 
         - name: "Get all pod images on the OpenShift cluster before deploying the operator"
           shell: "{{ oc_bin_path }} get pods --all-namespaces -o json | jq '.items[].spec.containers[].image' --raw-output | sort -u"
@@ -91,14 +145,25 @@
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
           no_log: true
+          when: not run_upstream|bool
 
         - set_fact:
             openshift_images_before: " {{ os_registry_is_result_before.stdout_lines }} + {{ os_pod_is_result_before.stdout_lines }}"
+          when: not run_upstream|bool
 
-        - name: "Deploy the operator on the OpenShift 4.0 cluster with OLM"
+        - name: "Deploy the operator on the OpenShift 4.0 with OLM"
           include_role:
             name: deploy_olm_operator
-          when: run_deploy|bool
+          when:
+            - run_deploy|bool
+            - not run_upstream|bool
+
+        - name: "Deploy the operator on the Kind cluster with OLM"
+          include_role:
+            name: deploy_olm_operator_upstream
+          when:
+            - run_deploy|bool
+            - run_upstream|bool
 
         - name: "Get all openshift registry images"
           shell: "{{ oc_bin_path }} get is --all-namespaces -o json | jq '.items[].spec.tags[] | select(.from.kind == \"DockerImage\") | .from.name' --raw-output | sort -u"
@@ -106,6 +171,7 @@
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
           no_log: true
+          when: not run_upstream|bool
 
         - name: "Get all OpenShift pod images"
           shell: "{{ oc_bin_path }} get pods --all-namespaces -o json | jq '.items[].spec.containers[].image' --raw-output | sort -u"
@@ -113,9 +179,11 @@
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
           no_log: true
+          when: not run_upstream|bool
 
         - set_fact:
             openshift_images_after: "{{ os_registry_is_result_after.stdout_lines }} + {{ os_pod_is_result_after.stdout_lines }}"
+          when: not run_upstream|bool
 
         - name: "Scorecard test"
           block:
@@ -151,6 +219,8 @@
               when:
                 - operator_container_result.stdout != ""
 
+          when: not run_upstream|bool
+
         - name: "Test image sources of containers introduced with the testing operator"
           include_role:
             name: operator_imagesource_test
@@ -159,10 +229,13 @@
           when:
             - run_imagesource|bool
             - run_deploy|bool
+            - not run_upstream|bool
+
       when:
         - run_deploy|bool
+
       always:
-        - name: "Cleanup created resources on the OCP cluster"
+        - name: "Cleanup created resources on the OCP/kind cluster"
           include_role:
             name: cleanup_operator_resources
           when:
@@ -176,4 +249,5 @@
             - package_name is defined
             - run_cleanup|bool
             - run_deploy|bool
+            - not run_upstream|bool
           no_log: true

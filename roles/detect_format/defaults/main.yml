@@ -1,0 +1,5 @@
+operator_local_registry: "localhost:5000"
+bundle_input_tmp_dir:  "{{ work_dir }}/operator-bundle-input/tmp"
+bundle_input_src_dir:  "{{ work_dir }}/operator-bundle-input/src"
+
+

@@ -1,0 +1,48 @@
+---
+- name: Handle operator input image conversion
+  block:
+    - set_fact:
+        image_protocol: "docker-daemon:"
+    - name: Handle operator image input
+      include_role:
+        name: convert_bundle_image_to_dir
+  when:
+    - operator_input_image != ""
+    - operator_input_image_convert|bool
+
+- name: Detect operator format
+  block:
+    - name: Search for package.yml
+      find:
+        paths: "{{ operator_dir }}"
+        patterns: "*.package.yaml"
+      register: package_presence
+
+    - name: Set operator_format to package manifest or bundle
+      set_fact:
+        operator_format: '{{ ''manifest'' if package_presence.files else ''bundle'' }}'
+        operator_name: "{{ operator_dir | basename }}"
+
+    - name: Operator version
+      block:
+      - name: "Check operator version"
+        shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
+        register: operator_version_raw
+      - set_fact:
+          operator_version: "{{ operator_version_raw.stdout }}"
+      when: operator_version is undefined
+
+    - name: "Export CSV variables"
+      include_role:
+        name: export_csv
+      vars:
+        op_csv_dir: "{{ operator_dir }}/{{ operator_version }}"
+
+    - name: Set operator name variable from csv
+      set_fact:
+        operator_name: "{{ operator_vars.metadata.name.split('.')[0] }}"
+        image_protocol: "docker-daemon:"
+        run_manifest_test: "{{ run_manifest_test | default(false) }}"
+        run_bundle_test: "{{ run_bundle_test | default(true) }}"
+  when:
+    - operator_input_image_convert|bool
