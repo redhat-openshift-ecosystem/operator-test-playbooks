@@ -112,3 +112,4 @@
       msg: "Errors encountered running container in pod"
     when: (create_pod.rc != 0) or
           (pod_status is defined and pod_status.stdout != "Succeeded")
+
