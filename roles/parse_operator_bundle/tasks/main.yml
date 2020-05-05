@@ -26,7 +26,7 @@
 - name: "verify ocp versions are valid"
   fail:
     msg: "com.redhat.openshift.versions must only contain v4.5"
-  when: (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] == "v4.5"
+  when: (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] != "v4.5"
 
 
 - set_fact:
