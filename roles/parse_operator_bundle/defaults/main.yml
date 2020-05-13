@@ -2,3 +2,4 @@ jq_bin_path: jq
 yq_bin_path: yq
 skopeo_bin_path: skopeo
 operator_work_dir: /home/jenkins/agent/test-operator
+bundle_sanity_checks: true

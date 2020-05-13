@@ -102,3 +102,8 @@
   template:
     src: "parsed_operator_data.yml.j2"
     dest: "{{ work_dir }}/parsed_operator_data.yml"
+
+- name: "Sanity check the operator bundle's information"
+  include_tasks: "bundle_sanity_checks.yml"
+  when:
+    bundle_sanity_checks|bool
