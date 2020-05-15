@@ -3,14 +3,23 @@
   shell: "mkdir -p {{ kube_objects_dir }}"
 
 - name: "Decode the symmetric key received from the user"
-  shell: "echo \"{{ symmetric_key }}\" | openssl enc -d -base64 > {{ kube_objects_dir }}/get_sym_key"
+  shell: "echo \"{{ symmetric_key }}\" | base64 --decode > {{ kube_objects_dir }}/get_sym_key"
   no_log: true
   
 - name: "Decrypt the symmetric key using RSA private key"
   shell: "openssl rsautl -decrypt -oaep -inkey {{ rsa_private_key }} -in {{ kube_objects_dir }}/get_sym_key -out {{ kube_objects_dir }}/secret.key"
 
+- name: "Verify the shared symmetric key"
+  shell: "stat -c %s {{ kube_objects_dir }}/secret.key"
+  register: symmetric_key_size
+
+- name: "Fail if the shared symmetric key is not 32 bytes"
+  fail:
+    msg: "The decrypted shared symmetric key is {{ symmetric_key_size.stdout }} bytes. The shared key should be of 32 bytes"
+  when: symmetric_key_size.stdout != "32"
+
 - name: "Read the encrypted kube_objects decode and store them in a file"
-  shell: "echo \"{{ kube_objects }}\" | tr \" \" \"\n\" | openssl enc -d -base64 > {{ kube_objects_dir }}/get_kubeObjects.txt"
+  shell: "echo \"{{ kube_objects }}\" | tr \" \" \"\n\" | base64 --decode > {{ kube_objects_dir }}/get_kubeObjects.txt"
   no_log: true
   
 - name: "Decrypt the kube_objects through the shared symmetric key"
