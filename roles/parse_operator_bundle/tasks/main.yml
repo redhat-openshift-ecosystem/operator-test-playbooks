@@ -22,6 +22,13 @@
     ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
     is_backport: false
 
+# Note: we probably want to make this more robust in the future to make a sliding scale that can be adjusted on the fly based on configuration?
+- name: "verify ocp versions are valid"
+  fail:
+    msg: "com.redhat.openshift.versions must only contain v4.5"
+  when: (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] != "v4.5"
+
+
 - set_fact:
     is_backport: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.backport'] }}"
   when: skopeo_inspect_json.Labels['com.redhat.delivery.backport'] is defined
