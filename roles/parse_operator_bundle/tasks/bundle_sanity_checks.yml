@@ -1,0 +1,53 @@
+---
+# Note: we probably want to make this more robust in the future to make a sliding scale that can be adjusted on the fly based on configuration?
+- name: "Verify ocp versions are valid"
+  fail:
+    msg: "com.redhat.openshift.versions must only contain v4.5"
+  when: (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] != "v4.5"
+
+- name: "Read the variables from annotations.yaml"
+  include_vars:
+    file: "{{ operator_work_dir }}/metadata/annotations.yaml"
+    name: annotations_vars
+
+- debug:
+    var: skopeo_inspect_json.Labels
+
+- debug:
+    var: annotations_vars.annotations
+
+- name: "Check if the operators.operatorframework.io.bundle.channel.default.v1 from annotation.yaml matches the bundle image label"
+  fail:
+    msg: "The operators.operatorframework.io.bundle.channel.default.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.channel.default.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1']
+
+- name: "Check if the operators.operatorframework.io.bundle.channels.v1 from annotation.yaml matches the bundle image label"
+  fail:
+    msg: "The operators.operators.operatorframework.io.bundle.channels.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channels.v1']
+
+- name: "Check if the operators.operatorframework.io.bundle.manifests.v1 from annotation.yaml matches the bundle image label"
+  fail:
+    msg: "The operators.operators.operatorframework.io.bundle.manifests.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.manifests.v1']
+
+- name: "Check if the operators.operatorframework.io.bundle.mediatype.v1 from annotation.yaml matches the bundle image label"
+  fail:
+    msg: "The operators.operatorframework.io.bundle.mediatype.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.mediatype.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.mediatype.v1']
+
+- name: "Check if the operators.operatorframework.io.bundle.metadata.v1 from annotation.yaml matches the bundle image label"
+  fail:
+    msg: "The operators.operatorframework.io.bundle.metadata.v1 value in the annotations yaml doesn't match the corresponding bundle image label!!"
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.metadata.v1']
+
+- name: "Check if the operators.operatorframework.io.bundle.package.v1 from annotation.yaml matches the bundle image label"
+  fail:
+    msg: "The operators.operatorframework.io.bundle.package.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1']
