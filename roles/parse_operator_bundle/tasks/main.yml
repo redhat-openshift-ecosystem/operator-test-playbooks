@@ -20,9 +20,11 @@
     default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
     current_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}" # using default channel since the bundle only has one
     ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
-    is_backport: false
+    # if backport label missing, an empty is_backport means not set.
+    is_backport: ""
 
 - set_fact:
+    # if backport label missing, an empty is_backport means not set.
     is_backport: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.backport'] }}"
   when: skopeo_inspect_json.Labels['com.redhat.delivery.backport'] is defined
 
