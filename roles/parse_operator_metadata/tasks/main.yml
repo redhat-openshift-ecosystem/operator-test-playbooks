@@ -1,109 +1,163 @@
----
-- name: "Determine the package path in the operator metadata directory"
-  shell: "egrep -l \"packageName\" {{ operator_work_dir }}/* | head -n 1"
-  register: package_path_result
+- name: "Running Prepare operator metadata"
+  block:
 
-- set_fact:
-    package_path: "{{ package_path_result.stdout }}"
+  - name: "Determine the package path inside operator metadata directory"
+    find:
+      paths: "{{ operator_work_dir }}"
+      file_type: file
+      contains: 'packageName'
+    register: package_path_result 
 
-- name: "Determine the package name for the operator"
-  shell: "{{ yq_bin_path }} r {{ package_path }} 'packageName'"
-  register: package_name_result
+    # assuming only one file matches the file path
+  - name: "set variable for package_path from package_path_result"
+    set_fact:
+      package_path: "{{ package_path_result.files[0].path }}"
 
-- set_fact:
-    package_name: "{{ package_name_result.stdout }}"
+  - name: "Load variables from package path into variable package_vars"
+    include_vars:
+      file: "{{ package_path }}"
+      name: package_vars
 
-- debug:
-    var: current_channel
+  - name: "GET package_name variable from loaded package_vars"
+    set_fact:
+      package_name: "{{ package_vars['packageName'] }}"
 
-- name: "Try to get the operator's defaultChannel if exists"
-  shell: "{{ yq_bin_path }} r {{ package_path }} 'defaultChannel'"
-  register: default_channel_result
-  when: current_channel == ''
+  # Note:
+  # current logic will check the length of current_channel
+  # if the current_channel is empty string
+  # it defaults to defaultChannel attribute inside package_vars
+  # if the defaultChannel is undefined it fails over to
+  # first channel name inside package_var channels
+  - name: "Set default channel when the current_channel is empty"
+    set_fact:
+      current_channel: "{{ (current_channel |length > 0) |
+                            ternary(current_channel,
+                                    package_vars['defaultChannel'] |
+                                    default(package_vars['channels'][0]['name'])) }}"
 
-- set_fact:
-    current_channel: "{{ default_channel_result.stdout}}"
-  when: current_channel == ''
+  # Note:
+  # the above logic do not cover the case when
+  # the defaultChannel is empty string (It covers when defaultChannel is undefined)
+  # the following task makes sure it sets to first found channel
+  # If not found it fails
+  - name: "If default_channel fetched is an empty string"
+    set_fact:
+      current_channel: "{{ package_vars['channels'][0]['name'] }}"
+    when: current_channel == ""
 
-- name: "Get the first channel if no defaultChannel exists"
-  shell: "{{ yq_bin_path }} r {{ package_path }} 'channels[0].name'"
-  register: first_channel_result
-  when:
-    - default_channel_result.stdout is defined
-    - default_channel_result.stdout == 'null'
+  - name: "Determine the current clustersourceversion for the operator channel"
+    set_fact:
+      current_csv : "{{ package_vars['channels'] | json_query(query) }}"
+    vars:
+      query: "[?name=='{{ current_channel }}'].currentCSV"
+    failed_when: current_csv | length == 0
 
-- set_fact:
-    current_channel: "{{ first_channel_result.stdout}}"
-  when: first_channel_result.stdout is defined
+  - name: "Get current_csv from current_csv query output"
+    set_fact:
+      current_csv: "{{ current_csv[0] }}"
 
-- name: "Determine the current clustersourceversion for the operator channel"
-  shell: "{{ yq_bin_path }} r {{ package_path }} --tojson | {{ jq_bin_path }} '.channels[] | select(.name==\"{{ current_channel }}\").currentCSV'"
-  register: current_csv_result
+  - name: "Determine paths with kind ClusterServiceVersion"
+    find:
+      paths: "{{ operator_work_dir }}"
+      file_type: file
+      contains: 'kind: ClusterServiceVersion'
+      recurse: true
+    register: kind_custerserviceversion_file_paths
 
-- set_fact:
-    current_csv: "{{ current_csv_result.stdout }}"
+  - name: "Grep paths with current_csv ClusterServiceVersion"
+    shell: "grep -l {{ current_csv }} {{ item.path }}"
+    with_items: "{{ kind_custerserviceversion_file_paths['files'] }}"
+    register: grep_output_current_csv
+    ignore_errors: true
 
-- name: "Determine the clusterserviceversion (CSV) path in the operator metadata directory"
-  shell: "egrep -lR \"kind:\\s*?ClusterServiceVersion*?\" {{ operator_work_dir }}/* | xargs -I{} egrep -l \"name:\\s*{{ current_csv }}\" {} | head -n 1"
-  register: csv_path_result
+  - name: "Search for grep_output_current_csv"
+    set_fact:
+      current_csv_path: "{{ item.item.path }}"
+    when: item.rc == 0
+    with_items: "{{ grep_output_current_csv.results }}"
 
-- name: "Determine the directory of the current clusterserviceversion"
-  shell: "dirname {{ csv_path_result.stdout }}"
-  register: current_csv_dir_result
+  - name: "Set variables for csv_path and current_csv_dir"
+    set_fact:
+      csv_path: "{{ current_csv_path }}"
+      current_csv_dir: "{{ current_csv_path | dirname }}"
 
-- set_fact:
-    csv_path: "{{ csv_path_result.stdout }}"
-    current_csv_dir: "{{ current_csv_dir_result.stdout }}"
+  - name: "Determine the package path in the operator metadata directory"
+    find:
+      paths: "{{ current_csv_dir }}"
+      file_type: file
+      contains: 'kind: CustomResourceDefinition'
+    register: crd_paths_result
 
-- name: "Determine the customresurcedefinition (CRD) paths in the operator metadata directory"
-  shell: "egrep -l \"kind:\\s*?CustomResourceDefinition*?\" {{ current_csv_dir }}/*"
-  register: crd_paths_result
-  ignore_errors: true
+  - name: "Set crd_paths to collect crd_paths"
+    set_fact:
+      crd_paths: []
 
-- set_fact:
-    crd_paths: "{{ crd_paths_result.stdout_lines }}"
+  - name: "Get paths from crd_paths_result"
+    set_fact:
+      crd_paths: "{{ crd_paths + [item.path] }}"
+    with_items: "{{ crd_paths_result['files'] }}"
 
-- name: "Determine operator pod name in the CSV"
-  shell: "{{ yq_bin_path }} r {{ csv_path }} 'spec.install.spec.deployments[0].name'"
-  register: operator_pod_name_result
+  - name: "Include the package path into the ansible vars"
+    include_vars:
+      file: "{{ csv_path }}"
+      name: operator_vars
 
-- name: "Determine operator container name in the CSV"
-  shell: "{{ yq_bin_path }} r {{ csv_path }} 'spec.install.spec.deployments[0].spec.template.spec.containers[0].name'"
-  register: operator_container_name_result
+  - name: "Determine and setfact for podname"
+    set_fact:
+      operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
+      operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
+      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities }}"
 
-- name: "Determine operator capabilities in the CSV"
-  shell: "{{ yq_bin_path }} r {{ csv_path }} 'metadata.annotations.capabilities'"
-  register: operator_capabilities_result
+  - name: "Determine operator_allnamespaces_support"
+    set_fact:
+      operator_allnamespaces_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='AllNamespaces'].supported"
 
-- set_fact:
-    operator_pod_name: "{{ operator_pod_name_result.stdout }}"
-    operator_container_name: "{{ operator_container_name_result.stdout }}"
-    operator_capabilities: "{{ operator_capabilities_result.stdout }}"
+  - name: "Determine operator_ownnamespaces_support"
+    set_fact:
+      operator_ownnamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='OwnNamespaces'].supported"
 
-# Check operator's support for InstallModes, see https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/design/operatorgroups.md#installmodes-and-supported-operatorgroups
-- name: "Check if operator install mode supports AllNamespaces"
-  shell: "{{ yq_bin_path }} r --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"AllNamespaces\").supported'"
-  register: operator_allnamespaces_support_result
+  - name: "Determine operator_ownnamespaces_support"
+    set_fact:
+      operator_singlenamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='SingleNamespaces'].supported"
 
-- name: "Check if operator install mode supports OwnNamespace"
-  shell: "{{ yq_bin_path }} r --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"OwnNamespace\").supported'"
-  register: operator_ownnamespace_support_result
+  - name: "Determine operator_ownnamespaces_support"
+    set_fact:
+      operator_multinamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='MultiNamespaces'].supported"
 
-- name: "Check if operator install mode supports SingleNamespace"
-  shell: "{{ yq_bin_path }} r --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"SingleNamespace\").supported'"
-  register: operator_singlenamespace_support_result
+  - name: "Set boolean value for different types of namespaces"
+    set_fact:
+      operator_allnamespaces_support: "{{ false if operator_allnamespaces_support == [] else operator_allnamespaces_support[0] }}"
+      operator_ownnamespace_support: "{{ false if operator_ownnamespace_support == [] else operator_ownnamespace_support[0] }}"
+      operator_singlenamespace_support: "{{ false if operator_singlenamespace_support == [] else operator_singlenamespace_support[0] }}"
+      operator_multinamespace_support: "{{ false if operator_multinamespace_support == [] else operator_singlenamespace_support[0] }}"
 
-- name: "Check if operator install mode supports MultiNamespace"
-  shell: "{{ yq_bin_path }} r --tojson {{ csv_path }} 'spec' | {{ jq_bin_path }} '.installModes[] | select(.type==\"MultiNamespace\").supported'"
-  register: operator_multinamespace_support_result
+  - name: "Output all collected data to a yaml file in work dir"
+    template:
+      src: "parsed_operator_data.yml.j2"
+      dest: "{{ work_dir }}/parsed_operator_data.yml"
 
-- set_fact:
-    operator_allnamespaces_support: "{{ operator_allnamespaces_support_result.stdout if operator_allnamespaces_support_result.stdout != '' else false }}"
-    operator_ownnamespace_support: "{{ operator_ownnamespace_support_result.stdout if operator_ownnamespace_support_result.stdout != '' else false }}"
-    operator_singlenamespace_support: "{{ operator_singlenamespace_support_result.stdout if operator_singlenamespace_support_result.stdout != '' else false }}"
-    operator_multinamespace_support: "{{ operator_multinamespace_support_result.stdout if operator_multinamespace_support_result.stdout != '' else false }}"
+  rescue:
 
-- name: "Output all collected data to a yaml file in work dir"
-  template:
-    src: "parsed_operator_data.yml.j2"
-    dest: "{{ work_dir }}/parsed_operator_data.yml"
+    - name: "Rescue block contains the error messages"
+      debug:
+        msg: "Rescue block has found an error, The following are details of failed task."
+
+    - name: "FAILED task name in ansible is as follows:"
+      debug:
+        msg: "{{ ansible_failed_task.name }}"
+
+    - name: "Result of failed task"
+      debug:
+        msg: "{{ ansible_failed_result }}"
+
+    - name: "Result of failure"
+      fail: 
+        msg: "Ansible playbook while preparing the operator metadata failed"
