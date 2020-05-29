@@ -114,30 +114,30 @@
     vars:
       query: "[?type=='AllNamespaces'].supported"
 
-  - name: "Determine operator_ownnamespaces_support"
+  - name: "Determine operator_ownnamespace_support"
     set_fact:
       operator_ownnamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
-      query: "[?type=='OwnNamespaces'].supported"
+      query: "[?type=='OwnNamespace'].supported"
 
-  - name: "Determine operator_ownnamespaces_support"
+  - name: "Determine operator_singlenamespace_support"
     set_fact:
       operator_singlenamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
-      query: "[?type=='SingleNamespaces'].supported"
+      query: "[?type=='SingleNamespace'].supported"
 
-  - name: "Determine operator_ownnamespaces_support"
+  - name: "Determine operator_multinamespace_support"
     set_fact:
       operator_multinamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
-      query: "[?type=='MultiNamespaces'].supported"
+      query: "[?type=='MultiNamespace'].supported"
 
   - name: "Set boolean value for different types of namespaces"
     set_fact:
       operator_allnamespaces_support: "{{ false if operator_allnamespaces_support == [] else operator_allnamespaces_support[0] }}"
       operator_ownnamespace_support: "{{ false if operator_ownnamespace_support == [] else operator_ownnamespace_support[0] }}"
       operator_singlenamespace_support: "{{ false if operator_singlenamespace_support == [] else operator_singlenamespace_support[0] }}"
-      operator_multinamespace_support: "{{ false if operator_multinamespace_support == [] else operator_singlenamespace_support[0] }}"
+      operator_multinamespace_support: "{{ false if operator_multinamespace_support == [] else operator_multinamespace_support[0] }}"
 
   - name: "Output all collected data to a yaml file in work dir"
     template:
