@@ -65,7 +65,7 @@
     register: kind_custerserviceversion_file_paths
 
   - name: "Grep paths with current_csv ClusterServiceVersion"
-    shell: "grep -l {{ current_csv }} {{ item.path }}"
+    shell: "grep -l 'name: {{ current_csv }}' {{ item.path }}"
     with_items: "{{ kind_custerserviceversion_file_paths['files'] }}"
     register: grep_output_current_csv
     ignore_errors: true
