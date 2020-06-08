@@ -309,5 +309,6 @@
 - fail:
     msg: 'Operator was not capable to stay healthy for a specific time'
   when:
-    - operator_uptime.rc != 0
     - run_upstream|bool
+    - operator_uptime.rc != 0
+
