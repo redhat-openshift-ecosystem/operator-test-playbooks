@@ -4,3 +4,4 @@ operator_version: latest
 opm_container_tool: "docker"
 bundle_image_namespace: test-operator
 bundle_registry: localhost:5000
+operator_input_image_convert: false

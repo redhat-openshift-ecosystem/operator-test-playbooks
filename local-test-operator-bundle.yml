@@ -35,6 +35,7 @@
     - name: "Build bundle image"
       include_role:
         name: build_image_bundle
+      when: run_upstream|bool
 
     - name: "Extract the operator bundle image into files needed to run the tests"
       include_role:
