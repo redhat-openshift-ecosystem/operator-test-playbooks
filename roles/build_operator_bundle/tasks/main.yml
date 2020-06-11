@@ -1,0 +1,57 @@
+- name: "Search for all versions for operator '{{ operator_dir | basename }}'"
+  find:
+    paths: "{{ operator_dir }}"
+    recurse: no
+    file_type: directory
+  register: versions_find
+
+- set_fact:
+    versions_in_dir: "{{ versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+    operator_dir_name: "{{ operator_dir | basename }}"
+
+- name: detect format
+  include_role:
+    name: detect_format
+  vars:
+    operator_input_image: ""
+    operator_version: "{{ versions_in_dir[0] }}"
+
+- name: Get list of versions_in_dir from bundle registry
+  uri:
+    url: "http://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_name }}/tags/list"
+    return_content: yes
+  register: bib_registry_versions
+  ignore_errors: yes
+
+- set_fact:
+    versions_in_registry: []
+
+- set_fact:
+    versions_in_registry: "{{ bib_registry_versions.content | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
+  when: bib_registry_versions.status == 200
+
+- debug:
+    var: versions_in_registry
+- debug:
+    var: versions_in_dir
+
+- set_fact:
+    verions_add: "{{ versions_in_dir | difference(versions_in_registry) }}"
+    verions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
+- debug:
+    var: verions_add
+- debug:
+    var: verions_remove
+
+- name: "Build bundle image"
+  include_role:
+    name: build_operator_version_bundle
+  vars:
+    operator_version: "{{ op_ver_item }}"
+  loop: "{{ verions_add }}"
+  loop_control:
+    loop_var: op_ver_item
+
+- set_fact:
+    operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_name, 'versions': versions_in_dir }]) }}"
+  when: verions_add.0 is defined

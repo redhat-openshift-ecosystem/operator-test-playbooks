@@ -19,7 +19,6 @@
     work_dir: "/tmp/operator-test"
     operator_dir: "dummy" # so operator-courier will be installed
     operator_input_image: ""
-    operator_input_image_convert: true
     image_protocol: "docker://"
     bundle_image: "dummy" # so skopeo and umoci will be installed
     operator_work_dir: "{{ work_dir }}/operator-files"
@@ -46,7 +45,6 @@
         work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
         operator_dir: "{{ operator_dir | default('dummy') }}"
         operator_input_image: "{{ operator_input_image | default('') }}"
-        operator_input_image_convert: "{{ operator_input_image_convert | default('true') }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
         bundle_image: "{{ bundle_image | default('dummy') }}"
         run_host_init: "{{ run_host_init | default(true) }}"
@@ -68,8 +66,8 @@
     - { role: install_docker, tags: ["docker"], when: run_host_init|bool }
     - { role: install_kubectl, tags: ["kubectl"], when: run_host_init|bool }
     - { role: install_kind, tags: ["kind"], when: run_host_init|bool }
+    - { role: install_operator_prereqs, tags: ["never", "host_build"], when: run_upstream|bool }
     - { role: prepare_catalog_repo_upstream, tags: ["always"], when: run_upstream|bool }
-    - { role: detect_format, tags: ["always"], when: run_upstream|bool }
 
   tasks:
     - set_fact:
@@ -105,3 +103,13 @@
   tags:
     - test
     - pure_test
+
+- name: Deploy operator bundle for each
+  import_playbook: local-deploy-operator-bundle.yml
+  when:
+    - run_upstream|bool
+  tags:
+    - never
+    - deploy_bundles
+
+

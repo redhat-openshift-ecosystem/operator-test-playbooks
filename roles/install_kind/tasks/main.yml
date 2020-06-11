@@ -13,7 +13,7 @@
     - reset
     - uninstall
 
-# TODO 
+# TODO
 # - check if docker exists
 # - check if registry exists
 - name: "Destroy current registry"
@@ -46,6 +46,11 @@
         url: "https://github.com/kubernetes-sigs/kind/releases/download/{{ kind_version }}/kind-linux-amd64"
         dest: "{{ kind_bin_path }}"
         mode: '0755'
+      register: kind_install_result
+      until: kind_install_result.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: kind_install_result is failure
       become: yes
       when: rc_kind.stat.exists == false
   tags:

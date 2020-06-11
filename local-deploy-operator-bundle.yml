@@ -1,0 +1,90 @@
+---
+- name: Deploy the operator bundle
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_upstream: false
+    work_dir: "/tmp/operator-test"
+    testing_bin_path: "{{ work_dir }}/bin"
+    operators_for_index: []
+
+  tasks:
+    - set_fact:
+        operator_work_dir: "{{ work_dir }}/operator-files"
+        operator_bundle_dir: "{{ work_dir }}/operator-bundle"
+        jq_bin_path: "{{ testing_bin_path }}/jq"
+        yq_bin_path: "{{ testing_bin_path }}/yq"
+        umoci_bin_path: "{{ testing_bin_path }}/umoci"
+        opm_bin_path: "{{ testing_bin_path }}/opm"
+        operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+
+
+    - name: Handle operators input file
+      block:
+        - name: Parsing config file "{{ operators_config }}"
+          include_vars:
+            file: "{{ operators_config }}"
+            name: operators_config_vars
+
+        - debug:
+            var: operators_config_vars
+            verbosity: 3
+
+        - name: Set facts from config variables
+          set_fact:
+            operators: "{{ operators_config_vars.operators | default([])}}"
+            operator_base_dir: "{{ operators_config_vars.operator_base_dir | default('') }}"
+
+        - fail:
+            msg: "'operator_base_dir' was not found in config file '{{ operators_config }}' !!!"
+          when: operator_base_dir == ""
+
+        - stat:
+            path: "{{ operator_base_dir }}"
+          register: operator_base_dir_st
+        - fail:
+            msg: "Operator base dir '{{ operator_base_dir }}' was not found !!!"
+          when: not operator_base_dir_st.stat.exists
+
+        - debug:
+            var: operator_base_dir
+            verbosity: 2
+        - fail:
+            msg: "The 'operator_base_dir' is not defined or empty"
+          when: operator_base_dir == ""
+      when: operators_config is defined
+
+    - set_fact:
+        operators: '["{{ operator_dir | basename }}"]'
+      when:
+        - operator_dir is defined
+        - operators is undefined
+        - operators_config is undefined
+
+    - set_fact:
+        operators_for_index: "{{ operators_for_index }}"
+
+    - debug:
+        var: operators
+
+    - name: "Deploy operators bundle images"
+      include_role:
+        name:
+          build_operator_bundle
+      vars:
+        operator_dir: "{{ operator_base_dir }}/{{ op_item }}"
+      loop: "{{ operators }}"
+      loop_control:
+        loop_var: op_item
+      when:
+        - run_upstream|bool
+
+    - name: "Deploy operators to index"
+      include_role:
+        name:
+          build_operators_index
+      when:
+        - run_upstream|bool

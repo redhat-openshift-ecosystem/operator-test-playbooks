@@ -25,6 +25,11 @@
           url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl
           dest: /usr/local/bin/kubectl
           mode: '0755'
+        register: kubectl_install_result
+        until: kubectl_install_result.status_code == 200
+        retries: 10
+        delay: 15
+        failed_when: kubectl_install_result is failure
         become: yes
     tags:
       - install

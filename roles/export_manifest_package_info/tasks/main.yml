@@ -1,0 +1,23 @@
+---
+- name: Search for package.yml
+  find:
+    paths: "{{ op_dir }}"
+    patterns: "*.package.yaml"
+  register: manifest_package_file
+- set_fact:
+    pkg_file_path: "{{ manifest_package_file.files[0].path }}"
+
+- debug:
+    var: pkg_file_path
+    verbosity: 2
+
+- name: "Getting content of package file"
+  shell: "cat {{ pkg_file_path }}"
+  register: pkg_file_data
+
+- set_fact:
+    op_manifest_pkg_vars: "{{ pkg_file_data.stdout | from_yaml }}"
+
+- debug:
+    var: op_manifest_pkg_vars
+    verbosity: 2

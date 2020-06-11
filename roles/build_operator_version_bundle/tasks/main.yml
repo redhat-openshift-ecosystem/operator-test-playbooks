@@ -2,25 +2,32 @@
   block:
     - name: Set input image
       set_fact:
-        bundle_image: "{{ operator_input_image | regex_replace('[A-z]*://', '') }}"
-        operator_name: "{{ operator_input_image.split(':')[0] | regex_replace('[A-z]*://', '') | basename }}"
+        bundle_image: "{{ operator_input_image }}"
+        operator_name: "{{ operator_input_image.split(':')[0] | basename }}"
         operator_version: "{{ operator_input_image.split(':')[1] }}"
+        operator_format: "bundle"
     # - fail:
     #     msg: "{{ operator_name }} {{ operator_version }}"
     - name: Remove bundle image {{ bundle_image }}
       shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
-  when: not operator_input_image_convert|bool
+  when:
+    - operator_input_image != ""
 
 - name: Handle bundle image from source dir
   block:
-    - name: "Ensure that the operator manifest to bundle directory is empty"
+    - name: "Ensure that the operator manifest to bundle directory exists and is empty"
       file:
-        state: "absent"
+        state: "{{ item }}"
         path: "{{ operator_bundle_src_dir }}"
-    - name: "Ensure that the operator manifest to bundle directory is created"
-      file:
-        state: "directory"
-        path: "{{ operator_bundle_src_dir }}"
+      with_items:
+        - absent
+        - directory
+      when: operator_bundle_src_dir is defined
+
+    - name: detect format
+      include_role:
+        name: detect_format
+
     - name: "Copy manifest format files to {{ operator_bundle_src_dir }}"
       copy:
         src: "{{ operator_dir }}"
@@ -28,16 +35,27 @@
         remote_src: yes
 
     - set_fact:
-        operator_name: "{{ operator_dir | basename }}"
-
-    - set_fact:
         bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_name }}:v{{ operator_version }}"
         clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/manifests/{{ operator_name }}.v{{ operator_version }}.clusterserviceversion.yaml"
         annotation_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/metadata/annotations.yaml"
 
     - set_fact:
-        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/{{ csv_file_path | basename }}"
+        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ operator_version }}/{{ csv_file_path | basename }}"
       when: operator_format == "manifest"
+
+    - set_fact:
+        operator_channels: "{{ op_manifest_pkg_vars.channels | map(attribute='name' ) | list | join(',') | default('alpha') }}"
+        operator_channel_default: "{{ op_manifest_pkg_vars.defaultChannel | default('alpha') }}"
+      when:
+        - op_manifest_pkg_vars is defined
+        - operator_format == "manifest"
+
+    - set_fact:
+        operator_channels: "{{ operator_channel_force }}"
+        operator_channel_default: "{{ operator_channel_force }}"
+      when:
+        - operator_channel_force is defined
+        - operator_format == "manifest"
 
     - name: Ensure replaces is removed in this test
       block:
@@ -99,11 +117,9 @@
 
     - name: "Generate bundle image {{ bundle_image }} from manifest format"
       shell:
-        cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }} --package {{ operator_name }} -t {{ bundle_image }} -b {{ opm_container_tool }}"
-        chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
+        cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }} --package {{ operator_name }} -t {{ bundle_image }} -b {{ opm_container_tool }} -c {{ operator_channels }} -e {{ operator_channel_default }}"
+        chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
       when: operator_format == "manifest"
 
     - name: Push bundle image {{ bundle_image }}
       shell: "{{ opm_container_tool }} push {{ bundle_image }}"
-
-  when: operator_input_image_convert|bool

@@ -1,0 +1,10 @@
+operator_bundle_src_dir: /tmp/operator-test/operator-bundle/src
+operator_base_dir: ""
+operator_name: ""
+operator_dir_name: ""
+operator_version: "latest"
+operator_input_image: ""
+opm_container_tool: "docker"
+bundle_registry: localhost:5000
+bundle_image_namespace: test-operator
+# operator_channel_force: ""

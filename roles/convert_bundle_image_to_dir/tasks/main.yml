@@ -4,7 +4,7 @@
     - name: Set input image
       set_fact:
         operator_input_image: "{{ operator_input_image | regex_replace('[A-z]*://', '') }}"
-        operator_input_local_image: "{{ operator_local_registry }}/{{ operator_input_image | regex_replace('[A-z]*://', '') | basename}}"
+        operator_input_local_image: "{{ operator_input_local_registry }}/{{ operator_input_image | regex_replace('[A-z]*://', '') | basename}}"
 
     - name: Remove previous input image from local registry
       shell: "{{ opm_container_tool }} rmi -f {{ operator_input_local_image }}"
@@ -75,4 +75,3 @@
             operator_dir: "{{ operator_dir | dirname }}"
   when:
     - operator_input_image != ""
-    - operator_input_image_convert|bool

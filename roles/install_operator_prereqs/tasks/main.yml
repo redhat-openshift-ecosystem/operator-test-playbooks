@@ -42,6 +42,11 @@
     url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu
     dest: "{{ operator_sdk_bin_path }}"
     mode: "0755"
+  register: operator_sdk_install_result
+  until: operator_sdk_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: operator_sdk_install_result is failure
   tags:
     - install
     - host_build
@@ -51,6 +56,11 @@
     url: https://github.com/operator-framework/operator-registry/releases/download/{{ opm_version }}/linux-amd64-opm
     dest: "{{ opm_bin_path }}"
     mode: "0755"
+  register: opm_install_result
+  until: opm_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: opm_install_result is failure
   tags:
     - install
     - host_build
@@ -60,6 +70,11 @@
     url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64"
     dest: "{{ jq_bin_path }}"
     mode: "0755"
+  register: jq_install_result
+  until: jq_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: jq_install_result is failure
   tags:
     - install
     - image_build
@@ -69,6 +84,11 @@
     url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
     dest: "{{ yq_bin_path }}"
     mode: "0755"
+  register: yq_install_result
+  until: yq_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: yq_install_result is failure
   tags:
     - install
     - image_build
@@ -130,7 +150,7 @@
             mode: "0755"
           when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-        - name: "Configuring Kind with registry"
+        - name: "Installing skopeo for ubuntu"
           shell: "/tmp/install_skopeo.sh"
           when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
         - package:
@@ -151,6 +171,11 @@
         url: "https://github.com/openSUSE/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
         dest: "{{ umoci_bin_path }}"
         mode: "0755"
+      register: umoci_install_result
+      until: umoci_install_result.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: umoci_install_result is failure
       when:
         - umoci_help_result.rc is defined
         - umoci_help_result.rc != 0

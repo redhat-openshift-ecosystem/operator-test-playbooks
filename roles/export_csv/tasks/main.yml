@@ -50,6 +50,11 @@
   - name: Set facts
     set_fact:
       operator_vars_tmp: "{{ csv_data.stdout | from_yaml }}"
+
+  - debug:
+      var: operator_vars_tmp
+      verbosity: 2
+
   - name: Set facts
     set_fact:
       operator_vars: "{{ operator_vars_tmp | from_yaml }}"

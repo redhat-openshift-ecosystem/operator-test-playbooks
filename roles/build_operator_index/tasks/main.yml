@@ -1,0 +1,17 @@
+---
+- set_fact:
+    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+
+- debug:
+    var: ba_name
+
+- debug:
+    var: ba_versions
+
+- name: Add all vesions for operator '{{ ba_name }}' to index
+  include_tasks: bundle_add.yml
+  vars:
+    bundle_add_name: "{{ ba_name }}"
+  loop: "{{ ba_versions }}"
+  loop_control:
+    loop_var: bundle_add_ver

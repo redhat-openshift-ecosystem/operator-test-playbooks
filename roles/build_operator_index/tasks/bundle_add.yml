@@ -1,0 +1,26 @@
+- set_fact:
+    bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ bundle_add_name }}:v{{ bundle_add_ver }}"
+
+- name: Retag bundle input image
+  block:
+    - name: Retag image to {{ bundle_image }}
+      shell: "{{ opm_container_tool }} tag {{ operator_input_image  }} {{ bundle_image }}"
+    - name: Push image {{ bundle_image }}
+      shell: "{{ opm_container_tool }} push {{ bundle_image }}"
+  when:
+  - operator_input_image is defined
+  - operator_input_image != ""
+
+- debug:
+    var: bundle_image
+- debug:
+    var: bundle_index_image
+
+- set_fact:
+    opm_index_add_extra_args: "--from-index {{ bundle_index_image_from }}"
+  when:
+    - bundle_index_image_from is defined
+    - bundle_index_image_from != ""
+
+- name: Build index image {{ bundle_index_image }}
+  shell: "{{ opm_bin_path }} index add  -u {{ opm_container_tool }} --bundles {{ bundle_image }} --tag {{ bundle_index_image }} {{ opm_index_add_extra_args }} --skip-tls"

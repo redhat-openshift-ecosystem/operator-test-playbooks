@@ -1,0 +1,6 @@
+operator_bundle_src_dir: /tmp/operator-test/operator-bundle/src
+operator_name: ""
+operator_version: latest
+operators_for_index: []
+bundle_registry: localhost:5000
+bundle_image_namespace: test-operator
