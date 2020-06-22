@@ -94,7 +94,7 @@
     ignore_errors: true
 
   - name: "Install umoci if not installed"
-    shell: "curl -o {{ umoci_bin_path }} -L https://github.com/openSUSE/umoci/releases/download/{{ umoci_version }}/umoci.amd64 && chmod +x {{ umoci_bin_path }}"
+    shell: "curl -o {{ umoci_bin_path }} -L https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64 && chmod +x {{ umoci_bin_path }}"
     when:
       - umoci_help_result.rc is defined
       - umoci_help_result.rc != 0
