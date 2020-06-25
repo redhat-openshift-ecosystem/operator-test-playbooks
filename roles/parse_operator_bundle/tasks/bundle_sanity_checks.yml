@@ -7,7 +7,6 @@
     - item not in valid_ocp_versions
     - not run_upstream|bool
 
-
 - name: "Read the variables from annotations.yaml"
   include_vars:
     file: "{{ operator_work_dir }}/metadata/annotations.yaml"

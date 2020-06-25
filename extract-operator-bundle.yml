@@ -13,9 +13,6 @@
     jq_bin_path: "/usr/bin/jq"
     yq_bin_path: "/usr/local/bin/yq"
     umoci_bin_path: "/usr/local/bin/umoci"
-    valid_ocp_versions:
-    - "v4.5"
-    - "v4.6"
 
   tasks:
     - name: "Extract the operator bundle image into files needed to run the tests"
