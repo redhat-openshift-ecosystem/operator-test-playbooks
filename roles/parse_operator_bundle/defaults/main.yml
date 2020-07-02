@@ -1,5 +1,6 @@
 jq_bin_path: jq
 yq_bin_path: yq
 skopeo_bin_path: skopeo
+image_protocol: "docker://"
 operator_work_dir: /home/jenkins/agent/test-operator
 bundle_sanity_checks: true

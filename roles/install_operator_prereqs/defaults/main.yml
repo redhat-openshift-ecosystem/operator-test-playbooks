@@ -4,4 +4,13 @@ operator_sdk_version: v0.15.1
 oc_version: 4.3.5
 operator_courier_version: 2.1.7
 go_version: 1.13.7
+jq_version: 1.6
+yq_version: 2.2.1
 umoci_version: v0.4.5
+opm_version: v1.12.3
+operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+oc_bin_path: "{{ 'kubectl' if run_upstream else \"{{ testing_bin_path }}/oc\" }}"
+jq_bin_path: "{{ testing_bin_path }}/jq"
+yq_bin_path: "{{ testing_bin_path }}/yq"
+go_bin_path: "{{ testing_bin_path }}/go/bin/go"
+opm_bin_path: "{{ testing_bin_path }}/opm"

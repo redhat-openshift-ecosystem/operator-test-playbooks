@@ -1,0 +1,13 @@
+operator_work_dir: /tmp/cvp/operator-files
+operator_repo: /tmp/community-operators
+check_verify_result: true
+catalog_repo_dir: /tmp/community-operators-for-catalog
+catalog_dockerfile: upstream.Dockerfile
+catalog_image_name: operatorhub-catalog
+catalog_image_namespace: operatorhub
+catalog_image_registry: localhost:5000
+catalog_image_tag: dev
+catalog_source_namespace: test-operators
+catalog_source_name: test-operators
+
+

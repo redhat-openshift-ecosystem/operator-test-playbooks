@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ package_name }}-test
+  namespace: test-operators
+  labels:
+    operator: test
+spec:
+  name: {{ package_name }}
+  source: test-operators-ocs
+  sourceNamespace: test-operators
+  channel: "{{ current_channel }}"

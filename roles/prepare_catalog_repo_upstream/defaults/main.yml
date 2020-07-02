@@ -1,0 +1,7 @@
+catalog_repo: https://github.com/operator-framework/community-operators.git
+catalog_repo_branch: master
+catalog_repo_dir: /tmp/community-operators-for-catalog
+operator_input_image: ""
+
+
+

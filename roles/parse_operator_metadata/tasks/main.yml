@@ -6,7 +6,7 @@
       paths: "{{ operator_work_dir }}"
       file_type: file
       contains: 'packageName'
-    register: package_path_result 
+    register: package_path_result
 
     # assuming only one file matches the file path
   - name: "set variable for package_path from package_path_result"
@@ -17,6 +17,27 @@
     include_vars:
       file: "{{ package_path }}"
       name: package_vars
+    when: not run_upstream|bool
+
+  - name: "Load variables from package path into variable package_vars (upstream only)"
+    block:
+    - name: Check if package file exists
+      stat:
+        path: "{{ package_path }}"
+      register: package_file_st
+
+    - name: Fail if package file doesn't exists
+      fail:
+      when: not package_file_st.stat.exists
+
+    - name: "Getting content of package file"
+      shell: "cat {{ package_path }}"
+      register: package_data
+
+    - name: Set facts
+      set_fact:
+        package_vars: "{{ package_data.stdout | from_yaml }}"
+    when: run_upstream|bool
 
   - name: "GET package_name variable from loaded package_vars"
     set_fact:
@@ -101,6 +122,7 @@
     include_vars:
       file: "{{ csv_path }}"
       name: operator_vars
+    when: not run_upstream|bool
 
   - name: "Determine and setfact for podname"
     set_fact:
@@ -159,5 +181,5 @@
         msg: "{{ ansible_failed_result }}"
 
     - name: "Result of failure"
-      fail: 
+      fail:
         msg: "Ansible playbook while preparing the operator metadata failed"

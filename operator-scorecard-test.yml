@@ -5,6 +5,7 @@
   gather_facts: false
 
   vars:
+    run_upstream: false
     openshift_namespace: "test-operator"
     operator_work_dir: "/home/jenkins/agent/test-operator"
     current_csv_dir: "/home/jenkins/agent/test-operator"
@@ -13,7 +14,7 @@
     operator_sdk_bin_path: "/usr/local/bin/operator-sdk"
     jq_bin_path: "/usr/bin/jq"
     yq_bin_path: "/usr/local/bin/yq"
-    oc_bin_path: "oc"
+    oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
     check_scorecard_results: false
 
   tasks:

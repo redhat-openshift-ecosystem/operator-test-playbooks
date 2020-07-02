@@ -3,12 +3,27 @@
 - name: "Verify ocp versions are valid"
   fail:
     msg: "com.redhat.openshift.versions must only contain v4.5"
-  when: (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] != "v4.5"
+  when:
+    - (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] != "v4.5"
+    - not run_upstream|bool
 
 - name: "Read the variables from annotations.yaml"
   include_vars:
     file: "{{ operator_work_dir }}/metadata/annotations.yaml"
     name: annotations_vars
+  when: not run_upstream|bool
+
+- name: "Read the variables from annotations.yaml"
+  block:
+    - shell: cat "{{ operator_work_dir }}/metadata/annotations.yaml"
+      register: annotation_data
+    - name: Debug
+      debug:
+        msg: "{{ annotation_data.stdout | from_yaml }}"
+    - name: Set facts
+      set_fact:
+        annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
+  when: run_upstream|bool
 
 - debug:
     var: skopeo_inspect_json.Labels
