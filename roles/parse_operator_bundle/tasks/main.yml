@@ -1,7 +1,9 @@
 ---
-- name: "Inspect the bundle image with skopeo"
-  shell: "skopeo inspect {{ image_protocol }}{{ bundle_image }}"
-  register: skopeo_inspect_result
+- name: "Parsing the operator bundle data"
+  block:
+  - name: "Inspect the bundle image with skopeo"
+    shell: "skopeo inspect {{ image_protocol }}{{ bundle_image }}"
+    register: skopeo_inspect_result
 
   - name: "Save the skopeo inspect output to a log file"
     copy:
