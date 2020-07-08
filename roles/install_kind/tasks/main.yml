@@ -5,6 +5,7 @@
       stat:
         path: "{{ kind_bin_path }}"
       register: rc_kind
+
     - name: "Delete kind cluster"
       shell: "kind delete cluster --name {{ kind_cluster_name }}"
       when: rc_kind.stat.exists
@@ -13,17 +14,13 @@
     - reset
     - uninstall
 
-# TODO 
-# - check if docker exists
-# - check if registry exists
 - name: "Destroy current registry"
   shell: "docker rm -f kind-registry"
-  ignore_errors: yes
+  failed_when: false
   tags:
     - never
     - reset
     - uninstall
-
 
 - name: "Uninstall kind binary"
   file:
@@ -41,11 +38,16 @@
         path: "{{ kind_bin_path }}"
       register: rc_kind
 
-    - name: "Install kind"
+    - name: "Install kind binary"
       get_url:
         url: "https://github.com/kubernetes-sigs/kind/releases/download/{{ kind_version }}/kind-linux-amd64"
         dest: "{{ kind_bin_path }}"
         mode: '0755'
+      register: kind_install_result
+      until: kind_install_result.status_code is undefined or kind_install_result.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: kind_install_result is failure
       become: yes
       when: rc_kind.stat.exists == false
   tags:
@@ -54,7 +56,7 @@
 
 - name: "Installing Kind with registry"
   block:
-    - name: Generating file for kind and registry
+    - name: "Generating file for kind and registry"
       template:
         src: kind-with-registry.sh.j2
         dest: "{{ kind_tmp_dir }}/kind-with-registry.sh"

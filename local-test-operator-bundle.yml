@@ -16,7 +16,8 @@
     olm_ver: 0.14.1
 
   tasks:
-    - set_fact:
+    - name: "Setting basic variables for test bundle operator tasks"
+      set_fact:
         operator_work_dir: "{{ work_dir }}/operator-files"
         operator_bundle_dir: "{{ work_dir }}/operator-bundle"
         jq_bin_path: "{{ testing_bin_path }}/jq"
@@ -32,9 +33,20 @@
         name: install_operator_prereqs
       when: run_prereqs|bool
 
+    # - name: "Reset value for unified package test"
+    #   set_fact:
+    #     previous_package: ''
+
     - name: "Build bundle image"
       include_role:
-        name: build_image_bundle
+        name: build_operator_version_bundle
+      vars:
+        remove_replaces: true
+      when: run_upstream|bool
+
+    - name: "Check package unification"
+      include_role:
+        name: check_package_bundle
       when: run_upstream|bool
 
     - name: "Extract the operator bundle image into files needed to run the tests"
@@ -49,17 +61,21 @@
       include_role:
         name: validate_operator_bundle
 
+    - name: "Setting 'operator_for_index' variable"
+      set_fact:
+        operators_for_index: '{{ operators_for_index | default([]) | union( [{"name": "{{ operator_package_name }}", "versions": [ "{{ operator_version }}" ] }]) }}'
+
     - name: "Build the operator bundle index"
       include_role:
-        name: build_index_bundle
+        name: build_operators_index
       when: run_upstream|bool
 
-    - name: "OLM"
+    - name: "OLM setup"
       block:
         - name: "Check if OLM is needed"
           shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
           register: olm_needed
-          ignore_errors: true
+          failed_when: false
 
         - name: "Install OLM"
           block:
@@ -68,7 +84,7 @@
 
             - name: "Delete catalogsource"
               shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
-              ignore_errors: true
+              failed_when: false
           when:
             - olm_needed.stdout != "operatorgroup"
       when: run_upstream|bool

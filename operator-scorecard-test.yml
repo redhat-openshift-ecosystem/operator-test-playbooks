@@ -34,7 +34,7 @@
         - name: "Get the pod container logs of the operator after running scorecard tests"
           shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
           register: operator_container_result
-          ignore_errors: true
+          failed_when: false
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
           no_log: true

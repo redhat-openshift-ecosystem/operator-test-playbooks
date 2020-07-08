@@ -7,7 +7,7 @@ go_version: 1.13.7
 jq_version: 1.6
 yq_version: 2.2.1
 umoci_version: v0.4.5
-opm_version: v1.12.3
+opm_version: v1.12.5
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 oc_bin_path: "{{ 'kubectl' if run_upstream else \"{{ testing_bin_path }}/oc\" }}"
 jq_bin_path: "{{ testing_bin_path }}/jq"

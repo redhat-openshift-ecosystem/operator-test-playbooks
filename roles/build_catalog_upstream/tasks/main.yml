@@ -26,7 +26,7 @@
 
 - name: "Delete previous catalog deployment (it may fail if not exists)"
   shell: "{{ oc_bin_path }} delete deployment {{ catalog_source_name }} -n {{ catalog_source_namespace }} --ignore-not-found=true"
-  ignore_errors: yes
+  failed_when: false
   tags:
     - catalog_build
 

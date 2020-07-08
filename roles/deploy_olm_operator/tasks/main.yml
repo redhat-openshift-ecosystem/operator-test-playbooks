@@ -1,88 +1,141 @@
 ---
 - set_fact:
     quay_release: "0.0.1"
+    upstream_namespace_param: "{{ '-n test-operators' if run_upstream else '' }}"
 
-- name: "Check for the existence of earlier releases of the operator on the quay.io app repository"
-  shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
-  register: quay_release_result
-  no_log: true
+- name: "Check operator version (upstream only)"
+  shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
+  register: op_ver
+  when: run_upstream|bool
 
-- name: "Increment testing quay app release if exists"
-  shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
-  register: quay_increment_release_result
-  when:
-    - quay_release_result is defined
-    - quay_release_result.stdout is defined
-    - quay_release_result.stdout != ""
-    - quay_release_result.stdout != "null"
+- name: "Find CSV for upstream Subscription (upstream only)"
+  shell: "ls {{ operator_dir }}/{{ op_ver.stdout }}/*clusterser*|awk -F'/' '{print $NF}'|awk -F'.clusterserviceversion.yaml' '{print $1}'"
+  register: csv_name
+  when: run_upstream|bool
 
-- name: "Set quay release to the incremented one if exists"
-  set_fact:
-    quay_release: "{{ quay_increment_release_result.stdout }}"
-  when:
-    - quay_increment_release_result is defined
-    - quay_increment_release_result.stdout is defined
-    - quay_increment_release_result.stdout != ""
+- name: "Check operator version"
+  shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
+  register: op_ver
+  when: run_upstream|bool
 
-- name: "Append the -test suffix to the packageName"
-  shell: "{{ yq_bin_path }} w -i {{ package_path }} 'packageName' '{{ package_name }}-test'"
+- name: "Find CSV for upstream Subscription"
+  shell: "ls {{ operator_dir }}/{{ op_ver.stdout }}/*clusterser*|awk -F'/' '{print $NF}'|awk -F'.clusterserviceversion.yaml' '{print $1}'"
+  register: csv_name
+  when: run_upstream|bool
 
-- name: "Push the operator metadata to the private quay.io repository"
-  shell: "operator-courier push {{ operator_work_dir }} {{ quay_namespace }} {{ package_name }}-test {{ quay_release }} \"basic {{ quay_token }}\""
-  no_log: true
-
-- name: "Create {{ openshift_namespace }} project"
-  shell: "{{ oc_bin_path }} new-project {{ openshift_namespace }}"
-  register: openshift_namespace_result
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-
-- name: "Inject kube_objects on OpenShift cluster for Operator certification"
+- name: "Openshift only"
   block:
-    - name: "Inject openshift kube_objects"
-      include_role:
-        name: inject_openshift_kube_objects
-      vars:
-        rsa_private_key: "{{ lookup('env', 'HOME') }}/.ssh/private_key"
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  when:
-    - kube_objects is defined
-    - kube_objects != "N/A"
-    - kube_objects != "null"  
+  - name: "Check for the existence of earlier releases of the operator on the quay.io app repository"
+    shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
+    register: quay_release_result
+    no_log: true
+
+  - name: "Increment testing quay app release if exists"
+    shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
+    register: quay_increment_release_result
+    when:
+      - quay_release_result is defined
+      - quay_release_result.stdout is defined
+      - quay_release_result.stdout != ""
+      - quay_release_result.stdout != "null"
+
+  - name: "Set quay release to the incremented one if exists"
+    set_fact:
+      quay_release: "{{ quay_increment_release_result.stdout }}"
+    when:
+      - quay_increment_release_result is defined
+      - quay_increment_release_result.stdout is defined
+      - quay_increment_release_result.stdout != ""
+
+  - name: "Append the -test suffix to the packageName"
+    shell: "{{ yq_bin_path }} w -i {{ package_path }} 'packageName' '{{ package_name }}-test'"
+
+  - name: "Push the operator metadata to the private quay.io repository"
+    shell: "operator-courier push {{ operator_work_dir }} {{ quay_namespace }} {{ package_name }}-test {{ quay_release }} \"basic {{ quay_token }}\""
+    no_log: true
+
+  - name: "Create {{ openshift_namespace }} project"
+    shell: "{{ oc_bin_path }} new-project {{ openshift_namespace }}"
+    register: openshift_namespace_result
+    environment:
+      KUBECONFIG: "{{ kubeconfig_path }}"
+
+  - name: "Inject kube_objects on OpenShift cluster for Operator certification"
+    block:
+      - name: "Inject openshift kube_objects"
+        include_role:
+          name: inject_openshift_kube_objects
+        vars:
+          rsa_private_key: "{{ lookup('env', 'HOME') }}/.ssh/private_key"
+    environment:
+      KUBECONFIG: "{{ kubeconfig_path }}"
+    when:
+      - kube_objects is defined
+      - kube_objects != "N/A"
+      - kube_objects != "null"
+
+  when: not run_upstream|bool
+
+
 
 - name: "Create the olm operator files directory"
-  shell: "mkdir -p {{ olm_operator_files_path }}"
+  file:
+    path: "{{ olm_operator_files_path }}"
+    state: directory
+    mode: '0755'
+
+- name: "Copy namespace file"
+  template:
+    src: "namespace.yml.js2"
+    dest: "{{ olm_operator_files_path }}/namespace.yml"
+
+- name: "Create the namespace"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/namespace.yml"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Process the operatorgroup template"
   template:
-    src: "operatorgroup.yml.j2"
+    src: "{{ 'operatorgroup_upstream.yml.j2' if run_upstream else \"operatorgroup.yml.j2\" }}"
     dest: "{{ olm_operator_files_path }}/operatorgroup.processed.yml"
 
 - name: "Process the marketplacesecret template"
   template:
     src: "marketplacesecret.yml.j2"
     dest: "{{ olm_operator_files_path }}/marketplacesecret.processed.yml"
+  when: not run_upstream|bool
 
 - name: "Process the subscription template"
   template:
-    src: "subscription.yml.j2"
+    src: "{{ 'subscription_upstream.yml.j2' if run_upstream else \"subscription.yml.j2\" }}"
     dest: "{{ olm_operator_files_path }}/subscription.yml"
 
 - name: "Process the operatorsource template"
   template:
-    src: "operatorsource.yml.j2"
+    src: operatorsource.yml.j2
     dest: "{{ olm_operator_files_path }}/operatorsource.yml"
+  when: not run_upstream|bool
+
+- name: "Process the catalogsource template"
+  template:
+    src: "catalogsource_upstream.yml.j2"
+    dest: "{{ olm_operator_files_path }}/catalogsource.yml"
+
 
 - name: "Create all processed resources in the deploy directory"
-  shell: "for f in $(find {{ olm_operator_files_path }} -maxdepth 1 -name \"*processed.yml\"); do {{ oc_bin_path }} create -f $f; done"
+  shell: 'for f in $(find {{ olm_operator_files_path }} -maxdepth 1 -name "*processed.yml"); do {{ oc_bin_path }} apply -f $f; done'
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Create the catalogsource"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml"
+  when: run_upstream|bool
 
 - name: "Create the operatorsource"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/operatorsource.yml"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when: not run_upstream|bool
 
 - name: "Wait for the operatorsource pod to start up"
   shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep test-operators- | grep Running"
@@ -93,25 +146,40 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when: not run_upstream|bool
 
-- name: "Check if scorecard secret exists"
-  stat:
-    path: "{{ operator_work_dir }}/../scorecard.secret.yaml"
-  register: scorecard_secret_result
+- name: Scorecard secret
+  block:
+    - name: "Check if scorecard secret exists"
+      stat:
+        path: "{{ operator_work_dir }}/../scorecard.secret.yaml"
+      register: scorecard_secret_result
 
-- name: "Create the scorecard secret if it exists"
-  shell: "{{ oc_bin_path }} create -f {{ operator_work_dir }}/../scorecard.secret.yaml"
+    - name: "Create the scorecard secret if it exists"
+      shell: "{{ oc_bin_path }} create -f {{ operator_work_dir }}/../scorecard.secret.yaml"
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: scorecard_secret_result.stat.exists == True
+  when: not run_upstream|bool
+
+- name: "Wait for the operator {{ package_name }} to be in packagemanifests"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  register: packagemanifest_presence
+  retries: 25
+  delay: 5
+  until: packagemanifest_presence.rc == 0
+  ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  when: scorecard_secret_result.stat.exists == True
+  when: run_upstream|bool
 
 - name: "Create the subscription"
-  shell: "{{ oc_bin_path }} create -f {{ olm_operator_files_path }}/subscription.yml"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/subscription.yml"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
-  shell: "{{ oc_bin_path }} get pods | grep {{ operator_pod_name }} | grep Running"
+  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running"
   register: operator_result
   retries: 90
   delay: 10
@@ -120,8 +188,19 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+- name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
+  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  register: operator_uptime
+  retries: 15
+  delay: 5
+  until: operator_uptime.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: run_upstream|bool
+
 - name: "Get the details of the deployed CSVs"
-  shell: "{{ oc_bin_path }} describe csvs"
+  shell: "{{ oc_bin_path }} describe csvs {{ upstream_namespace_param }}"
   register: csv_describe_result
   ignore_errors: true
   environment:
@@ -134,7 +213,7 @@
   when: csv_describe_result.stdout != ""
 
 - name: "Get the pod status of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} -o yaml | {{ yq_bin_path }} r - \"status\""
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -150,7 +229,7 @@
     - operator_pod_result.stdout != ""
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:
@@ -170,6 +249,14 @@
   register: catalog_source_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when: not run_upstream|bool
+
+- name: "Get the catalogsource pod log (upstream)"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
+  register: catalog_source_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: run_upstream|bool
 
 - name: "Output the catalogsource log to a debug file"
   copy:
@@ -182,6 +269,14 @@
   register: catalog_operator_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when: not run_upstream|bool
+
+- name: "Get the catalog-operator pod log (upstream)"
+  shell: "{{ oc_bin_path }} get --output=name pods -n olm | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n olm | tail -n 100"
+  register: catalog_operator_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: run_upstream|bool
 
 - name: "Output the catalog-operator log to a debug file"
   copy:
@@ -195,6 +290,12 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+- name: "Get the InstallPlan debug output"
+  shell: "{{ oc_bin_path }} describe installplan {{ upstream_namespace_param }}"
+  register: installplan_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
 - name: "Output the InstallPlan debug output to a debug file"
   copy:
     content: "{{ installplan_result.stdout }}"
@@ -204,3 +305,10 @@
 - fail:
     msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
   when: operator_result.rc != 0
+
+- fail:
+    msg: 'Operator was not capable to stay healthy for a specific time'
+  when:
+    - run_upstream|bool
+    - operator_uptime.rc != 0
+

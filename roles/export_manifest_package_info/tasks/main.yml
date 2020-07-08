@@ -1,0 +1,26 @@
+---
+- name: "Search for package.yml"
+  find:
+    paths: "{{ op_dir }}"
+    patterns: "*.package.yaml"
+  register: manifest_package_file
+
+- name: "Set operator package name from package file"
+  block:
+    - name: "Setting package file name"
+      set_fact:
+        pkg_file_path: "{{ manifest_package_file.files[0].path }}"
+
+    - name: "Getting content of package file"
+      shell: "cat {{ pkg_file_path }}"
+      register: pkg_file_data
+
+    - name: "Parse package file"
+      set_fact:
+        op_manifest_pkg_vars: "{{ pkg_file_data.stdout | from_yaml }}"
+
+    - name: "Sets Operator package name"
+      set_fact:
+        operator_package_name: "{{ op_manifest_pkg_vars.packageName }}"
+
+  when: manifest_package_file.files.0 is defined
