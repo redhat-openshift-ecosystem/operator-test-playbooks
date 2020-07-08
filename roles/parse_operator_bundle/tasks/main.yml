@@ -17,6 +17,18 @@
     set_fact:
       skopeo_inspect_json: "{{ skopeo_inspect_result.stdout | from_json }}"
 
+  - name: "Verify required labels"
+    block:
+    - set_fact:
+        failed_label: ""
+    - set_fact:
+        failed_label: "{{ item }}"
+      when: item is not in skopeo_inspect_json.Labels
+      with_items: "{{ required_labels }}"
+    - fail:
+        msg: "Label not found {{ failed_label }}"
+      when: failed_label != ""
+
   - name: "Set the main operator bundle info as parsed from the bundle image labels"
     set_fact:
       is_bundle_image: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.operator.bundle'] }}"
