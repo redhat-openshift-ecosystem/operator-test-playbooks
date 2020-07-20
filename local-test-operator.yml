@@ -43,7 +43,6 @@
         yq_bin_path: "{{ testing_bin_path }}/yq"
         go_bin_path: "{{ testing_bin_path }}/go/bin/go"
         operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
-        offline_cataloger_bin_path: "offline-cataloger"
 
     - name: "Clear the operator working directory"
       file:

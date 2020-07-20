@@ -48,4 +48,4 @@
 
 - debug:
       msg: "The kube_objects directory has been removed successfully"
-  when: kube_objects_directory_removed.rc == 0 
+  when: kube_objects_directory_removed.rc == 0

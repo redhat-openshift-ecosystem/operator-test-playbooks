@@ -8,10 +8,11 @@
     run_upstream: false
     operator_work_dir: "/home/jenkins/agent/test-operator"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
-    offline_cataloger_bin_path: "/usr/local/bin/offline-cataloger"
     production_quay_namespace: "redhat-operators"
+    oc_bin_path: "/usr/local/bin/oc"
     go_bin_path: "go"
     check_initializer_result: false
+    run_cleanup: true
 
   tasks:
     - name: "Run operator catalog initialization test on the operator metadata"

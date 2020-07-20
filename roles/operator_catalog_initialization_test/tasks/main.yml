@@ -11,29 +11,16 @@
     path: "/tmp/operator-registry/local.db"
     state: absent
 
-- name: "Ensure the /tmp/offline-cataloger directory exists"
-  file:
-    path: "/tmp/offline-cataloger"
-    state: directory
-
-- name: "Remove all previous temporary catalog manifests"
-  shell: "rm /tmp/offline-cataloger/manifests-* -rf"
-
 - name: "Download the production bundle catalog manifests"
-  shell: "{{ offline_cataloger_bin_path }} generate-manifests {{ production_quay_namespace }}"
-  args:
-    chdir: "/tmp/offline-cataloger"
-
-- name: "Find the downloaded manifests directory name"
-  shell: "find /tmp/offline-cataloger -type d -name \"manifests-*\" 2>/dev/null"
+  shell: "{{ oc_bin_path }} adm catalog build --appregistry-org={{ production_quay_namespace }} --from=scratch"
   register: catalog_manifests_dir_result
-  ignore_errors: true
+  no_log: true
 
 - set_fact:
-    catalog_manifests_dir: "{{ catalog_manifests_dir_result.stdout_lines[0] }}"
+    catalog_manifests_dir: "{{ catalog_manifests_dir_result.stderr_lines[0].split('dir=', 1)[-1].split(' ')[0] }}"
   when:
-    - catalog_manifests_dir_result.stdout_lines is defined
-    - catalog_manifests_dir_result.stdout_lines|length > 0
+    - catalog_manifests_dir_result.stderr_lines is defined
+    - catalog_manifests_dir_result.stderr_lines|length > 0
 
 - name: "Remove the operator directory from the production bundle if exists"
   file:
@@ -75,3 +62,9 @@
   when:
     - check_initializer_result|bool
     - catalog_initializer_result.rc != 0
+
+- name: "Remove the catalog manifest directory"
+  file:
+    path: "{{ catalog_manifests_dir }}"
+    state: absent
+  when: run_cleanup|bool
