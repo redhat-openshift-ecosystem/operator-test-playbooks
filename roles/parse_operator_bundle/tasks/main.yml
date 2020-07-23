@@ -17,9 +17,30 @@
     set_fact:
       skopeo_inspect_json: "{{ skopeo_inspect_result.stdout | from_json }}"
 
+  - name: "Verify required labels"
+    block:
+      - name: "Set the failed labels to an empty string and is_bundle_image to false"
+        set_fact:
+          failed_labels: ""
+          is_bundle_image: false
+
+      - name: "If the required label is not found among the image labels, add it to the failed_labels"
+        set_fact:
+          failed_labels: "{{ failed_labels }} {{ item }}"
+        when: item not in skopeo_inspect_json.Labels
+        loop: "{{ required_labels }}"
+
+      - name: "Fail if any of the required operator bundle image label(s) are not found"
+        fail:
+          msg: "Required operator bundle image label(s) not found: {{ failed_labels }}"
+        when: failed_labels != ""
+
+      - name: "If the image contains all of the required labels for a bundle image, set the is_bundle_image to true"
+        set_fact:
+          is_bundle_image: true
+
   - name: "Set the main operator bundle info as parsed from the bundle image labels"
     set_fact:
-      is_bundle_image: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.operator.bundle'] }}"
       package_name: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1'] }}"
       default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
       channels: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channels.v1'].split(',') }}"
