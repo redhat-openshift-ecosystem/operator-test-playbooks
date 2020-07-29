@@ -36,10 +36,21 @@
     - name: "Get list of versions_in_dir from bundle registry"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_package_name }}/tags/list"
-        return_content: yes
+        # return_content: yes
       register: bob_registry_versions
       failed_when: false
       changed_when: false
+
+    - name: "Get list of versions_in_dir from bundle production registry ('{{ production_registry_namespace }}')"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}/tags/list"
+        # return_content: yes
+      register: bob_prod_registry_versions
+      failed_when: false
+      changed_when: false
+      when:
+        - production_registry_namespace is defined
+        - production_registry_namespace != ""
 
     - name: "Create repo with public visibility"
       uri:
@@ -63,8 +74,23 @@
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ bob_registry_versions.content | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
-      when: bob_registry_versions.status == 200
+        versions_in_registry: "{{ bob_registry_versions.json | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
+      when:
+      - bob_registry_versions.status is defined
+      - bob_registry_versions.status == 200
+
+    - debug:
+        var: bob_prod_registry_versions
+
+    - name: "Setting all versions to 'versions_in_prod_registry' variable"
+      set_fact:
+        versions_in_prod_registry: "{{ bob_prod_registry_versions.json | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
+      when:
+      - bob_prod_registry_versions.status is defined
+      - bob_prod_registry_versions.status == 200
+
+
+    - pause:
 
     - name: "Filtering versions to add and remove"
       set_fact:
@@ -99,6 +125,27 @@
     - name: "Reset value for unified package test"
       set_fact:
         previous_package: ''
+    - name: "Handle production bundles"
+      block:
+
+        - name: "Check production bundle"
+          include_role:
+            name: check_operator_version_bundle
+          vars:
+            op_version: "{{ cpb_op_ver_item }}"
+          loop: "{{ verions_add }}"
+          loop_control:
+            loop_var: cpb_op_ver_item
+
+
+        - name: "Removed production versions"
+          set_fact:
+            verions_add: []
+      when:
+        - production_registry_namespace is defined
+        - production_registry_namespace != ""
+
+
 
     - name: "Build bundle image"
       include_role:

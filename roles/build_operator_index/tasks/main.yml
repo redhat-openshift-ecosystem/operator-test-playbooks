@@ -78,11 +78,10 @@
   - operator_input_image is defined
   - operator_input_image != ""
 
-- fail:
+- name: "Failing when mode is empty"
+  fail:
     msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
-  when:
-    - opm_index_add_mode is undefined
-    - opm_index_add_mode == ""
+  when: opm_index_add_mode is undefined or opm_index_add_mode == ""
 
 - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
