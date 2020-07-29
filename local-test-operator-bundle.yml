@@ -13,71 +13,22 @@
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"
     current_channel: '' # Added to avoid a potential bug with undefined variables
-    olm_ver: 0.14.1
+    olm_version: 0.14.1
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+    when: run_upstream|bool
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+      when: run_upstream|bool
 
   tasks:
-    - set_fact:
-        operator_work_dir: "{{ work_dir }}/operator-files"
-        operator_bundle_dir: "{{ work_dir }}/operator-bundle"
-        jq_bin_path: "{{ testing_bin_path }}/jq"
-        yq_bin_path: "{{ testing_bin_path }}/yq"
-        umoci_bin_path: "{{ testing_bin_path }}/umoci"
-        opm_bin_path: "{{ testing_bin_path }}/opm"
-        operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
-        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
-
-
-    - name: "Install operator testing prerequisites"
+    - name: "Running bundle test for operator"
       include_role:
-        name: install_operator_prereqs
-      when: run_prereqs|bool
-
-    - name: "Build bundle image"
-      include_role:
-        name: build_image_bundle
-      when: run_upstream|bool
-
-    - name: "Extract the operator bundle image into files needed to run the tests"
-      include_role:
-        name: extract_operator_bundle
-
-    - name: "Parse the operator bundle image, manifest and metadata"
-      include_role:
-        name: parse_operator_bundle
-
-    - name: "Validate the operator manifest and metadata using operator-sdk"
-      include_role:
-        name: validate_operator_bundle
-
-    - name: "Build the operator bundle index"
-      include_role:
-        name: build_index_bundle
-      when: run_upstream|bool
-
-    - name: "OLM"
-      block:
-        - name: "Check if OLM is needed"
-          shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
-          register: olm_needed
-          ignore_errors: true
-
-        - name: "Install OLM"
-          block:
-            - name: "Installing OLM"
-              shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_ver }}"
-
-            - name: "Delete catalogsource"
-              shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
-              ignore_errors: true
-          when:
-            - olm_needed.stdout != "operatorgroup"
-      when: run_upstream|bool
-
-
-    - name: "Test operator on OLM"
-      include_role:
-        name: deploy_olm_operator_upstream_bundle
-      when: run_upstream|bool
+        name: test_opertator_bundle
 
     - name: "Cleanup created resources on the KIND cluster"
       include_role:

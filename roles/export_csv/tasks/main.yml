@@ -28,28 +28,39 @@
         file_type: file
         patterns: '*.clusterserviceversion.yaml'
       register: csv_find_manifest
-    - fail:
+
+    - name: "Failing if csv file was found"
+      fail:
         msg: "Could not find csv file in '{{ op_csv_dir }}'"
       when: csv_find_manifest.files|length == 0
+
     - set_fact:
         csv_file_path: "{{ csv_find_manifest.files[0].path }}"
   when: operator_format == "manifest"
 
 - name: "Include the package path into the operator_vars (upstream only)"
   block:
-  - name: "Check if package file exists"
+  - name: "Check if csv file '{{ csv_file_path }}' exists"
     stat:
       path: "{{ csv_file_path }}"
     register: csv_file_st
+
   - name: "Fail if package file doesn't exists"
     fail:
     when: not csv_file_st.stat.exists
-  - name: "Getting content of package file"
-    shell: "cat {{ csv_file_path }}"
-    register: csv_data
-  - name: Set facts
+
+  - name: "Getting metadata content from csv"
+    shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata"
+    register: csv_data_metadata
+    no_log: True
+
+  - name: "Getting spec content from csv"
+    shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t spec"
+    register: csv_data_spec
+    no_log: True
+
+  - name: "Sets operator variables from csv '{{ csv_file_path }}'"
     set_fact:
-      operator_vars_tmp: "{{ csv_data.stdout | from_yaml }}"
-  - name: Set facts
-    set_fact:
-      operator_vars: "{{ operator_vars_tmp | from_yaml }}"
+      operator_vars:
+        metadata: "{{ csv_data_metadata.stdout | from_yaml }}"
+        spec: "{{ csv_data_spec.stdout | from_yaml }}"

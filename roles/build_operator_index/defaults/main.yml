@@ -1,0 +1,13 @@
+opm_bin_path: "{{ testing_bin_path }}/opm"
+opm_container_tool: "docker"
+bundle_db: "{{ operator_bundle_dir }}/test-registry.db"
+bundle_registry: kind-registry:5000
+bundle_image_namespace: test-operator
+bundle_index_image_namespace: test-operator
+bundle_index_image_name: "catalog"
+bundle_index_image_version: "latest"
+bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+bundle_index_image_from: ""
+ba_add_name: ""
+ba_add_versions: []
+opm_index_add_mode: "replaces"

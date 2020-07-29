@@ -1,0 +1,24 @@
+- name: "Setting 'bundle_index_image' variable"
+  set_fact:
+    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+
+- name: "Remove index image {{ bundle_index_image }}"
+  shell: "{{ opm_container_tool }} rmi -f {{ bundle_index_image }}"
+
+- name: "Reseting 'operators_for_index' variable when 'index_skip' is true"
+  set_fact:
+    operators_for_index: "[]"
+  when: index_skip is defined and index_skip|bool
+
+- debug:
+    var: operators_for_index
+
+- name: "Build index image for all operators"
+  include_role:
+    name: build_operator_index
+  vars:
+    ba_name: "{{ ops_item.name }}"
+    ba_versions: "{{ ops_item.versions }}"
+  loop: "{{ operators_for_index }}"
+  loop_control:
+    loop_var: ops_item

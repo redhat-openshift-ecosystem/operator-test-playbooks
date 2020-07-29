@@ -1,0 +1,46 @@
+---
+- name: "Delete kind cluster (Wait until success)"
+  block:
+    - name: Set the retry count
+      set_fact:
+        delete_kind_retry_count: "{{ 2 if delete_kind_retry_count is undefined else delete_kind_retry_count|int + 1 }}"
+
+    - name: "Check that the kind executable exists"
+      stat:
+        path: "{{ kind_bin_path }}"
+      register: rc_kind
+
+    - name: "Delete kind cluster"
+      shell: "kind delete cluster --name {{ kind_cluster_name }}"
+      when: rc_kind.stat.exists
+
+    - name: "Destroy current registry"
+      shell: "docker rm -f kind-registry"
+      failed_when: false
+
+    - name: "Installing Kind with registry"
+      block:
+        - name: "Generating file for kind and registry"
+          template:
+            src: kind-with-registry.sh.j2
+            dest: "{{ kind_tmp_dir }}/kind-with-registry.sh"
+            mode: '0755'
+
+        - name: "Configuring Kind with registry"
+          shell: "{{ kind_tmp_dir }}/kind-with-registry.sh"
+      when: rc_kind.stat.exists
+
+    - name: "Installing OLM ({{ olm_version }})"
+      shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
+      register: olm_install_rc
+  tags:
+    - always
+  rescue:
+    - fail:
+        msg: Ended after 5 retries
+      when: delete_kind_retry_count|int > 5
+
+    - debug:
+        msg: "Failed to connect - Retrying ({{ delete_kind_retry_count }}/5) ..."
+
+    - include_tasks: reset.yml

@@ -1,0 +1,7 @@
+
+- name: "Loop over all versions in operator {{ lat_op.name }} (bundle test)"
+  include_role:
+    name: loop_all_test_single
+  loop: "{{ lat_op.versions }}"
+  loop_control:
+    loop_var: lov_op_version

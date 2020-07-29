@@ -30,3 +30,13 @@
     - check_verify_result|bool
     - courier_verify_result.rc != 0
     - not run_upstream|bool
+    - permisive is not defined or not permisive|bool
+
+- name: "Handle permisive mode when operator is failing to deploy on kind cluster"
+  set_fact:
+    test_all_add_failed_name_version_validation: "{{ test_all_add_failed_name_version_validation | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
+  when:
+    - permisive is defined
+    - permisive|bool
+    - courier_verify_result.rc != 0
+    - run_upstream|bool

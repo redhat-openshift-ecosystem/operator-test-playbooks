@@ -22,20 +22,60 @@
     bundle_validate: "{{ operator_work_dir }}"
   when: not run_upstream|bool
 
-- name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
-  shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} > {{ work_dir}}/validation-output.txt 2>&1"
-  register: sdk_validation_result
-  ignore_errors: true
+- name: "Handle manifest and metadata validation for Openshift"
+  block:
+    - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
+      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} > {{ work_dir}}/validation-output.txt 2>&1"
+      register: sdk_validation_result
+      ignore_errors: true
 
-- name: "Output the return code of operator-sdk bundle validate command to a debug file"
-  copy:
-    content: "{{ sdk_validation_result.rc }}"
-    dest: "{{ work_dir }}/validation-rc.txt"
-  when: sdk_validation_result.rc is defined
+    - name: "Output the return code of operator-sdk bundle validate command to a debug file"
+      copy:
+        content: "{{ sdk_validation_result.rc }}"
+        dest: "{{ work_dir }}/validation-rc.txt"
+      when: sdk_validation_result.rc is defined
 
-- name: "Fail if the operator didn't satisfy the operator-sdk validation test"
-  fail:
-    msg: 'Operator sdk validation test failed, check validation-output.txt for more details'
-  when:
-    - check_validation_result|bool
-    - sdk_validation_result.rc != 0
+    - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
+      fail:
+        msg: 'Operator sdk validation test failed, check validation-output.txt for more details'
+      when:
+        - check_validation_result|bool
+        - sdk_validation_result.rc != 0
+  when: not run_upstream|bool
+
+- name: "Handle manifest and metadata validation for Kind"
+  block:
+    - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
+      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} > {{ work_dir}}/validation-output.txt 2>&1"
+      register: sdk_validation_upstream_result
+      ignore_errors: true
+
+    - name: "Output the return code of operator-sdk bundle validate command to a debug file"
+      copy:
+        content: "{{ sdk_validation_upstream_result.rc }}"
+        dest: "{{ work_dir }}/validation-rc.txt"
+      when: sdk_validation_upstream_result.rc is defined
+
+    - name: "Display content of validation files"
+      shell: "cat {{ item }}"
+      with_items:
+        - "{{ work_dir }}/validation-output.txt"
+        - "{{ work_dir }}/validation-rc.txt"
+
+    - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
+      fail:
+        msg: 'Operator sdk validation test failed, check validation-output.txt for more details'
+      when:
+        - permisive is not defined or not permisive|bool
+        - check_validation_result|bool
+        - sdk_validation_upstream_result.rc != 0
+
+    - name: "Handle permisive mode when operator is failing to deploy on kind cluster"
+      set_fact:
+        test_all_add_failed_name_version_validation: "{{ test_all_add_failed_name_version_validation | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
+      when:
+        - permisive is defined
+        - permisive|bool
+        - sdk_validation_upstream_result.rc != 0
+
+  when: run_upstream|bool

@@ -1,0 +1,7 @@
+---
+
+- name: "Delete kind cluster main"
+  block:
+    - include_tasks: reset.yml
+  tags:
+    - always

@@ -1,0 +1,178 @@
+---
+- name: "Deploy the operator bundle"
+  hosts: all
+  become: false
+  gather_facts: false
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+    when: run_upstream|bool
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+      when: run_upstream|bool
+
+  vars:
+    run_upstream: false
+    work_dir: "/tmp/operator-test"
+    testing_bin_path: "{{ work_dir }}/bin"
+    operators_for_index: []
+    opm_container_tool: "docker"
+    recreate_operators_config: "{{ work_dir }}/operators_config.yaml"
+    bundle_registry: kind-registry:5000
+    bundle_image_namespace: test-operator
+    bundle_index_image_namespace: test-operator
+    bundle_index_image_name: "catalog"
+
+  tasks:
+    - name: "Setting basic variables for deploy tasks"
+      set_fact:
+        operator_work_dir: "{{ work_dir }}/operator-files"
+        operator_bundle_dir: "{{ work_dir }}/operator-bundle"
+        jq_bin_path: "{{ testing_bin_path }}/jq"
+        yq_bin_path: "{{ testing_bin_path }}/yq"
+        umoci_bin_path: "{{ testing_bin_path }}/umoci"
+        opm_bin_path: "{{ testing_bin_path }}/opm"
+        operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+
+    - name: "Quay login"
+      shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+      no_log: True
+      when:
+        - quay_user is defined
+        - quay_password is defined
+        - quay_user != ""
+        - quay_password != ""
+
+    - name: "Quay login via auth token"
+      shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+      # no_log: True
+      when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token is defined and quay_api_token != ""
+
+    - name: "Generate Operators config file from all operators"
+      block:
+        - name: "Search for all operators '{{ regenerate_operators_path | basename }}'"
+          find:
+            paths: "{{ regenerate_operators_path }}"
+            recurse: no
+            file_type: directory
+          register: operators_recreate_find
+
+        - name: "Setting list of operators and operator base dir"
+          set_fact:
+            operators: "{{ operators_recreate_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+            operator_base_dir: "{{ regenerate_operators_path }}"
+
+        - name: "Get list of all repositories in {{ bundle_image_namespace }}"
+          uri:
+            url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository?namespace={{ bundle_image_namespace }}"
+            method: GET
+            force_basic_auth: yes
+            headers:
+              Authorization: "Bearer {{ quay_api_token }}"
+          register: recreate_repos
+
+        - name: "Setting list of repositories"
+          set_fact:
+            recreate_repos_list: "{{ recreate_repos.json.repositories | map(attribute='name') | list }}"
+
+        - name: "Delete all repositories when doing recreate of index"
+          uri:
+            url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ item }}"
+            method: DELETE
+            force_basic_auth: yes
+            headers:
+              Authorization: "Bearer {{ quay_api_token }}"
+            status_code: 204
+            return_content: yes
+          with_items: "{{ recreate_repos_list }}"
+          when:
+            - quay_api_token is defined
+            - quay_api_token != ""
+            - (recreate_skip_repo_clean is undefined or not recreate_skip_repo_clean|bool)
+
+      when:
+        - regenerate_operators_path is defined
+        - regenerate_operators_path != ""
+
+    - debug:
+        var: operators
+    - debug:
+        var: operator_base_dir
+
+    - name: "Handle operators input file"
+      block:
+        - name: "Parsing config file '{{ operators_config }}'"
+          include_vars:
+            file: "{{ operators_config }}"
+            name: operators_config_vars
+
+        - name: "Set facts from config variables"
+          set_fact:
+            operators: "{{ operators_config_vars.operators | default([])}}"
+            operator_base_dir: "{{ operators_config_vars.operator_base_dir | default('') }}"
+
+        - name: "Failing when 'operator base dir' is not found in '{{ operators_config }}'"
+          fail:
+            msg: "'operator_base_dir' was not found in config file '{{ operators_config }}' !!!"
+          when: operator_base_dir == ""
+
+        - name: "Checking if operator base dir exists"
+          stat:
+            path: "{{ operator_base_dir }}"
+          register: operator_base_dir_st
+
+        - name: "Failing when operator base dir doesn't exists"
+          fail:
+            msg: "Operator base dir '{{ operator_base_dir }}' was not found !!!"
+          when: not operator_base_dir_st.stat.exists
+
+        - name: "Failing when 'operator_base_dir' is not defined or is empty"
+          fail:
+            msg: "The 'operator_base_dir' is not defined or is empty"
+          when: operator_base_dir == ""
+      when: operators_config is defined
+
+    - name: "Set operator name to list from operator name"
+      set_fact:
+        operators: '["{{ operator_dir | basename }}"]'
+      when:
+        - operator_dir is defined
+        - operators is undefined
+        - operators_config is undefined
+        - regenerate_operators_path is undefined
+
+    - name: "Setting 'operators_for_index' variable"
+      set_fact:
+        operators_for_index: "{{ operators_for_index }}"
+
+    - name: "Deploy operators bundle images"
+      include_role:
+        name:
+          build_operator_bundle
+      vars:
+        operator_dir: "{{ operator_base_dir }}/{{ op_item }}"
+      loop: "{{ operators }}"
+      loop_control:
+        loop_var: op_item
+      when:
+        - run_upstream|bool
+
+    - name: "Deploy operators to index"
+      include_role:
+        name:
+          build_operators_index
+      when:
+        - run_upstream|bool
+        - not operator_removed|bool
+
+    - name: "Handle failed operators"
+      include_role:
+        name:
+          handle_failed_operators
+      when:
+        - run_upstream|bool
+

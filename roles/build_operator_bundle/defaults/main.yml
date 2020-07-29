@@ -1,0 +1,5 @@
+operator_bundle_src_dir: /tmp/operator-test/operator-bundle/src
+operator_name: ""
+operators_for_index: []
+bundle_registry: kind-registry:5000
+bundle_image_namespace: test-operator

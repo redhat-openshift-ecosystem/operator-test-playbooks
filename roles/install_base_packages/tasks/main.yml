@@ -1,9 +1,9 @@
 ---
-
 - name: "Install required system packages"
   package:
     name:
       - curl
+      - openssl
       - ca-certificates
       - python3-pip
       - python3-setuptools
@@ -28,6 +28,7 @@
       pip:
         name:
           - docker
+          - jmespath
   become: yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   tags:

@@ -1,0 +1,7 @@
+bundle_registry: kind-registry:5000
+bundle_image_namespace: test-operator
+bundle_index_image_namespace: test-operator
+bundle_index_image_name: test-operator
+bundle_index_image_version: latest
+work_dir: "/tmp/operator-test"
+bundle_export_dir_remove: "{{ work_dir }}/bundle-export-dir-remove"

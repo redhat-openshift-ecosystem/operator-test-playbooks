@@ -4,3 +4,9 @@ current_channel: alpha
 operator_work_dir: /home/jenkins/agent/test-operator
 quay_release: 0.0.1
 kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
+packagemanifest_retries: 60
+packagemanifest_delay: 5
+pod_start_retries: 90
+pod_start_delay: 10
+pod_stay_healthy_retries: 15
+pod_stay_healthy_delay: 5

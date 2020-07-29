@@ -38,15 +38,23 @@
       - name: "If the image contains all of the required labels for a bundle image, set the is_bundle_image to true"
         set_fact:
           is_bundle_image: true
+    when: not run_upstream|bool
 
   - name: "Set the main operator bundle info as parsed from the bundle image labels"
     set_fact:
       package_name: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1'] }}"
       default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
       channels: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channels.v1'].split(',') }}"
-      ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
+      is_bundle_image: true
+      ocp_versions: []
       # if backport label missing, an empty is_backport means not set.
       is_backport: ""
+
+  - name: "Set the main operator bundle info as parsed from the bundle image labels"
+    set_fact:
+      is_bundle_image: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.operator.bundle'] }}"
+      ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
+    when: not run_upstream|bool
 
   - name: "Set the current channel to the first value from the operators.operatorframework.io.bundle.channels.v1 label"
     set_fact:
@@ -93,13 +101,17 @@
     include_vars:
       file: "{{ csv_path }}"
       name: operator_vars
+    when: not run_upstream|bool
+
+  - debug:
+      var: operator_vars
 
   - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
     set_fact:
       current_csv: "{{ operator_vars.metadata.name }}"
       operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
       operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
-      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities }}"
+      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities | default('Basic Install')}}"
 
   - name: "Determine operator_allnamespaces_support"
     set_fact:

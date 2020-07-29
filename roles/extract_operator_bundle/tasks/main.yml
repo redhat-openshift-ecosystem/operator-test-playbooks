@@ -25,11 +25,23 @@
   set_fact:
     image_manifest: "{{ skopeo_dir_inspect_result.stdout | from_json }}"
 
-- debug:
-    var: image_manifest
-
 - name: "Unpack the image layers using the umoci tool"
   shell: "{{ umoci_bin_path }} unpack --rootless --image {{ operator_bundle_dir }}:latest {{ operator_bundle_dir }}/data"
 
 - name: "Copy the rootfs of the unpacked data into the operator work directory"
   shell: "cp -r {{ operator_bundle_dir }}/data/rootfs/* {{ operator_work_dir }}"
+
+- name: Extract name and version from bundle input image
+  block:
+    - name: "Export CSV variables"
+      include_role:
+        name: export_csv
+      vars:
+        op_csv_dir: "{{ operator_bundle_dir }}/data/rootfs"
+        operator_format: "bundle"
+    - name: "Setting operator name and version from csv file"
+      set_fact:
+        operator_name: "{{ operator_vars.metadata.name.split('.')[0] }}"
+        op_version: "{{ operator_vars.metadata.name.split('.v')[1:] | join('.') }}"
+    # TODO PARSE version from spec.version to op_version
+  when: operator_input_image != ""

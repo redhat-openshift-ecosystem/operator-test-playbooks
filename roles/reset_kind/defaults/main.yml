@@ -1,0 +1,7 @@
+kind_version: v0.8.1
+kind_kube_version: v1.18.2
+kind_bin_path: "/usr/local/bin/kind"
+# KIND_bin_path: "{{ testing_bin_path }}/kind"
+kind_cluster_name: operator-test
+kind_tmp_dir: /tmp
+kind_registry_ssl: true

@@ -1,48 +1,84 @@
 ---
-- name: Handle operator input image conversion
+- name: "Handle operator input image"
   block:
-    - set_fact:
+    - name: "Seting image protocol"
+      set_fact:
         image_protocol: "docker-daemon:"
-    - name: Handle operator image input
+
+    - name: "Handle operator image input"
       include_role:
         name: convert_bundle_image_to_dir
   when:
     - operator_input_image != ""
-    - operator_input_image_convert|bool
 
-- name: Detect operator format
+- name: "Detect operator format"
   block:
-    - name: Search for package.yml
+    - fail:
+        msg: "Operator version 'op_version' is undefined !!!"
+      when: op_version is undefined
+
+    - name: "Search for annotations.yml"
       find:
-        paths: "{{ operator_dir }}"
-        patterns: "*.package.yaml"
-      register: package_presence
+        paths: "{{ operator_dir }}/{{ op_version }}/metadata"
+        patterns: "annotations.yaml"
+      register: annotations_presence
 
-    - name: Set operator_format to package manifest or bundle
+    - name: "Set operator_format to package manifest or bundle"
       set_fact:
-        operator_format: '{{ ''manifest'' if package_presence.files else ''bundle'' }}'
+        operator_format: '{{ ''bundle'' if annotations_presence.files else ''manifest'' }}'
         operator_name: "{{ operator_dir | basename }}"
-
-    - name: Operator version
-      block:
-      - name: "Check operator version"
-        shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
-        register: operator_version_raw
-      - set_fact:
-          operator_version: "{{ operator_version_raw.stdout }}"
-      when: operator_version is undefined
+        operator_dir_name: "{{ operator_dir | basename }}"
+        operator_base_dir: "{{ operator_dir | dirname }}"
 
     - name: "Export CSV variables"
       include_role:
         name: export_csv
       vars:
-        op_csv_dir: "{{ operator_dir }}/{{ operator_version }}"
+        op_csv_dir: "{{ operator_dir }}/{{ op_version }}"
 
-    - name: Set operator name variable from csv
+    - name: "Export Package variables"
+      include_role:
+        name: export_manifest_package_info
+      vars:
+        op_dir: "{{ operator_dir }}"
+      when: operator_format == "manifest"
+
+    - name: "Set operator name variable from csv"
       set_fact:
         operator_name: "{{ operator_vars.metadata.name.split('.')[0] }}"
         image_protocol: "docker-daemon:"
         run_manifest_test: "{{ run_manifest_test | default(false) }}"
         run_bundle_test: "{{ run_bundle_test | default(true) }}"
-  when:
-    - operator_input_image_convert|bool
+
+    - name: "Read the variables from annotations.yaml"
+      block:
+        - name: "Setting path names for csv and annotation"
+          set_fact:
+            annotation_file_path: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/metadata/annotations.yaml"
+
+        - name: "Check if annotation file exists"
+          stat:
+            path: "{{ annotation_file_path }}"
+          register: annotation_file_st
+
+        - name: "Fail if annotation file doesn't exists"
+          fail:
+          when: not annotation_file_st.stat.exists
+
+        - name: "Getting content of annotation.yaml file"
+          shell: "cat {{ annotation_file_path }}"
+          register: annotation_data
+
+        - name: "Sets `annotations_vars` from yaml file"
+          set_fact:
+            annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
+
+        - name: "Set operators variables from annotation file"
+          set_fact:
+            operator_channel_default: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channel.default.v1'] }}"
+            operator_channels: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'] }}"
+            operator_manifest_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1'] }}"
+            operator_metadata_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1'] }}"
+            operator_package_name: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] }}"
+      when: operator_format == "bundle"
+

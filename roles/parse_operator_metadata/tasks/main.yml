@@ -128,7 +128,7 @@
     set_fact:
       operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
       operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
-      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities }}"
+      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities | default('Basic Install') }}"
 
   - name: "Determine operator_allnamespaces_support"
     set_fact:

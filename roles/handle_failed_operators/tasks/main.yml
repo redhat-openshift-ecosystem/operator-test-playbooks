@@ -1,0 +1,44 @@
+- name: "Adding bundle_failed from 'bundle_add_failed' without duplicates"
+  set_fact:
+    bundle_failed: "{{ bundle_add_failed | unique }}"
+  when: bundle_add_failed is defined
+
+- name: "Adding bundle_failed from 'bundle_index_add_failed' without duplicates"
+  set_fact:
+    bundle_failed: "{{ bundle_failed | default([]) }} + {{ bundle_index_add_failed | unique }}"
+  when: bundle_index_add_failed is defined
+
+- name: "Removing duplicates from 'bundle_failed'"
+  set_fact:
+    operators_config_failed:
+      operator_base_dir: "{{ operator_base_dir }}"
+      operators: "{{ bundle_failed | default([]) | unique }}"
+  when: bundle_failed is defined
+
+- name: "Generate config file from failed operators"
+  block:
+    - name: "Generate operators config file from failed operators"
+      copy: content="{{ operators_config_failed | to_nice_yaml }}" dest=/tmp/operators_failed.yaml
+      when: operators_config_failed is defined
+
+    - name: "Generate operators file from failed operators and versions"
+      copy: content="{{ bundle_add_failed_name_version | to_nice_yaml }}" dest=/tmp/operators_versions_failed.yaml
+      when: bundle_add_failed_name_version is defined
+
+    - name: "Fetch failed operators file to controller machine to path '/tmp/operators_failed-{{ inventory_hostname }}.yaml'"
+      fetch: src=/tmp/operators_failed.yaml dest=/tmp/operators_failed-{{ inventory_hostname }}.yaml flat=yes
+      when: operators_config_failed is defined
+
+    - debug:
+        var: operators_config_failed
+      when: operators_config_failed is defined
+
+    - debug:
+        var: bundle_add_failed_name_version
+      when: bundle_add_failed_name_version is defined
+
+    - name: "Failing because some operators failed to process"
+      fail:
+        msg: "Some operators failed!!! One can rerun failed operators via '-e operators_config=/tmp/operators_failed-{{ inventory_hostname }}.yaml'"
+
+  when: bundle_failed.0 is defined

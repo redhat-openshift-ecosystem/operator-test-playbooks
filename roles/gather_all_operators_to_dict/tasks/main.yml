@@ -1,0 +1,27 @@
+---
+- name: "Search for all operators in '{{ operator_base_dir }}'"
+  find:
+    paths: "{{ operator_base_dir }}"
+    patterns: "{{ all_operator_find_filter }}"
+    recurse: no
+    file_type: directory
+    excludes: "{{ all_operator_find_excludes }}"
+  no_log: True
+  register: gaotd_operators_find
+
+- name: "Setting list of all operators"
+  set_fact:
+    gaotd_operator_dirs: "{{ gaotd_operators_find.files | map(attribute='path') | list }}"
+
+- name: "Loop over all operator dirs"
+  include_tasks: gather_operator_versions.yml
+  loop: "{{ gaotd_operator_dirs }}"
+  loop_control:
+    loop_var: gaotd_dir
+
+- debug:
+    var: all_operators_with_versions
+
+- name: "Print some info"
+  debug:
+    msg: "We found {{ all_operators_with_versions|length }} operators."

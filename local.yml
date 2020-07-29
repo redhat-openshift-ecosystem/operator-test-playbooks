@@ -1,5 +1,5 @@
 ---
-- name: Test
+- name: "Test operator main playbook"
   hosts: all
   become: false
   gather_facts: false
@@ -19,7 +19,6 @@
     work_dir: "/tmp/operator-test"
     operator_dir: "dummy" # so operator-courier will be installed
     operator_input_image: ""
-    operator_input_image_convert: true
     image_protocol: "docker://"
     bundle_image: "dummy" # so skopeo and umoci will be installed
     operator_work_dir: "{{ work_dir }}/operator-files"
@@ -31,6 +30,11 @@
     umoci_bin_path: "{{ testing_bin_path }}/umoci"
     opm_bin_path: "{{ testing_bin_path }}/opm"
     offline_cataloger_bin_path: "offline-cataloger"
+    kind_version: v0.8.1
+    kind_kube_version: v1.18.2
+    operator_sdk_version: v0.18.2
+    olm_version: 0.15.1
+    opm_version: v1.13.0
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
@@ -42,11 +46,11 @@
         - always
       when: run_upstream|bool
 
-    - set_fact:
+    - name: "Setting basic task variables"
+      set_fact:
         work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
         operator_dir: "{{ operator_dir | default('dummy') }}"
         operator_input_image: "{{ operator_input_image | default('') }}"
-        operator_input_image_convert: "{{ operator_input_image_convert | default('true') }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
         bundle_image: "{{ bundle_image | default('dummy') }}"
         run_host_init: "{{ run_host_init | default(true) }}"
@@ -62,17 +66,26 @@
         operator_format: "bundle"
       tags:
         - always
+    - name: "Sets 'run_prereqs' to false when running 'pure_test' tag"
+      set_fact:
+        run_prereqs: false
+      tags:
+        - never
+        - pure_test
+        - pure_test_all
 
   roles:
     - { role: install_base_packages, tags: ["base"], when: run_host_init|bool }
     - { role: install_docker, tags: ["docker"], when: run_host_init|bool }
     - { role: install_kubectl, tags: ["kubectl"], when: run_host_init|bool }
     - { role: install_kind, tags: ["kind"], when: run_host_init|bool }
+    - { role: install_operator_prereqs, tags: ["never", "host_build"], when: run_upstream|bool }
     - { role: prepare_catalog_repo_upstream, tags: ["always"], when: run_upstream|bool }
-    - { role: detect_format, tags: ["always"], when: run_upstream|bool }
+    - { role: loop_all_tests, tags: [never,"test_all","pure_test_all"], when: run_upstream|bool }
 
   tasks:
-    - set_fact:
+    - name: "Setting input variables for testing"
+      set_fact:
         run_manifest_test: "{{ run_manifest_test | default(false) }}"
         run_bundle_test: "{{ run_bundle_test | default(true) }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
@@ -82,10 +95,22 @@
         - test
         - pure_test
 
-    - set_fact:
+    - name: "Sets 'run_prereqs' to false when running 'pure_test' tag"
+      set_fact:
         run_prereqs: false
       tags:
         - never
+        - pure_test
+        - pure_test_all
+
+    - name: "Failing when input image is specified"
+      fail:
+        msg: "Input image is not supported for now"
+      when:
+        - operator_input_image != ""
+      tags:
+        - always
+        - test
         - pure_test
 
 - name: "Running operator manifest test"
@@ -105,3 +130,11 @@
   tags:
     - test
     - pure_test
+
+- name: "Deploy operator bundle for each"
+  import_playbook: local-deploy-operator-bundle.yml
+  when:
+    - run_upstream|bool
+  tags:
+    - never
+    - deploy_bundles

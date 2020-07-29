@@ -1,0 +1,67 @@
+# TODO: Why is it needed?
+# - name: "Search for all versions for operator '{{ operator_dir | basename }}'"
+#   find:
+#     paths: "{{ operator_dir }}"
+#     recurse: no
+#     file_type: directory
+#   register: versions_find
+
+# - set_fact:
+#     versions_in_dir: "{{ versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+
+# - debug:
+#     var: operator_dir
+#     verbosity: 2
+
+- name: "Determine the path in the operator metadata directory"
+  find:
+    paths: "{{ operator_dir }}"
+    recurse: true
+    file_type: file
+    patterns: "annotations.yaml"
+  register: annotations_paths_raw
+
+- name: "Set list of annotation files"
+  set_fact:
+    annotations_paths: "{{ annotations_paths_raw.files | map(attribute='path' ) | list }}"
+
+- debug:
+    var: annotations_paths
+    verbosity: 1
+
+- name: "Reset value for unified package test"
+  set_fact:
+    previous_package: ''
+
+- name: "Export Package variables"
+  block:
+    - name: "Extract package info from package file"
+      include_role:
+        name: export_manifest_package_info
+      vars:
+        op_dir: "{{ operator_dir }}"
+    - name: "Sets previous package from package file with value '{{ operator_package_name }}'"
+      set_fact:
+        previous_package: "{{ operator_package_name }}"
+      when: operator_package_name is defined
+  when: operator_dir is defined
+
+- name: "Loop, load and compare package name"
+  include_tasks: load_and_compare_package_name.yml
+  loop: "{{ annotations_paths }}"
+
+- name: "Fail when no packaage name was found for '{{ operator_dir | basename }}' operator"
+  fail:
+    msg: "No package name was found for operator '{{ operator_dir | basename }}'"
+  when: previous_package == ''
+
+- name: "Fail if package name is different then operator dir name"
+  fail:
+    msg: "Operator package name '{{ previous_package }}' is different then operator directory name '{{ operator_dir_name }}'"
+  when:
+    - package_name_strict is undefined or package_name_strict|bool
+    - previous_package != operator_dir_name
+
+- name: "Reset value for unified package test"
+  set_fact:
+    previous_package: ''

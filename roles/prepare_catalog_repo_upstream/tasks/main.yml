@@ -1,7 +1,6 @@
 ---
 - name: "Prepare comunity operator directory"
   block:
-
     - name: Remove catalog directory
       file:
         path: "{{ catalog_repo_dir }}"
@@ -20,6 +19,24 @@
         version: "{{ catalog_repo_branch }}"
         force: true
       when: not operator_dir_st.stat.exists
+
+    - name: "Handle removing operators"
+      block:
+        - name: "Parse 'remove_operators_dir'"
+          set_fact:
+            bob_remove_operators_list: "{{ remove_operator_dirs.split(',') }}"
+
+        - name: "Remove operator dirs (testing only)"
+          file:
+            path: "{{ remove_base_dir }}/{{ item }}"
+            state: absent
+          with_items: "{{ bob_remove_operators_list }}"
+      when:
+        - remove_base_dir is defined
+        - remove_base_dir != ""
+        - remove_operator_dirs is defined
+        - remove_operator_dirs != ""
+
   when: operator_input_image == ""
   tags:
     - catalog_build

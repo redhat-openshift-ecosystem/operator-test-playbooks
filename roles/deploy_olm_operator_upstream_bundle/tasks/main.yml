@@ -4,9 +4,9 @@
     upstream_namespace_param: "{{ '-n test-operators' if run_upstream else '' }}"
     olm_operator_files_path: /tmp/operator-test/olm-operator-files
 
-- name: "Check operator version (upstream only)"
-  shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
-  register: op_ver
+# - name: "Check operator version (upstream only)"
+#   shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
+#   register: op_ver
 
 - name: "Create the olm operator files directory"
   file:
@@ -62,8 +62,8 @@
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
   shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
   register: packagemanifest_presence
-  retries: 60
-  delay: 5
+  retries: "{{ packagemanifest_retries }}"
+  delay: "{{ packagemanifest_delay }}"
   until: packagemanifest_presence.rc == 0
   ignore_errors: true
   environment:
@@ -77,8 +77,8 @@
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
   shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running"
   register: operator_result
-  retries: 90
-  delay: 10
+  retries: "{{ pod_start_retries }}"
+  delay: "{{ pod_start_delay }}"
   until: operator_result.rc == 0
   ignore_errors: true
   environment:
@@ -87,12 +87,13 @@
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
   shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
   register: operator_uptime
-  retries: 15
-  delay: 5
+  retries: "{{ pod_stay_healthy_retries }}"
+  delay: "{{ pod_stay_healthy_delay }}"
   until: operator_uptime.rc == 0
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when: operator_result.rc == 0
 
 - name: "Get the details of the deployed CSVs"
   shell: "{{ oc_bin_path }} describe csvs {{ upstream_namespace_param }}"
@@ -142,6 +143,7 @@
 - name: "Get the catalogsource pod log (upstream)"
   shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
   register: catalog_source_result
+  ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: run_upstream|bool
@@ -183,21 +185,45 @@
     dest: "{{ work_dir }}/olm-installplan-debug.txt"
   when: installplan_result.stdout is defined
 
-- name: "Operator error status among packagemanifests"
-  fail:
-    msg: 'Operator was not found among packagemanifests'
+- name: "Fail when operator is failing to deploy on kind cluster"
+  block:
+    - name: "Operator error status among packagemanifests"
+      fail:
+        msg: 'Operator was not found among packagemanifests'
+      when:
+        - packagemanifest_presence.rc != 0
+        - run_upstream|bool
+
+    - name: "Operator deployment with OLM error status"
+      fail:
+        msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
+      when: operator_result.rc != 0
+
+    - name: "Stay healthy error status"
+      fail:
+        msg: 'Operator was not capable to stay healthy for a specific time'
+      when:
+        - operator_uptime.rc != 0
+        - run_upstream|bool
+  when: permisive is not defined or not permisive|bool
+
+- name: "Handle permisive mode when operator is failing to deploy on kind cluster"
+  set_fact:
+    test_all_add_failed_name_version: "{{ test_all_add_failed_name_version | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
   when:
-    - packagemanifest_presence.rc != 0
+    - permisive is defined
+    - permisive|bool
+    - operator_result.rc != 0 or operator_uptime is undefined or (operator_uptime is defined and operator_uptime.rc != 0)
     - run_upstream|bool
 
-- name: "Operator deployment with OLM error status"
-  fail:
-    msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
-  when: operator_result.rc != 0
-
-- name: "Stay healthy error status"
-  fail:
-    msg: 'Operator was not capable to stay healthy for a specific time'
+- name: "Set 'test_all_add_ok_name_version' when operator is ok"
+  set_fact:
+    test_all_add_ok_name_version: "{{ test_all_add_ok_name_version | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
   when:
-    - operator_uptime.rc != 0
+    - permisive is defined
+    - permisive|bool
+    - operator_result.rc is defined
+    - operator_result.rc == 0
+    - operator_uptime is defined
+    - operator_uptime.rc == 0
     - run_upstream|bool

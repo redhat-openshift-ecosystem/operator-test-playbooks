@@ -1,0 +1,95 @@
+- name: "Setting basic variables for test bundle operator tasks"
+  set_fact:
+    operator_work_dir: "{{ work_dir }}/operator-files"
+    operator_bundle_dir: "{{ work_dir }}/operator-bundle"
+    operator_bundle_dir_for_courier: "{{ work_dir }}/operator-bundle-for-courier"
+    jq_bin_path: "{{ testing_bin_path }}/jq"
+    yq_bin_path: "{{ testing_bin_path }}/yq"
+    umoci_bin_path: "{{ testing_bin_path }}/umoci"
+    opm_bin_path: "{{ testing_bin_path }}/opm"
+    operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+    oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+
+
+- name: "Install operator testing prerequisites"
+  include_role:
+    name: install_operator_prereqs
+  when: run_prereqs|bool
+
+# - name: "Reset value for unified package test"
+#   set_fact:
+#     previous_package: ''
+
+- name: "Build bundle image"
+  include_role:
+    name: build_operator_version_bundle
+  vars:
+    op_version: "{{ operator_version }}"
+    remove_replaces: true
+  when: run_upstream|bool
+
+- name: "Check package unification"
+  include_role:
+    name: check_package_bundle
+  when: run_upstream|bool
+
+- name: "Extract the operator bundle image into files needed to run the tests"
+  include_role:
+    name: extract_operator_bundle
+
+- name: "Parse the operator bundle image, manifest and metadata"
+  include_role:
+    name: parse_operator_bundle
+
+- name: "Validate the operator manifest and metadata using operator-sdk"
+  include_role:
+    name: validate_operator_bundle
+
+- name: "Set versions to current version as array"
+  set_fact:
+    operators_for_index: []
+    versions_to_test: "[ '{{ operator_version }}' ]"
+
+- name: "Setting 'operator_for_index' variable"
+  set_fact:
+    operators_for_index: "{{ operators_for_index | union( [{'name': operator_package_name, 'versions': versions_to_test }]) }}"
+
+- name: "Build the operator bundle index"
+  include_role:
+    name: build_operators_index
+  when: run_upstream|bool
+
+- name: "OLM setup"
+  block:
+    - name: "Check if OLM is needed"
+      shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
+      register: olm_needed
+      failed_when: false
+    - name: "Install OLM"
+      block:
+        - name: "Installing OLM"
+          shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
+          register: olm_install_rc
+          retries: 10
+          delay: 5
+          until: olm_install_rc.rc == 0
+
+        - name: "Delete catalogsource"
+          shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+          failed_when: false
+      when:
+        # - olm_needed.stdout != "operatorgroup"
+        - olm_needed.stdout is not search('operatorgroup')
+
+  when: run_upstream|bool
+
+- name: "Test operator on OLM"
+  include_role:
+    name: deploy_olm_operator_upstream_bundle
+  when: run_upstream|bool
+
+- name: "Cleanup created resources on the KIND cluster"
+  include_role:
+    name: cleanup_operator_resources
+  when:
+    - run_cleanup|bool
