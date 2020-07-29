@@ -1,2 +1,0 @@
-- debug:
-    msg: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ cpb_op_ver_item }}"

@@ -74,7 +74,7 @@
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ bob_registry_versions.json | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
+        versions_in_registry: "{{ bob_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
       when:
       - bob_registry_versions.status is defined
       - bob_registry_versions.status == 200
@@ -84,17 +84,15 @@
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable"
       set_fact:
-        versions_in_prod_registry: "{{ bob_prod_registry_versions.json | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
+        versions_in_prod_registry: "{{ bob_prod_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
       when:
       - bob_prod_registry_versions.status is defined
       - bob_prod_registry_versions.status == 200
 
 
-    - pause:
-
     - name: "Filtering versions to add and remove"
       set_fact:
-        verions_add: "{{ versions_in_dir | difference(versions_in_registry) }}"
+        verions_add: "{{ versions_in_dir | difference(versions_in_registry) | difference(versions_in_prod_registry) }}"
         verions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
 
     - name: "Converting 'operator_version' to list"
@@ -125,27 +123,6 @@
     - name: "Reset value for unified package test"
       set_fact:
         previous_package: ''
-    - name: "Handle production bundles"
-      block:
-
-        - name: "Check production bundle"
-          include_role:
-            name: check_operator_version_bundle
-          vars:
-            op_version: "{{ cpb_op_ver_item }}"
-          loop: "{{ verions_add }}"
-          loop_control:
-            loop_var: cpb_op_ver_item
-
-
-        - name: "Removed production versions"
-          set_fact:
-            verions_add: []
-      when:
-        - production_registry_namespace is defined
-        - production_registry_namespace != ""
-
-
 
     - name: "Build bundle image"
       include_role:
@@ -158,12 +135,12 @@
 
     - name: "Adding current operator to the 'operators_for_index'"
       set_fact:
-        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir }]) }}"
+        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
       when: verions_add.0 is defined or (index_force_rebuild is defined and index_force_rebuild|bool)
 
     - name: "Adding current operator to the 'operators_for_index' when only removed version is defined"
       set_fact:
-        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir }]) }}"
+        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
       when: verions_add.0 is undefined and verions_remove.0 is defined
 
   when: bob_operator_dir_st.stat.exists
