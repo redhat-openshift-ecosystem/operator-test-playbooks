@@ -9,6 +9,7 @@
     - name: "Remove bundle image {{ bundle_image }}"
       shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
   when:
+    - operator_input_image is defined
     - operator_input_image != ""
 
 - name: "Handle bundle image from source dir"

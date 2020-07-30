@@ -36,10 +36,19 @@
     - name: "Get list of versions_in_dir from bundle registry"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_package_name }}/tags/list"
-        return_content: yes
       register: bob_registry_versions
       failed_when: false
       changed_when: false
+
+    - name: "Get list of versions_in_dir from bundle production registry ('{{ production_registry_namespace }}')"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}/tags/list"
+      register: bob_prod_registry_versions
+      failed_when: false
+      changed_when: false
+      when:
+        - production_registry_namespace is defined
+        - production_registry_namespace != ""
 
     - name: "Create repo with public visibility"
       uri:
@@ -60,30 +69,55 @@
     - name: "Reseting 'versions_in_registry' variable"
       set_fact:
         versions_in_registry: []
+        versions_in_prod_registry: []
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ bob_registry_versions.content | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
-      when: bob_registry_versions.status == 200
+        versions_in_registry: "{{ bob_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+      when:
+      - bob_registry_versions.status is defined
+      - bob_registry_versions.status == 200
+
+    - name: "Setting all versions to 'versions_in_prod_registry' variable"
+      set_fact:
+        versions_in_prod_registry: "{{ bob_prod_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+      when:
+      - bob_prod_registry_versions.status is defined
+      - bob_prod_registry_versions.status == 200
 
     - name: "Filtering versions to add and remove"
       set_fact:
-        verions_add: "{{ versions_in_dir | difference(versions_in_registry) }}"
-        verions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
+        versions_add: "{{ versions_in_dir | difference(versions_in_registry) | difference(versions_in_prod_registry) }}"
+        versions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
 
-    - name: "Converting 'operator_version' to list"
-      set_fact:
-        version_list: "[ '{{ operator_version }}' ]"
+    - name: "Handling bundle versions when 'operator_version' is defined"
+      block:
+        - name: "Converting 'operator_version' to list"
+          set_fact:
+            version_list: "[ '{{ operator_version }}' ]"
+
+        - name: "Checking if bundle '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ operator_version }}' exists"
+          block:
+            - name: "Setting 'prod_bundle_verion_intersect'"
+              set_fact:
+                prod_bundle_verion_intersect: "{{ versions_in_prod_registry | intersect(version_list) }}"
+
+            - name: "Fail if '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ operator_version }}' already exists"
+              fail:
+                msg: "Failing because '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ operator_version }}' already exists"
+              when: prod_bundle_verion_intersect.0 is defined
+          when:
+          - production_registry_namespace is defined
+          - production_registry_namespace != ""
+
+        - name: "Filtering versions to add and remove for only 'operator_version' : '{{ operator_version }}' specified by user"
+          set_fact:
+            versions_add: "{{ versions_in_dir | intersect(version_list) }}"
+            versions_remove: "{{ versions_in_registry | intersect(version_list) }}"
+            versions_in_dir: "{{ versions_in_dir | intersect(version_list) }}"
       when: operator_version is defined
 
-    - name: "Filtering versions to add and remove for only 'operator_version' : '{{ operator_version }}' specified by user"
-      set_fact:
-        verions_add: "{{ versions_in_dir | intersect(version_list) }}"
-        verions_remove: "{{ versions_in_registry | intersect(version_list) }}"
-        versions_in_dir: "{{ versions_in_dir | intersect(version_list) }}"
-      when: operator_version is defined
-
-    - name: "Delete all tags from operrator {{ operator_package_name }}. Tags: '{{ verions_remove | join(',') }}'"
+    - name: "Delete all tags from operrator {{ operator_package_name }}. Tags: '{{ versions_remove | join(',') }}'"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_package_name }}/tag/v{{ item }}"
         method: DELETE
@@ -91,7 +125,7 @@
         headers:
           Authorization: "Bearer {{ quay_api_token }}"
         status_code: 204
-      with_items: "{{ verions_remove }}"
+      with_items: "{{ versions_remove }}"
       when:
         - quay_api_token is defined
         - quay_api_token != ""
@@ -105,18 +139,18 @@
         name: build_operator_version_bundle
       vars:
         op_version: "{{ op_ver_item }}"
-      loop: "{{ verions_add }}"
+      loop: "{{ versions_add }}"
       loop_control:
         loop_var: op_ver_item
 
     - name: "Adding current operator to the 'operators_for_index'"
       set_fact:
-        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir }]) }}"
-      when: verions_add.0 is defined or (index_force_rebuild is defined and index_force_rebuild|bool)
+        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
+      when: versions_add.0 is defined or (index_force_rebuild is defined and index_force_rebuild|bool)
 
     - name: "Adding current operator to the 'operators_for_index' when only removed version is defined"
       set_fact:
-        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir }]) }}"
-      when: verions_add.0 is undefined and verions_remove.0 is defined
+        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
+      when: versions_add.0 is undefined and versions_remove.0 is defined
 
   when: bob_operator_dir_st.stat.exists

@@ -9,6 +9,7 @@
       include_role:
         name: convert_bundle_image_to_dir
   when:
+    - operator_input_image is defined
     - operator_input_image != ""
 
 - name: "Detect operator format"
