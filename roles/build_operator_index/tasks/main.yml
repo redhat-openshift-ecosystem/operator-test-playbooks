@@ -6,7 +6,6 @@
 - name: "Get list of tags for index image from bundle registry"
   uri:
     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
-    return_content: yes
   register: boi_registry_versions
   failed_when: false
 
@@ -33,7 +32,7 @@
 
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
-    index_versions_in_registry: "{{ boi_registry_versions.content | from_json | json_query('tags') | list | sort_versions | regex_replace('v') }}"
+    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
   when: boi_registry_versions.status == 200
 
 - name: "Settig opm index extra arguments"
@@ -55,14 +54,25 @@
     - bundle_index_image_from is defined
     - bundle_index_image_from != ""
 
+- set_fact:
+    ba_versions_tmp: "{{ ba_versions | difference(ba_versions_prod)}}"
+
 - name: "Setting empty bundles array"
   set_fact:
     bundles_arr: []
 
+- name: "Filling bundle versions array from prod"
+  set_fact:
+    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ ba_name }}:v{{ item }}' ]"
+  with_items: "{{ ba_versions_prod }}"
+  when:
+    - production_registry_namespace is defined
+    - production_registry_namespace != ""
+
 - name: "Filling bundle versions array"
   set_fact:
     bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
-  with_items: "{{ ba_versions }}"
+  with_items: "{{ ba_versions_tmp }}"
 
 - name: "Setting bundle image names"
   set_fact:
@@ -78,11 +88,10 @@
   - operator_input_image is defined
   - operator_input_image != ""
 
-- fail:
+- name: "Failing when mode is empty"
+  fail:
     msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
-  when:
-    - opm_index_add_mode is undefined
-    - opm_index_add_mode == ""
+  when: opm_index_add_mode is undefined or opm_index_add_mode == ""
 
 - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"

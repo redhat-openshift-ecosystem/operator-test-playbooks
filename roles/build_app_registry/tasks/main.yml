@@ -1,0 +1,35 @@
+---
+- name: "Fail if 'operator_base_dir' is not defined"
+  fail:
+    msg: "Variable 'operator_base_dir' is missing. Please set it via '-e operator_base_dir=<path-to-base-operator-dir>'"
+  when: operator_base_dir is undefined or operator_base_dir == ""
+
+- name: "Fail if 'bundle_index_image' is not defined"
+  fail:
+    msg: "Variable 'bundle_index_image' is missing. Please set it via '-e bundle_index_image=<bundle-index-image>'"
+  when: bundle_index_image is undefined or bundle_index_image == ""
+
+- name: "Gather list of all operators"
+  include_role:
+    name: gather_all_operators_to_dict
+  vars:
+    gaotd_include_versions: false
+
+- debug:
+    var: gaotd_operator_dirs
+
+- name: "Ensure that the 'bundle_export_dir_app_registry' directory exists and is empty"
+  file:
+    state: "{{ item }}"
+    path: "{{ bundle_export_dir_app_registry }}"
+  with_items:
+    - absent
+    - directory
+
+- name: "Loop over all operators and export them"
+  include_tasks: export_operator.yml
+  vars:
+    app_registry_base_dir: "{{ bundle_export_dir_app_registry }}"
+  loop: "{{ gaotd_operator_dirs }}"
+  loop_control:
+    loop_var: bar_op

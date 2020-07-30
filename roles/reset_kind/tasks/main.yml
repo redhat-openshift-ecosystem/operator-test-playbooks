@@ -3,5 +3,10 @@
 - name: "Delete kind cluster main"
   block:
     - include_tasks: reset.yml
+
+    - name: Set the retry count
+      set_fact:
+        delete_kind_retry_count: 2
   tags:
     - always
+

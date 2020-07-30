@@ -77,4 +77,5 @@
           set_fact:
             operator_dir: "{{ operator_dir | dirname }}"
   when:
+    - operator_input_image is defined
     - operator_input_image != ""
