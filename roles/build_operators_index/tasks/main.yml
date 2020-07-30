@@ -19,6 +19,7 @@
   vars:
     ba_name: "{{ ops_item.name }}"
     ba_versions: "{{ ops_item.versions }}"
+    ba_versions_prod: "{{ ops_item.versions_prod | default([]) }}"
   loop: "{{ operators_for_index }}"
   loop_control:
     loop_var: ops_item

@@ -218,8 +218,6 @@
       shell: "{{ umoci_bin_path }} -h"
       register: umoci_help_result
       failed_when: false
-      tags:
-        - always
 
     - name: "Install umoci if not installed"
       get_url:
@@ -235,7 +233,6 @@
         - umoci_help_result.rc is defined
         - umoci_help_result.rc != 0
       tags:
-        - always
         - install
         - uninstall
         - reset_tools

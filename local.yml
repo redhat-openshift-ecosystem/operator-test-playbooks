@@ -82,6 +82,9 @@
     - { role: install_operator_prereqs, tags: ["never", "host_build"], when: run_upstream|bool }
     - { role: prepare_catalog_repo_upstream, tags: ["always"], when: run_upstream|bool }
     - { role: loop_all_tests, tags: [never,"test_all","pure_test_all"], when: run_upstream|bool }
+    - { role: check_prod_bundle, tags: [never,"test_lite","pure_test_lite"], when: run_upstream|bool }
+    - { role: build_app_registry, tags: [never,"app_registry"], when: run_upstream|bool }
+
 
   tasks:
     - name: "Setting input variables for testing"
@@ -101,12 +104,15 @@
       tags:
         - never
         - pure_test
+        - pure_test_lite
+        - pure_test_all
         - pure_test_all
 
     - name: "Failing when input image is specified"
       fail:
         msg: "Input image is not supported for now"
       when:
+        - operator_input_image is defined
         - operator_input_image != ""
       tags:
         - always

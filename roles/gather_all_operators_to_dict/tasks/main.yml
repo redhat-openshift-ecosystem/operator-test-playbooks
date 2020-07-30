@@ -13,15 +13,18 @@
   set_fact:
     gaotd_operator_dirs: "{{ gaotd_operators_find.files | map(attribute='path') | list }}"
 
-- name: "Loop over all operator dirs"
-  include_tasks: gather_operator_versions.yml
-  loop: "{{ gaotd_operator_dirs }}"
-  loop_control:
-    loop_var: gaotd_dir
+- name: "Search over all operator versions"
+  block:
+    - name: "Loop over all operator dirs"
+      include_tasks: gather_operator_versions.yml
+      loop: "{{ gaotd_operator_dirs }}"
+      loop_control:
+        loop_var: gaotd_dir
 
-- debug:
-    var: all_operators_with_versions
+    - debug:
+        var: all_operators_with_versions
 
-- name: "Print some info"
-  debug:
-    msg: "We found {{ all_operators_with_versions|length }} operators."
+    - name: "Print some info"
+      debug:
+        msg: "We found {{ all_operators_with_versions|length }} operators."
+  when: gaotd_include_versions|bool

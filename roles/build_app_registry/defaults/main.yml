@@ -1,0 +1,5 @@
+work_dir: "/tmp/operator-test"
+testing_bin_path: "{{ work_dir }}/bin"
+opm_bin_path: "{{ testing_bin_path }}/opm"
+bundle_export_dir_app_registry: "{{ work_dir }}/app_registry"
+opm_container_tool: docker

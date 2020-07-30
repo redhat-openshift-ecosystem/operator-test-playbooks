@@ -38,4 +38,6 @@ jobs:
   #   script: $PLAYBOOK_CMD -e operator_input_image=quay.io/cvpops/test-bundle:tigera-131 --tags pure_test
 
   - name: Deploying of multiple operators to bundle index test
-    script: $PLAYBOOK_CMD --tags deploy_bundles -e operators_config=test/operatos_config.yaml -e operator_channel_force=stable
+    script: $PLAYBOOK_CMD --tags deploy_bundles -e operators_config=test/operatos_config.yaml
+  - name: Deploying of multiple operators to bundle index test with checking prod registry first for bundle image. Local catalog index is rebuilded
+    script: $PLAYBOOK_CMD --tags deploy_bundles -e operators_config=test/operatos_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_rebuild=true
