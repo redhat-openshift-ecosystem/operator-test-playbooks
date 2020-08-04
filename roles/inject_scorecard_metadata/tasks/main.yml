@@ -48,14 +48,17 @@
   environment:
     PATH: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
 
-- name: "Load CSV into a csv_vars"
-  include_vars:
-    file: "{{ csv_path }}"
-    name: csv_vars
+- name: "Read csv.yaml file"
+  shell: "cat {{ csv_path }}"
+  register: csv_data
+
+- name: "Set facts for csv_data"
+  set_fact:
+    csv_vars: "{{ csv_data.stdout }}"
 
 - name: "Get spec from csv_vars"
   set_fact:
-    csv_vars_spec: "{{ csv_vars['spec'] | default({}) }}"
+    csv_vars_spec: "{{ (csv_vars | from_yaml)['spec'] | default({}) }}"
 
 - name: "Get customresourcedefinitions from csv_vars_spec"
   set_fact:
