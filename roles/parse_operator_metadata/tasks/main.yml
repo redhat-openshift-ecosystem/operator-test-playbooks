@@ -166,6 +166,11 @@
       src: "parsed_operator_data.yml.j2"
       dest: "{{ work_dir }}/parsed_operator_data.yml"
 
+  - name: "Set success result"
+    set_fact:
+      parse_operator_metadata_results: {'result': 'pass', 'msg': ''}
+
+
   rescue:
 
     - name: "Rescue block contains the error messages"
@@ -180,6 +185,14 @@
       debug:
         msg: "{{ ansible_failed_result }}"
 
-    - name: "Result of failure"
-      fail:
-        msg: "Ansible playbook while preparing the operator metadata failed"
+    - name: "Set failure result"
+      set_fact:
+        parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}" }
+
+          
+
+  always:
+    - name: "Write parse_operator_metadata results to json file"
+      copy:
+        content: "{{ parse_operator_metadata_results | to_nice_json }}" 
+        dest: parse_operator_metadata_results.json
