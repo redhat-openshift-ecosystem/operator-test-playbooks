@@ -89,42 +89,39 @@
       crd_paths: "{{ crd_paths + [item.path] }}"
     with_items: "{{ crd_paths_result['files'] }}"
 
-  - name: "Read csv.yaml file"
-    shell: "cat {{ csv_path }}"
-    register: csv_data
-
-  - name: "Set facts for csv_data"
-    set_fact:
-      csv_vars: "{{ csv_data.stdout | from_yaml }}"
+  - name: "Include the CSV path into the ansible vars"
+    include_vars:
+      file: "{{ csv_path }}"
+      name: operator_vars
 
   - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
     set_fact:
-      current_csv: "{{ (csv_vars | from_yaml).metadata.name }}"
-      operator_pod_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].name }}"
-      operator_container_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
-      operator_capabilities: "{{ (csv_vars | from_yaml).metadata.annotations.capabilities }}"
+      current_csv: "{{ operator_vars.metadata.name }}"
+      operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
+      operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
+      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities }}"
 
   - name: "Determine operator_allnamespaces_support"
     set_fact:
-      operator_allnamespaces_support: "{{ (csv_vars | from_yaml).spec.installModes | json_query(query) }}"
+      operator_allnamespaces_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
       query: "[?type=='AllNamespaces'].supported"
 
   - name: "Determine operator_ownnamespace_support"
     set_fact:
-      operator_ownnamespace_support: "{{ (csv_vars | from_yaml).spec.installModes | json_query(query) }}"
+      operator_ownnamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
       query: "[?type=='OwnNamespace'].supported"
 
   - name: "Determine operator_singlenamespace_support"
     set_fact:
-      operator_singlenamespace_support: "{{ (csv_vars | from_yaml).spec.installModes | json_query(query) }}"
+      operator_singlenamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
       query: "[?type=='SingleNamespace'].supported"
 
   - name: "Determine operator_multinamespace_support"
     set_fact:
-      operator_multinamespace_support: "{{ (csv_vars | from_yaml).spec.installModes | json_query(query) }}"
+      operator_multinamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
     vars:
       query: "[?type=='MultiNamespace'].supported"
 
