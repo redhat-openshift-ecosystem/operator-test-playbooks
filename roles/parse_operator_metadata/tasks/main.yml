@@ -28,6 +28,7 @@
 
     - name: Fail if package file doesn't exists
       fail:
+        msg: "{{ package_path }} does not exist"
       when: not package_file_st.stat.exists
 
     - name: "Getting content of package file"
