@@ -73,14 +73,14 @@
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ bob_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        versions_in_registry: "{{ (bob_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
       when:
       - bob_registry_versions.status is defined
       - bob_registry_versions.status == 200
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable"
       set_fact:
-        versions_in_prod_registry: "{{ bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        versions_in_prod_registry: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
       when:
       - bob_prod_registry_versions.status is defined
       - bob_prod_registry_versions.status == 200
