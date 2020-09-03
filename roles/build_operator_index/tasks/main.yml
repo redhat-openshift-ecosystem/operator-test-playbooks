@@ -32,7 +32,7 @@
 
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
-    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when: boi_registry_versions.status == 200
 
 - name: "Settig opm index extra arguments"

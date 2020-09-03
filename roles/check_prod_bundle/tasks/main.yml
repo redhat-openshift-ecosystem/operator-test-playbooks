@@ -18,7 +18,7 @@
 
 - name: "Setting all versions to 'cpb_versions' variable"
   set_fact:
-    cpb_versions: "{{ cpb_prod_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+    cpb_versions: "{{ cpb_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when:
   - cpb_prod_registry_versions.status is defined
   - cpb_prod_registry_versions.status == 200
