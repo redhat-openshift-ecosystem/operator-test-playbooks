@@ -190,7 +190,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
-  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//' | head -1`) -ge 60 ]"
   register: operator_uptime
   retries: 15
   delay: 5
