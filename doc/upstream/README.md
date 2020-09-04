@@ -267,7 +267,7 @@ export MY_OPT=""
 #export MY_OPT="-e opm_index_add_mode=semver -e operator_channel_force=\"\" $*"
 
 # operatorhubio
-TOKEN="<toker>"
+TOKEN="<token>"
 time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C sprint-8 -vv -i localhost, local.yml \
 -e run_upstream=true --tags deploy_bundles \
 -e regenerate_operators_path=/tmp/community-operators-for-catalog/upstream-community-operators \
