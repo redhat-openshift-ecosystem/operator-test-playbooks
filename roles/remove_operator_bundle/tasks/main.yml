@@ -2,9 +2,9 @@
   set_fact:
     operator_dir_name: "{{ operator_dir | basename }}"
 
-- name: "Remove repo '{{ bundle_index_image_namespace }}/{{ operator_dir_name }}' from 'quay'"
+- name: "Remove repo '{{ bundle_image_namespace }}/{{ operator_dir_name }}' from 'quay'"
   uri:
-    url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository/{{ bundle_index_image_namespace }}/{{ operator_dir_name }}"
+    url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_dir_name }}"
     method: DELETE
     force_basic_auth: yes
     headers:
@@ -24,7 +24,7 @@
   shell: "{{ opm_bin_path }} index rm  -c {{ opm_container_tool }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
   failed_when: false
 
-- name: Push bundle image {{ bundle_index_image }}
+- name: "Push bundle image {{ bundle_index_image }}"
   shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
   failed_when: false
 

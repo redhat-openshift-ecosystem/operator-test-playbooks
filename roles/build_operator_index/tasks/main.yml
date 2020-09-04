@@ -35,7 +35,7 @@
     index_versions_in_registry: "{{ (boi_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when: boi_registry_versions.status == 200
 
-- name: "Settig opm index extra arguments"
+- name: "Setting opm index extra arguments"
   set_fact:
     bundle_index_image_from: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
     opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
