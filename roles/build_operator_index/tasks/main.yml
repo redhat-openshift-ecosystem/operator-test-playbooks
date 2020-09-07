@@ -80,9 +80,9 @@
 
 - name: "Retag bundle input image"
   block:
-    - name: Retag image {{ operator_input_image }}
+    - name: "Retag image {{ operator_input_image }}"
       shell: "{{ opm_container_tool }} tag {{ operator_input_image  }} {{ bundle_images }}"
-    - name: Push image {{ operator_input_image }}
+    - name: "Push image {{ operator_input_image }}"
       shell: "{{ opm_container_tool }} push {{ bundle_images }}"
   when:
   - operator_input_image is defined

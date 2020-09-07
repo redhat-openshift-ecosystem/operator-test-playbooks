@@ -1,0 +1,3 @@
+opm_container_tool: "docker"
+mirror_input_image: "kind-registry:5000/test-operator/catalog"
+mirror_index_images: "kind-registry:5000/test-operator/catalog_mirror_auth|user|password,kind-registry:5000/test-operator/catalog_mirror_no_auth"
