@@ -1,0 +1,79 @@
+---
+- name: "Setting export directory"
+  set_fact:
+    ptq_operator_package_name: "{{ ptq_operator_dir_name }}"
+    ptq_download_folder: "/tmp/export-for-appreg/{{ ptq_operator_dir_name }}"
+
+- name: "Ensure that the 'ptq_download_folder' directory exists and is empty"
+  file:
+    state: "{{ item }}"
+    path: "{{ ptq_download_folder }}"
+  with_items:
+    - absent
+    - directory
+
+- name: "Quay login via robot"
+  shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  no_log: True
+  when:
+    - quay_user is defined
+    - quay_password is defined
+    - quay_user != ""
+    - quay_password != ""
+
+- name: "Trying to export operator '{{ ptq_operator_package_name }}' from index image {{ bundle_index_image }}"
+  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ ptq_operator_package_name }} --index {{ bundle_index_image }} --download-folder {{ ptq_download_folder }}"
+  register: bar_export_rc
+
+- name: "Quay login via auth token"
+  shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_appregistry_api_token }} quay.io"
+  no_log: True
+  when: quay_appregistry_api_token is defined and quay_appregistry_api_token != ""
+
+- name: "Check for the existence of earlier releases of the operator on the quay.io app repository"
+  shell: "curl -s -H \"Authorization: basic {{ quay_appregistry_api_token }}\" https://quay.io/cnr/api/v1/packages/{{ ptq_namespace }}/{{ ptq_operator_dir_name }} | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
+  register: quay_release_result
+  no_log: true
+
+- name: "Check for the existence of {{ ptq_operator_dir_name }} directory on the quay.io app repository"
+  uri:
+    url: "https://quay.io/cnr/api/v1/packages/{{ ptq_namespace }}/{{ ptq_operator_dir_name }}"
+    headers:
+      Authorization: "basic {{ quay_appregistry_api_token }}"
+  register: ptq_dir_existence
+  failed_when: false
+#    force_basic_auth: yes
+
+- name: "Create repo for {{ ptq_operator_dir_name }} with public visibility"
+  uri:
+    url: "https://quay.io/api/v1/repository"
+    method: POST
+    body: '{"repo_kind":"application","namespace":"{{ ptq_namespace }}","repository":"{{ ptq_operator_dir_name }}","description":"","visibility":"public"}'
+    body_format: json
+    force_basic_auth: yes
+    headers:
+      Authorization: "Bearer {{ quay_appregistry_api_token }}"
+    status_code: 201
+    return_content: yes
+  when:
+    - quay_appregistry_api_token != ""
+    - ptq_dir_existence.status != 200
+
+- name: "Increment quay app release if exists"
+  shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
+  register: quay_increment_release_result
+  when:
+    - quay_release_result is defined
+    - quay_release_result.stdout is defined
+    - quay_release_result.stdout != ""
+    - quay_release_result.stdout != "null"
+
+- name: "Set quay release to the incremented one if exists"
+  set_fact:
+    quay_release: "{{ quay_increment_release_result.stdout | default('0.1.0') }}"
+
+- name: "Push the operator metadata to the quay.io repository"
+  shell: "operator-courier push {{ ptq_download_folder }} {{ ptq_namespace }} {{ ptq_download_folder | basename }} {{ quay_release }} \"basic {{ quay_appregistry_courier_token }}\""
+  no_log: true
+
+

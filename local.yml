@@ -85,7 +85,6 @@
     - { role: check_prod_bundle, tags: [never,"test_lite","pure_test_lite"], when: run_upstream|bool }
     - { role: build_app_registry, tags: [never,"app_registry"], when: run_upstream|bool }
 
-
   tasks:
     - name: "Setting input variables for testing"
       set_fact:

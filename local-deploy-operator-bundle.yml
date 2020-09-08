@@ -25,6 +25,7 @@
     bundle_image_namespace: test-operator
     bundle_index_image_namespace: test-operator
     bundle_index_image_name: "catalog"
+    app_registry_push: false
 
   tasks:
     - name: "Setting basic variables for deploy tasks"
@@ -192,3 +193,11 @@
       when:
         - run_upstream|bool
 
+    - name: "Push to Quay (old AppRegistry)"
+      include_role:
+        name:
+          push_to_quay
+      when:
+        - run_upstream|bool
+        - quay_appregistry_courier_token is defined
+        - quay_appregistry_courier_token != ""
