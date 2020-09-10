@@ -16,7 +16,6 @@
     go_bin_path: "{{ testing_bin_path }}/go/bin/go"
     umoci_bin_path: "{{ testing_bin_path }}/umoci"
     # bundle_image: "{{ 'dummy' if run_upstream else '' }}"
-    offline_cataloger_bin_path: "offline-cataloger"
 
 # Install the oc client to talk to any Openshift cluster
 - name: "Download and extract OpenShift client binary(oc) to {{ testing_bin_path }}"
@@ -87,27 +86,6 @@
         - operator_courier_version_result.rc is defined
         - operator_courier_version_result.rc != 0
 
-    - name: "Check if offline-cataloger is installed"
-      shell: "offline-cataloger -h"
-      register: offline_cataloger_help_result
-      ignore_errors: true
-      when: not run_upstream|bool
-
-    - name: "Git clone offline-cataloger repo with the offline-cataloger command"
-      git:
-        repo: "https://github.com/kevinrizza/offline-cataloger.git"
-        dest: /tmp/offline-cataloger
-        version: "master"
-        force: true
-      when:
-        - offline_cataloger_help_result.rc is defined
-        - offline_cataloger_help_result.rc != 0
-
-    - set_fact:
-        offline_cataloger_bin_path: "{{ go_bin_path }} run -mod=vendor ./cmd/offline-cataloger/main.go"
-      when:
-        - offline_cataloger_help_result.rc is defined
-        - offline_cataloger_help_result.rc != 0
   when:
     - operator_dir is defined
     - operator_dir != ""
