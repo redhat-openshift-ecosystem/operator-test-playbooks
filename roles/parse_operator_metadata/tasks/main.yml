@@ -8,6 +8,10 @@
       contains: 'packageName'
     register: package_path_result
 
+  - name: debug
+    debug:
+      msg: "{{ package_path_result }}"
+
     # assuming only one file matches the file path
   - name: "set variable for package_path from package_path_result"
     set_fact:
@@ -193,7 +197,9 @@
       set_fact:
         parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}" }
 
-          
+    - name: "Fail the play with the results"
+      fail:
+        msg: "{{ parse_operator_metadata_results }}"
 
   always:
     - name: "Write parse_operator_metadata results to json file"
