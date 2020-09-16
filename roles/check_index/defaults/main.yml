@@ -1,0 +1,4 @@
+opm_container_tool: "docker"
+sqlite_tool: "sqlite3"
+sanity_check_container_name: "sanity_check_index"
+sqlite_db_file: "/tmp/index.db"

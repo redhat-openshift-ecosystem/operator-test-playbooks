@@ -1,9 +1,4 @@
 ---
-- name: "Fail if 'operator_base_dir' is not defined"
-  fail:
-    msg: "Variable 'operator_base_dir' is missing. Please set it via '-e operator_base_dir=<path-to-base-operator-dir>'"
-  when: operator_base_dir is undefined or operator_base_dir == ""
-
 - name: "Fail if 'bundle_index_image' is not defined"
   fail:
     msg: "Variable 'bundle_index_image' is missing. Please set it via '-e bundle_index_image=<bundle-index-image>'"
@@ -30,6 +25,16 @@
   include_tasks: export_operator.yml
   vars:
     app_registry_base_dir: "{{ bundle_export_dir_app_registry }}"
-  loop: "{{ gaotd_operator_dirs }}"
+    app_registry_parallel: false
+  loop: "{{ gaotd_operator_packages }}"
   loop_control:
     loop_var: bar_op
+  when: not index_export_parallel|bool
+
+- name: "Export all operators in parallel"
+  include_tasks: export_operator.yml
+  vars:
+    app_registry_base_dir: "{{ bundle_export_dir_app_registry }}"
+    app_registry_parallel: true
+    bar_op: "{{ gaotd_operator_packages | join(',') }}"
+  when: index_export_parallel|bool

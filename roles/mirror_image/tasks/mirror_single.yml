@@ -2,6 +2,7 @@
 - name: "Mirroring image to multiple locations"
   block:
     - name: "Parsing output image with login information"
+      no_log: True
       set_fact:
         ms_info: "{{ mi_item.split('|') }}"
 

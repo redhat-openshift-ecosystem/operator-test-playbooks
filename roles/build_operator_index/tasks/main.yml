@@ -93,6 +93,42 @@
     msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
   when: opm_index_add_mode is undefined or opm_index_add_mode == ""
 
+- name: "Handling mode from '{{ ba_name }}/{{ opm_index_ci_filename }}' file"
+  block:
+    - name: "Check if file exists"
+      stat:
+        path: "{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}"
+      register: boi_ci_file
+
+    - name: "Parsing file when exists"
+      block:
+        - name: "Read from yaml file 'updateGraph' key"
+          shell: "{{ yq_bin_path }} r {{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }} -t updateGraph"
+          register: boi_ci_update_graph
+
+        - name: "Sets `annotations_vars` from yaml file"
+          set_fact:
+            boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
+
+        - name: "Failing when 'updateGraph' value is missing"
+          fail:
+            msg: "Key 'updateGraph' was not found in file '{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}'!!!"
+          when: boi_ci_update_graph_var == "null"
+
+        - name: "Setting mode from 'updateGraph' value"
+          set_fact:
+            opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
+
+      when: boi_ci_file.stat.exists|bool
+
+    - name: "Setting 'semver' mode when file doen't exists"
+      set_fact:
+        opm_index_add_mode: "semver"
+      when: not boi_ci_file.stat.exists|bool
+  when:
+    - index_mode_from_ci is defined
+    - index_mode_from_ci|bool
+
 - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
   failed_when: false

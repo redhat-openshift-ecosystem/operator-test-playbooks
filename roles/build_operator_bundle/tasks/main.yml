@@ -146,7 +146,8 @@
     - name: "Adding current operator to the 'operators_for_index'"
       set_fact:
         operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
-      when: versions_add.0 is defined or (index_force_rebuild is defined and index_force_rebuild|bool)
+      when: versions_add.0 is defined or (index_force_update is defined and index_force_update|bool)
+
 
     - name: "Adding current operator to the 'operators_for_index' when only removed version is defined"
       set_fact:

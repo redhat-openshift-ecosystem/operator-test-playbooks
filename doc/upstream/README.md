@@ -82,7 +82,7 @@ ansible-playbook -vv -i myhost, local.yml \
 ## Deploy operators to index
 Config file:
 ```
-$ cat test/operatos_config.yaml
+$ cat test/operators_config.yaml
 operator_base_dir: /tmp/community-operators-for-catalog/upstream-community-operators
 operators:
 - aqua
@@ -94,7 +94,7 @@ operators:
 ansible-playbook -vv -i myhost, local.yml \
 -e run_upstream=true \
 --tags deploy_bundles \
--e operators_config=test/operatos_config.yaml
+-e operators_config=test/operators_config.yaml
 ```
 
 ### Deploy starting index image
@@ -102,7 +102,7 @@ ansible-playbook -vv -i myhost, local.yml \
 ansible-playbook -vv -i myhost, local.yml \
 -e run_upstream=true \
 --tags deploy_bundles \
--e operators_config=test/operatos_config.yaml
+-e operators_config=test/operators_config.yaml
 -e bundle_registry=quay.io \
 -e bundle_image_namespace=operator_testing \
 -e bundle_index_image_namespace=operator_testing \
@@ -115,7 +115,7 @@ ansible-playbook -vv -i myhost, local.yml \
 ansible-playbook -vv -i myhost, local.yml \
 -e run_upstream=true \
 --tags deploy_bundles \
--e operators_config=test/operatos_config.yaml
+-e operators_config=test/operators_config.yaml
 -e bundle_registry=quay.io \
 -e bundle_image_namespace=operator_testing \
 -e bundle_index_image_namespace=operator_testing \
@@ -129,7 +129,7 @@ ansible-playbook -vv -i myhost, local.yml \
 ansible-playbook -vv -i myhost, local.yml \
 -e run_upstream=true \
 --tags deploy_bundles \
--e operators_config=test/operatos_config.yaml
+-e operators_config=test/operators_config.yaml
 -e operator_channel_force=""
 ```
 
@@ -138,7 +138,7 @@ ansible-playbook -vv -i myhost, local.yml \
 ansible-playbook -vv -i myhost, local.yml \
 -e run_upstream=true \
 --tags deploy_bundles \
--e operators_config=test/operatos_config.yaml
+-e operators_config=test/operators_config.yaml
 -e operator_channel_force=stable
 ```
 
@@ -213,13 +213,40 @@ time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream
 -e all_operator_find_excludes="planetscale"| tee -a $HOME/test_all_upstream-$(date +%F_%H%M).log 1>&2
 ```
 
-## Generate app registry
+## Generate app registry (List of operators from index image)
+```
+export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest
+```
+
+## Generate app registry in parallel (List of operators from index image)
+```
+export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest \
+-e index_export_parallel=true
+```
+
+## Generate app registry (List of operators from git)
 ```
 export ANSIBLE_STDOUT_CALLBACK=yaml
 time ansible-playbook -vv -i localhost, local.yml \
 -e run_upstream=true --tags app_registry \
 -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators \
 -e bundle_index_image=quay.io/operatorhubio/catalog:latest
+```
+
+## Generate app registry in parallel (List of operators from git)
+```
+export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest \
+-e index_export_parallel=true
 ```
 
 ## Misc options to use
@@ -236,7 +263,7 @@ Usage:
 | run_remove_catalog_repo | Removes existing git repo for comunity-operators. [bool] | true | true |
 | catalog_repo | Community operators repo url. [string] | https://github.com/operator-framework/community-operators.git | as default |
 | catalog_repo_branch | Community operators branch in repo. [string] | master | as default |
-| operators_config | Path to operators config file using when deploying multiple operators. Examle in test/operatos_config.yaml. [string] | undefined  | operatos_config.yaml |
+| operators_config | Path to operators config file using when deploying multiple operators. Examle in test/operators_config.yaml. [string] | undefined  | operators_config.yaml |
 | quay_user | Username in quay registry login. [string] | undefined | undefined |
 | quay_password | Password in quay registry login. [string] | undefined  | undefined |
 | quay_api_token | Quay api token to create project, delete tag. If 'quay_user' or 'quay_password' is undefined. This token is used to push images to quay as '$oauthtoken' user. More info about creating token is [here](https://docs.quay.io/api/).  [string] | undefined | hidden |
@@ -246,7 +273,7 @@ Usage:
 | bundle_index_image_name | Quay registry url. [string] | index | upstream-community-operators-index |
 | opm_container_tool | Container tool to use when using opm tool. [string] | docker  | as default |
 | operator_channel_force | Forcing to adde channel and default channed to current string value. When empty string it is autodetected by playbook. [string] | undefined | undefined |
-| index_force_rebuild | Force to rebuild currently running operators in index. [bool] | false | false |
+| index_force_update | Force to rebuild currently running operators in index. [bool] | false | false |
 | index_skip | Skip building index (it will build bundle only). [bool] | undefined | undefined |
 | package_name_strict | Test if package name is same as operator directory name. [bool] | undefined | undefined |
 | run_bundle_scorecard_test | Runs bundle scorecard test. [bool] | undefined | undefined |
@@ -261,7 +288,7 @@ Usage:
 | test_all_reset_kind | Force to reset kind cluster before every test (undefined means true). [bool] | undefined | undefined |
 | production_registry_namespace | Check if bundle exists in production registry. Used in local `deploy_bundle` test. (e.g. "quay.io/operatorhubio") [string] | undefined | undefined |
 | mirror_index_images | List of mirror images for index. (e.g. "kind-registry:5000/test-operator/catalog_mirror_auth|<user>|<password>,kind-registry:5000/test-operator/catalog_mirror_no_auth") [string] | undefined | undefined |
-
+| index_mode_from_ci | Enable autodetect index add mode from <operator>/ci.yaml file [bool] | undefined | undefined |
 
 
 ## Tags to use
@@ -322,4 +349,13 @@ time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C sprint-8
 -e run_upstream=true --tags pure_test_all -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators  \
 -e opm_index_add_mode=semver -e operator_channel_force="" \
 $MY_OPT | tee -a $HOME/test_all_upstream-$(date +%F_%H%M).log 1>&2
+```
+
+# Check index
+
+```
+ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-community -vv -i localhost, local.yml \
+-e run_upstream=true --tags index_check \
+-e bundle_index_image=quay.io/operatorhubio/catalog \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
 ```

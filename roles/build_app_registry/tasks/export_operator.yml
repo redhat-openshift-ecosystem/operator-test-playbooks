@@ -1,14 +1,17 @@
 ---
-- debug:
-    var: bar_op
-
-- debug:
-    var: app_registry_base_dir
+- name: "Setting export directory"
+  set_fact:
+    bar_operator_package: "{{ bar_op }}"
+    bar_download_folder: "{{ app_registry_base_dir }}/{{ bar_op  }}"
+  when:
+  - not app_registry_parallel|bool
 
 - name: "Setting export directory"
   set_fact:
-    bar_operator_package_name: "{{ bar_op | basename }}"
-    bar_download_folder: "{{ app_registry_base_dir }}/{{ bar_op | basename }}"
+    bar_operator_package: "{{ bar_op }}"
+    bar_download_folder: "{{ app_registry_base_dir }}"
+  when:
+  - app_registry_parallel|bool
 
 - name: "Ensure that the 'bar_download_folder' directory exists and is empty"
   file:
@@ -18,6 +21,10 @@
     - absent
     - directory
 
-- name: "Trying to export operator '{{ bar_operator_package_name }}' from index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ bar_operator_package_name }} --index {{ bundle_index_image }} --download-folder {{ bar_download_folder }}"
+- name: "Printing list of packages"
+  debug:
+    var: gaotd_operator_packages
+
+- name: "Exporting operator(s) from index image {{ bundle_index_image }}"
+  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ bar_operator_package }} --index {{ bundle_index_image }} --download-folder {{ bar_download_folder }}"
   register: bar_export_rc
