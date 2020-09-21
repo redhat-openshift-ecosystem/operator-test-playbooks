@@ -9,7 +9,7 @@ python:
 - "3.8"
 
 env:
-- DISTRO_TYPE=upstream ANSIBLE_STDOUT_CALLBACK=yaml PLAYBOOK_CMD="ansible-playbook -vv -i localhost, local.yml -e kind_version=v0.8.1 -e kind_kube_version=v1.18.2 -e olm_version=0.15.1 -e operator_sdk_version=v0.18.2 -e opm_version=v1.13.0 -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false -e bundle_registry=kind-registry:5000"
+- DISTRO_TYPE=upstream ANSIBLE_STDOUT_CALLBACK=yaml PLAYBOOK_CMD="ansible-playbook -vv -i localhost, local.yml -e kind_version=v0.8.1 -e kind_kube_version=v1.18.2 -e olm_version=0.15.1 -e operator_sdk_version=v0.18.2 -e opm_version=v1.13.9 -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false -e bundle_registry=kind-registry:5000"
 
 services:
   - docker
