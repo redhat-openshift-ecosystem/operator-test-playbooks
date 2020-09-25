@@ -34,7 +34,7 @@
     kind_kube_version: v1.18.2
     operator_sdk_version: v0.18.2
     olm_version: 0.15.1
-    opm_version: v1.13.9
+    opm_version: v1.14.2
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
