@@ -2,12 +2,12 @@
 - name: "Setting export directory"
   set_fact:
     ptq_operator_package_name: "{{ ptq_operator_dir_name }}"
-    ptq_download_folder: "/tmp/export-for-appreg/{{ ptq_operator_dir_name }}"
+    ptq_download_folder: "/tmp/export-for-appreg"
 
-- name: "Ensure that the 'ptq_download_folder' directory exists and is empty"
+- name: "Ensure that the '{{ ptq_download_folder }}/{{ ptq_operator_package_name }}' directory exists and is empty"
   file:
     state: "{{ item }}"
-    path: "{{ ptq_download_folder }}"
+    path: "{{ ptq_download_folder }}/{{ ptq_operator_package_name }}"
   with_items:
     - absent
     - directory
@@ -73,7 +73,7 @@
     quay_release: "{{ quay_increment_release_result.stdout | default('0.1.0') }}"
 
 - name: "Push the operator metadata to the quay.io repository"
-  shell: "operator-courier push {{ ptq_download_folder }} {{ ptq_namespace }} {{ ptq_download_folder | basename }} {{ quay_release }} \"basic {{ quay_appregistry_courier_token }}\""
+  shell: "operator-courier push {{ ptq_download_folder }}/{{ ptq_operator_package_name }} {{ ptq_namespace }} {{ ptq_operator_package_name }} {{ quay_release }} \"basic {{ quay_appregistry_courier_token }}\""
   no_log: true
 
 
