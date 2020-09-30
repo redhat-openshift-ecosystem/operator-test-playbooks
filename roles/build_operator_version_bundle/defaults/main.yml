@@ -8,4 +8,6 @@ bundle_registry: kind-registry:5000
 bundle_image_namespace: test-operator
 opm_bundle_alpha_add_args: ""
 previous_package: ""
+opm_index_ci_filename: "ci.yaml"
+opm_index_add_mode: "replaces"
 # operator_channel_force: ""

@@ -1,6 +1,12 @@
 - name: "Setting operator was removed to false"
   set_fact:
     operator_removed: false
+    bob_opname: "{{ operator_dir | basename }}"
+
+- name: "Checkning if operator name is not name of catalog"
+  fail:
+    msg: "Name of operator '{{ operator_dir | basename }}' is same as catalog name '{{ bundle_index_image_name }}'"
+  when: bundle_index_image_name == bob_opname
 
 - name: "Checking if operator base dir exists"
   stat:

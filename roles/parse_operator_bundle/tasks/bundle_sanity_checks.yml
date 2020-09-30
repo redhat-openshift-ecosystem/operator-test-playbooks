@@ -17,19 +17,22 @@
   block:
     - shell: cat "{{ operator_work_dir }}/metadata/annotations.yaml"
       register: annotation_data
-    - name: Debug
-      debug:
-        msg: "{{ annotation_data.stdout | from_yaml }}"
-    - name: Set facts
+
+    - name: "Seting annotation variables"
       set_fact:
         annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
+
   when: run_upstream|bool
 
-- debug:
+- name: "Printing labels from skopeo inspect"
+  debug:
     var: skopeo_inspect_json.Labels
+    verbosity: 2
 
-- debug:
+- name: "Printing annotation vars"
+  debug:
     var: annotations_vars.annotations
+    verbosity: 2
 
 - name: "Check if the operators.operatorframework.io.bundle.channel.default.v1 from annotation.yaml matches the bundle image label"
   fail:

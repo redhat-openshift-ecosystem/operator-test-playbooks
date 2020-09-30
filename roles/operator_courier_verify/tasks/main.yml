@@ -1,6 +1,8 @@
 ---
 - name: "Remove any previous courier results"
-  shell: "rm -f {{ work_dir }}/linting-results.json"
+  file:
+    path: "{{ work_dir }}/linting-results.json"
+    state: absent
 
 - name: "Output the operator-courier version"
   shell: "operator-courier -v"
@@ -12,12 +14,12 @@
     dest: "{{ work_dir }}/linting-version.txt"
   when: courier_version_result.stdout is defined
 
-- name: "Verify the operator metadata with operator-courier"
+- name: "Verify the operator '{{ operator_work_dir | basename }}' metadata with operator-courier"
   shell: "operator-courier verify {{ operator_work_dir }} --ui_validate_io --validation-output {{ work_dir}}/linting-results.json > {{ work_dir}}/linting-output.txt 2> {{ work_dir}}/linting-errors.txt"
   register: courier_verify_result
   ignore_errors: true
 
-- name: "Output the return code of operator-courier verify command to a debug file"
+- name: "Output the return code of operator-courier verify command to a debug file '{{ work_dir }}/linting-rc.txt'"
   copy:
     content: "{{ courier_verify_result.rc }}"
     dest: "{{ work_dir }}/linting-rc.txt"

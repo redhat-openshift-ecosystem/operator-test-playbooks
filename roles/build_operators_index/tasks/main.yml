@@ -10,7 +10,8 @@
     operators_for_index: "[]"
   when: index_skip is defined and index_skip|bool
 
-- debug:
+- name: "Printing operators for index to be added"
+  debug:
     var: operators_for_index
 
 - name: "Build index image for all operators"

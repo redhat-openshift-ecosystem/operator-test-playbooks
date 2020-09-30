@@ -14,9 +14,11 @@
 
 - name: "Detect operator format"
   block:
-    - fail:
+    - name: "Failing when operator version is not defined"
+      fail:
         msg: "Operator version 'op_version' is undefined !!!"
-      when: op_version is undefined
+      when:
+        - (op_version is undefined or op_version == "")
 
     - name: "Search for annotations.yml"
       find:

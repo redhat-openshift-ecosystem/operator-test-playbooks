@@ -14,7 +14,7 @@
       shell: "kind delete cluster --name {{ kind_cluster_name }}"
       when: rc_kind.stat.exists
 
-    - name: "Destroy current registry"
+    - name: "Destroy current kind registry"
       shell: "docker rm -f kind-registry"
       failed_when: false
 

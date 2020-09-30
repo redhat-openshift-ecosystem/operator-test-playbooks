@@ -19,12 +19,11 @@
     offline_cataloger_bin_path: "offline-cataloger"
 
 # Install the oc client to talk to any Openshift cluster
-- name: "Download and extract OpenShift client binary(oc) to {{ testing_bin_path }}"
+- name: "Download and extract OpenShift client binary 'oc' ({{ oc_version }}) to {{ testing_bin_path }}"
   unarchive:
     src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: yes
-  when: not run_upstream|bool
   tags:
     - install
     - image_build
@@ -47,7 +46,7 @@
     - uninstall
     - reset_tools
 
-- name: "Install operator-sdk"
+- name: "Install operator-sdk ({{ operator_sdk_version }})"
   get_url:
     url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu
     dest: "{{ operator_sdk_bin_path }}"
@@ -71,7 +70,7 @@
     - uninstall
     - reset_tools
 
-- name: "Install opm"
+- name: "Install opm ({{ opm_version }})"
   get_url:
     url: https://github.com/operator-framework/operator-registry/releases/download/{{ opm_version }}/linux-amd64-opm
     dest: "{{ opm_bin_path }}"
@@ -95,7 +94,7 @@
     - uninstall
     - reset_tools
 
-- name: "Download jq {{ jq_version }}"
+- name: "Download jq ({{ jq_version }})"
   get_url:
     url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64"
     dest: "{{ jq_bin_path }}"
@@ -119,7 +118,7 @@
     - uninstall
     - reset_tools
 
-- name: "Download yq {{ yq_version }}"
+- name: "Download yq ({{ yq_version }})"
   get_url:
     url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
     dest: "{{ yq_bin_path }}"
@@ -143,7 +142,7 @@
       register: operator_courier_version_result
       failed_when: false
 
-    - name: "Install operator-courier if not already installed"
+    - name: "Install operator-courier ({{ operator_courier_version }}) if not already installed"
       shell: "pip3 install --upgrade operator-courier=={{ operator_courier_version }}"
       when:
         - operator_courier_version_result.rc is defined
@@ -187,7 +186,8 @@
 
     - name: "Install skopeo"
       block:
-        - name: Generating file for install_skopeo.sh
+
+        - name: "Generating file for install_skopeo.sh"
           template:
             src: install_skopeo.sh.j2
             dest: "/tmp/install_skopeo.sh"
@@ -197,6 +197,7 @@
         - name: "Installing skopeo for ubuntu"
           shell: "/tmp/install_skopeo.sh"
           when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
         - package:
             name: skopeo
             state: present
@@ -204,41 +205,49 @@
       when:
         - skopeo_help_result.rc is defined
         - skopeo_help_result.rc != 0
+      tags:
+        - host_build
+        - image_build
+        - install
+        - uninstall
+        - reset_tools
 
     - name: "Remove '{{ umoci_bin_path }}' binary"
       file:
         path: "{{ umoci_bin_path }}"
         state: absent
       tags:
-        - install
         - uninstall
         - reset_tools
 
-    - name: "Check if umoci is installed"
-      shell: "{{ umoci_bin_path }} -h"
-      register: umoci_help_result
-      failed_when: false
+    - name: "Handling umoci binary"
+      block:
 
-    - name: "Install umoci if not installed"
-      get_url:
-        url: "https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
-        dest: "{{ umoci_bin_path }}"
-        mode: "0755"
-      register: umoci_install_result
-      until: umoci_install_result.status_code is undefined or umoci_install_result.status_code == 200
-      retries: 10
-      delay: 15
-      failed_when: umoci_install_result is failure
-      when:
-        - umoci_help_result.rc is defined
-        - umoci_help_result.rc != 0
+        - name: "Check if umoci is installed"
+          shell: "{{ umoci_bin_path }} -h"
+          register: umoci_help_result
+          failed_when: false
+
+        - name: "Install umoci ({{ umoci_version }})"
+          get_url:
+            url: "https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
+            dest: "{{ umoci_bin_path }}"
+            mode: "0755"
+          register: umoci_install_result
+          until: umoci_install_result.status_code is undefined or umoci_install_result.status_code == 200
+          retries: 10
+          delay: 15
+          failed_when: umoci_install_result is failure
+          when:
+            - umoci_help_result.rc is defined
+            - umoci_help_result.rc != 0
       tags:
         - install
         - uninstall
         - reset_tools
-  when:
-    - bundle_image is defined
-    - bundle_image != ""
+  # when:
+  #   - bundle_image is defined
+  #   - bundle_image != ""
   tags:
     - install
     - image_build

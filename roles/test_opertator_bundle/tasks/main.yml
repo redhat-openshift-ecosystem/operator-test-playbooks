@@ -20,6 +20,13 @@
 #   set_fact:
 #     previous_package: ''
 
+- name: "Failing when operator version is not defined"
+  fail:
+    msg: "Operator version 'operator_version' is undefined !!!"
+  when:
+    - run_upstream|bool
+    - (operator_version is undefined or operator_version == "")
+
 - name: "Build bundle image"
   include_role:
     name: build_operator_version_bundle

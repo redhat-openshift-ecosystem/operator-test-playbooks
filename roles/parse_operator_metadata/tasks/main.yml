@@ -30,7 +30,7 @@
       fail:
       when: not package_file_st.stat.exists
 
-    - name: "Getting content of package file"
+    - name: "Getting content of package file '{{ pkg_file_path }}'"
       shell: "cat {{ package_path }}"
       register: package_data
 

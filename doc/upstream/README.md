@@ -359,3 +359,23 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 -e bundle_index_image=quay.io/operatorhubio/catalog \
 -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
 ```
+
+
+# Travis configuration
+
+## operator-test-playbooks
+### ENV
+| name  | value |
+|---|---|
+|ANSIBLE_CONFIG| $PWD/ansible.cfg|
+|ANSIBLE_BASE_ARGS|"-vv -i localhost, local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"|
+
+
+## community-operators
+### ENV
+| name  | value |
+|---|---|
+|ANSIBLE_CONFIG| $PWD/ansible.cfg|
+|ANSIBLE_BASE_ARGS|"-vv -i localhost, local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"|
+|ANSIBLE_PULL_REPO|"https://github.com/J0zi/operator-test-playbooks"|
+|ANSIBLE_PULL_BRANCH|"upstream-community"|

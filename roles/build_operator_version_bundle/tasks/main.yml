@@ -23,7 +23,7 @@
         - directory
       when: operator_bundle_src_dir is defined
 
-    - name: "Copy manifest format files to {{ operator_bundle_src_dir }}"
+    - name: "Copy manifest format files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
       copy:
         src: "{{ operator_dir }}"
         dest: "{{ operator_bundle_src_dir }}"
@@ -46,6 +46,49 @@
         bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
         clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/manifests/{{ csv_file_path | basename }}"
       when: operator_format == "bundle"
+
+    - name: "Handling mode from '{{ operator_package_name }}/{{ opm_index_ci_filename }}' file"
+      block:
+        - name: "Check if file '{{ opm_index_ci_filename }}' exists"
+          stat:
+            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}"
+          register: boi_ci_file
+
+        - name: "Parsing file '{{ operator_package_name }}/{{ opm_index_ci_filename }}' when exists"
+          block:
+            - name: "Read from yaml file 'updateGraph' key"
+              shell: "{{ yq_bin_path }} r {{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }} -t updateGraph"
+              register: boi_ci_update_graph
+
+            - name: "Sets `boi_ci_update_graph_var` from '{{ opm_index_ci_filename }}' file"
+              set_fact:
+                boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
+
+            - name: "Failing when 'updateGraph' value is missing"
+              fail:
+                msg: "Key 'updateGraph' was not found in file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}'!!!"
+              when: boi_ci_update_graph_var == "null"
+
+            - name: "Setting mode from 'updateGraph' value"
+              set_fact:
+                opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
+
+          when: boi_ci_file.stat.exists|bool
+
+        - name: "Setting 'semver' mode when file doen't exists"
+          set_fact:
+            opm_index_add_mode: "semver"
+          when: not boi_ci_file.stat.exists|bool
+      when:
+        - index_mode_from_ci is defined
+        - index_mode_from_ci|bool
+
+    - name: "Checking 'semver' mode consistency"
+      fail:
+        msg: "Operator '{{ operator_package_name }}/{{ op_version }}' is running in 'semver' mode and contains 'replaces' key in '{{ csv_file_path }}' !!!"
+      when:
+        - opm_index_add_mode == "semver"
+        - operator_vars.spec.replaces is defined
 
     - name: "Setting 'operator_channels_list' in case of manifest format and if package file was parsed"
       set_fact:
