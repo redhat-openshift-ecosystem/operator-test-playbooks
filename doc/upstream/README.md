@@ -213,6 +213,7 @@ time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream
 -e all_operator_find_excludes="planetscale"| tee -a $HOME/test_all_upstream-$(date +%F_%H%M).log 1>&2
 ```
 
+
 ## Generate app registry (List of operators from index image)
 ```
 export ANSIBLE_STDOUT_CALLBACK=yaml
@@ -231,6 +232,7 @@ time ansible-playbook -vv -i localhost, local.yml \
 ```
 
 ## Generate app registry (List of operators from git)
+
 ```
 export ANSIBLE_STDOUT_CALLBACK=yaml
 time ansible-playbook -vv -i localhost, local.yml \
