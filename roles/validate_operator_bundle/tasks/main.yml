@@ -1,6 +1,16 @@
 ---
-- name: "Remove any previous validation results"
-  shell: "rm -f {{ work_dir }}/validation-*"
+
+- name: "Find all validation files"
+  find:
+    paths: "{{ work_dir }}"
+    patterns: "validation-*"
+  register: vob_validation_files_to_delete
+
+- name: "Remove previous validation results"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ vob_validation_files_to_delete.files }}"
 
 - name: "Output the operator-sdk version"
   shell: "{{ operator_sdk_bin_path }} version"

@@ -1,6 +1,12 @@
 - name: "Setting operator was removed to false"
   set_fact:
     operator_removed: false
+    bob_opname: "{{ operator_dir | basename }}"
+
+- name: "Checkning if operator name is not name of catalog"
+  fail:
+    msg: "Name of operator '{{ operator_dir | basename }}' is same as catalog name '{{ bundle_index_image_name }}'"
+  when: bundle_index_image_name == bob_opname
 
 - name: "Checking if operator base dir exists"
   stat:
@@ -73,14 +79,14 @@
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ bob_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+        versions_in_registry: "{{ (bob_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
       when:
       - bob_registry_versions.status is defined
       - bob_registry_versions.status == 200
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable"
       set_fact:
-        versions_in_prod_registry: "{{ bob_prod_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+        versions_in_prod_registry: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
       when:
       - bob_prod_registry_versions.status is defined
       - bob_prod_registry_versions.status == 200
@@ -146,7 +152,7 @@
     - name: "Adding current operator to the 'operators_for_index'"
       set_fact:
         operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
-      when: versions_add.0 is defined or (index_force_rebuild is defined and index_force_rebuild|bool)
+      when: versions_add.0 is defined or (index_force_update is defined and index_force_update|bool)
 
     - name: "Adding current operator to the 'operators_for_index' when only removed version is defined"
       set_fact:

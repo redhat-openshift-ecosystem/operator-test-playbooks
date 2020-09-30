@@ -1,7 +1,7 @@
 ---
-- name: "Prepare comunity operator directory"
+- name: "Prepare comunity operator directory "
   block:
-    - name: Remove catalog directory
+    - name: "Remove catalog directory '{{ catalog_repo_dir }}'"
       file:
         path: "{{ catalog_repo_dir }}"
         state: absent

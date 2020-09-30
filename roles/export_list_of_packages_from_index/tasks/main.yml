@@ -1,0 +1,52 @@
+---
+- name: "Extracting info from index image"
+  block:
+
+    - name: "Stop previous index container '{{ sanity_check_container_name }}''"
+      shell: "{{ opm_container_tool }} rm -f {{ sanity_check_container_name }}"
+      failed_when: false
+      changed_when: false
+      no_log: true
+
+      ## ckeck if not kind
+    - name: "Pulling index container {{ bundle_index_image }}"
+      shell: "{{ opm_container_tool }} pull {{ bundle_index_image }}"
+
+    - name: "Start index container {{ bundle_index_image }}"
+      shell: "{{ opm_container_tool }} run -d --name {{ sanity_check_container_name }} {{ bundle_index_image }}"
+
+    - name: "Remove db filename '{{ sqlite_db_file }}'"
+      file:
+        path: "{{ sqlite_db_file }}"
+        state: absent
+
+    - name: "Extract db file to '{{ sqlite_db_file }}'"
+      shell: "{{ opm_container_tool }} cp {{ sanity_check_container_name }}:/database/index.db {{ sqlite_db_file }}"
+
+    - name: "Getting list of operators"
+      shell: "{{ sqlite_tool }} {{ sqlite_db_file }} 'select bundlepath from operatorbundle' | sed 's/^\ | $//g'| cut -sd / -f 3- | paste -sd, -"
+      register: elopfi_index_operators_out
+      no_log: true
+
+    - name: "Getting list of packages"
+      shell: "{{ sqlite_tool }} {{ sqlite_db_file }} 'select bundlepath from operatorbundle' | sed 's/^\ | $//g'| cut -sd / -f 3- | cut -sd: -f 1 | uniq | paste -sd, -"
+      register: elopfi_index_packages_out
+      no_log: true
+
+
+    - name: "Stop index container '{{ sanity_check_container_name }}'"
+      shell: "{{ opm_container_tool }} rm -f {{ sanity_check_container_name }}"
+
+    - name: "Set list of all operators (versions) in index"
+      set_fact:
+        elopfi_index_operators: "{{ elopfi_index_operators_out.stdout.split(',') }}"
+        elopfi_index_packages: "{{ elopfi_index_packages_out.stdout.split(',') }}"
+
+  tags:
+    - deploy_bundles
+    - index_check
+  when:
+    - bundle_index_image is defined
+    - bundle_index_image != ""
+    - bundle_index_image is not search("kind-registry:5000/.*")
+

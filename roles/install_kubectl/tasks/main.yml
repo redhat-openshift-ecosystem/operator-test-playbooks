@@ -23,7 +23,7 @@
         command: cat {{ kubectl_version_tmp_dir }}/kubectl_version
         register: kubectl_version
 
-      - name: "Install kubectl"
+      - name: "Install kubectl ({{ kubectl_version.stdout }})"
         get_url:
           url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl
           dest: /usr/local/bin/kubectl

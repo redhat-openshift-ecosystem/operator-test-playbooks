@@ -1,18 +1,3 @@
-# TODO: Why is it needed?
-# - name: "Search for all versions for operator '{{ operator_dir | basename }}'"
-#   find:
-#     paths: "{{ operator_dir }}"
-#     recurse: no
-#     file_type: directory
-#   register: versions_find
-
-# - set_fact:
-#     versions_in_dir: "{{ versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
-
-# - debug:
-#     var: operator_dir
-#     verbosity: 2
-
 - name: "Determine the path in the operator metadata directory"
   find:
     paths: "{{ operator_dir }}"
@@ -25,10 +10,6 @@
   set_fact:
     annotations_paths: "{{ annotations_paths_raw.files | map(attribute='path' ) | list }}"
 
-- debug:
-    var: annotations_paths
-    verbosity: 1
-
 - name: "Reset value for unified package test"
   set_fact:
     previous_package: ''
@@ -40,10 +21,12 @@
         name: export_manifest_package_info
       vars:
         op_dir: "{{ operator_dir }}"
+
     - name: "Sets previous package from package file with value '{{ operator_package_name }}'"
       set_fact:
         previous_package: "{{ operator_package_name }}"
       when: operator_package_name is defined
+
   when: operator_dir is defined
 
 - name: "Loop, load and compare package name"

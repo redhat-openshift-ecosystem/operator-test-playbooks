@@ -25,6 +25,7 @@
     bundle_image_namespace: test-operator
     bundle_index_image_namespace: test-operator
     bundle_index_image_name: "catalog"
+    app_registry_push: false
 
   tasks:
     - name: "Setting basic variables for deploy tasks"
@@ -37,6 +38,7 @@
         opm_bin_path: "{{ testing_bin_path }}/opm"
         operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
         oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+        mirror_apply: true
 
     - name: "Quay login"
       shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
@@ -49,7 +51,7 @@
 
     - name: "Quay login via auth token"
       shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
-      # no_log: True
+      no_log: True
       when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token is defined and quay_api_token != ""
 
     - name: "Generate Operators config file from all operators"
@@ -169,10 +171,60 @@
         - run_upstream|bool
         - not operator_removed|bool
 
+    - name: "Handling that mirror will not occur when 'operators_for_index' is empty when 'deploy_bundles' is defined"
+      set_fact:
+        mirror_apply: false
+      tags:
+        - deploy_bundles
+      when:
+        - operators_for_index.0 is undefined
+
+    - name: "Index sanity check"
+      include_role:
+        name:
+          check_index
+      tags:
+        - mirror_index
+        - deploy_bundles
+        - index_check
+      when:
+        - run_upstream|bool
+        - bundle_index_image is defined
+        - bundle_index_image != ""
+
+    - name: "Mirror index image"
+      include_role:
+        name:
+          mirror_image
+      vars:
+        mirror_input_image: "{{ bundle_index_image }}"
+      tags:
+        - mirror_index
+        - deploy_bundles
+      when:
+        - run_upstream|bool
+        - bundle_index_image is defined
+        - bundle_index_image != ""
+        - mirror_index_images is defined
+        - mirror_index_images != ""
+        - mirror_apply|bool
+
     - name: "Handle failed operators"
       include_role:
         name:
           handle_failed_operators
+      tags:
+        - mirror_index
+        - deploy_bundles
+        - index_check
       when:
         - run_upstream|bool
 
+    - name: "Push to Quay (old AppRegistry)"
+      include_role:
+        name:
+          push_to_quay
+      when:
+        - run_upstream|bool
+        - quay_appregistry_courier_token is defined
+        - quay_appregistry_courier_token != ""

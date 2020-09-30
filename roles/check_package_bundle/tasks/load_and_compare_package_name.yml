@@ -1,11 +1,10 @@
 - name: "Read the variables from annotations.yaml"
   block:
-    - shell: cat {{ item }}
+    - name: "Getting content of annotation file '{{ item }}'"
+      shell: cat {{ item }}
       register: annotation_data
-    - name: Debug
-      debug:
-        msg: "{{ annotation_data.stdout | from_yaml }}"
-    - name: Set facts
+
+    - name: "Setting annotation variables"
       set_fact:
         annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
 
@@ -18,8 +17,3 @@
   fail:
     msg: "Versions of the operator must be in one package, not a mix of {{ annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] }} and {{ previous_package }}"
   when:  annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] != previous_package
-
-# TODO: Why is it needed?
-# - name: "Set package for test with next operator"
-#   set_fact:
-#     previous_package: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] }}"

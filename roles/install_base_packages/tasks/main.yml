@@ -22,6 +22,7 @@
         name:
           - software-properties-common
           - virtualenv
+          - sqlite3
         state: latest
         update_cache: yes
     - name: Install python modules
@@ -41,6 +42,7 @@
     name:
       - python3-virtualenv
       - python3-dockerpty
+      - sqlite
     state: latest
     update_cache: yes
   become: yes

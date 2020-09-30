@@ -11,7 +11,7 @@
       set_fact:
         pkg_file_path: "{{ manifest_package_file.files[0].path }}"
 
-    - name: "Getting content of package file"
+    - name: "Getting content of package file '{{ pkg_file_path }}'"
       shell: "cat {{ pkg_file_path }}"
       register: pkg_file_data
 

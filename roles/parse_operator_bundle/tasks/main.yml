@@ -96,6 +96,7 @@
     set_fact:
       crd_paths: "{{ crd_paths + [item.path] }}"
     with_items: "{{ crd_paths_result['files'] }}"
+    no_log: true
 
   - name: "Include the CSV path into the ansible vars"
     include_vars:
@@ -103,8 +104,10 @@
       name: operator_vars
     when: not run_upstream|bool
 
-  - debug:
+  - name: "List of operator variables"
+    debug:
       var: operator_vars
+      verbosity: 2
 
   - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
     set_fact:

@@ -10,4 +10,5 @@ bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{
 bundle_index_image_from: ""
 ba_add_name: ""
 ba_add_versions: []
+opm_index_ci_filename: "ci.yaml"
 opm_index_add_mode: "replaces"

@@ -1,17 +1,46 @@
 ---
-- name: "Search for all operators in '{{ operator_base_dir }}'"
-  find:
-    paths: "{{ operator_base_dir }}"
-    patterns: "{{ all_operator_find_filter }}"
-    recurse: no
-    file_type: directory
-    excludes: "{{ all_operator_find_excludes }}"
-  no_log: True
-  register: gaotd_operators_find
+- name: "Getting all operators (versions) from git"
+  block:
+    - name: "Search for all operators in '{{ operator_base_dir }}'"
+      find:
+        paths: "{{ operator_base_dir }}"
+        patterns: "{{ all_operator_find_filter }}"
+        recurse: no
+        file_type: directory
+        excludes: "{{ all_operator_find_excludes }}"
+      no_log: True
+      register: gaotd_operators_find
+
+    - name: "Setting list of all operators"
+      set_fact:
+        gaotd_operator_dirs: "{{ gaotd_operators_find.files | map(attribute='path') | list | sort }}"
+        gaotd_operator_packages: "{{ gaotd_operators_find.files | map(attribute='path') | map('basename') | list | sort }}"
+  when:
+    - operator_base_dir is defined
+    - operator_base_dir != ""
+
+- name: "Getting all operators from index image '{{ bundle_index_image }}'"
+  block:
+    - name: "Exporting information from index image '{{ bundle_index_image }}'"
+      include_role:
+        name: export_list_of_packages_from_index
+
+    - name: "Setting list of all operators from index image '{{ bundle_index_image }}'"
+      set_fact:
+        gaotd_operator_dirs: []
+        gaotd_operator_packages: "{{ elopfi_index_packages }}"
+  when:
+    - (operator_base_dir is undefined or operator_base_dir == "")
+    - bundle_index_image is defined
+    - bundle_index_image != ""
 
 - name: "Setting list of all operators"
-  set_fact:
-    gaotd_operator_dirs: "{{ gaotd_operators_find.files | map(attribute='path') | list }}"
+  fail:
+    msg: "Missing variables : 'operator_base_dir' or 'bundle_index_image' !!!"
+    gaotd_operator_packages: "{{ gaotd_operators_find.files | map(attribute='path') | map('basename') | list | sort }}"
+  when:
+    - (operator_base_dir is undefined or operator_base_dir == "")
+    - (bundle_index_image is undefined or bundle_index_image == "")
 
 - name: "Search over all operator versions"
   block:
@@ -27,4 +56,7 @@
     - name: "Print some info"
       debug:
         msg: "We found {{ all_operators_with_versions|length }} operators."
-  when: gaotd_include_versions|bool
+  when:
+    - gaotd_operator_dirs.0 is defined
+    - gaotd_include_versions|bool
+

@@ -42,3 +42,56 @@
         msg: "Some operators failed!!! One can rerun failed operators via '-e operators_config=/tmp/operators_failed-{{ inventory_hostname }}.yaml'"
 
   when: bundle_failed.0 is defined
+
+- name: "Printing info about index sanity check results"
+  block:
+
+    - name: "Printing list of operators present in index, but not in git"
+      debug:
+        var: chi_index_not_git_operators
+
+    - name: "Printing list of operators present in git, but not in index"
+      debug:
+        var: chi_git_not_index_operators
+
+    - name: "Printing operators stat"
+      debug:
+        msg: "IsInGitNotIndex={{ chi_git_not_index_operators | length }} IsInIndexNotgit={{ chi_index_not_git_operators | length }}"
+
+    - name: "Preparing config file of uncomplete operators"
+      block:
+        - name: "Preparing variables for config file"
+          set_fact:
+            chi_uncomplete_packages_config:
+              operator_base_dir: "{{ operator_base_dir }}"
+              operators: "{{ chi_uncomplete_packages | unique | sort }}"
+
+        - name: "Generate operators config file from failed operators"
+          copy: content="{{ chi_uncomplete_packages_config | to_nice_yaml }}" dest=/tmp/operators_uncomplete.yaml
+
+        - name: "Fetch failed operators file to controller machine to path '/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml'"
+          fetch: src=/tmp/operators_uncomplete.yaml dest=/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml flat=yes
+
+        - name: "Printing of content config file of uncomplete operators"
+          debug:
+            var: chi_uncomplete_packages_config
+
+        - name: "Printing helper command to repair uncomplete operators"
+          debug:
+            msg: "--tags deploy_bundles -e operators_config=/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml -e index_force_update=true"
+
+      when: chi_uncomplete_packages.0 is defined
+
+    - name: "Printing Successfull message"
+      debug:
+        msg: "Everything is OK"
+      when: chi_uncomplete_packages.0 is undefined
+
+  tags:
+    - mirror_index
+    - deploy_bundles
+    - index_check
+  when:
+    - bundle_index_image is defined
+    - bundle_index_image != ""
+    - bundle_index_image is not search("kind-registry:5000/.*")

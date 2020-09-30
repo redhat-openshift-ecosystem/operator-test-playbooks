@@ -1,0 +1,6 @@
+opm_bin_path: "{{ testing_bin_path }}/opm"
+opm_container_tool: "docker"
+bundle_registry: "quay.io"
+ptq_namespace: "community-operators"
+ptq_operator_dir_name: "{{ operator_dir | basename }}"
+ptq_download_folder: "/tmp/quay_push_dir"

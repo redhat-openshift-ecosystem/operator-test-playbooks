@@ -8,36 +8,33 @@ if: type = pull_request
 python:
 - "3.8"
 
-env:
-- DISTRO_TYPE=upstream ANSIBLE_STDOUT_CALLBACK=yaml PLAYBOOK_CMD="ansible-playbook -vv -i localhost, local.yml -e kind_version=v0.8.1 -e kind_kube_version=v1.18.2 -e olm_version=0.15.1 -e operator_sdk_version=v0.18.2 -e opm_version=v1.13.0 -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false -e bundle_registry=kind-registry:5000"
-
 services:
   - docker
 
 install:
   - pip install ansible jmespath
-  - $PLAYBOOK_CMD --tags host_build
+  - ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
 
 jobs:
   include:
   - stage: Operator Tests pack 1
     name: Testing operator in bundle format
-    script: $PLAYBOOK_CMD -e operator_dir=/tmp/community-operators-for-catalog/scripts/bundle-examples/prometheus -e operator_version=0.32.0 --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/scripts/bundle-examples/prometheus -e operator_version=0.32.0 --tags pure_test
   - name: 1. Testing operator in manifest format, converting to bundle and bundle test
-    script: $PLAYBOOK_CMD -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test
 
   - name: 2. Testing operator in manifest format, converting to bundle and bundle test
-    script: $PLAYBOOK_CMD -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/eclipse-che -e operator_version=7.14.2 -e operator_channel_force=stable --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/eclipse-che -e operator_version=7.14.2 -e operator_channel_force=stable --tags pure_test
   - name: 3. Testing operator in manifest format, converting to bundle and bundle test
-    script: $PLAYBOOK_CMD -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/jaeger -e operator_version=1.18.0 --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/jaeger -e operator_version=1.18.0 --tags pure_test
   - name: 4. Testing operator in manifest format and manifest test only (Without conversion to bundle )
-    script: $PLAYBOOK_CMD -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e run_bundle_test=false -e run_manifest_test=true
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e run_bundle_test=false -e run_manifest_test=true
 
   # # - stage: Operator Tests from image input (internal purposes only)
   # - name: Testing operator in image format
-  #   script: $PLAYBOOK_CMD -e operator_input_image=quay.io/cvpops/test-bundle:tigera-131 --tags pure_test
+  #   script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_input_image=quay.io/cvpops/test-bundle:tigera-131 --tags pure_test
 
   - name: Deploying of multiple operators to bundle index test
-    script: $PLAYBOOK_CMD --tags deploy_bundles -e operators_config=test/operatos_config.yaml
+    script: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml
   - name: Deploying of multiple operators to bundle index test with checking prod registry first for bundle image. Local catalog index is rebuilded
-    script: $PLAYBOOK_CMD --tags deploy_bundles -e operators_config=test/operatos_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_rebuild=true
+    script: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_update=true

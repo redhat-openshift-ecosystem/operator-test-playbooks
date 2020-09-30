@@ -1,0 +1,20 @@
+---
+- name: "Mirroring image to multiple locations"
+  block:
+    # - debug:
+    #     var: mirror_input_image
+    - debug:
+        var: mirror_index_images
+
+    - name: "Setting list list of mirrors"
+      set_fact:
+        mi_mirrors: "{{ mirror_index_images.split(',') }}"
+
+    - name: "Loop over all mirror locations"
+      include_tasks: mirror_single.yml
+      loop: "{{ mi_mirrors }}"
+      loop_control:
+        loop_var: mi_item
+  tags:
+    - mirror_index
+    - deploy_bundles

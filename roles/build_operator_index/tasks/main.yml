@@ -32,10 +32,10 @@
 
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
-    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions | regex_replace('v') }}"
+    index_versions_in_registry: "{{ (boi_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when: boi_registry_versions.status == 200
 
-- name: "Settig opm index extra arguments"
+- name: "Setting opm index extra arguments"
   set_fact:
     bundle_index_image_from: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
     opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
@@ -61,7 +61,7 @@
   set_fact:
     bundles_arr: []
 
-- name: "Filling bundle versions array from prod"
+- name: "Filling bundle versions from prod for operator '{{ ba_name }}'"
   set_fact:
     bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ ba_name }}:v{{ item }}' ]"
   with_items: "{{ ba_versions_prod }}"
@@ -69,7 +69,7 @@
     - production_registry_namespace is defined
     - production_registry_namespace != ""
 
-- name: "Filling bundle versions array"
+- name: "Filling bundle versions for operator '{{ ba_name }}'"
   set_fact:
     bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
   with_items: "{{ ba_versions_tmp }}"
@@ -80,9 +80,9 @@
 
 - name: "Retag bundle input image"
   block:
-    - name: Retag image {{ operator_input_image }}
+    - name: "Retag image {{ operator_input_image }}"
       shell: "{{ opm_container_tool }} tag {{ operator_input_image  }} {{ bundle_images }}"
-    - name: Push image {{ operator_input_image }}
+    - name: "Push image {{ operator_input_image }}"
       shell: "{{ opm_container_tool }} push {{ bundle_images }}"
   when:
   - operator_input_image is defined
@@ -96,32 +96,40 @@
 - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
   failed_when: false
-  register: ia_rc
+  register: boi_ia_rc
 
 - name: Push bundle image {{ bundle_index_image }}
   shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
-  when: ia_rc.rc == 0
+  when: boi_ia_rc.rc == 0
 
 - name: "Add failed operators when creating index from bundle"
   set_fact:
     bundle_index_add_failed: "{{ bundle_index_add_failed | default([]) }} + [ '{{ ba_name }}' ]"
-  when: ia_rc.rc is defined and ia_rc.rc != 0
+  when: boi_ia_rc.rc is defined and boi_ia_rc.rc != 0
 
-- name: "Ensure that the operator bundle for courier directory exists and is empty"
-  file:
-    state: "{{ item }}"
-    path: "{{ operator_bundle_dir_for_courier }}"
-  with_items:
-    - absent
-    - directory
+- name: "Running courier test on current operator"
+  block:
+    - name: "Ensure that the operator bundle for courier directory exists and is empty"
+      file:
+        state: "{{ item }}"
+        path: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+      with_items:
+        - absent
+        - directory
 
-- name: "Trying to export operator '{{ ba_name }}' from index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ ba_name }} --index {{ bundle_index_image }} --download-folder {{ operator_bundle_dir_for_courier }}"
-  register: rob_export_rc
+    - name: "Trying to export operator '{{ ba_name }}' from index image {{ bundle_index_image }}"
+      shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ ba_name }} --index {{ bundle_index_image }} --download-folder {{ operator_bundle_dir_for_courier }}"
+      register: rob_export_rc
 
-- name: "Run linting tests with operator-courier verify on the deployed operator"
-  include_role:
-    name: operator_courier_verify
-  vars:
-    operator_work_dir: "{{ operator_bundle_dir_for_courier }}"
-  when: run_lint|bool
+    - name: "Failing when export of operator '{{ ba_name }}' fails"
+      fail:
+        msg: "Exporting of operator '{{ ba_name }}' from index '{{ bundle_index_image }}' failed !!!"
+      when: rob_export_rc.rc != 0
+
+    - name: "Run linting tests with operator-courier verify on the deployed operator"
+      include_role:
+        name: operator_courier_verify
+      vars:
+        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+      when: run_lint|bool
+  when: boi_ia_rc.rc == 0

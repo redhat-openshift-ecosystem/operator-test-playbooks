@@ -1,0 +1,55 @@
+---
+- name: "Sanity check of index image"
+  block:
+    - name: "Exporting information from index image '{{ bundle_index_image }}'"
+      include_role:
+        name: export_list_of_packages_from_index
+
+    - name: "Find all directories in git repo"
+      shell:
+        cmd: "find . -type d -mindepth 2 -maxdepth 2 | cut -sd / -f 2- | sort"
+        chdir: "{{ operator_base_dir }}"
+      register: chi_git_operators_out
+      no_log: true
+
+    - name: "Set list of all operators in index"
+      set_fact:
+        chi_index_operators: "{{ elopfi_index_operators }}"
+
+    - name: "Set list of all operators in git repo"
+      set_fact:
+        chi_git_operators: "{{ (chi_git_operators_out.stdout | replace('/',':v') ).split() }}"
+
+    - name: "Setting list of operators present in index, but not in git"
+      set_fact:
+        chi_index_not_git_operators: "{{ chi_index_operators | difference(chi_git_operators) }}"
+      no_log: true
+
+    - name: "Setting list of operators present in git, but not in index"
+      set_fact:
+        chi_git_not_index_operators: "{{ chi_git_operators | difference(chi_index_operators) }}"
+      no_log: true
+
+    - name: "Setting list of missing operators"
+      set_fact:
+        chi_missing_operators: "{{ chi_git_not_index_operators | union(chi_index_not_git_operators) }}"
+      no_log: true
+
+    - name: "Setting list of uncomplete packages"
+      set_fact:
+        chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
+
+    - set_fact:
+        chi_uncomplete_packages: []
+
+    - set_fact:
+        chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
+      with_items: "{{ chi_uncomplete_packages_list }}"
+  tags:
+    - deploy_bundles
+    - index_check
+  when:
+    - bundle_index_image is defined
+    - bundle_index_image != ""
+    - bundle_index_image is not search("kind-registry:5000/.*")
+
