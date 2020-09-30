@@ -369,15 +369,23 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 ### ENV
 | name  | value |
 |---|---|
-|ANSIBLE_CONFIG| $PWD/ansible.cfg|
-|ANSIBLE_BASE_ARGS|"-vv -i localhost, local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"|
+|ANSIBLE_CONFIG|"$PWD/ansible.cfg"|
+|ANSIBLE_BASE_ARGS|"-i localhost, local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"|
 
 
 ## community-operators
 ### ENV
 | name  | value |
 |---|---|
-|ANSIBLE_CONFIG| $PWD/ansible.cfg|
-|ANSIBLE_BASE_ARGS|"-vv -i localhost, local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"|
-|ANSIBLE_PULL_REPO|"https://github.com/J0zi/operator-test-playbooks"|
+|ANSIBLE_CONFIG|"$PWD/ansible.cfg"|
+|ANSIBLE_BASE_ARGS|"-i localhost, local.yml -e ansible_connection=local -e run_remove_catalog_repo=false"|
+|ANSIBLE_EXTRA_ARGS|""|
+|ANSIBLE_PULL_REPO|"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"|
 |ANSIBLE_PULL_BRANCH|"upstream-community"|
+|AUTOMATION_TOKEN_OPERATOR_TESTING|on master|
+|AUTOMATION_TOKEN_RELEASE_COMMUNITY|on release-pipeline-running|
+|AUTOMATION_TOKEN_RELEASE_UPSTREAM|on release-pipeline-running|
+|CI_OHIO_TRIGGER_TOKEN|on master|
+|FRAMEWORK_AUTOMATION_ON_TRAVIS|on master|
+|QUAY_APPREG_TOKEN|on master|
+|QUAY_COURIER_TOKEN|on master|
