@@ -55,6 +55,12 @@
   when:
     - annotations_vars.annotations['operators.operatorframework.io.bundle.mediatype.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.mediatype.v1']
 
+- name: "Check if the operators.operatorframework.io.bundle.mediatype.v1 is set to the expected value"
+  fail:
+    msg: "The operators.operatorframework.io.bundle.mediatype.v1 value doesn't match the expected value \"{{ label_mediatype_v1_expected_value }}\""
+  when:
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.mediatype.v1'] != label_mediatype_v1_expected_value
+
 - name: "Check if the operators.operatorframework.io.bundle.metadata.v1 from annotation.yaml matches the bundle image label"
   fail:
     msg: "The operators.operatorframework.io.bundle.metadata.v1 value in the annotations yaml doesn't match the corresponding bundle image label!!"
