@@ -12,7 +12,7 @@ reg_port='5000'
 docker rm -f "${reg_name}" || true
 # fi
 
-{% if kind_registry_ssl == false %}
+{% if kind_registry_ssl|bool == false %}
 docker run \
     -d --restart=always -p ${reg_port}:5000 --name "${reg_name}" \
     registry:2
@@ -60,7 +60,7 @@ apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]
-{% if kind_registry_ssl == false %}
+{% if kind_registry_ssl|bool == false %}
     endpoint = ["http://${reg_name}:${reg_port}"]
 {% else %}
     endpoint = ["https://${reg_name}:${reg_port}"]
@@ -77,5 +77,6 @@ for node in $(kind get nodes --name {{ kind_cluster_name }}); do
   kubectl annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
   docker cp $CERTS_DIR/domain.crt ${node}:/usr/local/share/ca-certificates/ca.crt
   docker exec ${node} update-ca-certificates --fresh
+  docker exec ${node} systemctl restart containerd
 done
 
