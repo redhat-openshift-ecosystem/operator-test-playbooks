@@ -185,7 +185,8 @@
           shell:
             cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
             chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
-          failed_when: false
+          # failed_when: false
+          ignore_errors: yes
           register: bb_rc
 
         - name: "Push bundle image {{ bundle_image }}"

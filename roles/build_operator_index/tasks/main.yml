@@ -95,7 +95,8 @@
 
 - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
-  failed_when: false
+  # failed_when: false
+  ignore_errors: yes
   register: boi_ia_rc
 
 - name: Push bundle image {{ bundle_index_image }}
