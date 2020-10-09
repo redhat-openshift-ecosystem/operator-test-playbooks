@@ -74,6 +74,6 @@
 
 - name: "Push the operator metadata to the quay.io repository"
   shell: "operator-courier push {{ ptq_download_folder }}/{{ ptq_operator_package_name }} {{ ptq_namespace }} {{ ptq_operator_package_name }} {{ quay_release }} \"basic {{ quay_appregistry_courier_token }}\""
-  no_log: true
+  # no_log: true
 
 
