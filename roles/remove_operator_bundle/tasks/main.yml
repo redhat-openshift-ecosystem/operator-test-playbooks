@@ -15,43 +15,54 @@
     - quay_api_token is defined
     - quay_api_token != ""
 
-- name: "Setting bundle image name"
-  set_fact:
-    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
-    opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
-
-- name: "Remove operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index rm  -c {{ opm_container_tool }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+- name: "Get list of tags for index image from bundle registry"
+  uri:
+    url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
+  register: rob_registry_versions
   failed_when: false
 
-- name: "Push bundle image {{ bundle_index_image }}"
-  shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
-  failed_when: false
+- name: "Removed operator '{{ operator_dir_name }}' from index '{{ bundle_registry }}{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}' when index exists"
+  block:
 
-- name: "Remove temporary bundle export dir '{{ bundle_export_dir_remove }}'"
-  file:
-    path: "{{ bundle_export_dir_remove }}"
-    state: absent
+    - name: "Setting bundle image name"
+      set_fact:
+        bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+        opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 
-- name: "Trying to export operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ operator_dir_name }} --index {{ bundle_index_image }} --download-folder {{ bundle_export_dir_remove }}"
-  register: rob_export_rc
+    - name: "Remove operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
+      shell: "{{ opm_bin_path }} index rm  -c {{ opm_container_tool }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+      failed_when: false
 
-- name: "Append '{{ operator_dir_name }}' to '{{ bundle_export_dir_remove }}'"
-  set_fact:
-    bundle_export_dir_remove_op: "{{ bundle_export_dir_remove }}/{{ operator_dir_name }}"
+    - name: "Push bundle image {{ bundle_index_image }}"
+      shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
+      failed_when: false
 
-- name: "Search for all operators '{{ bundle_export_dir_remove_op }}'"
-  find:
-    paths: "{{ bundle_export_dir_remove_op }}"
-    recurse: no
-    file_type: directory
-  register: rob_operators_find
+    - name: "Remove temporary bundle export dir '{{ bundle_export_dir_remove }}'"
+      file:
+        path: "{{ bundle_export_dir_remove }}"
+        state: absent
 
-- name: "Fail when export works after removal of operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
-  fail:
-    msg: "Operator '{{ operator_dir_name }}' was not correctly removed from {{ bundle_index_image }} !!! Look in exported directory '{{ bundle_export_dir_remove_op }}' on remote host for more info."
-  when: rob_operators_find.files.0 is defined
+    - name: "Trying to export operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
+      shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ operator_dir_name }} --index {{ bundle_index_image }} --download-folder {{ bundle_export_dir_remove }}"
+      register: rob_export_rc
+
+    - name: "Append '{{ operator_dir_name }}' to '{{ bundle_export_dir_remove }}'"
+      set_fact:
+        bundle_export_dir_remove_op: "{{ bundle_export_dir_remove }}/{{ operator_dir_name }}"
+
+    - name: "Search for all operators '{{ bundle_export_dir_remove_op }}'"
+      find:
+        paths: "{{ bundle_export_dir_remove_op }}"
+        recurse: no
+        file_type: directory
+      register: rob_operators_find
+
+    - name: "Fail when export works after removal of operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
+      fail:
+        msg: "Operator '{{ operator_dir_name }}' was not correctly removed from {{ bundle_index_image }} !!! Look in exported directory '{{ bundle_export_dir_remove_op }}' on remote host for more info."
+      when: rob_operators_find.files.0 is defined
+  when:
+    - rob_registry_versions.status == 200
 
 - name: "Setting operator was removed"
   set_fact:
