@@ -4,6 +4,20 @@
     msg: "Variable 'bundle_index_image' is missing. Please set it via '-e bundle_index_image=<bundle-index-image>'"
   when: bundle_index_image is undefined or bundle_index_image == ""
 
+- name: "Quay login"
+  shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  no_log: True
+  when:
+    - quay_user is defined
+    - quay_password is defined
+    - quay_user != ""
+    - quay_password != ""
+
+- name: "Quay login via auth token"
+  shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+  no_log: True
+  when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token is defined and quay_api_token != ""
+
 - name: "Gather list of all operators"
   include_role:
     name: gather_all_operators_to_dict
