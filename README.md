@@ -22,7 +22,7 @@ The instructions for installing operator-courier can be found at [this link](htt
 
 The user needs to be currently logged into a working OCP cluster that will be used for testing as `kubeadmin` for the tests to work.
 
-The path to the kubeconfig file for the OCP cluster needs to be supplied as the `kubeconfig_path` parameter, 
+The path to the kubeconfig file for the OCP cluster needs to be supplied as the `kubeconfig_path` parameter,
 for example: `-e kubeconfig_path=~/testing/kubeconfig`
 
 For rapid prototyping, you can spin up an OCP cluster using [Red Hat CodeReady Workspaces](https://developers.redhat.com/products/codeready-workspaces/download)
@@ -31,7 +31,7 @@ You can then specify your kubeconfig as follows: `-e kubeconfig_path= ~/.crc/cac
 
 #### 3. A valid quay.io namespace (for ISV and Community operators only)
 
-A valid quay.io namespace to which the user has access to needs to be supplied as the `quay_namespace` parameter, 
+A valid quay.io namespace to which the user has access to needs to be supplied as the `quay_namespace` parameter,
 for example: `-e quay_namespace="${QUAY_NAMESPACE}"`
 
 The testing process includes creating a private repository, be advised about the limits on the account owning the namespace.
@@ -48,22 +48,22 @@ QUAY_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cn
         "password": "'"${QUAY_PASSWORD}"'"
     }
 }' | jq -r '.token' | cut -d' ' -f2)
-``` 
+```
 
 The token can then be supplied as the `quay_token` parameter, for example: `-e quay_token="${QUAY_TOKEN}"`
 
 #### 5. The operator metadata directory
 
-The operator metadata can be in either flattened or nested format - it will be copied and nested in a temporary directory for the purposes of the test.
+The operator's metadata in either flattened or nested format must be placed in it's own directory for testing.
 
-The path to the directory containing the operator metadata can be supplied as the `operator_dir` parameter,
+The path to the directory containing the operator's metadata must be supplied to the `operator_dir` parameter,
 for example: `-e operator_dir=~/testing/operator-metadata`
 
 #### 6. Other required binaries
 
 The rest of the required binaries are downloaded by the playbook to a temporary directory in `/tmp/operator-test/bin` and don't need to be installed manually.
 
-If we, for some reason, want to skip the download (for example if we already have the required binaries at that location from a previous playbook run), 
+If we, for some reason, want to skip the download (for example if we already have the required binaries at that location from a previous playbook run),
 we can set the `run_prereqs` parameter in this way: ``-e run_prereqs=false``
 
 #### 7. The parameters required to support image pull secrets
@@ -82,7 +82,7 @@ If the kube_objects is a secret and in the encrypted form, a shared symmetric ke
 The symmetric_key can be passed as a parameter to the playbook
 for example: `-e symmetric_key=symmetric_key`
 
-##### 3. The RSA private key is required to decrypt the symmetric key 
+##### 3. The RSA private key is required to decrypt the symmetric key
 
 The path where the private key is stored can be supplied as `rsa_private_key` parameter,
 for example: `-e rsa_private_key=~/.ssh/private_key`
@@ -105,6 +105,7 @@ If we want to leave the resources after the run, we can set the `run_cleanup` pa
 ### Example usages
 
 #### 1. Testing Red Hat (optional) operators
+
 If we want to run the Red Hat operator tests, we invoke the playbook with the following command:
 
 ```bash
@@ -113,9 +114,11 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
     -e production_quay_namespace="redhat-operators" \
     -e operator_dir="${OPERATOR_DIR}"
 ```
+
 Currently the access to an OCP cluster or an quay.io account is not required
 
-#### 2. Full operator testing for ISV (Certified) operators 
+#### 2. Full operator testing for ISV (Certified) operators
+
 If we want to run the full ISV operator testing, we invoke the playbook with the following command (inserting the aforementioned prerequisites):
 
 ```bash
@@ -126,6 +129,7 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
     -e production_quay_namespace="certified-operators" \
     -e operator_dir="${OPERATOR_DIR}"
 ```
+
 If we want to run full operator testing with image pull secrets and certified-operators
 
 ```bash
@@ -141,6 +145,7 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
 ```
 
 #### 3. Testing community operators
+
 If we want to run the operator testing for a community operator without running the imagesource test, we invoke the playbook with the following command:
 
 ```bash
@@ -152,4 +157,3 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
     -e operator_dir="${OPERATOR_DIR}" \
     -e run_imagesource=false
 ```
-
