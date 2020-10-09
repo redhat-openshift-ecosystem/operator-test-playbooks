@@ -367,7 +367,6 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 # Travis configuration
 
 ## operator-test-playbooks
-### ENV
 | name  | value |
 |---|---|
 |ANSIBLE_CONFIG|"$PWD/ansible.cfg"|
@@ -375,7 +374,6 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 
 
 ## community-operators
-### ENV
 | name  | value |
 |---|---|
 |ANSIBLE_CONFIG|"$PWD/ansible.cfg"|
@@ -390,3 +388,22 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 |FRAMEWORK_AUTOMATION_ON_TRAVIS|on master|
 |QUAY_APPREG_TOKEN|on master|
 |QUAY_COURIER_TOKEN|on master|
+
+
+## community-operator-catalog
+| name  | value |
+|---|---|
+|ANSIBLE_CONFIG|"$PWD/ansible.cfg"|
+|ANSIBLE_BASE_ARGS|"-i localhost, local.yml -e ansible_connection=local -e run_remove_catalog_repo=false"|
+|ANSIBLE_EXTRA_ARGS|""|
+|ANSIBLE_PULL_REPO|"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"|
+|ANSIBLE_PULL_BRANCH|"upstream-community"|
+|AUTOMATION_TOKEN_RELEASE_COMMUNITY|all branches|
+|AUTOMATION_TOKEN_RELEASE_COMMUNITY_TEST|all branches|
+|AUTOMATION_TOKEN_RELEASE_UPSTREAM|all branches|
+|AUTOMATION_TOKEN_RELEASE_UPSTREAM_TEST|all branches|
+|QUAY_RH_INDEX_PW|on master|
+|QUAY_RH_INDEX_PW|on job/update-community-index-manually|
+|INPUT_CATALOG_IMAGE|"quay.io/operatorhubio/catalog:latest" (default, when nothing is set)|
+|APP_REGISTRY_IMAGE|"quay.io/operator-framework/upstream-community-operators:latest" (default, when nothing is set)|
+|APP_REGISTRY_TOKEN|on master|
