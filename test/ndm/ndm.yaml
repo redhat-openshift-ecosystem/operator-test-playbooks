@@ -1,0 +1,8 @@
+base: "/var/home/mvala/MVALA/Work/git/hotovo/operator-framework/J0zi/operator-test-playbooks/test/ndm/content"
+cmd: "/var/home/mvala/MVALA/Work/git/hotovo/operator-framework/J0zi/operator-test-playbooks/test/ndm/ndm.sh"
+space:
+  axes:
+    - name: "axis1"
+      min: 0
+      max: 1
+      level: 0

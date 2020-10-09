@@ -124,6 +124,7 @@
       when:
         - operator_dir is defined
         - operator_dir != ""
+        - operator_dir != "dummy"
       tags:
         - always
         - test
