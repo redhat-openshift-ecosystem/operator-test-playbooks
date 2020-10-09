@@ -1,29 +1,44 @@
 ---
 - name: "Create the kube_objects directory"
-  shell: "mkdir -p {{ kube_objects_dir }}"
+  file:
+    path: "{{ kube_objects_dir }}"
+    state: directory
+    mode: '0755'
 
-- name: "Decode the symmetric key received from the user"
-  shell: "echo \"{{ symmetric_key }}\" | base64 --decode > {{ kube_objects_dir }}/get_sym_key"
-  no_log: true
-  
-- name: "Decrypt the symmetric key using RSA private key"
-  shell: "openssl rsautl -decrypt -oaep -inkey {{ rsa_private_key }} -in {{ kube_objects_dir }}/get_sym_key -out {{ kube_objects_dir }}/secret.key"
+- name: "Decrypt the kube_objects if it's RSA encoded"
+  when: "not '-----BEGIN PGP MESSAGE-----' in kube_objects"
+  block:
+    - name: "Decode the symmetric key received from the user"
+      shell: "echo \"{{ symmetric_key }}\" | base64 --decode > {{ kube_objects_dir }}/get_sym_key"
+      no_log: true
 
-- name: "Verify the shared symmetric key"
-  shell: "stat -c %s {{ kube_objects_dir }}/secret.key"
-  register: symmetric_key_size
+    - name: "Decrypt the symmetric key using RSA private key"
+      shell: "openssl rsautl -decrypt -oaep -inkey {{ rsa_private_key }} -in {{ kube_objects_dir }}/get_sym_key -out {{ kube_objects_dir }}/secret.key"
 
-- name: "Fail if the shared symmetric key is not 32 bytes"
-  fail:
-    msg: "The decrypted shared symmetric key is {{ symmetric_key_size.stdout }} bytes. The shared key should be of 32 bytes"
-  when: symmetric_key_size.stdout != "32"
+    - name: "Verify the shared symmetric key"
+      shell: "stat -c %s {{ kube_objects_dir }}/secret.key"
+      register: symmetric_key_size
 
-- name: "Read the encrypted kube_objects decode and store them in a file"
-  shell: "echo \"{{ kube_objects }}\" | tr \" \" \"\n\" | base64 --decode > {{ kube_objects_dir }}/get_kubeObjects.txt"
-  no_log: true
-  
-- name: "Decrypt the kube_objects through the shared symmetric key"
-  shell: "openssl aes-256-cbc -d -in {{ kube_objects_dir }}/get_kubeObjects.txt -out {{ kube_objects_dir }}/kube_objects.yaml -pass file:{{ kube_objects_dir }}/secret.key"
+    - name: "Fail if the shared symmetric key is not 32 bytes"
+      fail:
+        msg: "The decrypted shared symmetric key is {{ symmetric_key_size.stdout }} bytes. The shared key should be of 32 bytes"
+      when: symmetric_key_size.stdout != "32"
+
+    - name: "Read the encrypted kube_objects decode and store them in a file"
+      shell: "echo \"{{ kube_objects }}\" | tr \" \" \"\n\" | base64 --decode > {{ kube_objects_dir }}/get_kubeObjects.txt"
+      no_log: true
+
+    - name: "Decrypt the kube_objects through the shared symmetric key"
+      shell: "openssl aes-256-cbc -d -in {{ kube_objects_dir }}/get_kubeObjects.txt -out {{ kube_objects_dir }}/kube_objects.yaml -pass file:{{ kube_objects_dir }}/secret.key"
+
+- name: "Decrypt the kube_objects if it's PGP encoded."
+  when: "'-----BEGIN PGP MESSAGE-----' in kube_objects"
+  block:
+    - name: "Read the encrypted kube_objects, decode and store them in a file"
+      shell: "echo \"{{ kube_objects }}\" > {{ kube_objects_dir }}/get_kubeObjects.txt"
+
+    - name: "Decrypt the kube_objects using the gpg key"
+      shell: "gpg --decrypt {{ kube_objects_dir }}/get_kubeObjects.txt > {{ kube_objects_dir }}/kube_objects.yaml"
 
 - name: "Create the kube_objects on the testing openshift cluster for operator certification"
   shell: "oc apply -f {{ kube_objects_dir }}/kube_objects.yaml"
