@@ -222,13 +222,14 @@ time ansible-playbook -vv -i localhost, local.yml \
 -e bundle_index_image=quay.io/operatorhubio/catalog:latest
 ```
 
-## Generate app registry in parallel (List of operators from index image)
+## Generate app registry in parallel (List of operators from index image) and then push it
 ```
 export ANSIBLE_STDOUT_CALLBACK=yaml
 time ansible-playbook -vv -i localhost, local.yml \
 -e run_upstream=true --tags app_registry \
 -e bundle_index_image=quay.io/operatorhubio/catalog:latest \
--e index_export_parallel=true
+-e index_export_parallel=true \
+-e app_registry_image="kind-registry:5000/test-operator/app-registry"
 ```
 
 ## Generate app registry (List of operators from git)

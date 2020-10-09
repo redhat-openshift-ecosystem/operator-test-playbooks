@@ -38,3 +38,18 @@
     app_registry_parallel: true
     bar_op: "{{ gaotd_operator_packages | join(',') }}"
   when: index_export_parallel|bool
+
+- name: "Building and pushing app registry"
+  block:
+    - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}'"
+      shell: "{{ opm_container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
+
+    - name: "Push app registry image '{{ app_registry_image }}'"
+      shell: "{{ opm_container_tool }} push {{ app_registry_image }}"
+  when:
+    - app_registry_build_dir is defined
+    - app_registry_build_dir != ""
+    - app_registry_build_file is defined
+    - app_registry_build_file != ""
+    - app_registry_image is defined
+    - app_registry_image != ""
