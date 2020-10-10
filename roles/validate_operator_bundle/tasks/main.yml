@@ -35,7 +35,7 @@
 - name: "Handle manifest and metadata validation for Openshift"
   block:
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
-      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} > {{ work_dir}}/validation-output.txt 2>&1"
+      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} 2>&1 | tee {{ work_dir}}/validation-output.txt"
       register: sdk_validation_result
       ignore_errors: true
 
