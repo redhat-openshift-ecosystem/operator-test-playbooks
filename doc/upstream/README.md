@@ -407,3 +407,22 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 |INPUT_CATALOG_IMAGE|"quay.io/operatorhubio/catalog:latest" (default, when nothing is set)|
 |APP_REGISTRY_IMAGE|"quay.io/operator-framework/upstream-community-operators:latest" (default, when nothing is set)|
 |APP_REGISTRY_TOKEN|on master|
+|CI_OHIO_BRANCH|"dev"|
+|CI_OHIO_TRIGGER_TOKEN|on master|
+
+
+## operatorhubio
+| name  | value |
+|---|---|
+|AKAMAI_APPCODES|on master|
+|AKAMAI_SECRETS|on master|
+|DOCKER_REGISTRY|all branches|
+|DOCKER_IMAGE|all branches|
+|DOCKER_USERNAME|all branches|
+|DOCKER_PASSWORD|all branches|
+|OPENSHIFT_SERVER|all branches|
+|OPENSHIFT_TOKEN|on dev|
+|OPENSHIFT_TOKEN|on master|
+|OPENSHIFT_TOKEN|on master2|
+|OPENSHIFT_TOKEN_PREPROD|on master|
+|APP_REGISTRY_IMAGE|"quay.io/operator-framework/upstream-community-operators:latest"|
