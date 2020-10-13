@@ -4,3 +4,7 @@ bundle_registry: "quay.io"
 ptq_namespace: "community-operators"
 ptq_operator_dir_name: "{{ operator_dir | basename }}"
 ptq_download_folder: "/tmp/quay_push_dir"
+bundle_index_image_namespace: test-operator
+bundle_index_image_name: "catalog"
+bundle_index_image_version: "latest"
+bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"

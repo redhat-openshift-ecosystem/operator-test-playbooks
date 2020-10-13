@@ -49,7 +49,7 @@
 
     - name: "Failing when version as directory name is not same with version defined in csv file for '{{ operator_package_name }} {{ op_version }}'"
       fail:
-        msg: "Operator '{{ operator_package_name }}/{{ op_version }}' has different version name defined in '{{ csv_file_path }}' as defined in 'version' directory name !!!"
+        msg: "Operator '{{ operator_package_name }} with version {{ op_version }}' has different version name defined in '{{ csv_file_path }}' as 'spec.version' !!!"
       when:
         - (operator_vars.spec.version is undefined or operator_vars.spec.version != op_version)
 
