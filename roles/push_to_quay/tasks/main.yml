@@ -3,6 +3,7 @@
   set_fact:
     ptq_operator_package_name: "{{ ptq_operator_dir_name }}"
     ptq_download_folder: "/tmp/export-for-appreg"
+    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 
 - name: "Ensure that the '{{ ptq_download_folder }}/{{ ptq_operator_package_name }}' directory exists and is empty"
   file:
