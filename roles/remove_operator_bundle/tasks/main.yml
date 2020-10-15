@@ -29,12 +29,19 @@
         bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
         opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 
+    - name: "Setting 'index rm' container option"
+      set_fact:
+        boi_index_args: "-c {{ opm_container_tool_index }}"
+      when:
+        - opm_container_tool_index is defined
+        - opm_container_tool_index != ""
+
     - name: "Remove operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
-      shell: "{{ opm_bin_path }} index rm  -c {{ opm_container_tool }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+      shell: "{{ opm_bin_path }} index rm  {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
       failed_when: false
 
     - name: "Push bundle image {{ bundle_index_image }}"
-      shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
+      shell: "{{ container_tool }} push {{ bundle_index_image }}"
       failed_when: false
 
     - name: "Remove temporary bundle export dir '{{ bundle_export_dir_remove }}'"
@@ -43,7 +50,7 @@
         state: absent
 
     - name: "Trying to export operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
-      shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ operator_dir_name }} --index {{ bundle_index_image }} --download-folder {{ bundle_export_dir_remove }}"
+      shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool_index }} --package {{ operator_dir_name }} --index {{ bundle_index_image }} --download-folder {{ bundle_export_dir_remove }}"
       register: rob_export_rc
 
     - name: "Append '{{ operator_dir_name }}' to '{{ bundle_export_dir_remove }}'"

@@ -274,7 +274,9 @@ Usage:
 | bundle_image_namespace | Quay registry url. [string] | test-operator | operator_testing |
 | bundle_index_image_namespace | Quay registry url. [string] | test-operator | operator_testing |
 | bundle_index_image_name | Quay registry url. [string] | index | upstream-community-operators-index |
+| container_tool | Container tool to use. [string] | docker  | as default |
 | opm_container_tool | Container tool to use when using opm tool. [string] | docker  | as default |
+| opm_container_tool_index | Container tool to use when using opm tool. [string] | docker  | as default |
 | operator_channel_force | Forcing to adde channel and default channed to current string value. When empty string it is autodetected by playbook. [string] | undefined | undefined |
 | index_force_update | Force to rebuild currently running operators in index. [bool] | false | false |
 | index_skip | Skip building index (it will build bundle only). [bool] | undefined | undefined |

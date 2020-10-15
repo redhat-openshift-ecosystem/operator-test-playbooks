@@ -3,17 +3,17 @@
   block:
 
     - name: "Stop previous index container '{{ sanity_check_container_name }}''"
-      shell: "{{ opm_container_tool }} rm -f {{ sanity_check_container_name }}"
+      shell: "{{ container_tool }} rm -f {{ sanity_check_container_name }}"
       failed_when: false
       changed_when: false
       no_log: true
 
       ## ckeck if not kind
     - name: "Pulling index container {{ bundle_index_image }}"
-      shell: "{{ opm_container_tool }} pull {{ bundle_index_image }}"
+      shell: "{{ container_tool }} pull {{ bundle_index_image }}"
 
     - name: "Start index container {{ bundle_index_image }}"
-      shell: "{{ opm_container_tool }} run -d --name {{ sanity_check_container_name }} {{ bundle_index_image }}"
+      shell: "{{ container_tool }} run -d --name {{ sanity_check_container_name }} {{ bundle_index_image }}"
 
     - name: "Remove db filename '{{ sqlite_db_file }}'"
       file:
@@ -21,7 +21,7 @@
         state: absent
 
     - name: "Extract db file to '{{ sqlite_db_file }}'"
-      shell: "{{ opm_container_tool }} cp {{ sanity_check_container_name }}:/database/index.db {{ sqlite_db_file }}"
+      shell: "{{ container_tool }} cp {{ sanity_check_container_name }}:/database/index.db {{ sqlite_db_file }}"
 
     - name: "Getting list of operators"
       shell: "{{ sqlite_tool }} {{ sqlite_db_file }} 'select bundlepath from operatorbundle' | sed 's/^\ | $//g'| cut -sd / -f 3- | paste -sd, -"
@@ -35,7 +35,7 @@
 
 
     - name: "Stop index container '{{ sanity_check_container_name }}'"
-      shell: "{{ opm_container_tool }} rm -f {{ sanity_check_container_name }}"
+      shell: "{{ container_tool }} rm -f {{ sanity_check_container_name }}"
 
     - name: "Set list of all operators (versions) in index"
       set_fact:

@@ -7,7 +7,7 @@
         op_version: "{{ operator_input_image.split(':')[1] }}"
         operator_format: "bundle"
     - name: "Remove bundle image {{ bundle_image }}"
-      shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
+      shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
   when:
     - operator_input_image is defined
     - operator_input_image != ""
@@ -179,7 +179,7 @@
             bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
 
         - name: "Remove bundle image {{ bundle_image }}"
-          shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
+          shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
 
         - name: "Generate bundle image {{ bundle_image }} from bundle format"
           shell:
@@ -190,7 +190,7 @@
           register: bb_rc
 
         - name: "Push bundle image {{ bundle_image }}"
-          shell: "{{ opm_container_tool }} push {{ bundle_image }}"
+          shell: "{{ container_tool }} push {{ bundle_image }}"
           when:
             - bb_rc.rc is defined
             - bb_rc.rc == 0
@@ -214,7 +214,8 @@
           when: operator_channel_force is defined
 
         - name: Remove bundle image {{ bundle_image }}
-          shell: "{{ opm_container_tool }} rmi -f {{ bundle_image }}"
+          shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+          ignore_errors: yes
 
         - name: "Generate bundle image {{ bundle_image }} from manifest format"
           shell:
@@ -225,7 +226,7 @@
           register: mb_rc
 
         - name: "Push bundle image {{ bundle_image }}"
-          shell: "{{ opm_container_tool }} push {{ bundle_image }}"
+          shell: "{{ container_tool }} push {{ bundle_image }}"
           when:
             - mb_rc.rc is defined
             - mb_rc.rc == 0
