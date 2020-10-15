@@ -1,4 +1,4 @@
-operator_bundle_src_dir: /tmp/operator-test/operator-bundle/src
+operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
 operator_name: ""
 opm_container_tool: "docker"
 bundle_registry: kind-registry:5000
@@ -6,6 +6,6 @@ bundle_image_namespace: test-operator
 bundle_index_image_namespace: test-operator
 bundle_index_image_name: "catalog"
 bundle_index_image_version: "latest"
-operator_bundle_dir_for_courier: /tmp/operator-test/operator-bundle-for-courier
+operator_bundle_dir_for_courier: "{{ work_dir }}/operator-bundle-for-courier"
 operators_for_index: []
 opm_index_add_extra_args: ""

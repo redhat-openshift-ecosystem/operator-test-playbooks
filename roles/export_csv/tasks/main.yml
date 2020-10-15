@@ -21,7 +21,7 @@
 
 - name: "Find csv file (manifest)"
   block:
-    - name: "Searching for file cvs file (manifest)"
+    - name: "Searching for file cvs file (manifest) in '{{ op_csv_dir }}'"
       find:
         paths: "{{ op_csv_dir }}"
         recurse: no
@@ -45,7 +45,7 @@
       path: "{{ csv_file_path }}"
     register: csv_file_st
 
-  - name: "Fail if package file doesn't exists"
+  - name: "Fail if csv file '{{ csv_file_path }}' doesn't exists"
     fail:
     when: not csv_file_st.stat.exists
 

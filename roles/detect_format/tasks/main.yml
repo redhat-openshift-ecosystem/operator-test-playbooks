@@ -55,9 +55,24 @@
 
     - name: "Read the variables from annotations.yaml"
       block:
+        - name: "Ensure that the operator manifest to bundle directory exists and is empty"
+          file:
+            state: "{{ item }}"
+            path: "{{ operator_bundle_src_dir }}"
+          with_items:
+            - absent
+            - directory
+
+        - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
+          copy:
+            src: "{{ operator_dir }}"
+            dest: "{{ operator_bundle_src_dir }}"
+            remote_src: yes
+
         - name: "Setting path names for csv and annotation"
           set_fact:
             annotation_file_path: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/metadata/annotations.yaml"
+            # annotation_file_path: "{{ operator_dir }}/{{ op_version }}/metadata/annotations.yaml"
 
         - name: "Check if annotation file exists"
           stat:
