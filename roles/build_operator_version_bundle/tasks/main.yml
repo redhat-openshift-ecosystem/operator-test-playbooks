@@ -23,7 +23,7 @@
         - directory
       when: operator_bundle_src_dir is defined
 
-    - name: "Copy manifest format files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
+    - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
       copy:
         src: "{{ operator_dir }}"
         dest: "{{ operator_bundle_src_dir }}"
@@ -94,7 +94,7 @@
         msg: "Operator '{{ operator_package_name }}/{{ op_version }}' is running in 'semver' mode and contains 'replaces' key in '{{ csv_file_path }}' !!!"
       when:
         - opm_index_add_mode == "semver"
-        - operator_vars.spec.replaces is defined
+        - (operator_vars.spec.replaces is defined or operator_vars.spec.skips is defined)
 
     - name: "Setting 'operator_channels_list' in case of manifest format and if package file was parsed"
       set_fact:

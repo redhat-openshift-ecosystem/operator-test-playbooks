@@ -1,4 +1,4 @@
-operator_bundle_src_dir: /tmp/operator-test/operator-bundle/src
+operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
 operator_base_dir: ""
 operator_name: ""
 operator_dir_name: ""

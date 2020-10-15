@@ -1,15 +1,15 @@
 ---
-- name: "Setting bundle image name"
+- name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
   set_fact:
     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 
-- name: "Get list of tags for index image from bundle registry"
+- name: "Get list of tags for index image from bundle registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
   uri:
     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
   register: boi_registry_versions
   failed_when: false
 
-- name: "Create repo for index image with public visibility"
+- name: "Create repo for index image with public visibility '{{ bundle_image_namespace }}/{{ bundle_index_image_name }}'"
   uri:
     url: "https://quay.io/api/v1/repository"
     method: POST
@@ -54,7 +54,8 @@
     - bundle_index_image_from is defined
     - bundle_index_image_from != ""
 
-- set_fact:
+- name: "Setting tmp versions"
+  set_fact:
     ba_versions_tmp: "{{ ba_versions | difference(ba_versions_prod)}}"
 
 - name: "Setting empty bundles array"
@@ -99,7 +100,7 @@
   ignore_errors: yes
   register: boi_ia_rc
 
-- name: Push bundle image {{ bundle_index_image }}
+- name: "Push bundle image '{{ bundle_index_image }}'"
   shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
   when: boi_ia_rc.rc == 0
 
@@ -108,7 +109,7 @@
     bundle_index_add_failed: "{{ bundle_index_add_failed | default([]) }} + [ '{{ ba_name }}' ]"
   when: boi_ia_rc.rc is defined and boi_ia_rc.rc != 0
 
-- name: "Running courier test on current operator"
+- name: "Running courier test on operator '{{ ba_name }}'"
   block:
     - name: "Ensure that the operator bundle for courier directory exists and is empty"
       file:
@@ -118,7 +119,7 @@
         - absent
         - directory
 
-    - name: "Trying to export operator '{{ ba_name }}' from index image {{ bundle_index_image }}"
+    - name: "Trying to export operator '{{ ba_name }}' from index image '{{ bundle_index_image }}'"
       shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ ba_name }} --index {{ bundle_index_image }} --download-folder {{ operator_bundle_dir_for_courier }}"
       register: rob_export_rc
 
@@ -127,7 +128,7 @@
         msg: "Exporting of operator '{{ ba_name }}' from index '{{ bundle_index_image }}' failed !!!"
       when: rob_export_rc.rc != 0
 
-    - name: "Run linting tests with operator-courier verify on the deployed operator"
+    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
       include_role:
         name: operator_courier_verify
       vars:
