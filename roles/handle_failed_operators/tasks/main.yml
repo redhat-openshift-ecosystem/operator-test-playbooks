@@ -80,6 +80,13 @@
           debug:
             msg: "--tags deploy_bundles -e operators_config=/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml -e index_force_update=true"
 
+        - name: "Printing failed message when in strict_mode"
+          fail:
+            msg: "Some operators are not in sync !!! See above."
+          when:
+            - strict_mode is defined
+            - strict_mode|bool == true
+
       when: chi_uncomplete_packages.0 is defined
 
     - name: "Printing Successfull message"
