@@ -6,7 +6,7 @@ OP_TEST_NAME=${OPT_TEST_NAME-"op-test"}
 OP_TEST_ANSIBLE_PULL_REPO=${OP_TEST_ANSIBLE_PULL_REPO-"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"}
 OP_TEST_ANSIBLE_PULL_BRANCH=${OP_TEST_ANSIBLE_PULL_BRANCH-"upstream-community"}
 OP_TEST_ANSIBLE_DEFAULT_ARGS=${OP_TEST_ANSIBLE_DEFAULT_ARGS-"-i localhost, -e ansible_connection=local -e run_upstream=true"}
-OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags docker,kind"}
+OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags kubectl,kind"}
 OP_TEST_CONAINER_RUN_DEFAULT_ARGS=${OP_TEST_CONAINER_RUN_DEFAULT_ARGS-"--net host --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --security-opt seccomp=unconfined --security-opt label=disable -v $OP_TEST_CERT_DIR/domain.crt:/usr/share/pki/ca-trust-source/anchors/ca.crt -v /tmp/.kube:/root/.kube -e STORAGE_DRIVER=vfs"}
 OP_TEST_CONTAINER_RUN_EXTRA_ARGS=${OP_TEST_CONTAINER_RUN_EXTRA_ARGS-""}
 OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS=${OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS-""}
@@ -21,9 +21,6 @@ OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
 
 OP_TEST_EXEC_USER="-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test"
 
-# For playbook developers
-# export OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks"
-
 if ! command -v ansible > /dev/null 2>&1; then
     echo "Error: Ansible is not installed. Please install it first !!!"
     echo "    e.g. : pip install ansible jmespath"
@@ -33,6 +30,10 @@ fi
 if [ "$OP_TEST_CONTAINER_TOOL" = "podman" ];then
     OP_TEST_ANSIBLE_EXTRA_ARGS="$OP_TEST_ANSIBLE_EXTRA_ARGS -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
+fi
+
+if [ "$OP_TEST_CONTAINER_TOOL" = "docker" ];then
+    OP_TEST_CONTAINER_TOOL="sudo docker"
 fi
 
 echo "Using $(ansible --version | head -n 1) ..."
@@ -74,4 +75,7 @@ $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OPT_TEST_NAME $OP_TEST_CONAINER_
 # Exec test
 $OP_TEST_CONTAINER_TOOL exec -it $OPT_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
 
-#kubectl get all --all-namespaces
+# For playbook developers
+# export OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks"
+# OP_TEST_DEBUG=1 OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks" bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh)
+
