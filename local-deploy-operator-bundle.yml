@@ -51,10 +51,34 @@
         - quay_user != ""
         - quay_password != ""
 
-    - name: "Quay login via auth token"
-      shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+    - name: "Parsing 'openshift_robot_hash' variable"
+      set_fact:
+        openshift_robot_hash_array: "{{ openshift_robot_hash.split('|') }}"
       no_log: True
-      when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token is defined and quay_api_token != ""
+      when:
+        - openshift_robot_hash is defined
+        - openshift_robot_hash != ""
+
+    - name: "Parsing 'quay_api_token_common' variable from 'openshift_robot_hash'"
+      set_fact:
+        quay_api_token_common: "{{ openshift_robot_hash_array[1] }}"
+      no_log: True
+      when:
+        - openshift_robot_hash_array.1 is defined
+        - openshift_robot_hash_array.1 != ""
+
+    - name: "Parsing 'quay_api_token_common' variable from 'openshift_robot_hash'"
+      set_fact:
+        quay_api_token_common: "{{ quay_api_token }}"
+      no_log: True
+      when:
+        - quay_api_token is defined
+        - quay_api_token != ""
+
+    - name: "Quay login via auth token"
+      shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token_common }} quay.io"
+      no_log: True
+      when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token_common is defined and quay_api_token_common != ""
 
     - name: "Generate Operators config file from all operators"
       block:

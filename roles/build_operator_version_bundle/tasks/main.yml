@@ -195,6 +195,22 @@
             - bb_rc.rc is defined
             - bb_rc.rc == 0
 
+        - name: "Retag {{ bundle_image }} to openshift robot"
+          shell: "{{ container_tool }} tag {{ bundle_image }} {{ openshift_robot_hash_array[0] }}{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+          when:
+            - bb_rc.rc is defined
+            - bb_rc.rc == 0
+            - openshift_robot_hash_array.2 is defined
+            - openshift_robot_hash_array.2 != ""
+
+        - name: "Push bundle image (openshift robot)"
+          shell: "{{ container_tool }} push {{ openshift_robot_hash_array[0] }}{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+          when:
+            - bb_rc.rc is defined
+            - bb_rc.rc == 0
+            - openshift_robot_hash_array.2 is defined
+            - openshift_robot_hash_array.2 != ""
+
         - name: "Operator scorcard bundle test"
           include_role:
             name: operator_scorecard_tests_bundle
@@ -230,6 +246,19 @@
           when:
             - mb_rc.rc is defined
             - mb_rc.rc == 0
+
+        - name: "Handling opeshift robot case for bundle"
+          block:
+            - name: "Retag {{ bundle_image }} to openshift robot"
+              shell: "{{ container_tool }} tag {{ bundle_image }} {{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+
+            - name: "Push bundle image {{ bundle_image }}"
+              shell: "{{ container_tool }} push {{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+          when:
+            - mb_rc.rc is defined
+            - mb_rc.rc == 0
+            - openshift_robot_hash_array.2 is defined
+            - openshift_robot_hash_array.2 != ""
 
         - name: "Operator scorcard bundle test"
           include_role:

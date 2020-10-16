@@ -83,9 +83,11 @@
     bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
   with_items: "{{ ba_versions_tmp }}"
 
+
 - name: "Setting bundle image names"
   set_fact:
     bundle_images: "{{ bundles_arr | join(',') }}"
+
 
 - name: "Retag bundle input image"
   block:
@@ -111,6 +113,32 @@
 - name: "Push bundle image '{{ bundle_index_image }}'"
   shell: "{{ container_tool }} push {{ bundle_index_image }}"
   when: boi_ia_rc.rc == 0
+
+- name: "Handling openshift robot case for index"
+  block:
+    - name: "Filling bundle versions for operator '{{ ba_name }}' for openshift robot case"
+      set_fact:
+        bundles_arr_osr: "{{ bundles_arr_osr | default([]) }} + [ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
+    - debug:
+        var: bundles_arr_osr
+
+    - name: "Setting bundle images names (osr)"
+      set_fact:
+        bundles_images_osr: "{{ bundles_arr_osr | join(',') }}"
+        bundle_index_image_osr: "{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}:{{ openshift_robot_hash_array[2] }}"
+
+    - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image_osr }}"
+      shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundles_images_osr }} --tag {{ bundle_index_image_osr }} --mode semver"
+      # failed_when: false
+      ignore_errors: yes
+      register: boi_ia_osr_rc
+
+    - name: "Push bundle image '{{ bundle_index_image_osr }}'"
+      shell: "{{ container_tool }} push {{ bundle_index_image_osr }}"
+      when: boi_ia_osr_rc.rc == 0
+  when:
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2 != ""
 
 - name: "Add failed operators when creating index from bundle"
   set_fact:
