@@ -25,6 +25,31 @@
     - quay_api_token != ""
     - boi_registry_versions.status != 200
 
+- name: "Get list of tags for index image from bundle registry (osr) '{{ openshift_robot_hash_array[0] | dirname }}/{{ openshift_robot_hash_array[0] | basename }}/{{ bundle_index_image_name }}'"
+  uri:
+    url: "{{ registry_api_http_protocol | default('https') }}://{{ openshift_robot_hash_array[0] | dirname }}/v2/{{ openshift_robot_hash_array[0] | basename }}/{{ bundle_index_image_name }}/tags/list"
+  register: boi_registry_versions_osr
+  failed_when: false
+  when:
+    - openshift_robot_hash_array.1 is defined
+    - openshift_robot_hash_array.1 != ""
+
+- name: "Create repo for index image with public visibility (osr)'{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}'"
+  uri:
+    url: "https://quay.io/api/v1/repository"
+    method: POST
+    body: '{"kind":"image","namespace":"{{ openshift_robot_hash_array[0] | basename }}","repository":"{{ bundle_index_image_name }}","description":"","visibility":"public"}'
+    body_format: json
+    force_basic_auth: yes
+    headers:
+      Authorization: "Bearer {{ openshift_robot_hash_array[1] }}"
+    status_code: 201
+    return_content: yes
+  when:
+    - openshift_robot_hash_array.1 is defined
+    - openshift_robot_hash_array.1 != ""
+    - boi_registry_versions_osr.status != 200
+
 - name: "Reseting 'index_versions_in_registry' variable"
   set_fact:
     index_versions_in_registry: []
