@@ -1,4 +1,5 @@
 #!/bin/bash
+ACTION=${1-""}
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
 OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
@@ -15,6 +16,14 @@ OP_TEST_EXEC_BASE=${OP_TEST_EXEC_BASE-"ansible-playbook -i localhost, -e ansible
 OP_TEST_EXEC_EXTRA=${OP_TEST_EXEC_EXTRA-""}
 OP_TEST_DEBUG=${OP_TEST_DEBUG-0}
 OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
+
+function clean() {
+    echo "Removing testing container '$OP_TEST_NAME' ..."
+    $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME > /dev/null 2>&1
+
+    echo "Done"
+    exit 0
+}
 
 [ "$OP_TEST_RUN_MODE" = "privileged" ] && OP_TEST_CONAINER_RUN_DEFAULT_ARGS="--privileged --net host -v $OP_TEST_CERT_DIR/domain.crt:/usr/share/pki/ca-trust-source/anchors/ca.crt -v $HOME/.kube:/root/.kube -e STORAGE_DRIVER=vfs"
 
@@ -55,6 +64,8 @@ if [[ $OP_TEST_DEBUG -eq 1 ]];then
     echo "OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS='$OP_TEST_CONTAINER_EXEC_EXTRA_ARGS'"
     echo "OP_TEST_CONTAINER_EXEC_EXTRA_ARGS='$OP_TEST_CONTAINER_EXEC_EXTRA_ARGS'"
 fi
+
+[ "$ACTION" = "clean" ] && clean
 
 # Check if kind is installed
 if ! command -v kind > /dev/null 2>&1; then
