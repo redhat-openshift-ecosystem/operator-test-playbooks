@@ -21,13 +21,19 @@
       with_items:
         - absent
         - directory
-      when: operator_bundle_src_dir is defined
+
+    # - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
+    #   copy:
+    #     src: "{{ operator_dir }}"
+    #     dest: "{{ operator_bundle_src_dir }}"
+    #   when: ansible_connection == "local"
 
     - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
       copy:
         src: "{{ operator_dir }}"
         dest: "{{ operator_bundle_src_dir }}"
         remote_src: yes
+      # when: ansible_connection != "local"
 
     - name: detect format
       include_role:
