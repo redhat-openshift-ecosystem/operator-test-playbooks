@@ -21,6 +21,7 @@ OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
 function clean() {
     echo "Removing testing container '$OP_TEST_NAME' ..."
     $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME > /dev/null 2>&1
+    echo "Removing kind registry '$OP_TEST_NAME' ..."
     $OP_TEST_CONTAINER_TOOL rm -f registry > /dev/null 2>&1
     kind delete cluster --name operator-test
     echo "Done"
