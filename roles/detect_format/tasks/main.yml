@@ -55,7 +55,6 @@
 
     - name: "Read the variables from annotations.yaml"
       block:
-
         - name: "Setting path names for csv and annotation"
           set_fact:
             # annotation_file_path: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/metadata/annotations.yaml"

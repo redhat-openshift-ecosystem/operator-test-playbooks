@@ -7,6 +7,7 @@ COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
 COPY test/ /playbooks/test/
 COPY *.yml /playbooks/
+COPY ansible.cfg /playbooks/
 RUN echo "localhost ansible_connection=local" >> /etc/ansible/hosts
 WORKDIR /playbooks
 RUN ansible-playbook local.yml --tags reset_tools,image_build -e run_upstream=true -e operator_dir=/tmp/operator-dir-dummy -e run_prepare_catalog_repo_upstream=false
