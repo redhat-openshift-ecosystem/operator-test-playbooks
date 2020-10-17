@@ -2,13 +2,15 @@ FROM centos:8
 RUN yum install epel-release -y
 RUN yum update -y
 RUN yum install -y ansible git podman
-RUN mkdir /playbooks
+RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
 COPY test/ /playbooks/test/
 COPY *.yml /playbooks/
 COPY ansible.cfg /playbooks/
 RUN echo "localhost ansible_connection=local" >> /etc/ansible/hosts
+RUN mkdir -p /etc/containers/certs.d/kind-registry:5000
+RUN ln -sfn /usr/share/pki/ca-trust-source/anchors/ca.crt /etc/containers/certs.d/kind-registry:5000/ca.crt
 WORKDIR /playbooks
 RUN ansible-playbook local.yml --tags reset_tools,image_build -e run_upstream=true -e operator_dir=/tmp/operator-dir-dummy -e run_prepare_catalog_repo_upstream=false
 CMD ["/bin/bash"]
