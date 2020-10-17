@@ -62,7 +62,7 @@ if ! command -v kind > /dev/null 2>&1; then
 fi
 
 # Check if kind cluster is running
-if ! command -v kind get clusters | grep operator-test > /dev/null 2>&1; then
+if ! kind get clusters | grep operator-test > /dev/null 2>&1; then
     OP_TEST_FORCE_INSTALL=1
 fi
 
