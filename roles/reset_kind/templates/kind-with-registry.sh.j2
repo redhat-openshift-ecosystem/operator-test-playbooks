@@ -22,23 +22,23 @@ $CONTAINER_CMD run \
 if [ ! -f $CERTS_DIR/domain.crt ];then
 
   mkdir -p $CERTS_DIR
-cat <<EOF > $CERTS_DIR/cert.conf
-[ req ]
-default_bits = 2048
-prompt = no
-default_md = sha256
-req_extensions = req_ext
-distinguished_name = dn
+# cat <<EOF > $CERTS_DIR/cert.conf
+# [ req ]
+# default_bits = 2048
+# prompt = no
+# default_md = sha256
+# req_extensions = req_ext
+# distinguished_name = dn
 
-[ dn ]
-CN = ${reg_name}
+# [ dn ]
+# CN = ${reg_name}
 
-[ req_ext ]
-subjectAltName = @alt_names
+# [ req_ext ]
+# subjectAltName = @alt_names
 
-[ alt_names ]
-DNS.1 = ${reg_name}
-EOF
+# [ alt_names ]
+# DNS.1 = ${reg_name}
+# EOF
   #openssl genrsa -out $CERTS_DIR/domain.key 2048
   #openssl req -nodes -new -x509 -sha256 -days 1825 -config $CERTS_DIR/cert.conf -extensions 'req_ext' -key $CERTS_DIR/domain.key -out $CERTS_DIR/domain.crt -batch
   #openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -config $CERTS_DIR/cert.conf -out $CERTS_DIR/domain.crt -batch
