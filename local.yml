@@ -52,7 +52,6 @@
       set_fact:
         work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
         operator_dir: "{{ operator_dir | default('dummy') }}"
-        operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src | default('/tmp/operator-test/operator-bundle/src') }}"
         operator_input_image: "{{ operator_input_image | default('') }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
         bundle_image: "{{ bundle_image | default('dummy') }}"
