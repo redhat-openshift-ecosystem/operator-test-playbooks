@@ -24,6 +24,8 @@ function clean() {
     echo "Removing kind registry 'kind-registry' ..."
     $OP_TEST_CONTAINER_TOOL rm -f kind-registry > /dev/null 2>&1
     kind delete cluster --name operator-test
+    echo "Removing cert dir"
+    rm -rf $OP_TEST_CERT_DIR > /dev/null 2>&1
     echo "Done"
     exit 0
 }
