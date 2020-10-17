@@ -65,6 +65,9 @@ if [[ $OP_TEST_DEBUG -eq 1 ]];then
     echo "OP_TEST_CONTAINER_EXEC_EXTRA_ARGS='$OP_TEST_CONTAINER_EXEC_EXTRA_ARGS'"
 fi
 
+[[ $OP_TEST_DEBUG -eq 2 ]] && OP_TEST_EXEC_EXTRA="-v $OP_TEST_EXEC_EXTRA"
+[[ $OP_TEST_DEBUG -eq 3 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
+
 [ "$ACTION" = "clean" ] && clean
 
 # Check if kind is installed
