@@ -3,7 +3,8 @@ set -o errexit
 
 KIND_CMD=${1-{{ kind_bin_path }}}
 CONTAINER_CMD="{{ container_tool }}"
-CERTS_DIR="/tmp/certs"
+CERTS_DIR=${CERTS_DIR-"/tmp/certs"}
+CERT_EXPIRED_IN=${CERT_EXPIRED_IN-86400}
 
 # create registry container unless it already exists
 reg_name='kind-registry'
@@ -19,9 +20,16 @@ $CONTAINER_CMD run \
     registry:2
 {% else %}
 # [ -d $CERTS_DIR ] && rm -rf $CERTS_DIR || true
-if [ ! -f $CERTS_DIR/domain.crt ];then
 
+# check if certificate will expire in 1 day
+if [ ! -f $CERTS_DIR/domain.crt ] || [ ! openssl x509 -checkend $CERT_EXPIRED_IN -noout -in $CERTS_DIR/domain.crt > /dev/null 2>&1 ];then
+
+  rm -rf $CERTS_DIR > /dev/null 2>&1 || true
   mkdir -p $CERTS_DIR
+
+  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN='${reg_name}'' -out $CERTS_DIR/domain.crt -batch
+
+# Not working yet
 # cat <<EOF > $CERTS_DIR/cert.conf
 # [ req ]
 # default_bits = 2048
@@ -43,8 +51,7 @@ if [ ! -f $CERTS_DIR/domain.crt ];then
   #openssl req -nodes -new -x509 -sha256 -days 1825 -config $CERTS_DIR/cert.conf -extensions 'req_ext' -key $CERTS_DIR/domain.key -out $CERTS_DIR/domain.crt -batch
   #openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -config $CERTS_DIR/cert.conf -out $CERTS_DIR/domain.crt -batch
 
-  # OLD
-  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN='${reg_name}'' -out $CERTS_DIR/domain.crt -batch
+
 
   # Working for ubuntu
   # TODO handle CentOS also
