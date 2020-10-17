@@ -22,7 +22,28 @@ $CONTAINER_CMD run \
 if [ ! -f $CERTS_DIR/domain.crt ];then
 
   mkdir -p $CERTS_DIR
-  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN='${reg_name}'' -out $CERTS_DIR/domain.crt -batch
+cat <<EOF > $CERTS_DIR/cert.conf
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+CN = localhost
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = localhost
+DNS.2 = kind-registry
+EOF
+  openssl genrsa -out cert/domain.key 2048
+  openssl req -nodes -new -x509 -sha256 -days 1825 -config cert/cert.conf -extensions 'req_ext' -key cert/domain.key -out cert/domain.crt
+
+  #openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN='${reg_name}'' -out $CERTS_DIR/domain.crt -batch
 
   # Working for ubuntu
   # TODO handle CentOS also
