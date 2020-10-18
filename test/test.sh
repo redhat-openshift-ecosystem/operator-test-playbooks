@@ -172,10 +172,12 @@ for t in $TESTS;do
 
     [ -z "$OP_TEST_EXEC_USER" ] && { echo "Error: Unknown test '$t' !!! Exiting ..."; help; }
     echo -e "Running test '$t' ..."
+    run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
     echo "$OP_TEST_EXEC_USER"
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OP_TEST_NAME $OP_TEST_CONAINER_RUN_DEFAULT_ARGS $OP_TEST_CONTAINER_RUN_EXTRA_ARGS $OP_TEST_IMAGE
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec -it $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
+    echo "Test '$t' : [ OK ]"
 done
 
 echo "Done"
