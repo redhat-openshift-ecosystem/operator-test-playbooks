@@ -81,11 +81,18 @@ fi
 # Handle test types
 [ -z $1 ] && help
 
+if [ -n "$2" ];then
+# run_prepare_catalog_repo_upstream=false for local
+
+fi
+
 # Handle operator info
 OP_TEST_BASE_DIR=${OP_TEST_BASE_DIR-"/tmp/community-operators-for-catalog"}
 OP_TEST_STREAM=${OP_TEST_STREAM-"upstream-community-operators"}
 OP_TEST_OPERATOR=${OP_TEST_OPERATOR-"aqua"}
 OP_TEST_VERSION=${OP_TEST_VERSION-"1.0.2"}
+
+
 
 if [ "$OP_TEST_STREAM" = "upstream-community-operators" ] ; then
     PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/operatorhubio -e index_force_update=true'
@@ -138,13 +145,13 @@ fi
 echo -e "\nChecking for kind binary ..."
 if ! $DRY_RUN_CMD command -v kind > /dev/null 2>&1; then
     OP_TEST_FORCE_INSTALL=1
-    # Check if kind cluster is running
-else
-    echo -e "Testing existance of kind cluster ..."
-    if ! $DRY_RUN_CMD kind get clusters | grep operator-test > /dev/null 2>&1; then
-        OP_TEST_FORCE_INSTALL=1
-        echo
-    fi
+# else
+#     echo -e "Testing existance of kind cluster ..."
+#     # Check if kind cluster is running
+#     if ! $DRY_RUN_CMD kind get clusters | grep operator-test > /dev/null 2>&1; then
+#         OP_TEST_FORCE_INSTALL=1
+#         echo
+#     fi
 fi
 
 [ -d $OP_TEST_LOG_DIR ] || mkdir -p $OP_TEST_LOG_DIR

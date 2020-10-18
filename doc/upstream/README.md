@@ -263,6 +263,7 @@ Usage:
 | Option  | Description  | Default value | Prod default|
 |---|---|---| --- |
 | run_upstream | Flag when running upstream part of playbooks. [bool] | false | true |
+| run_prepare_catalog_repo_upstream | Prepare git repo for comunity-operators. [bool] | true | true |
 | run_remove_catalog_repo | Removes existing git repo for comunity-operators. [bool] | true | true |
 | catalog_repo | Community operators repo url. [string] | https://github.com/operator-framework/community-operators.git | as default |
 | catalog_repo_branch | Community operators branch in repo. [string] | master | as default |
