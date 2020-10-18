@@ -49,7 +49,7 @@ run() {
         fi
 }
 
-[ "$OP_TEST_RUN_MODE" = "privileged" ] && OP_TEST_CONAINER_RUN_DEFAULT_ARGS="--privileged --net host -v $OP_TEST_CERT_DIR/domain.crt:/usr/share/pki/ca-trust-source/anchors/ca.crt -v $HOME/.kube:/root/.kube -e STORAGE_DRIVER=vfs"
+[ "$OP_TEST_RUN_MODE" = "privileged" ] && OP_TEST_CONAINER_RUN_DEFAULT_ARGS="--privileged --net host -v $OP_TEST_CERT_DIR:/usr/share/pki/ca-trust-source/anchors -v $HOME/.kube:/root/.kube -e STORAGE_DRIVER=vfs"
 
 
 # OP_TEST_EXEC_USER="-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test"
