@@ -31,6 +31,7 @@
   tags:
     - reset
     - install
+    - install_kind
     - host_build
 
 - name: "Ensure operator-sdk binary is installed"
