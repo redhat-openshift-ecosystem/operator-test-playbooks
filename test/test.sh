@@ -44,9 +44,11 @@ run() {
                 v=$(exec 2>&1 && set -x && set -- "$@")
                 echo "#${v#*--}"
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
+                echo "rc=$?"
                 [[ $? -eq 0 ]] || exit 1
         else
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1
+                echo "rc=$?"
                 [[ $? -eq 0 ]] || exit 1
         fi
 }
