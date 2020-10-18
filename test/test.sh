@@ -43,9 +43,11 @@ run() {
         if [[ $OP_TEST_DEBUG -gt 0 ]] ; then
                 v=$(exec 2>&1 && set -x && set -- "$@")
                 echo "#${v#*--}"
-                "$@" | tee -a $OP_TEST_LOG_DIR/log.out || exit 1
+                "$@" | tee -a $OP_TEST_LOG_DIR/log.out
+                [[ $? -eq 0 ]] || exit 1
         else
-                "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1 || exit 1
+                "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1
+                [[ $? -eq 0 ]] || exit 1
         fi
 }
 
