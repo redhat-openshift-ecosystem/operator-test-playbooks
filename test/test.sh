@@ -47,12 +47,12 @@ run() {
                 echo "#${v#*--}"
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
-                [[ $? -eq 0 ]] || exit 1
+                [[ $? -eq 0 ]] || { echo "Failed with rc=$? !!!"; exit $?; }
                 set +o pipefail
         else
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1
-                [[ $? -eq 0 ]] || exit 1
+                [[ $? -eq 0 ]] || { echo "Failed with rc=$? !!!"; exit $?; }
                 set +o pipefail
         fi
 }
