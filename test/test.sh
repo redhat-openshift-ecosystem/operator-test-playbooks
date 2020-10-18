@@ -82,6 +82,7 @@ fi
 [ -z $1 ] && help
 
 if [ -n "$2" ];then
+    echo "OP_PATH '$2"
 # run_prepare_catalog_repo_upstream=false for local
 
 fi
