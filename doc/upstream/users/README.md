@@ -4,7 +4,10 @@
 One can run test by entering to 'community-operators' project directory and run with following command with these options
 ```
 cd <community-operators>
-bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) <test-type> <operator-version-dir> <git repo> <git branch>
+bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
+<test-type> \
+<operator-version-dir> \
+<git repo> <git branch>
 ```
 
 ### Test type
@@ -32,7 +35,9 @@ docker exec -it op-test /bin/bash
 Following example will run 'all' tests on 'aqua' operator with version '1.0.2' from 'upstream-community-operators (k8s)' directory. 'community-operators' project will be taken from local directory one is running command from ($PWD).
 ```
 cd <community-operators>
-bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) all  upstream-community-operators/aqua/1.0.2
+bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
+all \
+upstream-community-operators/aqua/1.0.2
 ```
 
 ## Running tests from official 'community-operators' repo
@@ -40,14 +45,22 @@ bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/up
 Following example will run 'kiwi' and 'lemon' tests on 'aqua' operator with version '1.0.2' from 'community-operators (openshift)' directory. 'community-operators' project will be taken from git repo 'https://github.com/operator-framework/community-operators' and 'master' branch
 ```
 cd <community-operators>
-bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) kiwi,lemon  community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master
+bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
+kiwi,lemon \
+community-operators/aqua/1.0.2 \
+https://github.com/operator-framework/community-operators \
+master
 ```
 
 ## Running tests from forked 'community-operators' repo ans specific branch
-Following example will run 'kiwi' and 'lemon' tests on 'kong' operator with version '0.5.0' from 'upstream-community-operators (k8s)' directory.'community-operators' project will be taken from git repo 'https://github.com/Kong/community-operators' and 'release/v0.5.0' branch
+Following example will run 'kiwi' and 'lemon' tests on 'kong' operator with version '0.5.0' from 'upstream-community-operators (k8s)' directory.'community-operators' project will be taken from git repo 'https://github.com/Kong/community-operators' and 'release/v0.5.0' branch ('https://github.com/Kong/community-operators/tree/release/v0.5.0')
 ```
 cd <community-operators>
-bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) kiwi,lemon  upstream-community-operators/kong/0.5.0 https://github.com/Kong/community-operators release/v0.5.0
+bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
+kiwi,lemon \
+upstream-community-operators/kong/0.5.0 \
+https://github.com/Kong/community-operators \
+release/v0.5.0
 ```
 
 
