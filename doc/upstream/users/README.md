@@ -7,8 +7,7 @@ cd <community-operators>
 bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
 <test-type1,test-type2,...,test-typeN> \
 <operator-version-dir-relative-to-community-operators-project> \
-[<git repo>] \
-[<git branch>]
+[<git repo>] [<git branch>]
 ```
 
 ### Test type
