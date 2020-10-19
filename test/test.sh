@@ -219,4 +219,4 @@ echo "Done"
 # For playbook developers
 # export OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks"
 # OP_TEST_DEBUG=1 OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks" bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh)
-
+# export CURLOPT_FRESH_CONNECT=true
