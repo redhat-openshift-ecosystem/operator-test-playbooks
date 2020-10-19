@@ -1,13 +1,14 @@
 # Operator tests
 
 ## Running tests
-One can run test by entering to 'community-operators' project directory and run with following command with these options
+One can run test by entering to 'community-operators' project directory and run with following command with these options. '<git repo>' and '<git branch>' options are optional
 ```
 cd <community-operators>
 bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
 <test-type1,test-type2,...,test-typeN> \
-<operator-version-dir> \
-<git repo> <git branch>
+<operator-version-dir-relative-to-community-operators-project> \
+[<git repo>] \
+[<git branch>]
 ```
 
 ### Test type
