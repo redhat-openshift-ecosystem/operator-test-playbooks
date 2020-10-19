@@ -12,7 +12,7 @@ OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
 OP_TEST_NAME=${OPT_TEST_NAME-"op-test"}
 OP_TEST_ANSIBLE_PULL_REPO=${OP_TEST_ANSIBLE_PULL_REPO-"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"}
 OP_TEST_ANSIBLE_PULL_BRANCH=${OP_TEST_ANSIBLE_PULL_BRANCH-"upstream-community"}
-OP_TEST_ANSIBLE_DEFAULT_ARGS=${OP_TEST_ANSIBLE_DEFAULT_ARGS-"-i localhost, -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=true"}
+OP_TEST_ANSIBLE_DEFAULT_ARGS=${OP_TEST_ANSIBLE_DEFAULT_ARGS-"-i localhost, -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"}
 OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags base,kubectl,install_kind"}
 OP_TEST_CONAINER_RUN_DEFAULT_ARGS=${OP_TEST_CONAINER_RUN_DEFAULT_ARGS-"--net host --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --security-opt seccomp=unconfined --security-opt label=disable -v $OP_TEST_CERT_DIR/domain.crt:/usr/share/pki/ca-trust-source/anchors/ca.crt -v /tmp/.kube:/root/.kube -e STORAGE_DRIVER=vfs"}
 OP_TEST_CONTAINER_RUN_EXTRA_ARGS=${OP_TEST_CONTAINER_RUN_EXTRA_ARGS-""}
@@ -122,9 +122,6 @@ else
     OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
 fi
 
-# echo "$OP_TEST_CONTAINER_RUN_EXTRA_ARGS"
-# echo "$OP_TEST_BASE_DIR $OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION"
-
 if [ "$OP_TEST_STREAM" = "upstream-community-operators" ] ; then
     PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/operatorhubio -e index_force_update=true'
 elif [ "$OP_TEST_STREAM" = "community-operators" ] ; then
@@ -134,7 +131,6 @@ else
   echo -e "\n\t Full path to operator/version provided: '${2-$PWD}'\n"
   exit 1
 fi
-
 
 echo "Using $(ansible --version | head -n 1) ..."
 if [[ $OP_TEST_DEBUG -ge 2 ]];then
@@ -164,13 +160,10 @@ fi
 
 if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
-    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -s https://<url>/test.sh) docker"
+    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -s https://<url>/test.sh) $OP_TEST_CONTAINER_TOOL"
+    [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
     echo
     exit 1
-fi
-
-if [ "$OP_TEST_CONTAINER_TOOL" = "docker" ];then
-    OP_TEST_CONTAINER_TOOL="docker"
 fi
 
 # Check if kind is installed
