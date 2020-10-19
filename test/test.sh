@@ -2,6 +2,10 @@
 set +o pipefail
 
 ACTION=${1-""}
+TESTS=$1
+[[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
+TESTS=${TESTS//,/ }
+
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
 OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
@@ -118,8 +122,8 @@ else
     OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
 fi
 
-echo "$OP_TEST_CONTAINER_RUN_EXTRA_ARGS"
-echo "$OP_TEST_BASE_DIR $OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION"
+# echo "$OP_TEST_CONTAINER_RUN_EXTRA_ARGS"
+# echo "$OP_TEST_BASE_DIR $OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION"
 
 if [ "$OP_TEST_STREAM" = "upstream-community-operators" ] ; then
     PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/operatorhubio -e index_force_update=true'
@@ -133,7 +137,7 @@ fi
 
 
 echo "Using $(ansible --version | head -n 1) ..."
-if [[ $OP_TEST_DEBUG -eq 2 ]];then
+if [[ $OP_TEST_DEBUG -ge 2 ]];then
     run echo "OP_TEST_DEBUG='$OP_TEST_DEBUG'"
     run echo "OP_TEST_DRY_RUN='$OP_TEST_DRY_RUN'"
     run echo "OP_TEST_EXEC_USER='$OP_TEST_EXEC_USER'"
@@ -167,7 +171,6 @@ fi
 
 if [ "$OP_TEST_CONTAINER_TOOL" = "docker" ];then
     OP_TEST_CONTAINER_TOOL="docker"
-    #OP_TEST_CONTAINER_TOOL="sudo docker"
 fi
 
 # Check if kind is installed
@@ -199,10 +202,6 @@ fi
 run echo -e " [ Preparing testing container '$OP_TEST_NAME' ] "
 run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE
 
-TESTS=$1
-[[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
-TESTS=${TESTS//,/ }
-
 for t in $TESTS;do
     # Exec test
     OP_TEST_EXEC_USER=
@@ -215,7 +214,7 @@ for t in $TESTS;do
     echo -e "[$t] Reseting kind cluster ..."
     run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
     echo -e "[$t] Running test ($OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION) ..."
-    echo "OP_TEST_EXEC_EXTRA=$OP_TEST_EXEC_EXTRA"
+    [[ $OP_TEST_DEBUG -ge 3 ]] && echo "OP_TEST_EXEC_EXTRA=$OP_TEST_EXEC_EXTRA"
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OP_TEST_NAME $OP_TEST_CONAINER_RUN_DEFAULT_ARGS $OP_TEST_CONTAINER_RUN_EXTRA_ARGS $OP_TEST_IMAGE
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec -it $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
