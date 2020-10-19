@@ -11,6 +11,9 @@ One can run test by entering to 'community-operators' project directory and run 
 cd <community-operators>
 bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) <test-type> <operator-version-dir> <git repo> <git branch>
 ```
+
+### Test type
+
 List of tests are shwon in following table
 |Test type|Description|
 |:--------|:----------|
@@ -18,6 +21,15 @@ List of tests are shwon in following table
 |lemon|Full test of operator to be deployed from scratch|
 |orange|Full test of operator to be deployed with existing bundles in quay registry|
 |all|kiwi,lemon,orange|
+
+### Logs
+Logs can be found in `/tmp/op-test/log.out`
+
+### Testing log files
+If operator test fails, one can enter to testing container via follwing command. One can substitue 'docker'
+```
+docker exec -it op-test /bin/bash
+```
 
 # Examples
 
