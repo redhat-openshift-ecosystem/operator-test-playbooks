@@ -45,30 +45,6 @@
     - install
     - image_build
 
-# - name: "Remove '{{ operator_sdk_bin_path }}' binary"
-#   file:
-#     path: "{{ operator_sdk_bin_path }}"
-#     state: absent
-#   tags:
-#     - install
-#     - uninstall
-#     - reset_tools
-
-# - name: "Install operator-sdk ({{ operator_sdk_version }})"
-#   get_url:
-#     url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu
-#     dest: "{{ operator_sdk_bin_path }}"
-#     mode: "0755"
-#   register: operator_sdk_install_result
-#   until: operator_sdk_install_result.status_code is undefined or operator_sdk_install_result.status_code == 200
-#   retries: 10
-#   delay: 15
-#   failed_when: operator_sdk_install_result is failure
-#   tags:
-#     - install
-#     - host_build
-#     - reset_tools
-
 - name: "Remove '{{ opm_bin_path }}' binary"
   file:
     path: "{{ opm_bin_path }}"

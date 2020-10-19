@@ -81,19 +81,45 @@ fi
 # Handle test types
 [ -z $1 ] && help
 
-if [ -n "$2" ];then
-    echo "OP_PATH '$2"
-# run_prepare_catalog_repo_upstream=false for local
-
-fi
-
 # Handle operator info
 OP_TEST_BASE_DIR=${OP_TEST_BASE_DIR-"/tmp/community-operators-for-catalog"}
 OP_TEST_STREAM=${OP_TEST_STREAM-"upstream-community-operators"}
 OP_TEST_OPERATOR=${OP_TEST_OPERATOR-"aqua"}
 OP_TEST_VERSION=${OP_TEST_VERSION-"1.0.2"}
 
+if [ -n "$2" ];then
+    if [ -n "$3" ];then
+        p=$2
+        OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+        OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+        OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+        OP_TEST_REPO="$3"
+        OP_TEST_BRANCH="master"
+        [ -n "$4" ] && OP_TEST_BRANCH=$4
+    elif [ -d $2 ];then
+        p=$(readlink -f $2)
+        OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+        OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+        OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+        OP_TEST_BASE_DIR=$p
+        OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
+    else
+        echo -e "\nError: Full path to operator/version '$PWD/$2' was not found !!!\n"
+        exit 1
+    fi
 
+else
+    p=${PWD}
+    echo "Running locally from '$p' ..."
+    OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+    OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+    OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
+    OP_TEST_BASE_DIR=$p
+    OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
+fi
+
+echo "$OP_TEST_CONTAINER_RUN_EXTRA_ARGS"
+echo "$OP_TEST_BASE_DIR $OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION"
 
 if [ "$OP_TEST_STREAM" = "upstream-community-operators" ] ; then
     PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/operatorhubio -e index_force_update=true'
@@ -101,6 +127,8 @@ elif [ "$OP_TEST_STREAM" = "community-operators" ] ; then
     PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/openshift-community-operators -e index_force_update=true'
 else
   echo -e "\n Error: Unknown stream name : $OP_TEST_STREAM\n"
+  echo -e "\n\t Full path to operator/version provided: '${2-$PWD}'\n"
+  exit 1
 fi
 
 
@@ -162,7 +190,11 @@ fi
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run echo -e " [ Installing prerequisites ] "
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS $OP_TEST_ANSIBLE_EXTRA_ARGS
 
-
+if [ -n "$OP_TEST_REPO" ];then
+    OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e catalog_repo=$OP_TEST_REPO -e catalog_repo_branch=$OP_TEST_BRANCH"
+else
+    OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e run_prepare_catalog_repo_upstream=false"
+fi
 # Start container
 run echo -e " [ Preparing testing container '$OP_TEST_NAME' ] "
 run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE
@@ -183,6 +215,7 @@ for t in $TESTS;do
     echo -e "[$t] Reseting kind cluster ..."
     run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
     echo -e "[$t] Running test ($OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION) ..."
+    echo "OP_TEST_EXEC_EXTRA=$OP_TEST_EXEC_EXTRA"
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OP_TEST_NAME $OP_TEST_CONAINER_RUN_DEFAULT_ARGS $OP_TEST_CONTAINER_RUN_EXTRA_ARGS $OP_TEST_IMAGE
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec -it $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
