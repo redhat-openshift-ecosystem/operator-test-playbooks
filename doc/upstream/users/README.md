@@ -5,7 +5,7 @@ One can run test by entering to 'community-operators' project directory and run 
 ```
 cd <community-operators>
 bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh) \
-<test-type> \
+<test-type1,test-type2,...,test-typeN> \
 <operator-version-dir> \
 <git repo> <git branch>
 ```
