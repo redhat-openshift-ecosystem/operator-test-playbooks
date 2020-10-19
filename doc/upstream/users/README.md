@@ -24,7 +24,7 @@ List of tests are shwon in following table
 Logs can be found in `/tmp/op-test/log.out`
 
 ### Testing log files
-If operator test fails, one can enter to testing container via follwing command. One can substitue 'docker'
+If operator test fails, one can enter to testing container via follwing command. One can substitue 'docker' with 'podman' when supported
 ```
 docker exec -it op-test /bin/bash
 ```
