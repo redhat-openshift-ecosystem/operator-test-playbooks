@@ -1,6 +1,8 @@
 #!/bin/bash
 set +o pipefail
 
+ANSIBLE_NOCOLOR=1
+
 ACTION=${1-""}
 TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
