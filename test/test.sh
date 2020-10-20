@@ -91,6 +91,19 @@ fi
 # Handle test types
 [ -z $1 ] && help
 
+[ "$ACTION" = "clean" ] && clean
+if [ "$ACTION" = "docker" ];then
+    run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags docker
+    echo -e "\nMake sure that you logout and login after docker installation.\n"
+fi
+if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
+    echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
+    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL https://cutt.ly/operator-test) $OP_TEST_CONTAINER_TOOL"
+    [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
+    echo
+    exit 1
+fi
+
 # Handle operator info
 OP_TEST_BASE_DIR=${OP_TEST_BASE_DIR-"/tmp/community-operators-for-catalog"}
 OP_TEST_STREAM=${OP_TEST_STREAM-"upstream-community-operators"}
@@ -162,18 +175,7 @@ if [[ $OP_TEST_DEBUG -ge 2 ]];then
 fi
 
 
-[ "$ACTION" = "clean" ] && clean
-if [ "$ACTION" = "docker" ];then
-    run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags docker
-    echo -e "\nMake sure that you logout and login after docker installation.\n"
-fi
-if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
-    echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
-    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL https://cutt.ly/operator-test) $OP_TEST_CONTAINER_TOOL"
-    [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
-    echo
-    exit 1
-fi
+
 
 # Check if kind is installed
 echo -e "\nChecking for kind binary ..."
