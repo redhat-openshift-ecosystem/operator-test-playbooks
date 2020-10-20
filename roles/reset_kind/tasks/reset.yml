@@ -45,7 +45,7 @@
       retries: 10
       delay: 15
       failed_when: operator_sdk_install_result is failure
-      when: rkr_osdk.stat.exists
+      when: not rkr_osdk.stat.exists
 
     - name: "Installing OLM ({{ olm_version }})"
       shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
