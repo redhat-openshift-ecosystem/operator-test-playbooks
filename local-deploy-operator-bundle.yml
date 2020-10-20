@@ -19,7 +19,9 @@
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"
     operators_for_index: []
+    container_tool: "docker"
     opm_container_tool: "docker"
+    opm_container_tool_index: "docker"
     recreate_operators_config: "{{ work_dir }}/operators_config.yaml"
     bundle_registry: kind-registry:5000
     bundle_image_namespace: test-operator
@@ -41,7 +43,7 @@
         mirror_apply: true
 
     - name: "Quay login"
-      shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+      shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
       no_log: True
       when:
         - quay_user is defined
@@ -49,8 +51,21 @@
         - quay_user != ""
         - quay_password != ""
 
+    - name: "Parsing 'openshift_robot_hash' variable"
+      set_fact:
+        openshift_robot_hash_array: "{{ openshift_robot_hash.split('|') }}"
+      no_log: True
+      when:
+        - openshift_robot_hash is defined
+        - openshift_robot_hash != ""
+
     - name: "Quay login via auth token"
-      shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+      shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ openshift_robot_hash_array[1] }} quay.io"
+      no_log: True
+      when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and openshift_robot_hash_array.1 is defined and openshift_robot_hash_array.1 != ""
+
+    - name: "Quay login via auth token"
+      shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
       no_log: True
       when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token is defined and quay_api_token != ""
 

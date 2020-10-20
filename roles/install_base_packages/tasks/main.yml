@@ -4,6 +4,7 @@
     name:
       - curl
       - openssl
+      - screen
       - ca-certificates
       - python3-pip
       - python3-setuptools

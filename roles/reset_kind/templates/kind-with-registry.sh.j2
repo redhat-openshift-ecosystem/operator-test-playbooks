@@ -2,26 +2,57 @@
 set -o errexit
 
 KIND_CMD=${1-{{ kind_bin_path }}}
-CERTS_DIR="/tmp/certs"
+CONTAINER_CMD="{{ container_tool }}"
+CERTS_DIR=${CERTS_DIR-"/tmp/certs"}
+CERT_EXPIRED_IN=${CERT_EXPIRED_IN-86400}
 
 # create registry container unless it already exists
 reg_name='kind-registry'
 reg_port='5000'
-# running="$(docker inspect -f '{{ '{{' }}.State.Running{{ '}}' }}' "${reg_name}" 2>/dev/null || true)"
+# running="$($CONTAINER_CMD inspect -f '{{ '{{' }}.State.Running{{ '}}' }}' "${reg_name}" 2>/dev/null || true)"
 # if [ "${running}" == 'true' ]; then
-docker rm -f "${reg_name}" || true
+$CONTAINER_CMD rm -f "${reg_name}" || true
 # fi
 
 {% if kind_registry_ssl|bool == false %}
-docker run \
+$CONTAINER_CMD run \
     -d --restart=always -p ${reg_port}:5000 --name "${reg_name}" \
     registry:2
 {% else %}
 # [ -d $CERTS_DIR ] && rm -rf $CERTS_DIR || true
-if [ ! -f $CERTS_DIR/domain.crt ];then
 
+# check if certificate will expire in 1 day
+if [ ! -f $CERTS_DIR/domain.crt ] || [ ! openssl x509 -checkend $CERT_EXPIRED_IN -noout -in $CERTS_DIR/domain.crt > /dev/null 2>&1 ];then
+
+  rm -rf $CERTS_DIR > /dev/null 2>&1 || true
   mkdir -p $CERTS_DIR
+
   openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN='${reg_name}'' -out $CERTS_DIR/domain.crt -batch
+  ln -snf $CERTS_DIR/domain.crt $CERTS_DIR/ca.crt
+
+# Not working yet
+# cat <<EOF > $CERTS_DIR/cert.conf
+# [ req ]
+# default_bits = 2048
+# prompt = no
+# default_md = sha256
+# req_extensions = req_ext
+# distinguished_name = dn
+
+# [ dn ]
+# CN = ${reg_name}
+
+# [ req_ext ]
+# subjectAltName = @alt_names
+
+# [ alt_names ]
+# DNS.1 = ${reg_name}
+# EOF
+  #openssl genrsa -out $CERTS_DIR/domain.key 2048
+  #openssl req -nodes -new -x509 -sha256 -days 1825 -config $CERTS_DIR/cert.conf -extensions 'req_ext' -key $CERTS_DIR/domain.key -out $CERTS_DIR/domain.crt -batch
+  #openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -config $CERTS_DIR/cert.conf -out $CERTS_DIR/domain.crt -batch
+
+
 
   # Working for ubuntu
   # TODO handle CentOS also
@@ -29,7 +60,7 @@ if [ ! -f $CERTS_DIR/domain.crt ];then
   sudo update-ca-certificates --fresh
   #sudo update-ca-certificates
 fi
-docker run -d \
+$CONTAINER_CMD run -d \
    --restart=always \
    --name "${reg_name}" \
    -v $CERTS_DIR:/certs \
@@ -69,14 +100,14 @@ containerdConfigPatches:
 EOF
 
 # connect the registry to the cluster network
-docker network connect "kind" "${reg_name}"
+[ "$CONTAINER_CMD" = "docker" ] && $CONTAINER_CMD network connect "kind" "${reg_name}"
 
 # tell https://tilt.dev to use the registry
 # https://docs.tilt.dev/choosing_clusters.html#discovering-the-registry
 for node in $(kind get nodes --name {{ kind_cluster_name }}); do
   kubectl annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
-  docker cp $CERTS_DIR/domain.crt ${node}:/usr/local/share/ca-certificates/ca.crt
-  docker exec ${node} update-ca-certificates --fresh
-  docker exec ${node} systemctl restart containerd
+  $CONTAINER_CMD cp $CERTS_DIR/domain.crt ${node}:/usr/local/share/ca-certificates/ca.crt
+  $CONTAINER_CMD exec ${node} update-ca-certificates --fresh
+  $CONTAINER_CMD exec ${node} systemctl restart containerd
 done
 

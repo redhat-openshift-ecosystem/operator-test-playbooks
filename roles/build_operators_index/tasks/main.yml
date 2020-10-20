@@ -3,7 +3,8 @@
     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 
 - name: "Remove index image '{{ bundle_index_image }}'"
-  shell: "{{ opm_container_tool }} rmi -f {{ bundle_index_image }}"
+  shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
+  ignore_errors: yes
 
 - name: "Reseting 'operators_for_index' variable when 'index_skip' is true"
   set_fact:

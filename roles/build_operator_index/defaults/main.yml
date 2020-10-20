@@ -1,5 +1,8 @@
 opm_bin_path: "{{ testing_bin_path }}/opm"
+container_tool: "docker"
 opm_container_tool: "docker"
+opm_container_tool_index: "docker"
+boi_index_args: ""
 bundle_db: "{{ operator_bundle_dir }}/test-registry.db"
 bundle_registry: kind-registry:5000
 bundle_image_namespace: test-operator

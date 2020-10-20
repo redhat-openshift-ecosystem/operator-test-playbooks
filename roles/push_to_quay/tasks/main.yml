@@ -14,7 +14,7 @@
     - directory
 
 - name: "Quay login via robot"
-  shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
   no_log: True
   when:
     - quay_user is defined
@@ -23,11 +23,11 @@
     - quay_password != ""
 
 - name: "Trying to export operator '{{ ptq_operator_package_name }}' from index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ ptq_operator_package_name }} --index {{ bundle_index_image }} --download-folder {{ ptq_download_folder }}"
+  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool_index }} --package {{ ptq_operator_package_name }} --index {{ bundle_index_image }} --download-folder {{ ptq_download_folder }}"
   register: bar_export_rc
 
 - name: "Quay login via auth token"
-  shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_appregistry_api_token }} quay.io"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_appregistry_api_token }} quay.io"
   no_log: True
   when: quay_appregistry_api_token is defined and quay_appregistry_api_token != ""
 

@@ -72,6 +72,32 @@
         - quay_api_token != ""
         - bob_registry_versions.status != 200
 
+    - name: "Get list of versions_in_dir from bundle registry"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ openshift_robot_hash_array[0] | dirname }}/v2/{{ openshift_robot_hash_array[0] | basename }}/{{ operator_package_name }}/tags/list"
+      register: bob_registry_versions_osr
+      failed_when: false
+      changed_when: false
+      when:
+        - openshift_robot_hash_array.1 is defined
+        - openshift_robot_hash_array.1 != ""
+
+    - name: "Create repo with public visibility (openshift robot)"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository"
+        method: POST
+        body: '{"kind":"image","namespace":"{{ openshift_robot_hash_array[0] | basename }}","repository":"{{ operator_package_name }}","description":"Bundle image for {{ operator_package_name }} operator","visibility":"public"}'
+        body_format: json
+        force_basic_auth: yes
+        headers:
+          Authorization: "Bearer {{ openshift_robot_hash_array[1] }}"
+        status_code: 201
+        return_content: yes
+      when:
+        - openshift_robot_hash_array.1 is defined
+        - openshift_robot_hash_array.1 != ""
+        - bob_registry_versions_osr.status != 200
+
     - name: "Reseting 'versions_in_registry' variable"
       set_fact:
         versions_in_registry: []

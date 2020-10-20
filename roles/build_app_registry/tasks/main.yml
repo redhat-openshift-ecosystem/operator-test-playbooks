@@ -5,7 +5,7 @@
   when: bundle_index_image is undefined or bundle_index_image == ""
 
 - name: "Quay login"
-  shell: "{{ opm_container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
   no_log: True
   when:
     - quay_user is defined
@@ -14,7 +14,7 @@
     - quay_password != ""
 
 - name: "Quay login via auth token"
-  shell: "{{ opm_container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
   no_log: True
   when: (quay_user is undefined or quay_password is undefined or quay_user == "" or quay_password == "") and quay_api_token is defined and quay_api_token != ""
 
@@ -56,10 +56,10 @@
 - name: "Building and pushing app registry"
   block:
     - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}'"
-      shell: "{{ opm_container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
+      shell: "{{ container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
 
     - name: "Push app registry image '{{ app_registry_image }}'"
-      shell: "{{ opm_container_tool }} push {{ app_registry_image }}"
+      shell: "{{ container_tool }} push {{ app_registry_image }}"
   when:
     - app_registry_build_dir is defined
     - app_registry_build_dir != ""

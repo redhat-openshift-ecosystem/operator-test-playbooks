@@ -7,16 +7,16 @@
         operator_input_local_image: "{{ operator_input_local_registry }}/{{ operator_input_image | regex_replace('[A-z]*://', '') | basename}}"
 
     - name: Remove previous input image from local registry
-      shell: "{{ opm_container_tool }} rmi -f {{ operator_input_local_image }}"
+      shell: "{{ container_tool }} rmi -f {{ operator_input_local_image }}"
 
     - name: Pull input image
-      shell: "{{ opm_container_tool }} pull {{ operator_input_image }}"
+      shell: "{{ container_tool }} pull {{ operator_input_image }}"
 
     - name: Tag input image
-      shell: "{{ opm_container_tool }} tag {{ operator_input_image }} {{ operator_input_local_image }}"
+      shell: "{{ container_tool }} tag {{ operator_input_image }} {{ operator_input_local_image }}"
 
     - name: Push input image to local registry
-      shell: "{{ opm_container_tool }} push {{ operator_input_local_image }}"
+      shell: "{{ container_tool }} push {{ operator_input_local_image }}"
 
     - name: "Ensure that the operator tmp bundle input directory exists and is empty"
       file:

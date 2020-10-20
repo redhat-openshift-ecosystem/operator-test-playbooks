@@ -25,6 +25,13 @@
   debug:
     var: gaotd_operator_packages
 
+- name: "Setting 'index rm' container option"
+  set_fact:
+    eo_index_args: "-c {{ opm_container_tool_index }}"
+  when:
+    - opm_container_tool_index is defined
+    - opm_container_tool_index != ""
+
 - name: "Exporting operator(s) from index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool }} --package {{ bar_operator_package }} --index {{ bundle_index_image }} --download-folder {{ bar_download_folder }}"
+  shell: "{{ opm_bin_path }} index export {{ eo_index_args }} --package {{ bar_operator_package }} --index {{ bundle_index_image }} --download-folder {{ bar_download_folder }}"
   register: bar_export_rc
