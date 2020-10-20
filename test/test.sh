@@ -71,6 +71,8 @@ run() {
 if ! command -v ansible > /dev/null 2>&1; then
     echo "Error: Ansible is not installed. Please install it first !!!"
     echo "    e.g. : pip install ansible jmespath"
+    echo "         : apt install ansible"
+    echo "         : yum install ansible"
     exit 1
 fi
 
