@@ -93,6 +93,7 @@ fi
 
 [ "$ACTION" = "clean" ] && clean
 if [ "$ACTION" = "docker" ];then
+    echo "Installing docker ..."
     $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags docker
     if [[ $? -eq 0 ]];then
         echo -e "\nMake sure that you logout and login after docker installation.\n"
