@@ -12,7 +12,7 @@ bash <(curl -s https://cutt.ly/operator-test-beta) \
 
 ### Test type
 
-List of tests are shwon in following table
+List of tests are shown in following table
 |Test type|Description|
 |:--------|:----------|
 |kiwi|Full operator test|
