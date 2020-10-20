@@ -162,7 +162,7 @@ fi
 
 if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
-    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -s https://<url>/test.sh) $OP_TEST_CONTAINER_TOOL"
+    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -s https://cutt.ly/operator-test) $OP_TEST_CONTAINER_TOOL"
     [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
     echo
     exit 1
