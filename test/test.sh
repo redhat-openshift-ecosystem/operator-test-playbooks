@@ -181,7 +181,7 @@ if [[ $OP_TEST_DEBUG -ge 2 ]];then
     run echo "OP_TEST_LOG_DIR='$OP_TEST_LOG_DIR'"
 fi
 
-echo -e "\nLogs are in '$OP_TEST_LOG_DIR/log.out'.\n"
+echo -e "\nOne can do 'tail -f $OP_TEST_LOG_DIR/log.out' from second console to see full logs\n"
 
 
 # Check if kind is installed
