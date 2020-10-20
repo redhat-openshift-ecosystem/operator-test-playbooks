@@ -69,7 +69,6 @@
         - host_build
         - reset_tools
 
-
 - name: "Reset Kind with registry"
   include_role:
     name: reset_kind

@@ -70,7 +70,11 @@ run() {
 
 if ! command -v ansible > /dev/null 2>&1; then
     echo "Error: Ansible is not installed. Please install it first !!!"
-    echo "    e.g. : pip install ansible jmespath"
+    echo "    e.g.  : pip install ansible jmespath"
+    echo "    or    : apt install ansible"
+    echo "    or    : yum install ansible"
+    echo -e "\nRun 'ansible --version' to make sure it is installed\n"
+
     exit 1
 fi
 
@@ -86,6 +90,26 @@ fi
 
 # Handle test types
 [ -z $1 ] && help
+
+[ "$ACTION" = "clean" ] && clean
+if [ "$ACTION" = "docker" ];then
+    echo "Installing docker ..."
+    $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags docker
+    if [[ $? -eq 0 ]];then
+        echo -e "\nMake sure that you logout and login after docker installation.\n"
+    else
+        echo "Problem installing docker !!!"
+        exit 1
+    fi
+    exit 0
+fi
+if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
+    echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
+    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL https://cutt.ly/operator-test) $OP_TEST_CONTAINER_TOOL"
+    [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
+    echo
+    exit 1
+fi
 
 # Handle operator info
 OP_TEST_BASE_DIR=${OP_TEST_BASE_DIR-"/tmp/community-operators-for-catalog"}
@@ -157,19 +181,11 @@ if [[ $OP_TEST_DEBUG -ge 2 ]];then
     run echo "OP_TEST_LOG_DIR='$OP_TEST_LOG_DIR'"
 fi
 
+echo -e "\nOne can do 'tail -f $OP_TEST_LOG_DIR/log.out' from second console to see full logs\n"
 
-[ "$ACTION" = "clean" ] && clean
-
-if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
-    echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
-    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -s https://<url>/test.sh) $OP_TEST_CONTAINER_TOOL"
-    [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
-    echo
-    exit 1
-fi
 
 # Check if kind is installed
-echo -e "\nChecking for kind binary ..."
+echo -e "Checking for kind binary ..."
 if ! $DRY_RUN_CMD command -v kind > /dev/null 2>&1; then
     OP_TEST_FORCE_INSTALL=1
 # else
@@ -210,7 +226,7 @@ for t in $TESTS;do
     run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
     echo -e "[$t] Running test ($OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION) ..."
     [[ $OP_TEST_DEBUG -ge 3 ]] && echo "OP_TEST_EXEC_EXTRA=$OP_TEST_EXEC_EXTRA"
-    run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME
+    $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME > /dev/null 2>&1
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OP_TEST_NAME $OP_TEST_CONAINER_RUN_DEFAULT_ARGS $OP_TEST_CONTAINER_RUN_EXTRA_ARGS $OP_TEST_IMAGE
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec -it $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
     echo -e "Test '$t' : [ OK ]\n"

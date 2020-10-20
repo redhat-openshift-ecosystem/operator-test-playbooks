@@ -30,6 +30,28 @@
           shell: "{{ kind_tmp_dir }}/kind-with-registry.sh"
       when: rc_kind.stat.exists
 
+    - name: "Make sure that '{{ testing_bin_path }}' exists"
+      file:
+        path: "{{ testing_bin_path }}"
+        state: directory
+
+    - name: "Check if operator-sdk exists"
+      stat:
+        path: "{{ operator_sdk_bin_path }}"
+      register: rkr_osdk
+
+    - name: "Install operator-sdk"
+      get_url:
+        url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu
+        dest: "{{ operator_sdk_bin_path }}"
+        mode: "0755"
+      register: operator_sdk_install_result
+      until: operator_sdk_install_result.status_code is undefined or operator_sdk_install_result.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: operator_sdk_install_result is failure
+      when: not rkr_osdk.stat.exists
+
     - name: "Installing OLM ({{ olm_version }})"
       shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
       register: olm_install_rc
