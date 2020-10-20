@@ -73,6 +73,8 @@ if ! command -v ansible > /dev/null 2>&1; then
     echo "    e.g. : pip install ansible jmespath"
     echo "         : apt install ansible"
     echo "         : yum install ansible"
+    echo -e "\nRun 'ansible --version' to make sure it is installed\n"
+
     exit 1
 fi
 
