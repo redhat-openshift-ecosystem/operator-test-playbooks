@@ -30,6 +30,11 @@
           shell: "{{ kind_tmp_dir }}/kind-with-registry.sh"
       when: rc_kind.stat.exists
 
+    - name: "Make sure that '{{ testing_bin_path }}' exists"
+      file:
+        path: "{{ testing_bin_path }}"
+        state: directory
+
     - name: "Check if operator-sdk exists"
       stat:
         path: "{{ operator_sdk_bin_path }}"
