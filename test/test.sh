@@ -181,11 +181,11 @@ if [[ $OP_TEST_DEBUG -ge 2 ]];then
     run echo "OP_TEST_LOG_DIR='$OP_TEST_LOG_DIR'"
 fi
 
-
+echo -e "\nLogs are in '$OP_TEST_LOG_DIR/log.out'.\n"
 
 
 # Check if kind is installed
-echo -e "\nChecking for kind binary ..."
+echo -e "Checking for kind binary ..."
 if ! $DRY_RUN_CMD command -v kind > /dev/null 2>&1; then
     OP_TEST_FORCE_INSTALL=1
 # else
