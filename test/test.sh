@@ -97,11 +97,11 @@ if [ "$ACTION" = "docker" ];then
     $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags docker
     if [[ $? -eq 0 ]];then
         echo -e "\nMake sure that you logout and login after docker installation.\n"
-        exit 0
     else
         echo "Problem installing docker !!!"
         exit 1
     fi
+    exit 0
 fi
 if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
