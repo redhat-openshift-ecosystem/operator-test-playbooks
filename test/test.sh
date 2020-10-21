@@ -96,7 +96,9 @@ if [ "$ACTION" = "docker" ];then
     echo "Installing docker ..."
     $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS -e run_prepare_catalog_repo_upstream=false --tags docker
     if [[ $? -eq 0 ]];then
-        echo -e "\nMake sure that you logout and login after docker installation.\n"
+        echo -e "\n=================================================================================="
+        echo -e "Make sure that you logout and login after docker installation to apply changes !!!"
+        echo -e "==================================================================================\n"
     else
         echo "Problem installing docker !!!"
         exit 1
