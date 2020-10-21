@@ -1,13 +1,22 @@
 ---
-- name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
-  set_fact:
-    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+# - name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
+#   set_fact:
+#     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+
+# - name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
+#   set_fact:
+#     bundle_index_image: "{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}:{{ openshift_robot_hash_array[2] }}"
+#   when:
+#     - openshift_robot_hash_array.2 is defined
+#     - openshift_robot_hash_array.2 != ""
 
 - name: "Get list of tags for index image from bundle registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
   uri:
     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
   register: boi_registry_versions
   failed_when: false
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
 
 - name: "Create repo for index image with public visibility '{{ bundle_image_namespace }}/{{ bundle_index_image_name }}'"
   uri:
@@ -23,6 +32,7 @@
   when:
     - quay_api_token is defined
     - quay_api_token != ""
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
     - boi_registry_versions.status != 200
 
 - name: "Get list of tags for index image from bundle registry (osr) '{{ openshift_robot_hash_array[0] | dirname }}/{{ openshift_robot_hash_array[0] | basename }}/{{ bundle_index_image_name }}'"
@@ -31,8 +41,8 @@
   register: boi_registry_versions_osr
   failed_when: false
   when:
-    - openshift_robot_hash_array.1 is defined
-    - openshift_robot_hash_array.1 != ""
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2 != ""
 
 - name: "Create repo for index image with public visibility (osr)'{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}'"
   uri:
@@ -46,8 +56,8 @@
     status_code: 201
     return_content: yes
   when:
-    - openshift_robot_hash_array.1 is defined
-    - openshift_robot_hash_array.1 != ""
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2 != ""
     - boi_registry_versions_osr.status != 200
 
 - name: "Reseting 'index_versions_in_registry' variable"
@@ -58,7 +68,9 @@
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
     index_versions_in_registry: "{{ (boi_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
-  when: boi_registry_versions.status == 200
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
+    - boi_registry_versions.status == 200
 
 - name: "Setting opm index extra arguments"
   set_fact:
@@ -66,10 +78,10 @@
     opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
   when:
     - index_versions_in_registry.0 is defined
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
 
 - name: "Handling previous index image"
   block:
-
     - name: "Setting 'index rm' container option"
       set_fact:
         boi_index_args: "-c {{ opm_container_tool_index }}"
@@ -108,21 +120,26 @@
     bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
   with_items: "{{ ba_versions_tmp }}"
 
+- name: "Filling bundle versions for operator '{{ ba_name }}' for openshift robot case"
+  set_fact:
+    bundles_arr: "[ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
+  when:
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2 != ""
 
 - name: "Setting bundle image names"
   set_fact:
     bundle_images: "{{ bundles_arr | join(',') }}"
 
-
 - name: "Retag bundle input image"
   block:
     - name: "Retag image {{ operator_input_image }}"
-      shell: "{{ container_tool }} tag {{ operator_input_image  }} {{ bundle_images }}"
+      shell: "{{ container_tool }} tag {{ operator_input_image }} {{ bundle_images }}"
     - name: "Push image {{ operator_input_image }}"
       shell: "{{ container_tool }} push {{ bundle_images }}"
   when:
-  - operator_input_image is defined
-  - operator_input_image != ""
+    - operator_input_image is defined
+    - operator_input_image != ""
 
 - name: "Failing when mode is empty"
   fail:
@@ -137,33 +154,17 @@
 
 - name: "Push bundle image '{{ bundle_index_image }}'"
   shell: "{{ container_tool }} push {{ bundle_index_image }}"
+  register: boi_iap_rc
   when: boi_ia_rc.rc == 0
 
-- name: "Handling openshift robot case for index"
-  block:
-    - name: "Filling bundle versions for operator '{{ ba_name }}' for openshift robot case"
-      set_fact:
-        bundles_arr_osr: "{{ bundles_arr_osr | default([]) }} + [ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
-    - debug:
-        var: bundles_arr_osr
-
-    - name: "Setting bundle images names (osr)"
-      set_fact:
-        bundles_images_osr: "{{ bundles_arr_osr | join(',') }}"
-        bundle_index_image_osr: "{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}:{{ openshift_robot_hash_array[2] }}"
-
-    - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image_osr }}"
-      shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundles_images_osr }} --tag {{ bundle_index_image_osr }} --mode semver"
-      # failed_when: false
-      ignore_errors: yes
-      register: boi_ia_osr_rc
-
-    - name: "Push bundle image '{{ bundle_index_image_osr }}'"
-      shell: "{{ container_tool }} push {{ bundle_index_image_osr }}"
-      when: boi_ia_osr_rc.rc == 0
+- name: "Prints message that bundles were added to catalog"
+  debug:
+    msg: "Bundles {{ bundle_images }} were added and push to catalog {{ bundle_index_image }} : [OK]"
   when:
-    - openshift_robot_hash_array.2 is defined
-    - openshift_robot_hash_array.2 != ""
+    - boi_ia_rc.rc is defined
+    - boi_ia_rc.rc == 0
+    - boi_iap_rc.rc is defined
+    - boi_iap_rc.rc == 0
 
 - name: "Add failed operators when creating index from bundle"
   set_fact:
@@ -195,4 +196,6 @@
       vars:
         operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
       when: run_lint|bool
-  when: boi_ia_rc.rc == 0
+  when:
+    - boi_ia_rc.rc == 0
+    - (openshift_robot_hash is undefined or openshift_robot_hash == "")

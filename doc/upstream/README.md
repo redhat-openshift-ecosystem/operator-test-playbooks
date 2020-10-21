@@ -282,6 +282,7 @@ Usage:
 | index_force_update | Force to rebuild currently running operators in index. [bool] | false | false |
 | index_skip | Skip building index (it will build bundle only). [bool] | undefined | undefined |
 | package_name_strict | Test if package name is same as operator directory name. [bool] | undefined | undefined |
+| remove_replaces | Remove replaces from csv. [bool] | undefined | undefined |
 | run_bundle_scorecard_test | Runs bundle scorecard test. [bool] | undefined | undefined |
 | bundle_scorecard_test_config | Config file where scorecard tests are defined. [string] | generated | n/a |
 | bundle_scorecard_test_select | Runs specific scorecard tests. [string] | basic-check-spec-test,olm-bundle-validation-test,olm-status-descriptors-test | n/a |
@@ -295,6 +296,7 @@ Usage:
 | production_registry_namespace | Check if bundle exists in production registry. Used in local `deploy_bundle` test. (e.g. "quay.io/operatorhubio") [string] | undefined | undefined |
 | mirror_index_images | List of mirror images for index. (e.g. "kind-registry:5000/test-operator/catalog_mirror_auth|<user>|<password>,kind-registry:5000/test-operator/catalog_mirror_no_auth") [string] | undefined | undefined |
 | index_mode_from_ci | Enable autodetect index add mode from <operator>/ci.yaml file [bool] | undefined | undefined |
+| openshift_robot_hash | e.g. "quay.io/operator_testing|<push-token>|<git-hash>" [string] | undefined | undefined |
 
 
 ## Tags to use
@@ -366,6 +368,15 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
 ```
 
+# Prepare bundle and index for Openshift robot
+```
+ansible-playbook -i host, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+-e operator_version=1.0.2 --tags deploy_bundles \
+-e remove_replaces=true \
+-e openshift_robot_hash="quay.io/operator_testing|<push-token>|1234"
+```
 
 # Travis configuration
 

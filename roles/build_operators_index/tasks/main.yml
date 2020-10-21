@@ -1,10 +1,21 @@
-- name: "Setting 'bundle_index_image' variable"
+# - name: "Setting 'bundle_index_image' variable"
+#   set_fact:
+#     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+
+- name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
   set_fact:
     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 
+- name: "Setting 'bundle_index_image' for openshift robot"
+  set_fact:
+    bundle_index_image: "{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}:{{ openshift_robot_hash_array[2] }}"
+  when:
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2 != ""
+
 - name: "Remove index image '{{ bundle_index_image }}'"
   shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
-  ignore_errors: yes
+  failed_when: false
 
 - name: "Reseting 'operators_for_index' variable when 'index_skip' is true"
   set_fact:
