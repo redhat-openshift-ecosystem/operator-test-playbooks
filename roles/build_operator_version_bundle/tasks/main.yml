@@ -153,7 +153,9 @@
             path: '{{ clusterserviceversion_bundle_file_path }}'
             regexp: '^\s*replaces:'
             state: absent
-          when: remove_replaces is defined
+          when:
+            - remove_replaces is defined
+            - remove_replaces|bool
 
     - name: "The first operator has no package conflict"
       set_fact:
@@ -166,16 +168,19 @@
         msg: "Versions of {{ operator_name }} must be in one package, not a mix of {{ operator_package_name }} and {{ previous_package }}"
       when:  operator_package_name != previous_package
 
-# TODO: Why is it needed?
-    # - name: "Set package for test with next operator"
-    #   set_fact:
-    #     previous_package: "{{ operator_package_name }}"
+    - name: "Set bundle image name"
+      set_fact:
+        bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
+
+    - name: "Set bundle image name (openshift robot case)"
+      set_fact:
+        bundle_image: "{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+      when:
+        - openshift_robot_hash_array.2 is defined
+        - openshift_robot_hash_array.2 != ""
 
     - name: "Creating bundle image from bundle format directory structure"
       block:
-        - name: "Set bundle image name"
-          set_fact:
-            bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
 
         - name: "Remove bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
@@ -193,22 +198,6 @@
           when:
             - bb_rc.rc is defined
             - bb_rc.rc == 0
-
-        - name: "Retag {{ bundle_image }} to openshift robot"
-          shell: "{{ container_tool }} tag {{ bundle_image }} {{ openshift_robot_hash_array[0] }}{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
-          when:
-            - bb_rc.rc is defined
-            - bb_rc.rc == 0
-            - openshift_robot_hash_array.2 is defined
-            - openshift_robot_hash_array.2 != ""
-
-        - name: "Push bundle image (openshift robot)"
-          shell: "{{ container_tool }} push {{ openshift_robot_hash_array[0] }}{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
-          when:
-            - bb_rc.rc is defined
-            - bb_rc.rc == 0
-            - openshift_robot_hash_array.2 is defined
-            - openshift_robot_hash_array.2 != ""
 
         - name: "Operator scorcard bundle test"
           include_role:
@@ -230,7 +219,7 @@
 
         - name: Remove bundle image {{ bundle_image }}
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
-          ignore_errors: yes
+          failed_when: false
 
         - name: "Generate bundle image {{ bundle_image }} from manifest format"
           shell:
@@ -242,22 +231,19 @@
 
         - name: "Push bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} push {{ bundle_image }}"
+          register: mbp_rc
           when:
             - mb_rc.rc is defined
             - mb_rc.rc == 0
 
-        - name: "Handling opeshift robot case for bundle"
-          block:
-            - name: "Retag {{ bundle_image }} to openshift robot"
-              shell: "{{ container_tool }} tag {{ bundle_image }} {{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
-
-            - name: "Push bundle image {{ bundle_image }}"
-              shell: "{{ container_tool }} push {{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+        - name: "Prints message that bundle was created"
+          debug:
+            msg: "Bundle {{ bundle_image }} was created and pushed : [OK]"
           when:
             - mb_rc.rc is defined
             - mb_rc.rc == 0
-            - openshift_robot_hash_array.2 is defined
-            - openshift_robot_hash_array.2 != ""
+            - mbp_rc.rc is defined
+            - mbp_rc.rc == 0
 
         - name: "Operator scorcard bundle test"
           include_role:

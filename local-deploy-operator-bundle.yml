@@ -206,6 +206,7 @@
         - run_upstream|bool
         - bundle_index_image is defined
         - bundle_index_image != ""
+        - (openshift_robot_hash is undefined or openshift_robot_hash == "")
 
     - name: "Mirror index image"
       include_role:
@@ -223,6 +224,7 @@
         - mirror_index_images is defined
         - mirror_index_images != ""
         - mirror_apply|bool
+        - (openshift_robot_hash is undefined or openshift_robot_hash == "")
 
     - name: "Handle failed operators"
       include_role:
@@ -234,6 +236,7 @@
         - index_check
       when:
         - run_upstream|bool
+        - (openshift_robot_hash is undefined or openshift_robot_hash == "")
 
     - name: "Push to Quay (old AppRegistry)"
       include_role:
