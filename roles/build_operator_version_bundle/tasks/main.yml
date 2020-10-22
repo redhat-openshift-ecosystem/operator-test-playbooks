@@ -8,6 +8,7 @@
         operator_format: "bundle"
     - name: "Remove bundle image {{ bundle_image }}"
       shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+      failed_when: false
   when:
     - operator_input_image is defined
     - operator_input_image != ""
@@ -184,6 +185,7 @@
 
         - name: "Remove bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+          failed_when: false
 
         - name: "Generate bundle image {{ bundle_image }} from bundle format"
           shell:
