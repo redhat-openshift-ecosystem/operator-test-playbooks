@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO=${1-""}
+BRANCH=${2-""}
 OP_DEBUG=${OP_DEBUG-0}
 OP_TOKEN=${OP_TOKEN-""}
 CONTAINER_TOOL=${CONTAINER_TOOL-"docker"}
@@ -35,10 +37,21 @@ function DetectFromGit() {
   echo "COMMIT=$COMMIT"
 
 }
+
+if [ -z $BRANCH ];then
+    rm -f /tmp/pull.json > /dev/null 2>&1
+    curl -s https://api.github.com/repos/operator-framework/community-operators/pulls/$REPO -o /tmp/pull.json
+    REPO=$(cat /tmp/pull.json | jq -r '.head.repo.clone_url')
+    BRANCH=$(cat /tmp/pull.json | jq -r '.head.ref')
+    COMMIT=$(cat /tmp/pull.json | jq -r '.head.sha')
+    echo "$REPO $BRANCH $COMMIT"
+
+fi
+
 rm -rf community-operators
-git clone $1
+git clone $REPO
 cd community-operators
-git checkout $2
+git checkout $BRANCH
 DetectFromGit
 
 $CONTAINER_TOOL pull $OP_RUN_IMAGE
