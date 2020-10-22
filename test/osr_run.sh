@@ -54,9 +54,9 @@ if [ -z $BRANCH ];then
 fi
 
 rm -rf community-operators
-git clone $REPO
+git clone $REPO || { echo "Problem cloning repo '$REPO' !!!"; exit 1; }
 cd community-operators
-git checkout $BRANCH
+git checkout $BRANCH || { echo "Problem checkout branch '$BRANCH' !!!"; exit 1; }
 DetectFromGit
 
 $CONTAINER_TOOL pull $OP_RUN_IMAGE
