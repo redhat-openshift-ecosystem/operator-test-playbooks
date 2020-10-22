@@ -44,7 +44,7 @@ if [ -z $BRANCH ];then
     REPO=$(cat /tmp/pull.json | jq -r '.head.repo.clone_url')
     BRANCH=$(cat /tmp/pull.json | jq -r '.head.ref')
     COMMIT=$(cat /tmp/pull.json | jq -r '.head.sha')
-    echo "$REPO $BRANCH $COMMIT"
+    echo "Pull request #$1 : $REPO $BRANCH $COMMIT"
 
 fi
 
