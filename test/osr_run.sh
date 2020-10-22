@@ -39,6 +39,11 @@ function DetectFromGit() {
 }
 
 if [ -z $BRANCH ];then
+    if ! command -v jq > /dev/null 2>&1; then
+        echo "Error: 'jq' is not installed. Please install it first !!!"
+        exit 1
+    fi
+
     rm -f /tmp/pull.json > /dev/null 2>&1
     curl -s https://api.github.com/repos/operator-framework/community-operators/pulls/$REPO -o /tmp/pull.json
     REPO=$(cat /tmp/pull.json | jq -r '.head.repo.clone_url')
