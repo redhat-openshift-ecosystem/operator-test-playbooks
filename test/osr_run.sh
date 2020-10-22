@@ -45,7 +45,7 @@ docker run -d --net=host --privileged -e STORAGE_DRIVER=vfs --rm -it --name test
 [ -z "$OP_NAME" ] && { echo "Error: Missing '\$OP_NAME'"; exit 1; }
 [ -z "$OP_VER" ] && { echo "Error: Missing '\$OP_VER'"; exit 1; }
 [ -z "$COMMIT" ] && { echo "Error: Missing '\$COMMIT'"; exit 1; }
-[ -z "$OP_OP_TOKEN" ] && { echo "Error: Missing '\$OP_OP_TOKEN'"; exit 1; }
+[ -z "$OP_TOKEN" ] && { echo "Error: Missing '\$OP_TOKEN'"; exit 1; }
 
 docker exec -it \
 -e OP_STREAM="$STREAM_NAME" \
