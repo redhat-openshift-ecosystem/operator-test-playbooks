@@ -1,6 +1,7 @@
 #!/bin/bash
 OP_DEBUG=${OP_DEBUG-0}
 OP_TOKEN=${OP_TOKEN-""}
+CONTAINER_TOOL=${CONTAINER_TOOL-"docker"}
 function DetectFromGit() {
   COMMIT=$(git --no-pager log -n1 --pretty=format:%h | tail -n 1)
   echo
@@ -38,8 +39,10 @@ git clone $1
 cd community-operators
 git checkout $2
 DetectFromGit
-docker rm -f test
-docker run -d --net=host --privileged -e STORAGE_DRIVER=vfs --rm -it --name test quay.io/operator_testing/operator-test-playbooks
+
+$CONTAINER_TOOL pull quay.io/operator_testing/operator-test-playbooks:latest
+$CONTAINER_TOOL rm -f test
+$CONTAINER_TOOL run -d --net=host --privileged -e STORAGE_DRIVER=vfs --rm -it --name test quay.io/operator_testing/operator-test-playbooks
 
 [ -z "$OP_NAME" ] && { echo "Error: Missing '\$OP_NAME'"; exit 1; }
 [ -z "$OP_NAME" ] && { echo "Error: Missing '\$OP_NAME'"; exit 1; }
@@ -47,7 +50,7 @@ docker run -d --net=host --privileged -e STORAGE_DRIVER=vfs --rm -it --name test
 [ -z "$COMMIT" ] && { echo "Error: Missing '\$COMMIT'"; exit 1; }
 [ -z "$OP_TOKEN" ] && { echo "Error: Missing '\$OP_TOKEN'"; exit 1; }
 
-docker exec -it \
+$CONTAINER_TOOL exec -it \
 -e OP_STREAM="$STREAM_NAME" \
 -e OP_NAME="$OP_NAME" \
 -e OP_VERSION="$OP_VER" \
