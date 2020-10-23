@@ -162,6 +162,7 @@
         - quay_api_token is defined
         - quay_api_token != ""
         - versions_remove.0 is defined
+        - versions_remove.0 != ""
 
     - name: "Reset value for unified package test"
       set_fact:
