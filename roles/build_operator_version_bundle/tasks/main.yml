@@ -86,8 +86,7 @@
             opm_index_add_mode: "semver"
           when: not boi_ci_file.stat.exists|bool
       when:
-        - index_mode_from_ci is defined
-        - index_mode_from_ci|bool
+        - (index_mode_from_ci is undefined or index_mode_from_ci|bool)
 
     - name: "Checking 'semver' mode consistency"
       fail:
