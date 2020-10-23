@@ -48,7 +48,7 @@
 - name: "Create the catalogsource"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml"
 
-- name: "Wait for the operatorsource pod to start up"
+- name: "Wait for the catalogsource pod to start up"
   shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep test-operators- | grep Running"
   register: operator_source_result
   retries: 60
