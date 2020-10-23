@@ -1,0 +1,359 @@
+---
+- name: "Create {{ testing_bin_path }} directory"
+  file:
+    path: "{{ testing_bin_path }}"
+    state: directory
+    mode: '0755'
+
+- name: "Create /tmp/oc-{{ dir_suffix_part }}/bin directory"
+  file:
+    path: "/tmp/oc-{{ dir_suffix_part }}/bin"
+    state: directory
+    mode: '0755'
+
+- name: "Download oc"
+  shell: "curl https://mirror.openshift.com/pub/openshift-v4/clients/oc/{{ oc_version_test }}/linux/oc.tar.gz | tar xvzf - -C /tmp/oc-{{ dir_suffix_part }}/bin oc --skip-old-files"
+  when:
+    - dir_suffix_part is defined
+    - dir_suffix_part != ""
+
+- name: "Chmod"
+  shell: "chmod ug+x /tmp/oc-{{ dir_suffix_part }}/bin/oc"
+  when:
+    - dir_suffix_part is defined
+    - dir_suffix_part != ""
+
+- name: "Download yq ({{ yq_version }})"
+  get_url:
+    url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
+    dest: "{{ yq_bin_path }}"
+    mode: "0755"
+  register: yq_install_result
+  until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: yq_install_result is failure
+
+- name: "Detect format"
+  include_role:
+    name: detect_format
+  vars:
+    operator_input_image: ""
+    op_version: "{{ operator_version }}"
+
+- set_fact:
+    index_image_test: "quay.io/{{ test_quay_namespace }}/catalog:{{ commit_tag }}"
+
+- set_fact:
+    index_image_test_no_ver: "quay.io/operator_testing/{{ package_name }}"
+
+#curl -X GET https://quay.io/api/v1/repository/openshift-community-operators/aqua
+- name: "Get bundle image tag sha"
+  uri:
+    url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository/{{ test_quay_namespace }}/{{ package_name }}"
+    method: GET
+    force_basic_auth: yes
+    status_code: 200
+    return_content: yes
+  register: dooou_manifes_digest_output
+
+- name: "Parse 1"
+  set_fact:
+    dooou_manifes_digest_output_test: "{{ dooou_manifes_digest_output.json.tags }}"
+    dooou_manifes_digest_output_key: "{{ commit_tag }}"
+#    dooou_manifes_digest_output_key: "v{{ op_version }}"
+
+- name: "Parse 2"
+  set_fact:
+    dooou_manifes_digest_output_debug: "{{ dooou_manifes_digest_output_test[dooou_manifes_digest_output_key] }}"
+    key_to_pick: "manifest_digest"
+
+- name: "Parse 3"
+  set_fact:
+    dooou_manifes_digest: "{{ dooou_manifes_digest_output_debug[key_to_pick] }}"
+
+- name: "Get labels from index"
+  uri:
+    url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository/{{ test_quay_namespace }}/{{ package_name }}/manifest/{{ dooou_manifes_digest }}/labels"
+    method: GET
+    force_basic_auth: yes
+    status_code: 200
+    return_content: yes
+  register: dooou_labels_output
+
+#curl -X GET "https://quay.io/api/v1/repository/openshift-community-operators/aqua/manifest/sha256:821441703c771a2ef9cc7daf1e24cf9d804d78a05a44c3a4b1913812738f71b0/labels"
+- name: "Setting channel 1"
+  set_fact:
+    current_channel_labels: "{{ dooou_labels_output.json.labels }}"
+
+- name: "Setting channel 2"
+  set_fact:
+    current_channel: "{{ (current_channel_labels |  selectattr('key', 'search', 'operators.operatorframework.io.bundle.channels.v1') | list | first).value }}"
+
+- name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
+  set_fact:
+    current_csv: "{{ operator_vars.metadata.name }}"
+    operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
+    operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
+    operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities | default('Basic Install')}}"
+
+- name: "Determine operator_allnamespaces_support"
+  set_fact:
+    operator_allnamespaces_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+  vars:
+    query: "[?type=='AllNamespaces'].supported"
+
+- name: "Determine operator_ownnamespace_support"
+  set_fact:
+    operator_ownnamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+  vars:
+    query: "[?type=='OwnNamespace'].supported"
+
+- name: "Determine operator_singlenamespace_support"
+  set_fact:
+    operator_singlenamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+  vars:
+    query: "[?type=='SingleNamespace'].supported"
+
+- name: "Determine operator_multinamespace_support"
+  set_fact:
+    operator_multinamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+  vars:
+    query: "[?type=='MultiNamespace'].supported"
+
+- name: "Set boolean value for different types of namespaces"
+  set_fact:
+    operator_allnamespaces_support: "{{ false if operator_allnamespaces_support == [] else operator_allnamespaces_support[0] }}"
+    operator_ownnamespace_support: "{{ false if operator_ownnamespace_support == [] else operator_ownnamespace_support[0] }}"
+    operator_singlenamespace_support: "{{ false if operator_singlenamespace_support == [] else operator_singlenamespace_support[0] }}"
+    operator_multinamespace_support: "{{ false if operator_multinamespace_support == [] else operator_multinamespace_support[0] }}"
+
+- name: "Create the olm operator files directory"
+  file:
+    path: "{{ olm_operator_files_path }}"
+    state: directory
+    mode: '0755'
+
+- name: "Copy namespace file"
+  template:
+    src: "namespace.yml.js2"
+    dest: "{{ olm_operator_files_path }}/namespace.yml"
+
+- name: "Process the catalogsource template"
+  template:
+    src: "catalogsource_upstream_openshift.yml.j2"
+    dest: "{{ olm_operator_files_path }}/catalogsource.yml"
+
+- name: "Process the operatorgroup template"
+  template:
+    src: "{{ 'operatorgroup_upstream.yml.j2' if run_upstream else \"operatorgroup.yml.j2\" }}"
+    dest: "{{ olm_operator_files_path }}/operatorgroup.processed.yml"
+
+- name: "Process the subscription template"
+  template:
+    src: "subscription.yml.j2"
+    dest: "{{ olm_operator_files_path }}/subscription.yml"
+
+- name: "debug cat"
+  shell: "cat {{ olm_operator_files_path }}/*"
+
+- name: "Create the namespace"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/namespace.yml"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Create the namespace"
+  shell: "{{ oc_bin_path }} patch OperatorHub cluster --type json -p '[{\"op\": \"add\", \"path\": \"/spec/disableAllDefaultSources\", \"value\": true}]'"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+
+- name: "Apply catalogsource"
+  shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Show catalogsource"
+  shell: '{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Wait for the catalogsource pod to start up"
+  shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep test-operators- | grep Running"
+  register: operator_source_result
+  retries: 60
+  delay: 10
+  until: operator_source_result.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Wait for the catalogsource to be ready"
+  shell: "{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml | grep 'lastObservedState:' | grep READY"
+  register: operator_source_result
+  retries: 60
+  delay: 10
+  until: operator_source_result.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Show catalogsource"
+  shell: '{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Apply operatorgroup"
+  shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/operatorgroup.processed.yml -n {{ openshift_namespace }}'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Show operatorgroup"
+  shell: '{{ oc_bin_path }} get operatorgroup test-operators -n {{ openshift_namespace }} -o=yaml'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Apply subscription"
+  shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/subscription.yml -n {{ openshift_namespace }}'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Show subscription"
+  shell: '{{ oc_bin_path }} get subs {{ package_name }} -n {{ openshift_namespace }} -o=yaml'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Show catalogsource again"
+  shell: '{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml'
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+#TODO: uncomment, too many packagemanifests, maybe operator_pod_name
+- name: "Wait for the operator {{ package_name }} to be in packagemanifests"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  register: packagemanifest_presence
+  retries: 25
+  delay: 5
+  until: packagemanifest_presence.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: run_upstream|bool
+
+- name: "Wait for the operator {{ operator.pod.name }} pod to start up"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ package_name }} | grep Running"
+  register: operator_result
+  retries: 90
+  delay: 10
+  until: operator_result.rc == 0
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+#- name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
+#  shell: "[ $(echo `{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ package_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//' | head -1`) -ge \"60\" ]"
+#  register: operator_uptime
+#  retries: 15
+#  delay: 5
+#  until: operator_uptime.rc == 0
+#  ignore_errors: true
+#  environment:
+#    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Get the details of the deployed CSVs"
+  shell: "{{ oc_bin_path }} describe csvs"
+  register: csv_describe_result
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Output the CSV description to a debug file"
+  copy:
+    content: "{{ csv_describe_result.stdout }}"
+    dest: "{{ work_dir }}/olm-operator-csv-debug.txt"
+  when: csv_describe_result.stdout != ""
+
+- name: "Get the pod status of the deployed operator"
+  shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} -o yaml | {{ yq_bin_path }} r - \"status\""
+  register: operator_pod_result
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: csv_describe_result.stdout != ""
+
+- name: "Output the operator pod log to a debug file"
+  copy:
+    content: "{{ operator_pod_result.stdout }}"
+    dest: "{{ work_dir }}/olm-operator-pod-debug.txt"
+  when:
+    - csv_describe_result.stdout != ""
+    - operator_pod_result.stdout != ""
+
+- name: "Get the pod container logs of the deployed operator"
+  shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
+  register: operator_container_result
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  when: csv_describe_result.stdout != ""
+
+- name: "Output the operator container log to a debug file"
+  copy:
+    content: "{{ operator_container_result.stdout }}"
+    dest: "{{ work_dir }}/olm-operator-container-debug.txt"
+  when:
+    - csv_describe_result.stdout != ""
+    - operator_container_result.stdout != ""
+
+- name: "Get the catalogsource pod log"
+  shell: "{{ oc_bin_path }} get --output=name pods -n openshift-marketplace | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-marketplace"
+  register: catalog_source_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Output the catalogsource log to a debug file"
+  copy:
+    content: "{{ catalog_source_result.stdout }}"
+    dest: "{{ work_dir }}/olm-catalog-source-debug.txt"
+  when: catalog_source_result.stdout is defined
+
+- name: "Get the catalog-operator pod log"
+  shell: "{{ oc_bin_path }} get --output=name pods -n openshift-operator-lifecycle-manager | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-operator-lifecycle-manager | tail -n 100"
+  register: catalog_operator_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Output the catalog-operator log to a debug file"
+  copy:
+    content: "{{ catalog_operator_result.stdout }}"
+    dest: "{{ work_dir }}/olm-catalog-operator-debug.txt"
+  when: catalog_operator_result.stdout is defined
+
+- name: "Get the InstallPlan debug output"
+  shell: "{{ oc_bin_path }} describe installplan -n {{ openshift_namespace }}"
+  register: installplan_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Get the InstallPlan debug output"
+  shell: "{{ oc_bin_path }} describe installplan"
+  register: installplan_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Output the InstallPlan debug output to a debug file"
+  copy:
+    content: "{{ installplan_result.stdout }}"
+    dest: "{{ work_dir }}/olm-installplan-debug.txt"
+  when: installplan_result.stdout is defined
+
+- fail:
+    msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
+  when: operator_result.rc != 0
+
+- fail:
+    msg: 'Operator was not capable to stay healthy for a specific time'
+  when:
+    - run_upstream|bool
+    - operator_uptime.rc != 0
+
