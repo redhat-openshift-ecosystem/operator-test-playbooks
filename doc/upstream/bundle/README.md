@@ -38,7 +38,7 @@ annotations:
 ```
 It decribes following values
 | Name | Description |
-|>----|>------|
+| :---- | :------ |
 |operators.operatorframework.io.bundle.package.v1| Package name |
 |operators.operatorframework.io.bundle.channels.v1| List of channels (comma separated)|
 |operators.operatorframework.io.bundle.channel.default.v1| Default channel|
