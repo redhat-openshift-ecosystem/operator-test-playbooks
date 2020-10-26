@@ -82,7 +82,7 @@ Temporary artifact storage are located in `op-test` container in `/tmp/operator-
 
 
 ```
-podman exec -it op-test /bin/bash
+$ podman exec -it op-test /bin/bash
 [in container] $ ls -al /tmp/operator-test/
 total 156
 drwxr-xr-x 1 root root  4096 Oct 26 13:15 .
