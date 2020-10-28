@@ -30,11 +30,14 @@ OP_TEST_LOG_DIR=${OP_TEST_LOG_DIR-"/tmp/op-test"}
 
 function help() {
     echo ""
-    echo "<op-test-script> <test1,test2,...,testN> [<rebo>] [<branch>]"
+    echo "op-test <test1,test2,...,testN> [<rebo>] [<branch>]"
+    echo ""
+    echo "Note: op-test can be substituted by 'bash <(curl -sL https://cutt.ly/operator-test)'"
     echo ""
     echo -e "Examples:\n"
-    echo -e "\t<op-test-script> all upstream-community-operators/aqua/1.0.2\n"
-    echo -e "\t<op-test-script> all upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
+    echo -e "\top-test all upstream-community-operators/aqua/1.0.2\n"
+    echo -e "\top-test all upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
+
     exit 1
 }
 
