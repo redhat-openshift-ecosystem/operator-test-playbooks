@@ -32,7 +32,7 @@ function help() {
     echo ""
     echo "op-test <test1,test2,...,testN> [<rebo>] [<branch>]"
     echo ""
-    echo "Note: op-test can be substituted by 'bash <(curl -sL https://cutt.ly/operator-test)'"
+    echo "Note: 'op-test' can be substituted by 'bash <(curl -sL https://cutt.ly/operator-test)'"
     echo ""
     echo -e "Examples:\n"
     echo -e "\top-test all upstream-community-operators/aqua/1.0.2\n"
@@ -229,7 +229,7 @@ for t in $TESTS;do
     [ "$t" = "orange" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR $PROD_REGISTRY_ARGS --tags deploy_bundles"
 
     [ -z "$OP_TEST_EXEC_USER" ] && { echo "Error: Unknown test '$t' !!! Exiting ..."; help; }
-    echo -e "Test '$t' ..."
+    echo -e "Test '$t' for '$OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION' ..."
     echo -e "[$t] Reseting kind cluster ..."
     run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
     echo -e "[$t] Running test ($OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION) ..."
