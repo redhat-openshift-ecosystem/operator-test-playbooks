@@ -1,7 +1,7 @@
 #!/bin/bash
 set +o pipefail
 
-ANSIBLE_NOCOLOR=${ANSIBLE_NOCOLOR-1}
+
 
 ACTION=${1-""}
 TESTS=$1
@@ -28,6 +28,8 @@ OP_TEST_DRY_RUN=${OP_TEST_DRY_RUN-0}
 OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
 OP_TEST_LOG_DIR=${OP_TEST_LOG_DIR-"/tmp/op-test"}
 OP_TEST_NOCOLOR=${OP_TEST_NOCOLOR-0}
+
+[[ $OP_TEST_NOCOLOR -eq 1 ]] && ANSIBLE_NOCOLOR=1
 
 function help() {
     echo ""
