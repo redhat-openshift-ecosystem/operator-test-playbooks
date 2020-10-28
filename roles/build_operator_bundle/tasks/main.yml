@@ -137,7 +137,9 @@
             - name: "Fail if '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ operator_version }}' already exists"
               fail:
                 msg: "Failing because '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ operator_version }}' already exists"
-              when: prod_bundle_verion_intersect.0 is defined
+              when:
+                - prod_bundle_verion_intersect.0 is defined
+                - ( bundle_force_rebuild is undefined or bundle_force_rebuild|bool == false)
           when:
           - production_registry_namespace is defined
           - production_registry_namespace != ""
@@ -147,6 +149,16 @@
             versions_add: "{{ versions_in_dir | intersect(version_list) }}"
             versions_remove: "{{ versions_in_registry | intersect(version_list) }}"
             versions_in_dir: "{{ versions_in_dir | intersect(version_list) }}"
+
+        - name: "Force rebuild operator 'operator_version'"
+          set_fact:
+            versions_add: "[ '{{ operator_version }}' ]"
+            versions_in_dir: "{{ versions_in_dir | union(versions_add) }}"
+            versions_in_prod_registry: "{{ versions_in_prod_registry | difference(versions_add) }}"
+          when:
+            - bundle_force_rebuild is defined
+            - bundle_force_rebuild|bool
+
       when: operator_version is defined
 
     - name: "Delete all tags from operrator {{ operator_package_name }}. Tags: '{{ versions_remove | join(',') }}'"
