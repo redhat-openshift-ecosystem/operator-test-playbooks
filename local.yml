@@ -35,7 +35,7 @@
     kind_version: v0.9.0
     kind_kube_version: v1.19.1
     operator_sdk_version: v0.18.2
-    olm_version: 0.15.1
+    olm_version: 0.16.1
     opm_version: v1.14.2
 
   environment:
