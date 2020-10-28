@@ -55,14 +55,14 @@ function clean() {
 }
 
 run() {
-        if [[ $OP_TEST_DEBUG -gt 1 ]] ; then
+        if [[ $OP_TEST_DEBUG -ge 4 ]] ; then
                 v=$(exec 2>&1 && set -x && set -- "$@")
                 echo "#${v#*--}"
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
                 [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
                 set +o pipefail
-        elif [[ $OP_TEST_DEBUG -eq 1 ]] ; then
+        elif [[ $OP_TEST_DEBUG -ge 1 ]] ; then
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
                 [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
