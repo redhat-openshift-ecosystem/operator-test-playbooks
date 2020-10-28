@@ -1,8 +1,6 @@
 #!/bin/bash
 set +o pipefail
 
-
-
 ACTION=${1-""}
 TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
@@ -227,7 +225,7 @@ else
 fi
 # Start container
 run echo -e " [ Preparing testing container '$OP_TEST_NAME' ] "
-run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE
+$DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE > /dev/null 2>&1 || { echo "Error: Problem pulling image '$OP_TEST_IMAGE' !!!"; exit 1; }
 
 for t in $TESTS;do
     # Exec test
