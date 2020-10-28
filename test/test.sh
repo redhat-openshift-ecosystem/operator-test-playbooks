@@ -18,7 +18,7 @@ OP_TEST_CONAINER_RUN_DEFAULT_ARGS=${OP_TEST_CONAINER_RUN_DEFAULT_ARGS-"--net hos
 OP_TEST_CONTAINER_RUN_EXTRA_ARGS=${OP_TEST_CONTAINER_RUN_EXTRA_ARGS-""}
 OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS=${OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS-""}
 OP_TEST_CONTAINER_EXEC_EXTRA_ARGS=${OP_TEST_CONTAINER_EXEC_EXTRA_ARGS-""}
-OP_TEST_EXEC_BASE=${OP_TEST_EXEC_BASE-"ansible-playbook -i localhost, -e ansible_connection=local local.yml -e run_upstream=true -e image_protocol='docker://' -vv"}
+OP_TEST_EXEC_BASE=${OP_TEST_EXEC_BASE-"ansible-playbook -i localhost, -e ansible_connection=local local.yml -e run_upstream=true -e image_protocol='docker://'"}
 OP_TEST_EXEC_EXTRA=${OP_TEST_EXEC_EXTRA-"-e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="}
 OP_TEST_RUN_MODE=${OP_TEST_RUN_MODE-"privileged"}
 OP_TEST_DEBUG=${OP_TEST_DEBUG-0}
@@ -95,6 +95,7 @@ if [ "$OP_TEST_CONTAINER_TOOL" = "podman" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
 fi
 
+[[ $OP_TEST_DEBUG -eq 0 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 2 ]] && OP_TEST_EXEC_EXTRA="-v $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 3 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DRY_RUN -eq 1 ]] && DRY_RUN_CMD="echo"
