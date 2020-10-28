@@ -1,8 +1,6 @@
 #!/bin/bash
 set +o pipefail
 
-ANSIBLE_NOCOLOR=1
-
 ACTION=${1-""}
 TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
@@ -20,18 +18,29 @@ OP_TEST_CONAINER_RUN_DEFAULT_ARGS=${OP_TEST_CONAINER_RUN_DEFAULT_ARGS-"--net hos
 OP_TEST_CONTAINER_RUN_EXTRA_ARGS=${OP_TEST_CONTAINER_RUN_EXTRA_ARGS-""}
 OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS=${OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS-""}
 OP_TEST_CONTAINER_EXEC_EXTRA_ARGS=${OP_TEST_CONTAINER_EXEC_EXTRA_ARGS-""}
-OP_TEST_EXEC_BASE=${OP_TEST_EXEC_BASE-"ansible-playbook -i localhost, -e ansible_connection=local local.yml -e run_upstream=true -e image_protocol='docker://' -vv"}
+OP_TEST_EXEC_BASE=${OP_TEST_EXEC_BASE-"ansible-playbook -i localhost, -e ansible_connection=local local.yml -e run_upstream=true -e image_protocol='docker://'"}
 OP_TEST_EXEC_EXTRA=${OP_TEST_EXEC_EXTRA-"-e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="}
 OP_TEST_RUN_MODE=${OP_TEST_RUN_MODE-"privileged"}
 OP_TEST_DEBUG=${OP_TEST_DEBUG-0}
 OP_TEST_DRY_RUN=${OP_TEST_DRY_RUN-0}
 OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
+OP_TEST_RESET=${OP_TEST_RESET-1}
 OP_TEST_LOG_DIR=${OP_TEST_LOG_DIR-"/tmp/op-test"}
+OP_TEST_NOCOLOR=${OP_TEST_NOCOLOR-0}
+
+[[ $OP_TEST_NOCOLOR -eq 1 ]] && ANSIBLE_NOCOLOR=1
 
 function help() {
     echo ""
-    echo "sdsad"
+    echo "op-test <test1,test2,...,testN> [<rebo>] [<branch>]"
     echo ""
+    echo "Note: 'op-test' can be substituted by 'bash <(curl -sL https://cutt.ly/operator-test)'"
+    echo ""
+    echo -e "Examples:\n"
+    echo -e "\top-test all upstream-community-operators/aqua/1.0.2\n"
+    echo -e "\top-test all upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
+    echo -e "\top-test kiwi upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
+    echo -e "\top-test lemon,orange upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
     exit 1
 }
 
@@ -48,9 +57,14 @@ function clean() {
 }
 
 run() {
-        if [[ $OP_TEST_DEBUG -gt 0 ]] ; then
+        if [[ $OP_TEST_DEBUG -ge 4 ]] ; then
                 v=$(exec 2>&1 && set -x && set -- "$@")
                 echo "#${v#*--}"
+                set -o pipefail
+                "$@" | tee -a $OP_TEST_LOG_DIR/log.out
+                [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
+                set +o pipefail
+        elif [[ $OP_TEST_DEBUG -ge 1 ]] ; then
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
                 [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
@@ -83,6 +97,7 @@ if [ "$OP_TEST_CONTAINER_TOOL" = "podman" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
 fi
 
+[[ $OP_TEST_DEBUG -eq 0 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 2 ]] && OP_TEST_EXEC_EXTRA="-v $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 3 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DRY_RUN -eq 1 ]] && DRY_RUN_CMD="echo"
@@ -213,7 +228,7 @@ else
 fi
 # Start container
 run echo -e " [ Preparing testing container '$OP_TEST_NAME' ] "
-run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE
+$DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE > /dev/null 2>&1 || { echo "Error: Problem pulling image '$OP_TEST_IMAGE' !!!"; exit 1; }
 
 for t in $TESTS;do
     # Exec test
@@ -223,9 +238,11 @@ for t in $TESTS;do
     [ "$t" = "orange" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR $PROD_REGISTRY_ARGS --tags deploy_bundles"
 
     [ -z "$OP_TEST_EXEC_USER" ] && { echo "Error: Unknown test '$t' !!! Exiting ..."; help; }
-    echo -e "Test '$t' ..."
-    echo -e "[$t] Reseting kind cluster ..."
-    run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
+    echo -e "Test '$t' for '$OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION' ..."
+    if [[ $OP_TEST_RESET -eq 1 ]];then
+        echo -e "[$t] Reseting kind cluster ..."
+        run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
+    fi
     echo -e "[$t] Running test ($OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION) ..."
     [[ $OP_TEST_DEBUG -ge 3 ]] && echo "OP_TEST_EXEC_EXTRA=$OP_TEST_EXEC_EXTRA"
     $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME > /dev/null 2>&1

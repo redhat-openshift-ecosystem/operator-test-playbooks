@@ -280,6 +280,7 @@ Usage:
 | opm_container_tool_index | Container tool to use when using opm tool. [string] | docker  | as default |
 | operator_channel_force | Forcing to adde channel and default channed to current string value. When empty string it is autodetected by playbook. [string] | undefined | undefined |
 | index_force_update | Force to rebuild currently running operators in index. [bool] | false | false |
+| bundle_force_rebuild | Force to rebuild bundle of currently running operator and version. [bool] | undefined | undefined |
 | index_skip | Skip building index (it will build bundle only). [bool] | undefined | undefined |
 | package_name_strict | Test if package name is same as operator directory name. [bool] | undefined | undefined |
 | remove_replaces | Remove replaces from csv. [bool] | undefined | undefined |
