@@ -6,6 +6,8 @@ TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
 TESTS=${TESTS//,/ }
 
+OP_TEST_BASE_DEP="ansible curl openssl"
+
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
 OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
@@ -13,7 +15,7 @@ OP_TEST_NAME=${OPT_TEST_NAME-"op-test"}
 OP_TEST_ANSIBLE_PULL_REPO=${OP_TEST_ANSIBLE_PULL_REPO-"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"}
 OP_TEST_ANSIBLE_PULL_BRANCH=${OP_TEST_ANSIBLE_PULL_BRANCH-"upstream-community"}
 OP_TEST_ANSIBLE_DEFAULT_ARGS=${OP_TEST_ANSIBLE_DEFAULT_ARGS-"-i localhost, -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"}
-OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags base,kubectl,install_kind"}
+OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags kubectl,install_kind"}
 OP_TEST_CONAINER_RUN_DEFAULT_ARGS=${OP_TEST_CONAINER_RUN_DEFAULT_ARGS-"--net host --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --security-opt seccomp=unconfined --security-opt label=disable -v $OP_TEST_CERT_DIR/domain.crt:/usr/share/pki/ca-trust-source/anchors/ca.crt -v /tmp/.kube:/root/.kube -e STORAGE_DRIVER=vfs"}
 OP_TEST_CONTAINER_RUN_EXTRA_ARGS=${OP_TEST_CONTAINER_RUN_EXTRA_ARGS-""}
 OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS=${OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS-""}
@@ -42,6 +44,19 @@ function help() {
     echo -e "\top-test kiwi upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
     echo -e "\top-test lemon,orange upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
     exit 1
+}
+
+function checkExecutable() {
+    local pm
+    for p in $*;do
+        ! command -v $p > /dev/null 2>&1 && pm="$p $pm"
+    done
+
+    echo "Error: Folowing packages needs to be installed !!!"
+    for p in $pm;do
+        echo -e "\t$p\n"
+    done
+    [ -n $pm ] && exit 1
 }
 
 function clean() {
@@ -81,6 +96,8 @@ run() {
 
 
 # OP_TEST_EXEC_USER="-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test"
+
+checkExecutable $OP_TEST_BASE_DEP
 
 if ! command -v ansible > /dev/null 2>&1; then
     echo "Error: Ansible is not installed. Please install it first !!!"
