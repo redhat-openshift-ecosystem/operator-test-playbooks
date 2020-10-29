@@ -6,6 +6,8 @@ TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
 TESTS=${TESTS//,/ }
 
+OP_TEST_BASE_DEP="ansible curl openssl"
+
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
 OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
@@ -13,7 +15,7 @@ OP_TEST_NAME=${OPT_TEST_NAME-"op-test"}
 OP_TEST_ANSIBLE_PULL_REPO=${OP_TEST_ANSIBLE_PULL_REPO-"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"}
 OP_TEST_ANSIBLE_PULL_BRANCH=${OP_TEST_ANSIBLE_PULL_BRANCH-"upstream-community"}
 OP_TEST_ANSIBLE_DEFAULT_ARGS=${OP_TEST_ANSIBLE_DEFAULT_ARGS-"-i localhost, -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"}
-OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags base,kubectl,install_kind"}
+OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags kubectl,install_kind"}
 OP_TEST_CONAINER_RUN_DEFAULT_ARGS=${OP_TEST_CONAINER_RUN_DEFAULT_ARGS-"--net host --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --security-opt seccomp=unconfined --security-opt label=disable -v $OP_TEST_CERT_DIR/domain.crt:/usr/share/pki/ca-trust-source/anchors/ca.crt -v /tmp/.kube:/root/.kube -e STORAGE_DRIVER=vfs"}
 OP_TEST_CONTAINER_RUN_EXTRA_ARGS=${OP_TEST_CONTAINER_RUN_EXTRA_ARGS-""}
 OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS=${OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS-""}
@@ -42,6 +44,21 @@ function help() {
     echo -e "\top-test kiwi upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
     echo -e "\top-test lemon,orange upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
     exit 1
+}
+
+function checkExecutable() {
+    local pm=""
+    for p in $*;do
+        ! command -v $p > /dev/null 2>&1 && pm="$p $pm"
+    done
+    if [[ "$pm" != "" ]]; then
+        echo "Error: Folowing packages needs to be installed !!!"
+        for p in $pm;do
+            echo -e "\t$p\n"
+        done
+        echo ""
+        exit 1
+    fi
 }
 
 function clean() {
@@ -81,6 +98,8 @@ run() {
 
 
 # OP_TEST_EXEC_USER="-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test"
+
+checkExecutable $OP_TEST_BASE_DEP
 
 if ! command -v ansible > /dev/null 2>&1; then
     echo "Error: Ansible is not installed. Please install it first !!!"
@@ -148,8 +167,7 @@ if [ -n "$2" ];then
         OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
         OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
         OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
-        OP_TEST_BASE_DIR=$p
-        OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
+        OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $p:/tmp/community-operators-for-catalog"
     else
         echo -e "\nError: Full path to operator/version '$PWD/$2' was not found !!!\n"
         exit 1
@@ -161,8 +179,7 @@ else
     OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
     OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
     OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
-    OP_TEST_BASE_DIR=$p
-    OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
+    OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $p:/tmp/community-operators-for-catalog"
 fi
 
 if [ "$OP_TEST_STREAM" = "upstream-community-operators" ] ; then
@@ -243,7 +260,7 @@ for t in $TESTS;do
         echo -e "[$t] Reseting kind cluster ..."
         run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
     fi
-    echo -e "[$t] Running test ($OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION) ..."
+    echo -e "[$t] Running test ..."
     [[ $OP_TEST_DEBUG -ge 3 ]] && echo "OP_TEST_EXEC_EXTRA=$OP_TEST_EXEC_EXTRA"
     $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME > /dev/null 2>&1
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OP_TEST_NAME $OP_TEST_CONAINER_RUN_DEFAULT_ARGS $OP_TEST_CONTAINER_RUN_EXTRA_ARGS $OP_TEST_IMAGE
