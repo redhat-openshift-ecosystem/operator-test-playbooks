@@ -167,7 +167,7 @@ if [ -n "$2" ];then
         OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
         OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
         OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
-        OP_TEST_BASE_DIR=$p
+        #OP_TEST_BASE_DIR=$p
         OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
     else
         echo -e "\nError: Full path to operator/version '$PWD/$2' was not found !!!\n"
@@ -180,7 +180,7 @@ else
     OP_TEST_VERSION=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
     OP_TEST_OPERATOR=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
     OP_TEST_STREAM=$(echo $p | rev | cut -d'/' -f 1 | rev);p=$(dirname $p)
-    OP_TEST_BASE_DIR=$p
+    #OP_TEST_BASE_DIR=$p
     OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $OP_TEST_BASE_DIR:/tmp/community-operators-for-catalog"
 fi
 
