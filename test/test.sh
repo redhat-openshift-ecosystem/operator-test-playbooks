@@ -51,12 +51,13 @@ function checkExecutable() {
     for p in $*;do
         ! command -v $p > /dev/null 2>&1 && pm="$p $pm"
     done
-
-    echo "Error: Folowing packages needs to be installed !!!"
-    for p in $pm;do
-        echo -e "\t$p\n"
-    done
-    [ -n $pm ] && exit 1
+    if [ -n $pm ]; then
+        echo "Error: Folowing packages needs to be installed !!!"
+        for p in $pm;do
+            echo -e "\t$p\n"
+        done
+        exit 1
+    fi
 }
 
 function clean() {
