@@ -84,5 +84,12 @@
             operator_manifest_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1'] }}"
             operator_metadata_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1'] }}"
             operator_package_name: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] }}"
+
+        - name: "Failing when package name '{{ operator_package_name }}' is not same as operator dir name '{{ operator_dir_name }}'"
+          fail:
+            msg: "Package name from '{{ annotation_file_path }}' is '{{ operator_package_name }}' and it is not same as operator dir '{{ operator_dir_name }}' !!!"
+          when:
+            - operator_package_name != operator_dir_name
+
       when: operator_format == "bundle"
 
