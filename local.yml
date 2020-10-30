@@ -133,6 +133,17 @@
         - test
         - pure_test
 
+    - name: "Force remove operator"
+      include_role:
+        name: remove_operator_bundle
+      when:
+        - operator_dir is defined
+        - operator_dir != ""
+        - operator_dir != "dummy"
+      tags:
+        - never
+        - remove_operator
+
 - name: "Running operator manifest test"
   import_playbook: local-test-operator.yml
   when:
@@ -158,3 +169,4 @@
   tags:
     - never
     - deploy_bundles
+

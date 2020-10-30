@@ -1,7 +1,11 @@
 FROM centos:8
 RUN yum install epel-release -y
 RUN yum update -y
-RUN yum install -y ansible git podman
+RUN dnf -y module disable container-tools
+RUN dnf -y install 'dnf-command(copr)'
+RUN dnf -y copr enable rhcontainerbot/container-selinux
+RUN curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
+RUN dnf install -y ansible git podman buildah
 RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
