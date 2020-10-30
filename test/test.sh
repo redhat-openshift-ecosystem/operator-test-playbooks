@@ -244,7 +244,7 @@ else
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e run_prepare_catalog_repo_upstream=false"
 fi
 # Start container
-run echo -e " [ Preparing testing container '$OP_TEST_NAME' ] "
+echo -e " [ Preparing testing container '$OP_TEST_NAME' from '$OP_TEST_IMAGE' ] "
 $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE > /dev/null 2>&1 || { echo "Error: Problem pulling image '$OP_TEST_IMAGE' !!!"; exit 1; }
 
 for t in $TESTS;do
