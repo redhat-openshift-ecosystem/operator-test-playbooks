@@ -1,4 +1,8 @@
 ---
+- name: "Set OLM namespace to check"
+  set_fact:
+    olm_namespace_check: "openshift-operator-lifecycle-manager"
+
 - name: "Create {{ testing_bin_path }} directory"
   file:
     path: "{{ testing_bin_path }}"
@@ -22,6 +26,22 @@
   when:
     - dir_suffix_part is defined
     - dir_suffix_part != ""
+
+- name: "Get pod name"
+  shell: "{{ oc_bin_path }} get pods --all-namespaces --no-headers -o custom-columns=\":metadata.name\"|grep -i olm-operator"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: olm_pod_name
+
+- name: "Get OLM"
+  shell: "{{ oc_bin_path }} exec -n {{ olm_namespace_check }} {{ olm_pod_name.stdout }} -- olm --version"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: olm_version_output
+
+- name: "Show OLM version"
+  debug:
+    var: olm_version_output
 
 - name: "Download yq ({{ yq_version }})"
   get_url:
@@ -88,7 +108,15 @@
 
 - name: "Setting channel 2"
   set_fact:
-    current_channel: "{{ (current_channel_labels |  selectattr('key', 'search', 'operators.operatorframework.io.bundle.channels.v1') | list | first).value }}"
+    current_channel_set: "{{ (current_channel_labels |  selectattr('key', 'search', 'operators.operatorframework.io.bundle.channels.v1') | list | first).value }}"
+
+- name: "Ensure that channel is just one for a subscription"
+  shell: "echo {{ current_channel_set }} | awk -F ',' '{print $1}'"
+  register: current_channel_raw
+
+- name: "Channel defined"
+  set_fact:
+    current_channel: "{{ current_channel_raw.stdout }}"
 
 - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
   set_fact:
@@ -240,8 +268,8 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: run_upstream|bool
 
-- name: "Wait for the operator {{ operator.pod.name }} pod to start up"
-  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ package_name }} | grep Running"
+- name: "Wait for the operator {{ operator_pod_name }} pod to start up"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running"
   register: operator_result
   retries: 90
   delay: 10
@@ -250,15 +278,23 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
-#- name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
-#  shell: "[ $(echo `{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ package_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//' | head -1`) -ge \"60\" ]"
-#  register: operator_uptime
-#  retries: 15
-#  delay: 5
-#  until: operator_uptime.rc == 0
-#  ignore_errors: true
-#  environment:
-#    KUBECONFIG: "{{ kubeconfig_path }}"
+- name: "General debug"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running"
+  register: debug_output_time_general
+
+- name: "Debug time"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//' | head -1"
+  register: debug_output_time
+
+- name: "Wait for the operator {{ operator_pod_name }} pod  in {{ openshift_namespace }} to stay healthy for specific time"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//' | head -1"
+  register: operator_uptime
+  retries: 15
+  delay: 5
+  until: operator_uptime.stdout|int > 60
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Get the details of the deployed CSVs"
   shell: "{{ oc_bin_path }} describe csvs"
