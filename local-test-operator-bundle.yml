@@ -36,3 +36,4 @@
       when:
         - run_cleanup|bool
         - run_upstream|bool
+        - ( test_skip_deploy is undefined or not test_skip_deploy|bool )

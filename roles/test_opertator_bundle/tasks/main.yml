@@ -52,51 +52,55 @@
   include_role:
     name: validate_operator_bundle
 
-- name: "Set versions to current version as array"
-  set_fact:
-    operators_for_index: []
-    versions_to_test: "[ '{{ operator_version }}' ]"
-
-- name: "Setting 'operator_for_index' variable"
-  set_fact:
-    operators_for_index: "{{ operators_for_index | union( [{'name': operator_package_name, 'versions': versions_to_test }]) }}"
-
-- name: "Build the operator bundle index"
-  include_role:
-    name: build_operators_index
-  when: run_upstream|bool
-
-- name: "OLM setup"
+- name: "Deploy operator test"
   block:
-    - name: "Check if OLM is needed"
-      shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
-      register: olm_needed
-      failed_when: false
-    - name: "Install OLM"
+    - name: "Set versions to current version as array"
+      set_fact:
+        operators_for_index: []
+        versions_to_test: "[ '{{ operator_version }}' ]"
+
+    - name: "Setting 'operator_for_index' variable"
+      set_fact:
+        operators_for_index: "{{ operators_for_index | union( [{'name': operator_package_name, 'versions': versions_to_test }]) }}"
+
+    - name: "Build the operator bundle index"
+      include_role:
+        name: build_operators_index
+      when: run_upstream|bool
+
+    - name: "OLM setup"
       block:
-        - name: "Installing OLM"
-          shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
-          register: olm_install_rc
-          retries: 10
-          delay: 5
-          until: olm_install_rc.rc == 0
-
-        - name: "Delete catalogsource"
-          shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+        - name: "Check if OLM is needed"
+          shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
+          register: olm_needed
           failed_when: false
+        - name: "Install OLM"
+          block:
+            - name: "Installing OLM"
+              shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
+              register: olm_install_rc
+              retries: 10
+              delay: 5
+              until: olm_install_rc.rc == 0
+
+            - name: "Delete catalogsource"
+              shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+              failed_when: false
+          when:
+            # - olm_needed.stdout != "operatorgroup"
+            - olm_needed.stdout is not search('operatorgroup')
+
+      when: run_upstream|bool
+
+    - name: "Test operator on OLM"
+      include_role:
+        name: deploy_olm_operator_upstream_bundle
+      when: run_upstream|bool
+
+    - name: "Cleanup created resources on the KIND cluster"
+      include_role:
+        name: cleanup_operator_resources
       when:
-        # - olm_needed.stdout != "operatorgroup"
-        - olm_needed.stdout is not search('operatorgroup')
-
-  when: run_upstream|bool
-
-- name: "Test operator on OLM"
-  include_role:
-    name: deploy_olm_operator_upstream_bundle
-  when: run_upstream|bool
-
-- name: "Cleanup created resources on the KIND cluster"
-  include_role:
-    name: cleanup_operator_resources
+        - run_cleanup|bool
   when:
-    - run_cleanup|bool
+    - ( test_skip_deploy is undefined or not test_skip_deploy|bool )

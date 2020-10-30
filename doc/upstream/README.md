@@ -282,6 +282,7 @@ Usage:
 | index_force_update | Force to rebuild currently running operators in index. [bool] | false | false |
 | bundle_force_rebuild | Force to rebuild bundle of currently running operator and version. [bool] | undefined | undefined |
 | index_skip | Skip building index (it will build bundle only). [bool] | undefined | undefined |
+| test_skip_deploy | Skip deploy operator on kind cluster when testing. [bool] | undefined | undefined |
 | package_name_strict | Test if package name is same as operator directory name. [bool] | undefined | undefined |
 | remove_replaces | Remove replaces from csv. [bool] | undefined | undefined |
 | run_bundle_scorecard_test | Runs bundle scorecard test. [bool] | undefined | undefined |
@@ -320,6 +321,8 @@ Usage:
 |test_lite| Runs test if operator bundle exists on production registry. The variable `production_registry_namespace` needs to be set.|
 |pure_test_lite| Runs test if operator bundle exists on production registry. The variable `production_registry_namespace` needs to be set. (Installation of the operator prerequisites is excluded) |
 |deploy_bundles| Deploy all bundles defined by `operator_dir` or `operator_config` |
+|remove_operator| Removes operator from quay full bundle and index |
+
 
 
 # Scripts
