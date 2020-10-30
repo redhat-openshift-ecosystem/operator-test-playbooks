@@ -321,6 +321,8 @@ Usage:
 |test_lite| Runs test if operator bundle exists on production registry. The variable `production_registry_namespace` needs to be set.|
 |pure_test_lite| Runs test if operator bundle exists on production registry. The variable `production_registry_namespace` needs to be set. (Installation of the operator prerequisites is excluded) |
 |deploy_bundles| Deploy all bundles defined by `operator_dir` or `operator_config` |
+|remove_operator| Removes operator from quay full bundle and index |
+
 
 
 # Scripts
