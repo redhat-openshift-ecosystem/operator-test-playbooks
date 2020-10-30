@@ -5,6 +5,7 @@ ACTION=${1-""}
 TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
 TESTS=${TESTS//,/ }
+OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/operator-test"}
 
 OP_TEST_BASE_DEP="ansible curl openssl"
 
@@ -36,7 +37,7 @@ function help() {
     echo ""
     echo "op-test <test1,test2,...,testN> [<rebo>] [<branch>]"
     echo ""
-    echo "Note: 'op-test' can be substituted by 'bash <(curl -sL https://cutt.ly/operator-test)'"
+    echo "Note: 'op-test' can be substituted by 'bash <(curl -sL $OP_SCRIPT_URL)'"
     echo ""
     echo -e "Examples:\n"
     echo -e "\top-test all upstream-community-operators/aqua/1.0.2\n"
@@ -141,7 +142,7 @@ if [ "$ACTION" = "docker" ];then
 fi
 if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
-    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL https://cutt.ly/operator-test) $OP_TEST_CONTAINER_TOOL"
+    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL $OP_SCRIPT_URL) $OP_TEST_CONTAINER_TOOL"
     [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
     echo
     exit 1
