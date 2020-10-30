@@ -136,4 +136,8 @@ After actual bundle image is ready, whole package is removed from the index.
 Then bundle images are added, existing images from quay plus newly created one. It allows to change [update graph](https://github.com/operator-framework/community-operators/blob/master/docs/operator-versioning.md) after a merge also.
 
 ### Corner case - just ci.yaml has changed
+<<<<<<< HEAD
 In case no operator was modified, just [update graph](https://github.com/operator-framework/community-operators/blob/master/docs/operator-versioning.md), package is removed and added to index with actual flag setting update graph.
+=======
+In case no operator was modified, just [update graph](https://github.com/operator-framework/community-operators/blob/master/docs/operator-versioning.md), package is removed and added to index with actual flag setting update graph.
+>>>>>>> Index image doc added
