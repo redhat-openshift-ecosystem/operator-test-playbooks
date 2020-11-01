@@ -1,0 +1,22 @@
+FROM scratch
+
+# from metadata/annotations.yaml
+{% for key, value in annotations_vars.annotations.items() %}
+{% if value is string %}
+LABEL {{ key }}="{{ value }}"
+{% else %}
+LABEL {{ key }}={{ value }}
+{% endif %}
+{% endfor %}
+
+# from metadata/labels.yaml
+{% for key, value in labels_vars.labels.items() %}
+{% if value is string %}
+LABEL {{ key }}="{{ value }}"
+{% else %}
+LABEL {{ key }}={{ value }}
+{% endif %}
+{% endfor %}
+
+COPY ./manifests manifests/
+COPY ./metadata metadata/
