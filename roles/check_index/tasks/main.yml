@@ -61,12 +61,13 @@
 
         - name: "Setting list of repositories"
           set_fact:
-            chi_list_bundles_in_quay: "{{ chi_list_bundles_in_quay.json.repositories | map(attribute='name') | list }}"
-          no_log: true
+            chi_list_bundles_in_quay: "{{ chi_list_bundles_in_quay.json.repositories | map(attribute='name') | list | sort }}"
+            chi_list_bundles_in_quay_excludes: "['catalog']"
+          # no_log: true
 
         - name: "Setting list of operators present in index, but not in quay as bundles"
           set_fact:
-            chi_quay_bundles_not_index_operators: "{{ chi_list_bundles_in_quay | difference(elopfi_index_packages) | sort }}"
+            chi_quay_bundles_not_index_operators: "{{ chi_list_bundles_in_quay | difference(elopfi_index_packages) | difference(chi_list_bundles_in_quay_excludes) }}"
           no_log: true
 
         - name: "Print list of missing bundles"
