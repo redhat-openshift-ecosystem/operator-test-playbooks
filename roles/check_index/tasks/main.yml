@@ -62,11 +62,16 @@
         - name: "Setting list of repositories"
           set_fact:
             chi_list_bundles_in_quay: "{{ chi_list_bundles_in_quay.json.repositories | map(attribute='name') | list }}"
+          no_log: true
 
         - name: "Setting list of operators present in index, but not in quay as bundles"
           set_fact:
             chi_quay_bundles_not_index_operators: "{{ chi_list_bundles_in_quay | difference(chi_index_operators) }}"
           no_log: true
+
+        - name: "Print list of missing bundles"
+          debug:
+            var: chi_quay_bundles_not_index_operators
 
       when:
         - bundles_namespace is defined
