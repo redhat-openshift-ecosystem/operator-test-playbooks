@@ -66,7 +66,7 @@
 
         - name: "Setting list of operators present in index, but not in quay as bundles"
           set_fact:
-            chi_quay_bundles_not_index_operators: "{{ chi_index_operators | difference(chi_list_bundles_in_quay) | sort }}"
+            chi_quay_bundles_not_index_operators: "{{ elopfi_index_packages | difference(chi_list_bundles_in_quay) | sort }}"
           no_log: true
 
         - name: "Print list of missing bundles"
