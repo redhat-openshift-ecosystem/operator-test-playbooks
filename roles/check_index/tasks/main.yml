@@ -62,7 +62,8 @@
         - name: "Setting list of repositories"
           set_fact:
             chi_list_bundles_in_quay: "{{ chi_list_bundles_in_quay.json.repositories | map(attribute='name') | list | sort }}"
-            chi_list_bundles_in_quay_excludes: "['catalog']"
+            chi_list_bundles_in_quay_excludes:
+              - "catalog"
           # no_log: true
 
         - name: "Setting list of operators present in index, but not in quay as bundles"
