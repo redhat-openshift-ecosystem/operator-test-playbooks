@@ -85,7 +85,7 @@
             msg: "Some operators are not in sync !!! See above."
           when:
             - strict_mode is defined
-            - strict_mode|bool == true
+            - strict_mode|bool
 
       when: chi_uncomplete_packages.0 is defined
 

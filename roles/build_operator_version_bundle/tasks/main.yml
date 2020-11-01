@@ -254,9 +254,29 @@
 
         - name: "Push bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} push {{ bundle_image }}"
+          register: bbp_rc
           when:
             - bb_rc.rc is defined
             - bb_rc.rc == 0
+
+        - name: "Prints message that bundle was created"
+          debug:
+            msg: "Bundle {{ bundle_image }} was created and pushed : [OK]"
+          when:
+            - bb_rc.rc is defined
+            - bb_rc.rc == 0
+            - bbp_rc.rc is defined
+            - bbp_rc.rc == 0
+
+        - name: "Failing when bundle was not created or not pushed"
+          debug:
+            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+          when:
+            - bb_rc.rc is defined
+            - bbp_rc.rc is defined
+            - ( bb_rc.rc != 0 or bbp_rc.rc != 0 )
+            - strict_mode is defined
+            - strict_mode|bool
 
         - name: "Operator scorcard bundle test"
           include_role:
@@ -266,6 +286,8 @@
             - run_bundle_scorecard_test|bool
             - bb_rc.rc is defined
             - bb_rc.rc == 0
+            - bbp_rc.rc is defined
+            - bbp_rc.rc == 0
 
       when: operator_format == "bundle"
 
@@ -303,6 +325,16 @@
             - mb_rc.rc == 0
             - mbp_rc.rc is defined
             - mbp_rc.rc == 0
+
+        - name: "Failing when bundle from packagemanifest was not created or not pushed"
+          debug:
+            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+          when:
+            - mb_rc.rc is defined
+            - mbp_rc.rc is defined
+            - ( mb_rc.rc != 0 or mbp_rc.rc != 0 )
+            - strict_mode is defined
+            - strict_mode|bool
 
         - name: "Operator scorcard bundle test"
           include_role:
