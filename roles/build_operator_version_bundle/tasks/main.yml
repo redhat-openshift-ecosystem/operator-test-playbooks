@@ -186,10 +186,18 @@
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
           failed_when: false
 
-        - name: "Generate bundle image {{ bundle_image }} from bundle format"
+        # - name: "Generate bundle image {{ bundle_image }} from bundle format"
+        #   shell:
+        #     cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
+        #     chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+        #   # failed_when: false
+        #   ignore_errors: yes
+        #   register: bb_rc
+
+        - name: "Generate bundle image {{ bundle_image }} in bundle format"
           shell:
-            cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
-            chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+            cmd: "{{ opm_container_tool }} build --tag {{ bundle_image }} ."
+            chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}"
           # failed_when: false
           ignore_errors: yes
           register: bb_rc
