@@ -272,9 +272,7 @@
           debug:
             msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
           when:
-            - bb_rc.rc is defined
-            - bbp_rc.rc is defined
-            - ( bb_rc.rc != 0 or bbp_rc.rc != 0 )
+            - ((bb_rc.rc is defined and bb_rc.rc != 0) or (bbp_rc.rc is defined and bbp_rc.rc != 0))
             - strict_mode is defined
             - strict_mode|bool
 
@@ -330,9 +328,7 @@
           debug:
             msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
           when:
-            - mb_rc.rc is defined
-            - mbp_rc.rc is defined
-            - ( mb_rc.rc != 0 or mbp_rc.rc != 0 )
+            - ((mb_rc.rc is defined and mb_rc.rc != 0) or (mbp_rc.rc is defined and mbp_rc.rc != 0))
             - strict_mode is defined
             - strict_mode|bool
 
