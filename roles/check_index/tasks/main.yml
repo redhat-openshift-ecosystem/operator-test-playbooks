@@ -50,9 +50,9 @@
 
     - name: "Get list of  bundles in quay in {{ bundle_image_namespace }}"
       block:
-        - name: "Get list of all repositories in {{ bundle_image_namespace }}"
+        - name: "Get list of all repositories in {{ bundles_namespace }}"
           uri:
-            url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository?namespace={{ bundle_image_namespace }}"
+            url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository?namespace={{ bundles_namespace }}"
             method: GET
             force_basic_auth: yes
             headers:
@@ -69,7 +69,7 @@
           no_log: true
 
       when:
-        - bundle_image_namespace is defined
+        - bundles_namespace is defined
         - quay_api_token is defined
         - quay_api_token != ""
 
