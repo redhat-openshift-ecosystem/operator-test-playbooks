@@ -4,3 +4,10 @@ bundle_input_src_dir:  "/tmp/operator-test/operator-bundle-input/src"
 operator_base_dir: ""
 operator_bundle_src_dir: "/tmp/operator-test/operator-bundle/src"
 # operator_input_image: ""
+required_annotations:
+  - operators.operatorframework.io.bundle.channel.default.v1
+  - operators.operatorframework.io.bundle.channels.v1
+  - operators.operatorframework.io.bundle.manifests.v1
+  - operators.operatorframework.io.bundle.mediatype.v1
+  - operators.operatorframework.io.bundle.metadata.v1
+  - operators.operatorframework.io.bundle.package.v1

@@ -77,6 +77,26 @@
           set_fact:
             annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
 
+        - name: "Verify required annotation(s)"
+          block:
+            - name: "Reset 'df_failed_annotations_keys'"
+              set_fact:
+                df_failed_annotations_keys: ""
+
+            - name: "If the required keys is not found among the image labels, add it to the failed_labels"
+              set_fact:
+                df_failed_annotations_keys: "{{ df_failed_annotations_keys }} {{ item }}"
+              when: item not in annotations_vars.annotations
+              loop: "{{ required_annotations }}"
+
+            - name: "Fail if any of the required operator annotation(s) are not found"
+              fail:
+                msg: "Required operator bundle annotation(s) not found: {{ df_failed_annotations_keys }}"
+              when: df_failed_annotations_keys != ""
+
+          when: run_upstream|bool
+
+
         - name: "Set operators variables from annotation file"
           set_fact:
             operator_channel_default: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channel.default.v1'] }}"
