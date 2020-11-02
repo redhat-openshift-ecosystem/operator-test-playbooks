@@ -26,12 +26,23 @@
   debug:
     var: operators_for_index
 
-- name: "Faile when 'operators_for_index' is empty and it is forced to stop"
-  fail:
-    msg: "Nothing to"
+
+- name: "Fail when 'operators_for_index' is empty and it is forced to stop"
+  block:
+    - name: "Print several lines of text"
+      set_fact:
+        boi_msg:  |
+                  All operator versions are already in catalog !!!
+                  Note: This might also happen when user is changing already published version.
+                        In this case one can request for operator to be rewriten by asking this in PR.
+
+    - name: "Printing message when 'operators_for_index' is empty and it is forced to stop"
+      fail:
+        msg: "{{ boi_msg.split('\n') }}"
   when:
     - fail_on_no_index_change is defined
     - fail_on_no_index_change|bool
+    - operators_for_index.0 is undefined
 
 - name: "Build index image for all operators"
   include_role:
