@@ -186,19 +186,101 @@
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
           failed_when: false
 
-        - name: "Generate bundle image {{ bundle_image }} from bundle format"
+        # - name: "Generate bundle image {{ bundle_image }} from bundle format"
+        #   shell:
+        #     cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
+        #     chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+        #   # failed_when: false
+        #   ignore_errors: yes
+        #   register: bb_rc
+
+        - name: "Checking for presence of Dockerfile in '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}'"
+          stat:
+            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+          register: bovb_bundle_dockerfile
+
+        - name: "Trying to generate Dockerfile when not present."
+          block:
+            - name: "Reseting 'annotations_vars' and 'labels_vars'"
+              set_fact:
+                  annotations_vars:
+                  labels_vars:
+
+            - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
+              stat:
+                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml"
+              register: bovb_bundle_annotations_file
+
+            - name: "Getting info from 'annotations.yaml'"
+              block:
+                - name: "Getting content of labels file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
+                  shell: cat "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml"
+                  register: bovb_annotation_data
+
+                - name: "Seting annotation variables"
+                  set_fact:
+                    annotations_vars: "{{ bovb_annotation_data.stdout | from_yaml }}"
+              when: bovb_bundle_annotations_file.stat.exists
+
+            - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml'"
+              stat:
+                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml"
+              register: bovb_bundle_labels_file
+
+            - name: "Getting info from 'labels.yaml'"
+              block:
+                - name: "Getting content of labels file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml'"
+                  shell: cat {{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml
+                  register: bovb_bundle_labels_data
+
+                - name: "Setting lables variables"
+                  set_fact:
+                    labels_vars: "{{ bovb_bundle_labels_data.stdout | from_yaml }}"
+              when: bovb_bundle_labels_file.stat.exists
+
+            - name: "Generating Dockerfile using info from metadata directory."
+              template:
+                src: "Dockerfile.j2"
+                dest: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+
+          when: not bovb_bundle_dockerfile.stat.exists
+
+        - name: "Generate bundle image {{ bundle_image }} in bundle format"
           shell:
-            cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
-            chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
-          # failed_when: false
+            cmd: "{{ container_tool }} build --tag {{ bundle_image }} ."
+            chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}"
           ignore_errors: yes
           register: bb_rc
 
         - name: "Push bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} push {{ bundle_image }}"
+          register: bbp_rc
           when:
             - bb_rc.rc is defined
             - bb_rc.rc == 0
+
+        - name: "Prints message that bundle was created"
+          debug:
+            msg: "Bundle {{ bundle_image }} was created and pushed : [OK]"
+          when:
+            - bb_rc.rc is defined
+            - bb_rc.rc == 0
+            - bbp_rc.rc is defined
+            - bbp_rc.rc == 0
+
+        - name: "Print failing msg that bundle was not created or not pushed"
+          debug:
+            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+          when:
+            - ((bb_rc.rc is defined and bb_rc.rc != 0) or (bbp_rc.rc is defined and bbp_rc.rc != 0))
+
+        - name: "Failing when bundle was not created or not pushed"
+          fail:
+            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+          when:
+            - ((bb_rc.rc is defined and bb_rc.rc != 0) or (bbp_rc.rc is defined and bbp_rc.rc != 0))
+            - strict_mode is defined
+            - strict_mode|bool
 
         - name: "Operator scorcard bundle test"
           include_role:
@@ -208,6 +290,8 @@
             - run_bundle_scorecard_test|bool
             - bb_rc.rc is defined
             - bb_rc.rc == 0
+            - bbp_rc.rc is defined
+            - bbp_rc.rc == 0
 
       when: operator_format == "bundle"
 
@@ -245,6 +329,20 @@
             - mb_rc.rc == 0
             - mbp_rc.rc is defined
             - mbp_rc.rc == 0
+
+        - name: "Print failing msg that bundle was not created or not pushed"
+          debug:
+            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+          when:
+            - ((mb_rc.rc is defined and mb_rc.rc != 0) or (mbp_rc.rc is defined and mbp_rc.rc != 0))
+
+        - name: "Failing when bundle from packagemanifest was not created or not pushed"
+          fail:
+            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+          when:
+            - ((mb_rc.rc is defined and mb_rc.rc != 0) or (mbp_rc.rc is defined and mbp_rc.rc != 0))
+            - strict_mode is defined
+            - strict_mode|bool
 
         - name: "Operator scorcard bundle test"
           include_role:

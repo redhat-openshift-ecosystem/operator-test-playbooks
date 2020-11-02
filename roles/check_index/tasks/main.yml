@@ -39,12 +39,53 @@
       set_fact:
         chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
 
-    - set_fact:
+    - name: "Reseting uncomplete packages"
+      set_fact:
         chi_uncomplete_packages: []
 
-    - set_fact:
+    - name: "Setting list of uncomplete packages"
+      set_fact:
         chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
       with_items: "{{ chi_uncomplete_packages_list }}"
+
+    - name: "Get list of  bundles in quay in {{ bundle_image_namespace }}"
+      block:
+        - name: "Get list of all repositories in {{ bundles_namespace }}"
+          uri:
+            url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository?namespace={{ bundles_namespace }}"
+            method: GET
+            force_basic_auth: yes
+            headers:
+              Authorization: "Bearer {{ quay_api_token }}"
+          register: chi_list_bundles_in_quay
+          no_log: true
+
+        - name: "Setting list of repositories"
+          set_fact:
+            chi_list_bundles_in_quay: "{{ chi_list_bundles_in_quay.json.repositories | map(attribute='name') | list | sort }}"
+            chi_list_bundles_in_quay_excludes:
+              - "catalog"
+          no_log: true
+
+        - name: "Setting list of operators present in index, but not in quay as bundles"
+          set_fact:
+            chi_quay_bundles_not_index_operators: "{{ chi_list_bundles_in_quay | difference(elopfi_index_packages) | difference(chi_list_bundles_in_quay_excludes) }}"
+          no_log: true
+
+        - name: "Print list of missing bundles"
+          debug:
+            var: chi_quay_bundles_not_index_operators
+
+        - name: "Setting list of uncomplete packages from missing bundles"
+          set_fact:
+            chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
+          with_items: "{{ chi_quay_bundles_not_index_operators }}"
+
+      when:
+        - bundles_namespace is defined
+        - quay_api_token is defined
+        - quay_api_token != ""
+
   tags:
     - deploy_bundles
     - index_check

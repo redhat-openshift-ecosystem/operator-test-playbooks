@@ -19,16 +19,16 @@ jobs:
   include:
   - stage: Operator Tests pack 1
     name: Testing operator in bundle format
-    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/scripts/bundle-examples/prometheus -e operator_version=0.32.0 --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/scripts/bundle-examples/prometheus -e operator_version=0.32.0 --tags pure_test -e strict_mode=true
   - name: 1. Testing operator in manifest format, converting to bundle and bundle test
-    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e strict_mode=true
 
   - name: 2. Testing operator in manifest format, converting to bundle and bundle test
-    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/eclipse-che -e operator_version=7.14.2 -e operator_channel_force=stable --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/eclipse-che -e operator_version=7.14.2 -e operator_channel_force=stable --tags pure_test -e strict_mode=true
   - name: 3. Testing operator in manifest format, converting to bundle and bundle test
-    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/jaeger -e operator_version=1.18.0 --tags pure_test
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/jaeger -e operator_version=1.18.0 --tags pure_test -e strict_mode=true
   - name: 4. Testing operator in manifest format and manifest test only (Without conversion to bundle )
-    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e run_bundle_test=false -e run_manifest_test=true
+    script: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e run_bundle_test=false -e run_manifest_test=true -e strict_mode=true
 
   # # - stage: Operator Tests from image input (internal purposes only)
   # - name: Testing operator in image format

@@ -299,7 +299,7 @@ Usage:
 | mirror_index_images | List of mirror images for index. (e.g. "kind-registry:5000/test-operator/catalog_mirror_auth|<user>|<password>,kind-registry:5000/test-operator/catalog_mirror_no_auth") [string] | undefined | undefined |
 | index_mode_from_ci | Enable autodetect index add mode from <operator>/ci.yaml file [bool] | undefined | undefined |
 | openshift_robot_hash | e.g. "quay.io/operator_testing|<push-token>|<git-hash>" [string] | undefined | undefined |
-
+| bundles_namespace | Quay namespace where to find list of packages and compare it with packages in index (eg. "openshift-community-operators" or "operatorhubio" )[string]|undefined||
 
 ## Tags to use
 
@@ -370,6 +370,16 @@ ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-comm
 -e run_upstream=true --tags index_check \
 -e bundle_index_image=quay.io/operatorhubio/catalog \
 -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
+```
+
+# Check index with addition of packages are in index but not in bundles_namespace (operatorhubio) in quay.io
+
+```
+ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-community -vv -i localhost, local.yml \
+-e run_upstream=true --tags index_check \
+-e bundle_index_image=quay.io/operatorhubio/catalog \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
+-e bundles_namespace=operatorhubio -e quay_api_token=<token>
 ```
 
 # Prepare bundle and index for Openshift robot

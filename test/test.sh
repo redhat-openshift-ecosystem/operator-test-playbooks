@@ -5,6 +5,7 @@ ACTION=${1-""}
 TESTS=$1
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
 TESTS=${TESTS//,/ }
+OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/operator-test"}
 
 OP_TEST_BASE_DEP="ansible curl openssl"
 
@@ -36,7 +37,7 @@ function help() {
     echo ""
     echo "op-test <test1,test2,...,testN> [<rebo>] [<branch>]"
     echo ""
-    echo "Note: 'op-test' can be substituted by 'bash <(curl -sL https://cutt.ly/operator-test)'"
+    echo "Note: 'op-test' can be substituted by 'bash <(curl -sL $OP_SCRIPT_URL)'"
     echo ""
     echo -e "Examples:\n"
     echo -e "\top-test all upstream-community-operators/aqua/1.0.2\n"
@@ -141,7 +142,7 @@ if [ "$ACTION" = "docker" ];then
 fi
 if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
-    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL https://cutt.ly/operator-test) $OP_TEST_CONTAINER_TOOL"
+    [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL $OP_SCRIPT_URL) $OP_TEST_CONTAINER_TOOL"
     [ "$OP_TEST_CONTAINER_TOOL" = "podman" ] && echo -e "\n\tContainer tool '$OP_TEST_CONTAINER_TOOL' is not supported yet"
     echo
     exit 1
@@ -244,7 +245,7 @@ else
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e run_prepare_catalog_repo_upstream=false"
 fi
 # Start container
-run echo -e " [ Preparing testing container '$OP_TEST_NAME' ] "
+echo -e " [ Preparing testing container '$OP_TEST_NAME' from '$OP_TEST_IMAGE' ] "
 $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE > /dev/null 2>&1 || { echo "Error: Problem pulling image '$OP_TEST_IMAGE' !!!"; exit 1; }
 
 for t in $TESTS;do
