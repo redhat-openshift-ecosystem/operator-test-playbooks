@@ -10,6 +10,8 @@ LABEL {{ key }}={{ value }}
 {% endfor %}
 
 # from metadata/labels.yaml
+
+{% if labels_vars.labels is defined %}
 {% for key, value in labels_vars.labels.items() %}
 {% if value is string %}
 LABEL {{ key }}="{{ value }}"
@@ -17,6 +19,7 @@ LABEL {{ key }}="{{ value }}"
 LABEL {{ key }}={{ value }}
 {% endif %}
 {% endfor %}
+{% endif %}
 
 COPY ./manifests manifests/
 COPY ./metadata metadata/

@@ -26,6 +26,13 @@
   debug:
     var: operators_for_index
 
+- name: "Faile when 'operators_for_index' is empty and it is forced to stop"
+  fail:
+    msg: "Nothing to"
+  when:
+    - fail_on_no_index_change is defined
+    - fail_on_no_index_change|bool
+
 - name: "Build index image for all operators"
   include_role:
     name: build_operator_index
