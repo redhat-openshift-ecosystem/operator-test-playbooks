@@ -33,7 +33,6 @@
     - fail_on_no_index_change is defined
     - fail_on_no_index_change|bool
 
-
 - name: "Build index image for all operators"
   include_role:
     name: build_operator_index
