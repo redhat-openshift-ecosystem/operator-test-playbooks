@@ -302,7 +302,6 @@ Usage:
 | openshift_robot_hash | e.g. "quay.io/operator_testing|<push-token>|<git-hash>" [string] | undefined | undefined |
 | bundles_namespace | Quay namespace where to find list of packages and compare it with packages in index (eg. "openshift-community-operators" or "operatorhubio" )[string]|undefined||
 
-
 ## Tags to use
 
 Usage:
