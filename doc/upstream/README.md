@@ -280,6 +280,7 @@ Usage:
 | opm_container_tool_index | Container tool to use when using opm tool. [string] | docker  | as default |
 | operator_channel_force | Forcing to adde channel and default channed to current string value. When empty string it is autodetected by playbook. [string] | undefined | undefined |
 | index_force_update | Force to rebuild currently running operators in index. [bool] | false | false |
+| fail_on_no_index_change | Force to fail when no update in index is needed. [bool] | undefined | undefined |
 | bundle_force_rebuild | Force to rebuild bundle of currently running operator and version. [bool] | undefined | undefined |
 | index_skip | Skip building index (it will build bundle only). [bool] | undefined | undefined |
 | test_skip_deploy | Skip deploy operator on kind cluster when testing. [bool] | undefined | undefined |
@@ -300,6 +301,7 @@ Usage:
 | index_mode_from_ci | Enable autodetect index add mode from <operator>/ci.yaml file [bool] | undefined | undefined |
 | openshift_robot_hash | e.g. "quay.io/operator_testing|<push-token>|<git-hash>" [string] | undefined | undefined |
 | bundles_namespace | Quay namespace where to find list of packages and compare it with packages in index (eg. "openshift-community-operators" or "operatorhubio" )[string]|undefined||
+
 
 ## Tags to use
 
