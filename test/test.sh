@@ -78,20 +78,14 @@ run() {
         if [[ $OP_TEST_DEBUG -ge 4 ]] ; then
                 v=$(exec 2>&1 && set -x && set -- "$@")
                 echo "#${v#*--}"
-                set -o pipefail
-                "$@" | tee -a $OP_TEST_LOG_DIR/log.out
+                "$@" | tee -a $OP_TEST_LOG_DIR/log.out | test ${PIPESTATUS[0]} -eq 0
                 [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
-                set +o pipefail
         elif [[ $OP_TEST_DEBUG -ge 1 ]] ; then
-                set -o pipefail
-                "$@" | tee -a $OP_TEST_LOG_DIR/log.out
+                "$@" | tee -a $OP_TEST_LOG_DIR/log.out | test ${PIPESTATUS[0]} -eq 0
                 [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
-                set +o pipefail
         else
-                set -o pipefail
-                "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1
+                "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1 | test ${PIPESTATUS[0]} -eq 0
                 [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
-                set +o pipefail
         fi
 }
 
