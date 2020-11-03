@@ -5,7 +5,7 @@ RUN dnf -y module disable container-tools
 RUN dnf -y install 'dnf-command(copr)'
 RUN dnf -y copr enable rhcontainerbot/container-selinux
 RUN curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
-RUN dnf install -y ansible git podman buildah
+RUN dnf install -y ansible git podman buildah python3-libselinux
 RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/

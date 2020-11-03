@@ -35,7 +35,7 @@
 - name: "Handle manifest and metadata validation for Openshift"
   block:
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
-      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} 2>&1 | tee {{ work_dir}}/validation-output.txt"
+      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} 2>&1 | tee {{ work_dir}}/validation-output.txt | test ${PIPESTATUS[0]} -eq 0"
       register: sdk_validation_result
       ignore_errors: true
 
@@ -56,7 +56,7 @@
 - name: "Handle manifest and metadata validation for Kind"
   block:
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
-      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} 2>&1 | tee {{ work_dir}}/validation-output.txt"
+      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} 2>&1 | tee {{ work_dir}}/validation-output.txt | test ${PIPESTATUS[0]} -eq 0"
       register: sdk_validation_upstream_result
       ignore_errors: true
 
