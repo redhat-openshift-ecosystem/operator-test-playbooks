@@ -1,6 +1,6 @@
 ---
-# Playbook parameters: 
-# 
+# Playbook parameters:
+#
 # operator_work_dir: Operator_work_dir is essentially empty folder
 # operator_dir: where the operator metadata is unziped and copied
 #               using operator-courier
@@ -10,7 +10,7 @@
 # yq_bin_path: Path to yaml query binary is installed
 # testing_bin_path: Path were all the testing binaries exists
 # current_channel: Operator channel determined from the metadata
-              
+
 - name: "Prepare operator metadata for usage with the operator testing pipeline"
   hosts: all
   become: false
@@ -21,10 +21,11 @@
     operator_work_dir: "/home/jenkins/agent/test-operator"
     operator_dir: "/tmp/test"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
-    jq_bin_path : "/usr/bin/jq"
+    jq_bin_path: "/usr/bin/jq"
     yq_bin_path: "/usr/local/bin/yq"
     testing_bin_path: "/usr/local/bin"
-    current_channel: '' # Added to avoid a bug with undefined variables
+    # Added to avoid a bug with undefined variables
+    current_channel: ''
 
   tasks:
 
@@ -39,29 +40,26 @@
         - name: "Run operator-courier nest to copy operator metadata in nested format to the work dir"
           shell: "operator-courier nest {{ operator_dir }} {{ operator_work_dir }}"
 
-        - name: "Parse operator metadata needed to run the tests"
-          include_role:
-            name: parse_operator_metadata
-
       rescue:
         - name: "Rescue block contains the error messages"
           debug:
             msg: "Rescue block has found an error, The following are details of failed task."
-        - name: "FAILED task name in ansible is as follows:"
+
+        - name: "FAILED task name in ansible is as follows"
           debug:
             msg: "{{ ansible_failed_task.name }}"
 
-        - name: "Result of failed task"
-          debug:
-            msg: "{{ ansible_failed_result }}"
-
         - name: "Set failure result"
           set_fact:
-            parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}", 'description': 'Failed on operator courier nest command check the directory structure'}
+            parse_operator_metadata_results: {'result': 'fail', 'ansible_output': "{{ ansible_failed_result }}", 'msg': 'Failed on operator courier nest command check the directory structure'}
 
-        - name: "Fail the play with the results"
+        - name: "Debug statement for ansible result"
+          debug:
+            msg: "{{ ansible_failed_result | to_nice_yaml(indent=8, width=1337) }}"
+
+        - name: "Failure message"
           fail:
-            msg: "{{ parse_operator_metadata_results }}"
+            msg: "{{ parse_operator_metadata_results['msg'] }}"
 
       always:
         - name: "Write parse_operator_metadata results to json file"
@@ -72,3 +70,4 @@
     - name: "Parse operator metadata needed to run the tests"
       include_role:
         name: parse_operator_metadata
+
