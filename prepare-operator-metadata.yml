@@ -27,14 +27,47 @@
     current_channel: '' # Added to avoid a bug with undefined variables
 
   tasks:
-    
+
     - name: "Set variables for operator_work_dir and operator_dir"
       set_fact:
-        operator_work_dir: "{{ operator_work_dir | default('/home/jenkins/agent/test-operator')}}"
+        operator_work_dir: "{{ operator_work_dir |
+                               default('/home/jenkins/agent/test-operator')}}"
         operator_dir: "{{ operator_dir | default('/tmp/test') }}"
+        parse_operator_metadata_results: {'result': '', 'msg': ''}
 
-    - name: "Run operator-courier nest to copy the operator metadata in nested format to the work dir"
-      shell: "operator-courier nest {{ operator_dir }} {{ operator_work_dir }}"
+    - block:
+        - name: "Run operator-courier nest to copy operator metadata in nested format to the work dir"
+          shell: "operator-courier nest {{ operator_dir }} {{ operator_work_dir }}"
+
+        - name: "Parse operator metadata needed to run the tests"
+          include_role:
+            name: parse_operator_metadata
+
+      rescue:
+        - name: "Rescue block contains the error messages"
+          debug:
+            msg: "Rescue block has found an error, The following are details of failed task."
+        - name: "FAILED task name in ansible is as follows:"
+          debug:
+            msg: "{{ ansible_failed_task.name }}"
+
+        - name: "Result of failed task"
+          debug:
+            msg: "{{ ansible_failed_result }}"
+
+        - name: "Set failure result"
+          set_fact:
+            parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}", 'description': 'Failed on operator courier nest command check the directory structure'}
+
+        - name: "Fail the play with the results"
+          fail:
+            msg: "{{ parse_operator_metadata_results }}"
+
+      always:
+        - name: "Write parse_operator_metadata results to json file"
+          copy:
+            content: "{{ parse_operator_metadata_results | to_nice_json }}"
+            dest: parse_operator_metadata_results.json
 
     - name: "Parse operator metadata needed to run the tests"
       include_role:
