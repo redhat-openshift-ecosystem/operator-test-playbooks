@@ -43,11 +43,11 @@
       register: courier_verify_upstream_result
       ignore_errors: true
 
-    - name: "Output the return code of operator-courier verify command to a debug file '{{ work_dir }}/linting-rc.txt'"
-      copy:
-        content: "{{ courier_verify_upstream_result.rc }}"
-        dest: "{{ work_dir }}/linting-rc.txt"
-      when: courier_verify_upstream_result.rc is defined
+    # - name: "Output the return code of operator-courier verify command to a debug file '{{ work_dir }}/linting-rc.txt'"
+    #   copy:
+    #     content: "{{ courier_verify_upstream_result.rc }}"
+    #     dest: "{{ work_dir }}/linting-rc.txt"
+    #   when: courier_verify_upstream_result.rc is defined
 
     - name: "Handle permisive mode when operator is failing to deploy on kind cluster"
       set_fact:
@@ -59,7 +59,7 @@
 
     - name: "Fail if the operator didn't satisfy the operator courier verification test"
       fail:
-        msg: 'Operator courier verification test failed, check linting-errors.txt for more details'
+        msg: 'Operator courier verification test failed, check output from above for more details'
       when:
         - check_verify_result|bool
         - courier_verify_upstream_result.rc != 0
