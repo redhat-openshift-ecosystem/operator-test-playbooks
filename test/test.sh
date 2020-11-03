@@ -7,7 +7,7 @@ TESTS=$1
 TESTS=${TESTS//,/ }
 OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/operator-test"}
 
-OP_TEST_BASE_DEP="ansible curl openssl"
+OP_TEST_BASE_DEP="ansible curl openssl git"
 
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
 OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
