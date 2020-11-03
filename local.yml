@@ -67,6 +67,7 @@
         run_cleanup: "{{ run_cleanup | default(true) }}"
         run_remove_catalog_repo: "{{ run_remove_catalog_repo | default(true) }}"
         operator_format: "bundle"
+        check_verify_result: "{{ check_verify_result | default(true) }}"
 
       tags:
         - always
