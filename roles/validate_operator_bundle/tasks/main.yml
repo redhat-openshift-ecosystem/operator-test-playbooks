@@ -60,17 +60,17 @@
       register: sdk_validation_upstream_result
       ignore_errors: true
 
-    - name: "Output the return code of operator-sdk bundle validate command to a debug file"
-      copy:
-        content: "{{ sdk_validation_upstream_result.rc }}"
-        dest: "{{ work_dir }}/validation-rc.txt"
-      when: sdk_validation_upstream_result.rc is defined
+    # - name: "Output the return code of operator-sdk bundle validate command to a debug file"
+    #   copy:
+    #     content: "{{ sdk_validation_upstream_result.rc }}"
+    #     dest: "{{ work_dir }}/validation-rc.txt"
+    #   when: sdk_validation_upstream_result.rc is defined
 
-    - name: "Display content of validation files"
-      shell: "cat {{ item }}"
-      with_items:
-        - "{{ work_dir }}/validation-output.txt"
-        - "{{ work_dir }}/validation-rc.txt"
+    # - name: "Display content of validation files"
+    #   shell: "cat {{ item }}"
+    #   with_items:
+    #     - "{{ work_dir }}/validation-output.txt"
+    #     - "{{ work_dir }}/validation-rc.txt"
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
