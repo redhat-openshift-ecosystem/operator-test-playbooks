@@ -44,17 +44,19 @@
     stat:
       path: "{{ csv_file_path }}"
     register: csv_file_st
+    no_log: True
 
   - name: "Fail if csv file '{{ csv_file_path }}' doesn't exists"
     fail:
+      msg: "CSV file '{{ csv_file_path }}' doesn't exists !!!"
     when: not csv_file_st.stat.exists
 
-  - name: "Getting metadata content from csv '{{ csv_file_path | basename }}'"
+  - name: "Getting metadata content from csv '{{ csv_file_path }}'"
     shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata"
     register: csv_data_metadata
     no_log: True
 
-  - name: "Getting spec content from csv '{{ csv_file_path | basename }}'"
+  - name: "Getting spec content from csv '{{ csv_file_path }}'"
     shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t spec"
     register: csv_data_spec
     no_log: True
