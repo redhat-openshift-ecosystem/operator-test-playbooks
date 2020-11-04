@@ -46,7 +46,7 @@
       failed_when: false
       changed_when: false
 
-    - name: "Get list of versions_in_dir from bundle production registry ('{{ production_registry_namespace }}')"
+    - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}/tags/list"
       register: bob_prod_registry_versions
