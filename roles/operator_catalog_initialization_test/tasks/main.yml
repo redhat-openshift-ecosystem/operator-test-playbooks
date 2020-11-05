@@ -14,6 +14,9 @@
 - name: "Download the production bundle catalog manifests"
   shell: "{{ oc_bin_path }} adm catalog build --appregistry-org={{ production_quay_namespace }} --from=scratch"
   register: catalog_manifests_dir_result
+  retries: 5
+  delay: 10
+  until: catalog_manifests_dir_result.rc == 0
   no_log: true
 
 - set_fact:
