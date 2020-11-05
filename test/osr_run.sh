@@ -44,12 +44,13 @@ if [ -z $BRANCH ];then
         exit 1
     fi
 
-    rm -f /tmp/pull.json > /dev/null 2>&1
-    curl -s https://api.github.com/repos/operator-framework/community-operators/pulls/$REPO -o /tmp/pull.json
-    REPO=$(cat /tmp/pull.json | jq -r '.head.repo.clone_url')
-    BRANCH=$(cat /tmp/pull.json | jq -r '.head.ref')
-    COMMIT=$(cat /tmp/pull.json | jq -r '.head.sha')
+    tmpfile=$(mktemp /tmp/XXXXXX.json)
+    curl -s https://api.github.com/repos/operator-framework/community-operators/pulls/$REPO -o $tmpfile
+    REPO=$(cat $tmpfile | jq -r '.head.repo.clone_url')
+    BRANCH=$(cat $tmpfile | jq -r '.head.ref')
+    COMMIT=$(cat $tmpfile | jq -r '.head.sha')
     echo "Pull request #$1 : $REPO $BRANCH $COMMIT"
+    rm -f $tmpfile > /dev/null 2>&1
 
 fi
 
