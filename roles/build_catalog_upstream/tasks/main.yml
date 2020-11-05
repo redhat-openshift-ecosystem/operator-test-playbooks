@@ -1,13 +1,8 @@
 ---
-
-- fail:
+- name: "Fail because bundle format is not supported in manifest test yet"
+  fail:
     msg: "Bundle format is not supported in manifest test yet !!!"
   when: operator_format == "bundle"
-
-# #future feature
-# - name: "Quay login"
-#   shell: "docker login -u=\"{{ quay_namespace }}+test\" -p={{ quay_token }} quay.io"
-#   no_log: True
 
 - name: "Build catalog image from '{{ catalog_repo_dir }}/{{ catalog_dockerfile }}'"
   docker_image:
@@ -26,7 +21,7 @@
 
 - name: "Delete previous catalog deployment (it may fail if not exists)"
   shell: "{{ oc_bin_path }} delete deployment {{ catalog_source_name }} -n {{ catalog_source_namespace }} --ignore-not-found=true"
-  ignore_errors: yes
+  failed_when: false
   tags:
     - catalog_build
 

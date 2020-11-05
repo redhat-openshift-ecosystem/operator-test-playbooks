@@ -19,12 +19,15 @@
     offline_cataloger_bin_path: "offline-cataloger"
 
 # Install the oc client to talk to any Openshift cluster
-- name: "Download and extract OpenShift client binary(oc) to {{ testing_bin_path }}"
+- name: "Download and extract OpenShift client binary 'oc' ({{ oc_version }}) to {{ testing_bin_path }}"
   unarchive:
     src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: yes
-  when: not run_upstream|bool
+  register: download_and_unpack_oc
+  until: download_and_unpack_oc is succeeded
+  retries: 10
+  delay: 15
   tags:
     - install
     - image_build
@@ -34,55 +37,97 @@
     src: "https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: yes
+  register: download_and_unpack_go
+  until: download_and_unpack_go is succeeded
+  retries: 10
+  delay: 15
   tags:
     - install
     - image_build
 
-- name: "Install operator-sdk"
-  get_url:
-    url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu
-    dest: "{{ operator_sdk_bin_path }}"
-    mode: "0755"
+- name: "Remove '{{ opm_bin_path }}' binary"
+  file:
+    path: "{{ opm_bin_path }}"
+    state: absent
   tags:
     - install
-    - host_build
+    - uninstall
+    - reset_tools
 
-- name: "Install opm"
+- name: "Install opm ({{ opm_version }})"
   get_url:
     url: https://github.com/operator-framework/operator-registry/releases/download/{{ opm_version }}/linux-amd64-opm
     dest: "{{ opm_bin_path }}"
     mode: "0755"
+  register: opm_install_result
+  until: opm_install_result.status_code is undefined or opm_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: opm_install_result is failure
   tags:
     - install
     - host_build
+    - reset_tools
 
-- name: "Download jq {{ jq_version }}"
+- name: "Remove '{{ jq_bin_path }}' binary"
+  file:
+    path: "{{ jq_bin_path }}"
+    state: absent
+  tags:
+    - install
+    - uninstall
+    - reset_tools
+
+- name: "Download jq ({{ jq_version }})"
   get_url:
     url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64"
     dest: "{{ jq_bin_path }}"
     mode: "0755"
+  register: jq_install_result
+  until: jq_install_result.status_code is undefined or jq_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: jq_install_result is failure
   tags:
     - install
     - image_build
+    - reset_tools
 
-- name: "Download yq {{ yq_version }}"
+- name: "Remove '{{ yq_bin_path }}' binary"
+  file:
+    path: "{{ yq_bin_path }}"
+    state: absent
+  tags:
+    - install
+    - uninstall
+    - reset_tools
+
+- name: "Download yq ({{ yq_version }})"
   get_url:
     url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
     dest: "{{ yq_bin_path }}"
     mode: "0755"
+  register: yq_install_result
+  until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: yq_install_result is failure
   tags:
     - install
     - image_build
+    - uninstall
+    - reset_tools
 
 - name: "Install prerequisites specific to legacy operator manifest testing"
   block:
+
     - name: "Check if operator-courier is installed"
       shell: "operator-courier -v"
       register: operator_courier_version_result
-      ignore_errors: true
+      failed_when: false
 
-    - name: "Install operator-courier if not already installed"
-      shell: "pip3 install operator-courier=={{ operator_courier_version }}"
+    - name: "Install operator-courier ({{ operator_courier_version }}) if not already installed"
+      shell: "pip3 install --upgrade operator-courier=={{ operator_courier_version }}"
       when:
         - operator_courier_version_result.rc is defined
         - operator_courier_version_result.rc != 0
@@ -90,7 +135,7 @@
     - name: "Check if offline-cataloger is installed"
       shell: "offline-cataloger -h"
       register: offline_cataloger_help_result
-      ignore_errors: true
+      failed_when: false
       when: not run_upstream|bool
 
     - name: "Git clone offline-cataloger repo with the offline-cataloger command"
@@ -108,32 +153,35 @@
       when:
         - offline_cataloger_help_result.rc is defined
         - offline_cataloger_help_result.rc != 0
-  when:
-    - operator_dir is defined
-    - operator_dir != ""
+  # when:
+  #   - operator_dir is defined
+  #   - operator_dir != ""
   tags:
     - install
     - image_build
 
 - name: "Install prerequisites specific to operator bundle image testing"
   block:
+
     - name: "Check if skopeo is installed"
       shell: "skopeo -h"
       register: skopeo_help_result
-      ignore_errors: true
+      failed_when: false
 
     - name: "Install skopeo"
       block:
-        - name: Generating file for install_skopeo.sh
+
+        - name: "Generating file for install_skopeo.sh"
           template:
             src: install_skopeo.sh.j2
             dest: "/tmp/install_skopeo.sh"
             mode: "0755"
           when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-        - name: "Configuring Kind with registry"
+        - name: "Installing skopeo for ubuntu"
           shell: "/tmp/install_skopeo.sh"
           when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
         - package:
             name: skopeo
             state: present
@@ -141,23 +189,49 @@
       when:
         - skopeo_help_result.rc is defined
         - skopeo_help_result.rc != 0
+      tags:
+        - host_build
+        - image_build
+        - install
+        - uninstall
+        - reset_tools
 
-    - name: "Check if umoci is installed"
-      shell: "{{ umoci_bin_path }} -h"
-      register: umoci_help_result
-      ignore_errors: true
+    - name: "Remove '{{ umoci_bin_path }}' binary"
+      file:
+        path: "{{ umoci_bin_path }}"
+        state: absent
+      tags:
+        - uninstall
+        - reset_tools
 
-    - name: "Install umoci if not installed"
-      get_url:
-        url: "https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
-        dest: "{{ umoci_bin_path }}"
-        mode: "0755"
-      when:
-        - umoci_help_result.rc is defined
-        - umoci_help_result.rc != 0
-  when:
-    - bundle_image is defined
-    - bundle_image != ""
+    - name: "Handling umoci binary"
+      block:
+
+        - name: "Check if umoci is installed"
+          shell: "{{ umoci_bin_path }} -h"
+          register: umoci_help_result
+          failed_when: false
+
+        - name: "Install umoci ({{ umoci_version }})"
+          get_url:
+            url: "https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
+            dest: "{{ umoci_bin_path }}"
+            mode: "0755"
+          register: umoci_install_result
+          until: umoci_install_result.status_code is undefined or umoci_install_result.status_code == 200
+          retries: 10
+          delay: 15
+          failed_when: umoci_install_result is failure
+          when:
+            - umoci_help_result.rc is defined
+            - umoci_help_result.rc != 0
+      tags:
+        - install
+        - uninstall
+        - reset_tools
+  # when:
+  #   - bundle_image is defined
+  #   - bundle_image != ""
   tags:
     - install
     - image_build

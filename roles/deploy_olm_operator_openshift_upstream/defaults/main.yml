@@ -1,0 +1,51 @@
+work_subdir_name: "operator-test"
+work_dir: "/tmp/{{ work_subdir_name }}"
+operator_input_image: ""
+image_protocol: "docker://"
+operator_work_dir: "{{ work_dir }}/operator-files"
+testing_bin_path: "{{ work_dir }}/bin"
+jq_bin_path: "{{ testing_bin_path }}/jq"
+yq_bin_path: "{{ testing_bin_path }}/yq"
+go_bin_path: "{{ testing_bin_path }}/go/bin/go"
+operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+umoci_bin_path: "{{ testing_bin_path }}/umoci"
+opm_bin_path: "{{ testing_bin_path }}/opm"
+offline_cataloger_bin_path: "offline-cataloger"
+kind_version: v0.9.0
+kind_kube_version: v1.19.1
+operator_sdk_version: v0.18.2
+olm_version: 0.15.1
+opm_version: v1.14.2
+yq_version: 2.2.1
+operator_allnamespaces_support: false
+operator_ownnamespace_support: false
+operator_singlenamespace_support: true
+operator_multinamespace_support: false
+run_upstream: false
+bundle_registry: quay.io
+oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
+openshift_namespace: test-operators
+quay_namespace: operator_testing_community
+current_channel: alpha
+quay_release: 0.0.1
+kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
+olm_operator_files_path: "/tmp/oper-to-deploy-{{ dir_suffix_part }}"
+run_bundle_test: false
+operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
+operator_dir_name: "{{ operator_dir | basename }}"
+#test_quay_namespace: openshift-community-operators
+test_quay_namespace: operator_testing
+oc_version_test: "4.6"
+#operator_work_dir: /home/jenkins/agent/test-operator
+#run_host_init: true
+#run_prereqs: true
+#run_lint: true
+#run_catalog_init: true
+#run_deploy: true
+#run_scorecard: true
+#run_imagesource: true
+#run_cleanup: true
+#run_remove_catalog_repo: true
+#run_manifest_test: false
+#run_bundle_test: true
+#bundle_image: "dummy" # so skopeo and umoci will be installed

@@ -1,0 +1,56 @@
+# - name: "Setting 'bundle_index_image' variable"
+#   set_fact:
+#     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+
+- name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
+  set_fact:
+    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+
+- name: "Setting 'bundle_index_image' for openshift robot"
+  set_fact:
+    bundle_index_image: "{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}:{{ openshift_robot_hash_array[2] }}"
+  when:
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2 != ""
+
+- name: "Remove index image '{{ bundle_index_image }}'"
+  shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
+  failed_when: false
+
+- name: "Reseting 'operators_for_index' variable when 'index_skip' is true"
+  set_fact:
+    operators_for_index: "[]"
+  when: index_skip is defined and index_skip|bool
+
+- name: "Printing operators for index to be added"
+  debug:
+    var: operators_for_index
+
+
+- name: "Fail when 'operators_for_index' is empty and it is forced to stop"
+  block:
+    - name: "Print several lines of text"
+      set_fact:
+        boi_msg:  |
+                  All operator versions are already in catalog !!!
+                  Note: This might also happen when user is changing already published version.
+                        In this case one can request for operator to be rewriten by asking this in PR.
+
+    - name: "Printing message when 'operators_for_index' is empty and it is forced to stop"
+      fail:
+        msg: "{{ boi_msg.split('\n') }}"
+  when:
+    - fail_on_no_index_change is defined
+    - fail_on_no_index_change|bool
+    - operators_for_index.0 is undefined
+
+- name: "Build index image for all operators"
+  include_role:
+    name: build_operator_index
+  vars:
+    ba_name: "{{ ops_item.name }}"
+    ba_versions: "{{ ops_item.versions }}"
+    ba_versions_prod: "{{ ops_item.versions_prod | default([]) }}"
+  loop: "{{ operators_for_index }}"
+  loop_control:
+    loop_var: ops_item

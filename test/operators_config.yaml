@@ -1,0 +1,6 @@
+operator_base_dir: /tmp/community-operators-for-catalog/upstream-community-operators
+operators:
+- aqua
+- api-operator
+- prometheus
+

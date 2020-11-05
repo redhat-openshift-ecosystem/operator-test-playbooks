@@ -3,7 +3,7 @@
   shell: "for f in $(find {{ olm_operator_files_path }} -maxdepth 1 -name \"*.yml\"); do {{ oc_bin_path }} delete --ignore-not-found=true -f $f; done"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  ignore_errors: true
+  failed_when: false
 
 - name: "Delete the operator owned CRDs if any"
   shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true"
@@ -17,7 +17,7 @@
   - name: "Verify if {{ openshift_namespace }} project exists"
     shell: "{{ oc_bin_path }} project {{ openshift_namespace }}"
     register: openshift_namespace_check_result
-    ignore_errors: true
+    failed_when: false
     environment:
       KUBECONFIG: "{{ kubeconfig_path }}"
 
