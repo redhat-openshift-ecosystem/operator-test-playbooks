@@ -4,11 +4,11 @@
     - name: "Parsing output image with login information"
       no_log: True
       set_fact:
-        ms_info: "{{ mi_item.split('|') }}"
+        ms_info: "{{ mi.split('|') }}"
 
     - name: "Failing when image is not defined"
       fail:
-        msg: "Mirror image is not defined correctly !!! Input: '{{ mi_item }}'"
+        msg: "Mirror image is not defined correctly !!! Input: '{{ mi }}'"
       when:
         - ms_info.0 is undefined
 
@@ -30,6 +30,54 @@
       when:
         - mirror_input_image is defined
         - mirror_input_image != ""
+        - mirror_multiarch_image is undefined
+
+    - name: "Mirroring multi arch index image '{{ mirror_multiarch_image }}' to mirror location '{{ ms_info[0] }}'"
+      block:
+        - name: "Triggering http request to build multiarch image "
+          shell: "curl -s -u : --negotiate --request POST --url https://iib.engineering.redhat.com/api/v1/builds/add --header 'content-type: application/json' --data '{\"add_arches\": [\"amd64\", \"s390x\", \"ppc64le\"],\"binary_image\": \"{{ mirror_multiarch_image }}\",\"from_index\": \"{{ mirror_input_image }}\"}' --insecure"
+          register: mi_ms_multiarch_request
+
+        - name: "Fail in when request was not succesfull"
+          fail:
+            msg: "Triggering http rquest to build multiarch image failed"
+          when: mi_ms_multiarch_request.rc != 0
+
+        - name:
+          debug:
+            var: mi_ms_multiarch_request
+
+        - name: "Parsing id from http response"
+          set_fact:
+            mi_ms_multiarch_response: "{{ mi_ms_multiarch_request.stdout | from_json }} "
+
+        - name: "Set input iib image"
+          set_fact:
+            mi_ms_iib_id: "{{ mi_ms_multiarch_response.id }}"
+
+        - name: "Set input iib image"
+          set_fact:
+            mi_ms_iib_image: "registry-proxy.engineering.redhat.com/rh-osbs/iib:{{ mi_ms_iib_id }}"
+
+        - name: "Waiting for iib to finish image creation. Image: '{{ mi_ms_iib_image }}'"
+          uri:
+            url: "https://iib.engineering.redhat.com/api/v1/builds/{{ mi_ms_iib_id }}/logs"
+            method: GET
+            validate_certs: no
+            return_content: yes
+          no_log: True
+          register: mi_ms_multiarch_response
+          until: "'complete' in mi_ms_multiarch_response.content"
+          retries: 50
+          delay: 10
+
+        - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}'"
+          shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }} --src-tls-verify=false"
+      when:
+        - mirror_input_image is defined
+        - mirror_input_image != ""
+        - mirror_multiarch_image is defined
+        - mirror_multiarch_image != ""
   tags:
     - mirror_index
     - deploy_bundles

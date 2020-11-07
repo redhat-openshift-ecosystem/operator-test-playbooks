@@ -1,0 +1,11 @@
+- name: "Build index image for all operators for cluster version '{{ boi_cluster_version.name }}'"
+  include_role:
+    name: build_operator_index
+  vars:
+    ba_name: "{{ ops_item.name }}"
+    ba_versions: "{{ ops_item.versions }}"
+    ba_versions_prod: "{{ ops_item.versions_prod | default([]) }}"
+    ba_index_tag: "{{ boi_cluster_version.name }}"
+  loop: "{{ boi_cluster_version.operators }}"
+  loop_control:
+    loop_var: ops_item

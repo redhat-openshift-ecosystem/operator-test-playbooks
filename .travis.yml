@@ -38,3 +38,5 @@ jobs:
     script: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml
   - name: Deploying of multiple operators to bundle index test with checking prod registry first for bundle image. Local catalog index is rebuilded
     script: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_update=true
+  - name: Deploying of multiple operators to bundle index test (multiple cluster versions)
+    script: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e supported_cluster_versions="v4.5,v4.6"
