@@ -13,9 +13,9 @@
     - openshift_robot_hash_array.2 is defined
     - openshift_robot_hash_array.2 != ""
 
-- name: "Remove index image '{{ bundle_index_image }}'"
-  shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
-  failed_when: false
+# - name: "Remove index image '{{ bundle_index_image }}'"
+#   shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
+#   failed_when: false
 
 - name: "Reseting 'operators_for_index' variable when 'index_skip' is true"
   set_fact:
@@ -26,15 +26,14 @@
   debug:
     var: operators_for_index
 
-
 - name: "Fail when 'operators_for_index' is empty and it is forced to stop"
   block:
     - name: "Print several lines of text"
       set_fact:
-        boi_msg:  |
-                  All operator versions are already in catalog !!!
-                  Note: This might also happen when user is changing already published version.
-                        In this case one can request for operator to be rewriten by asking this in PR.
+        boi_msg: |
+          All operator versions are already in catalog !!!
+          Note: This might also happen when user is changing already published version.
+                In this case one can request for operator to be rewriten by asking this in PR.
 
     - name: "Printing message when 'operators_for_index' is empty and it is forced to stop"
       fail:
@@ -44,13 +43,17 @@
     - fail_on_no_index_change|bool
     - operators_for_index.0 is undefined
 
-- name: "Build index image for all operators"
-  include_role:
-    name: build_operator_index
-  vars:
-    ba_name: "{{ ops_item.name }}"
-    ba_versions: "{{ ops_item.versions }}"
-    ba_versions_prod: "{{ ops_item.versions_prod | default([]) }}"
-  loop: "{{ operators_for_index }}"
+- name: "Reset list of operators for each cluster version"
+  set_fact:
+    boi_cluster_versions: []
+
+- name: "List of operators for each cluster version"
+  set_fact:
+    boi_cluster_versions: "{{ boi_cluster_versions | union( [{'name': item, 'operators': operators_for_index }]) }}"
+  with_items: "{{ supported_cluster_versions.split(',') }}"
+
+- name: "Build index image for all cluster versions"
+  include_tasks: single_cluster_version.yml
+  loop: "{{ boi_cluster_versions }}"
   loop_control:
-    loop_var: ops_item
+    loop_var: boi_cluster_version

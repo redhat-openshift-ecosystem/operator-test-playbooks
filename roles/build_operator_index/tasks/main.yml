@@ -1,7 +1,11 @@
 ---
-# - name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
-#   set_fact:
-#     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+- name: "Setting 'bundle_index_image' variable"
+  set_fact:
+    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ ba_index_tag }}"
+
+- name: "Remove index image '{{ bundle_index_image }}'"
+  shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
+  failed_when: false
 
 # - name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
 #   set_fact:
@@ -64,6 +68,7 @@
   set_fact:
     index_versions_in_registry: []
     opm_index_add_extra_args: ""
+    boi_current_index_version_list: "[ '{{ ba_index_tag}}' ]"
 
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
@@ -72,12 +77,16 @@
     - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
     - boi_registry_versions.status == 200
 
+- name: "Filter index versions"
+  set_fact:
+      boi_index_version_test: "{{ index_versions_in_registry | intersect(boi_current_index_version_list) }}"
+
 - name: "Setting opm index extra arguments"
   set_fact:
-    bundle_index_image_from: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
-    opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ index_versions_in_registry[0] }}"
+    bundle_index_image_from: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ boi_index_version_test.0 }}"
+    opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ boi_index_version_test.0 }}"
   when:
-    - index_versions_in_registry.0 is defined
+    - boi_index_version_test.0 is defined
     - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
 
 - name: "Handling previous index image"
@@ -95,7 +104,7 @@
     - name: Push bundle image {{ bundle_index_image }}
       shell: "{{ container_tool }} push {{ bundle_index_image }}"
   when:
-    - index_versions_in_registry.0 is defined
+    - boi_index_version_test.0 is defined
     - bundle_index_image_from is defined
     - bundle_index_image_from != ""
 
