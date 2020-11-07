@@ -79,6 +79,22 @@
         - pure_test
         - pure_test_all
 
+    - name: "Sets variables for docker"
+      set_fact:
+        opm_container_tool: "docker"
+        opm_container_tool_index: "docker"
+      when: container_tool == "docker"
+      tags:
+        - always
+
+    - name: "Sets variables for podman"
+      set_fact:
+        opm_container_tool: "podman"
+        opm_container_tool_index: ""
+      when: container_tool == "podman"
+      tags:
+        - always
+
   roles:
     - { role: install_base_packages, tags: ["base"], when: run_host_init|bool }
     - { role: install_docker, tags: ["docker"], when: run_host_init|bool }
