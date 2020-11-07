@@ -59,7 +59,7 @@
         operators_for_index: []
         versions_to_test: "[ '{{ operator_version }}' ]"
 
-    - name: "Setting 'operator_for_index' variable"
+    - name: "Setting 'operators_for_index' variable"
       set_fact:
         operators_for_index: "{{ operators_for_index | union( [{'name': operator_package_name, 'versions': versions_to_test }]) }}"
 
