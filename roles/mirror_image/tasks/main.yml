@@ -14,7 +14,7 @@
       include_tasks: mirror_single.yml
       loop: "{{ mi_mirrors }}"
       loop_control:
-        loop_var: mi_item
+        loop_var: mi
   tags:
     - mirror_index
     - deploy_bundles

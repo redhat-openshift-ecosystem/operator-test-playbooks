@@ -102,3 +102,4 @@
     - bundle_index_image is defined
     - bundle_index_image != ""
     - bundle_index_image is not search("kind-registry:5000/.*")
+    - chi_git_not_index_operators is defined
