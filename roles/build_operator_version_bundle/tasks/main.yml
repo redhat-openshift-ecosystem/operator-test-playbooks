@@ -75,7 +75,7 @@
                 msg: "Key 'updateGraph' was not found in file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}'!!!"
               when: boi_ci_update_graph_var == "null"
 
-            - name: "Setting mode from 'updateGraph' value"
+            - name: "Setting index add mode from 'updateGraph' value to '{{ boi_ci_update_graph_var }}'"
               set_fact:
                 opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
 
