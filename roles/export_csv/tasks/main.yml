@@ -54,12 +54,22 @@
   - name: "Getting metadata content from csv '{{ csv_file_path | basename}}'"
     shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata"
     register: csv_data_metadata
-    # no_log: True
+    ignore_errors: yes
+
+  - name: "Fail if 'metadata' was not parsed from csv file '{{ csv_file_path }}'"
+    fail:
+      msg: "Cannot parse 'metadata' from CSV file '{{ csv_file_path }}' !!!"
+    when: csv_data_metadata.rc != 0
 
   - name: "Getting spec content from csv '{{ csv_file_path | basename}}'"
     shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t spec"
     register: csv_data_spec
-    # no_log: True
+    ignore_errors: yes
+
+  - name: "Fail if 'spec' was not parsed from csv file '{{ csv_file_path }}'"
+    fail:
+      msg: "Cannot parse 'spec' from CSV file '{{ csv_file_path }}' !!!"
+    when: csv_data_spec.rc != 0
 
   - name: "Sets operator variables from csv '{{ csv_file_path | basename }}'"
     set_fact:
