@@ -37,7 +37,7 @@
     operator_sdk_version: v0.18.2
     operator_courier_version: 2.1.10
     olm_version: 0.16.1
-    opm_version: v1.14.2
+    opm_version: v1.15.1
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"

@@ -7,13 +7,6 @@
   shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
   failed_when: false
 
-# - name: "Setting 'bundle_index_image' to '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}'"
-#   set_fact:
-#     bundle_index_image: "{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}:{{ openshift_robot_hash_array[2] }}"
-#   when:
-#     - openshift_robot_hash_array.2 is defined
-#     - openshift_robot_hash_array.2 != ""
-
 - name: "Get list of tags for index image from bundle registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
   uri:
     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
@@ -157,7 +150,6 @@
 
 - name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
-  # failed_when: false
   ignore_errors: yes
   register: boi_ia_rc
 
