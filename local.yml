@@ -38,8 +38,8 @@
     operator_courier_version: 2.1.11
     olm_version: 0.16.1
     opm_version: v1.15.1
-    # proxy_env:
-      # GODEBUG: "x509ignoreCN=0"
+    proxy_env:
+      GODEBUG: "x509ignoreCN=0"
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
