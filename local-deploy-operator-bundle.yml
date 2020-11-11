@@ -6,7 +6,7 @@
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
-    GODEBUG: "x509ignoreCN=0"
+    # GODEBUG: "x509ignoreCN=0"
 
   pre_tasks:
     - setup:
@@ -28,6 +28,8 @@
     bundle_index_image_namespace: test-operator
     bundle_index_image_name: "catalog"
     app_registry_push: false
+    proxy_env:
+      GODEBUG: "x509ignoreCN=0"
 
   tasks:
     - name: "Setting basic variables for deploy tasks"
