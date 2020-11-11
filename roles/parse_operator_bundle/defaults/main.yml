@@ -13,4 +13,5 @@ required_labels:
 valid_ocp_versions:
   - "v4.5"
   - "v4.6"
+  - "v4.7"
 label_mediatype_v1_expected_value: 'registry+v1'
