@@ -14,6 +14,8 @@
     testing_bin_path: "{{ work_dir }}/bin"
     current_channel: '' # Added to avoid a potential bug with undefined variables
     olm_version: 0.14.1
+    proxy_env:
+      GODEBUG: "x509ignoreCN=0"
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
