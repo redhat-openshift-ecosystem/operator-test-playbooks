@@ -73,10 +73,12 @@
 
   - name: "Determine the current clustersourceversion for the operator channel"
     set_fact:
-      current_csv : "{{ package_vars['channels'] | json_query(query) }}"
-    vars:
-      query: "[?name=='{{ current_channel }}'].currentCSV"
-    failed_when: current_csv | length == 0
+      current_csv: "{{ package_vars['channels'] | determine_clusterservice_version(current_channel) }}"
+
+  - name: "Fail when current clusterServiceVersion is null"
+    fail:
+      msg: "Failed to determine the current clusterServiceVersion found empty array as follows {{ current_csv }}"
+    when: current_csv | length == 0
 
   - name: "Get current_csv from current_csv query output"
     set_fact:
