@@ -64,6 +64,9 @@
 - set_fact:
     index_image_test: "quay.io/{{ test_quay_namespace }}/catalog:{{ commit_tag }}"
 
+- name: "Check if commit hash {{ commit_tag }} is present as bundle test version"
+  shell: "curl -X GET https://quay.io/api/v1/repository/{{ test_quay_namespace }}/{{ package_name }}|grep {{ commit_tag }}"
+
 - set_fact:
     index_image_test_no_ver: "quay.io/operator_testing/{{ package_name }}"
 
