@@ -157,3 +157,16 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
     -e operator_dir="${OPERATOR_DIR}" \
     -e run_imagesource=false
 ```
+
+### 3. Running optional-operator-subscribe using playbooks
+
+If we would like to run the optional operator subscribe on the pre-built operator indices we can invoke the following playbook as follows:
+
+```bash
+ansible-playbook -vvvv -i "localhost," connection=local optional-operators-subscribe.yml \
+    -e kubeconfig_path="${KUBECONFIG_PATH}" \
+    -e "OO_INDEX=${OPERATOR_INDEX}" \
+    -e "OO_PACKAGE=${OPERATOR_PACKAGE}" \
+    -e "OO_CHANNEL=${OPERATOR_CHANNEL}" \
+    -e "ARTIFACT_DIR=${ARTIFACT_DIRECTORY}"
+```

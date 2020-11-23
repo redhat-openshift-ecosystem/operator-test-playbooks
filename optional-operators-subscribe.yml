@@ -1,0 +1,10 @@
+---
+- name: "Run optional operators subscribe"
+  hosts: localhost
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: "Run optional operators subscribe step"
+      include_role:
+        name: optional-operators-subscribe
