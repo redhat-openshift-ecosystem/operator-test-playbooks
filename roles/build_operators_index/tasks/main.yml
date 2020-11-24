@@ -34,7 +34,6 @@
           All operator versions are already in catalog !!!
           Note: This might also happen when user is changing already published version.
                 In this case one can request for operator to be rewriten by asking this in PR.
-
     - name: "Printing message when 'operators_for_index' is empty and it is forced to stop"
       fail:
         msg: "{{ boi_msg.split('\n') }}"
@@ -51,6 +50,24 @@
   set_fact:
     boi_cluster_versions: "{{ boi_cluster_versions | union( [{'name': item, 'operators': operators_for_index }]) }}"
   with_items: "{{ supported_cluster_versions.split(',') }}"
+  when:
+    # - ocs_allowed_versions.0 is not defined
+    - (use_cluster_filter is undefined or not use_cluster_filter|bool)
+
+- name: "Convert allowed input versions to list"
+  set_fact:
+   ocs_allowed_versions: "{{ supported_cluster_versions.split(',')}}"
+
+- name: "Detect operator version in relation with cluster version"
+  include_role:
+    name: detect_operators_in_cluster
+  when:
+    - ocs_allowed_versions.0 is defined
+    - use_cluster_filter is defined
+    - use_cluster_filter|bool
+
+- debug:
+    var: boi_cluster_versions
 
 - name: "Build index image for all cluster versions"
   include_tasks: single_cluster_version.yml

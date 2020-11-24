@@ -6,6 +6,7 @@
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+
     # GODEBUG: "x509ignoreCN=0"
 
   pre_tasks:

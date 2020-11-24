@@ -27,7 +27,7 @@ This directory contains one CSV file (`<name>.<version>-clusterserviceversion.ya
 
 Metadata directory contains `annotations.yaml` file with information about operator packaging in yaml format. E.g.
 ```
-[mvala@localhost community-operators]$ cat prometheus/0.40.0/metadata/annotations.yaml
+[localhost community-operators]$ cat prometheus/0.40.0/metadata/annotations.yaml
 annotations:
   operators.operatorframework.io.bundle.package.v1: "prometheus"
   operators.operatorframework.io.bundle.channels.v1: "preview"

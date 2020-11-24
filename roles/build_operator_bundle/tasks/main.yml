@@ -189,14 +189,42 @@
       loop_control:
         loop_var: op_ver_item
 
+    - name: "Setting tmp bundle versions without production versions"
+      set_fact:
+        bob_versions_tmp: "{{ versions_in_dir | difference(versions_in_prod_registry)}}"
+
+    - name: "Setting empty bundles array"
+      set_fact:
+        bob_bundles_arr: []
+
+    - name: "Filling bundle versions from prod for operator '{{ operator_package_name }}'"
+      set_fact:
+        bob_bundles_arr: "{{ bob_bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ item }}' ]"
+      with_items: "{{ versions_in_prod_registry }}"
+      when:
+        - production_registry_namespace is defined
+        - production_registry_namespace != ""
+
+    - name: "Filling bundle versions for operator '{{ operator_package_name }}'"
+      set_fact:
+        bob_bundles_arr: "{{ bob_bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ item }}' ]"
+      with_items: "{{ bob_versions_tmp }}"
+
+    - name: "Filling bundle versions for operator '{{ operator_package_name }}' for openshift robot case"
+      set_fact:
+        bob_bundles_arr: "[ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
+      when:
+        - openshift_robot_hash_array.2 is defined
+        - openshift_robot_hash_array.2 != ""
+
     - name: "Adding current operator to the 'operators_for_index'"
       set_fact:
-        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
+        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry, 'bundles': bob_bundles_arr }]) }}"
       when: versions_add.0 is defined or (index_force_update is defined and index_force_update|bool)
 
     - name: "Adding current operator to the 'operators_for_index' when only removed version is defined"
       set_fact:
-        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry }]) }}"
+        operators_for_index: "{{ operators_for_index | default([]) | union( [{'name': operator_package_name, 'versions': versions_in_dir, 'versions_prod': versions_in_prod_registry, 'bundles': bob_bundles_arr }]) }}"
       when: versions_add.0 is undefined and versions_remove.0 is defined
 
   when: bob_operator_dir_st.stat.exists
