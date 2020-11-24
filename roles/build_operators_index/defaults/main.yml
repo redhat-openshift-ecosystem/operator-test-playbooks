@@ -11,5 +11,5 @@ bundle_index_image_version: "latest"
 operator_bundle_dir_for_courier: "/tmp/operator-test/operator-bundle-for-courier"
 operators_for_index: []
 opm_index_add_extra_args: ""
-supported_cluster_versions: "{{ '{{ supported_cluster_versions_in }}' if use_cluster_filter else 'latest' }}"
+supported_cluster_versions: "latest"
 use_cluster_filter: false
