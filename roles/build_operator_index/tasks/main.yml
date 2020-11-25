@@ -105,34 +105,34 @@
   set_fact:
     ba_versions_tmp: "{{ ba_versions | difference(ba_versions_prod) }}"
 
-- name: "Setting empty bundles array"
-  set_fact:
-    bundles_arr: []
-
-- name: "Filling bundle versions from prod for operator '{{ ba_name }}'"
-  set_fact:
-    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ ba_name }}:v{{ item }}' ]"
-  with_items: "{{ ba_versions_prod }}"
-  when:
-    - production_registry_namespace is defined
-    - production_registry_namespace != ""
-    - ba_versions_prod.0 is defined
-    - ba_versions_prod.0 != ""
-
-- name: "Filling bundle versions for operator '{{ ba_name }}'"
-  set_fact:
-    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
-  with_items: "{{ ba_versions_tmp }}"
-  when:
-    - ba_versions_tmp.0 is defined
-    - ba_versions_tmp.0 != ""
-
-- name: "Filling bundle versions for operator '{{ ba_name }}' for openshift robot case"
-  set_fact:
-    bundles_arr: "[ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
-  when:
-    - openshift_robot_hash_array.2 is defined
-    - openshift_robot_hash_array.2 != ""
+#- name: "Setting empty bundles array"
+#  set_fact:
+#    bundles_arr: []
+#
+#- name: "Filling bundle versions from prod for operator '{{ ba_name }}'"
+#  set_fact:
+#    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ ba_name }}:v{{ item }}' ]"
+#  with_items: "{{ ba_versions_prod }}"
+#  when:
+#    - production_registry_namespace is defined
+#    - production_registry_namespace != ""
+#    - ba_versions_prod.0 is defined
+#    - ba_versions_prod.0 != ""
+#
+#- name: "Filling bundle versions for operator '{{ ba_name }}'"
+#  set_fact:
+#    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
+#  with_items: "{{ ba_versions_tmp }}"
+#  when:
+#    - ba_versions_tmp.0 is defined
+#    - ba_versions_tmp.0 != ""
+#
+#- name: "Filling bundle versions for operator '{{ ba_name }}' for openshift robot case"
+#  set_fact:
+#    bundles_arr: "[ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
+#  when:
+#    - openshift_robot_hash_array.2 is defined
+#    - openshift_robot_hash_array.2 != ""
 
 - name: "Setting bundle image names"
   set_fact:
