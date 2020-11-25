@@ -20,8 +20,8 @@
 
 - name: "Disable annotation check during the next parse"
   set_fact:
-     doic_skip_file_check: True
-     bundle_sanity_checks: True
+     doic_skip_file_check: true
+     bundle_sanity_checks: true
      doic_versions_from_bundle: "{{ lc_doic_bundles_processing.split(':v')[1] }}"
      ocp_version_annotation_stdout: "NotFound"
 
@@ -33,7 +33,7 @@
 
 - name: "Set check back, unset variable"
   set_fact:
-     doic_skip_file_check:
+     doic_skip_file_check: false
 
 - name: "Set cluster version from bundle label"
   set_fact:

@@ -43,7 +43,7 @@
         operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
         oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
         mirror_apply: true
-        doic_skip_file_check: true
+        doic_skip_file_check: false
 
     - name: "Quay login"
       shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
