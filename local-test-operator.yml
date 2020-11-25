@@ -34,6 +34,9 @@
         - always
       when: run_upstream|bool
   tasks:
+    - name: "Setting basic variables for test tasks"
+      set_fact:
+       doic_skip_file_check: false
 
     - name: "Running manifest test for operator"
       include_role:

@@ -65,9 +65,9 @@
       is_backport: "{{ skopeo_inspect_json.Labels['com.redhat.delivery.backport'] }}"
     when: skopeo_inspect_json.Labels['com.redhat.delivery.backport'] is defined
 
-  - name: "Default doic_skip_file_check true"
-    set_fact:
-       doic_skip_file_check: false
+#  - name: "Default doic_skip_file_check true"
+#    set_fact:
+#       doic_skip_file_check: false
 
   - block:
     - name: "Determine paths with kind ClusterServiceVersion"
