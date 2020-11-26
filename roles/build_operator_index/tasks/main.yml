@@ -105,38 +105,9 @@
   set_fact:
     ba_versions_tmp: "{{ ba_versions | difference(ba_versions_prod) }}"
 
-- name: "Setting empty bundles array"
-  set_fact:
-    bundles_arr: []
-
-- name: "Filling bundle versions from prod for operator '{{ ba_name }}'"
-  set_fact:
-    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ ba_name }}:v{{ item }}' ]"
-  with_items: "{{ ba_versions_prod }}"
-  when:
-    - production_registry_namespace is defined
-    - production_registry_namespace != ""
-    - ba_versions_prod.0 is defined
-    - ba_versions_prod.0 != ""
-
-- name: "Filling bundle versions for operator '{{ ba_name }}'"
-  set_fact:
-    bundles_arr: "{{ bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ ba_name }}:v{{ item }}' ]"
-  with_items: "{{ ba_versions_tmp }}"
-  when:
-    - ba_versions_tmp.0 is defined
-    - ba_versions_tmp.0 != ""
-
-- name: "Filling bundle versions for operator '{{ ba_name }}' for openshift robot case"
-  set_fact:
-    bundles_arr: "[ '{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}' ]"
-  when:
-    - openshift_robot_hash_array.2 is defined
-    - openshift_robot_hash_array.2 != ""
-
 - name: "Setting bundle image names"
   set_fact:
-    bundle_images: "{{ bundles_arr | join(',') }}"
+    bundle_images: "{{ ba_bundles | join(',') }}"
 
 - name: "Retag bundle input image"
   block:
@@ -172,6 +143,48 @@
     - boi_ia_rc.rc == 0
     - boi_iap_rc.rc is defined
     - boi_iap_rc.rc == 0
+
+- name: "Unset 'boi_latest_index_found'"
+  set_fact:
+    boi_latest_index_found:
+
+- name: "Unset 'bundle_latest_index_image' variable"
+  set_fact:
+    boi_bundle_latest_index_image:
+
+- name: "Handle 'latest' index"
+  block:
+    - name: "Check if actual {{ ba_index_tag }} equals to {{ copy_as_latest_index }} (marked as latest)"
+      set_fact:
+        boi_latest_index_found: True
+      when: ba_index_tag == copy_as_latest_index
+
+    - name: "'Latest' identified"
+      block:
+        - name: "Setting 'bundle_latest_index_image' variable"
+          set_fact:
+            boi_bundle_latest_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:latest"
+
+        - name: "Retag index to latest "
+          block:
+            - name: "Retag image {{ bundle_index_image }}"
+              shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ boi_bundle_latest_index_image }}"
+            - name: "Push image {{ boi_bundle_latest_index_image }}"
+              shell: "{{ container_tool }} push {{ boi_bundle_latest_index_image }}"
+          when:
+            - copy_as_latest_index is defined
+            - copy_as_latest_index != ""
+            - boi_bundle_latest_index_image is defined
+            - boi_bundle_latest_index_image != ""
+      when:
+        - boi_latest_index_found is defined
+        - boi_latest_index_found|bool
+
+  when:
+    - copy_as_latest_index is defined
+    - copy_as_latest_index != ""
+    - use_cluster_filter is defined
+    - use_cluster_filter|bool
 
 - name: "Add failed operators when creating index from bundle"
   set_fact:

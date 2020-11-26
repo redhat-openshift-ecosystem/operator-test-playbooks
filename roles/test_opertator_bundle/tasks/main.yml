@@ -58,10 +58,11 @@
       set_fact:
         operators_for_index: []
         versions_to_test: "[ '{{ operator_version }}' ]"
+        bundles_to_test: "[ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ operator_version }}' ]"
 
     - name: "Setting 'operators_for_index' variable"
       set_fact:
-        operators_for_index: "{{ operators_for_index | union( [{'name': operator_package_name, 'versions': versions_to_test }]) }}"
+        operators_for_index: "{{ operators_for_index | union( [{'name': operator_package_name, 'versions': versions_to_test, 'bundles': bundles_to_test }]) }}"
 
     - name: "Build the operator bundle index"
       include_role:

@@ -5,6 +5,7 @@
     ba_name: "{{ ops_item.name }}"
     ba_versions: "{{ ops_item.versions }}"
     ba_versions_prod: "{{ ops_item.versions_prod | default([]) }}"
+    ba_bundles: "{{ ops_item.bundles | default([]) }}"
     ba_index_tag: "{{ boi_cluster_version.name }}"
   loop: "{{ boi_cluster_version.operators }}"
   loop_control:

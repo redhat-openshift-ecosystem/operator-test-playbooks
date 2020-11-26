@@ -313,6 +313,9 @@ Usage:
 | index_mode_from_ci | Enable autodetect index add mode from <operator>/ci.yaml file [bool] | undefined | undefined |
 | openshift_robot_hash | e.g. "quay.io/operator_testing|<push-token>|<git-hash>" [string] | undefined | undefined |
 | bundles_namespace | Quay namespace where to find list of packages and compare it with packages in index (eg. "openshift-community-operators" or "operatorhubio" )[string]|undefined||
+| use_cluster_filter | Enable multiple index images [bool]|false|true|
+| supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`4.6,4.7` for Openshift; `latest` for kubernetes|
+| copy_as_latest_index | Copy and tag specific index as `latest`|4.6|`4.6` for Openshift; not defined for kubernetes|
 
 ## Tags to use
 

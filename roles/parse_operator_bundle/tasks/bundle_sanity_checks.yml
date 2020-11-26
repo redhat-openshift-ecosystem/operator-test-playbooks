@@ -22,7 +22,10 @@
       set_fact:
         annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
 
-  when: run_upstream|bool
+  when:
+    - run_upstream|bool
+    - doic_skip_file_check is not defined
+    - not doic_skip_file_check|bool
 
 - name: "Printing labels from skopeo inspect"
   debug:
@@ -43,3 +46,7 @@
     - operators.operatorframework.io.bundle.mediatype.v1
     - operators.operatorframework.io.bundle.metadata.v1
     - operators.operatorframework.io.bundle.package.v1
+    - com.redhat.openshift.versions
+  when:
+    - doic_skip_file_check is not defined
+    - not doic_skip_file_check|bool
