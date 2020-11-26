@@ -21,11 +21,4 @@ crd_paths:
   - {{ crd_path }}
 {% endfor %}
 {% endif %}
-{% if ocp_versions|length < 1 %}
-ocp_versions: []
-{% else %}
-ocp_versions:
-{% for ocp_version in ocp_versions %}
-  - {{ ocp_version }}
-{% endfor %}
-{% endif %}
+ocp_versions: {{ ocp_versions }}
