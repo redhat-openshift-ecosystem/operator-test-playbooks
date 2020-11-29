@@ -93,6 +93,7 @@
 
     - name: "Remove previous versions of operator '{{ ba_name }}' from index image {{ bundle_index_image }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+      environment: "{{ proxy_env }}"
 
     - name: Push bundle image {{ bundle_index_image }}
       shell: "{{ container_tool }} push {{ bundle_index_image }}"
@@ -203,6 +204,7 @@
 
     - name: "Trying to export operator '{{ ba_name }}' from index image '{{ bundle_index_image }}'"
       shell: "{{ opm_bin_path }} index export -c {{ opm_container_tool_index }} --package {{ ba_name }} --index {{ bundle_index_image }} --download-folder {{ operator_bundle_dir_for_courier }}"
+      environment: "{{ proxy_env }}"
       register: rob_export_rc
 
     - name: "Failing when export of operator '{{ ba_name }}' fails"
