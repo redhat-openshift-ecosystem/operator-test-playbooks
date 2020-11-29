@@ -117,7 +117,8 @@ if [ "$OP_TEST_CONTAINER_TOOL" = "podman" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
 fi
 
-[[ $OP_TEST_DEBUG -eq 0 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
+# [[ $OP_TEST_DEBUG -eq 0 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
+# [[ $OP_TEST_DEBUG -eq 1 ]] && OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 2 ]] && OP_TEST_EXEC_EXTRA="-v $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 3 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DRY_RUN -eq 1 ]] && DRY_RUN_CMD="echo"
