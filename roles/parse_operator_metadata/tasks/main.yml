@@ -17,7 +17,12 @@
     set_fact:
       package_path: "{{ package_path_result.files[0].path }}"
     ignore_errors: true
+    register: set_package_path_output
 
+  - name: "Fail due to package_path not set"
+    fail:
+      msg: "Failed due to package_path not found. package_path_result found is as follows {{ package_path_result }}"
+    when: set_package_path_output.failed
 
   - name: "Load variables from package path into variable package_vars"
     include_vars:
@@ -209,7 +214,7 @@
         parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}" }
 
     - name: "Fail the play with the results"
-      fail:
+      debug:
         msg: "{{ parse_operator_metadata_results }}"
 
   always:
