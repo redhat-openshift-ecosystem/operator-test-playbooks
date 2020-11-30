@@ -6,7 +6,7 @@ TESTS=$1
 
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
 TESTS=${TESTS//,/ }
-OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/operator-test"}
+OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/WhkV76k"}
 
 OP_TEST_BASE_DEP="ansible curl openssl git"
 
