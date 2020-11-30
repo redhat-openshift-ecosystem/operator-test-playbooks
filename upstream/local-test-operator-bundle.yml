@@ -1,0 +1,45 @@
+---
+- name: Test the operator bundle image
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_upstream: false
+    run_prereqs: true
+    run_cleanup: true
+    run_lint: true
+    run_catalog_init: true
+    work_dir: "/tmp/operator-test"
+    testing_bin_path: "{{ work_dir }}/bin"
+    current_channel: '' # Added to avoid a potential bug with undefined variables
+    olm_version: 0.14.1
+    proxy_env:
+      GODEBUG: "x509ignoreCN=0"
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+    when: run_upstream|bool
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+      when: run_upstream|bool
+
+  tasks:
+    - name: "Setting basic variables for test tasks"
+      set_fact:
+       doic_skip_file_check: false
+
+    - name: "Running bundle test for operator"
+      include_role:
+        name: test_opertator_bundle
+
+    - name: "Cleanup created resources on the KIND cluster"
+      include_role:
+        name: cleanup_operator_resources
+      when:
+        - run_cleanup|bool
+        - run_upstream|bool
+        - ( test_skip_deploy is undefined or not test_skip_deploy|bool )

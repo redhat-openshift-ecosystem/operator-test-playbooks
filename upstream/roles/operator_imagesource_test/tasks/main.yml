@@ -1,0 +1,31 @@
+---
+- name: "Output all operator images"
+  debug:
+    var: operator_images
+
+- name: "Check each operator image"
+  include_tasks: "check_operator_image.yml"
+  with_items: "{{ operator_images }}"
+  loop_control:
+    loop_var: operator_image
+
+- name: "Output list of non-approved images"
+  debug:
+    var: non_approved_images
+
+- name: "Write the results to the output file if test succeeded"
+  copy:
+    content: "Imagesource test passed, all images are from approved sources"
+    dest: "{{ work_dir }}/imagesource-output.txt"
+  when: non_approved_images | length == 0
+
+- name: "Write the list of non-approved images to the output file if any were found"
+  copy:
+    content: "Imagesource test failed! Non-approved images found:\n{% for non_approved_image in non_approved_images %}{{ non_approved_image }}\n{% endfor %}"
+    dest: "{{ work_dir }}/imagesource-output.txt"
+  when: non_approved_images | length > 0
+
+- name: "Fail if list of non-approved images is not empty"
+  fail:
+    msg: "Operator includes images from non-approved registries"
+  when: non_approved_images | length > 0

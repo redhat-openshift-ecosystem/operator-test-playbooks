@@ -1,0 +1,17 @@
+- name: "Search for all operator versios for operator '{{ gaotd_dir | basename }}'"
+  find:
+    paths: "{{ gaotd_dir }}"
+    recurse: no
+    file_type: directory
+  no_log: True
+  register: gaotd_operator_versions_find
+
+- name: "Setting list of all versions"
+  set_fact:
+    gaotd_operator_name: "{{ gaotd_dir | basename }}"
+    gaotd_operator_versions: "{{ gaotd_operator_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+
+- name: "Setting 'all_operators_with_versions' variable"
+  set_fact:
+    all_operators_with_versions: "{{ all_operators_with_versions | default([]) | union( [{'name': gaotd_operator_name, 'versions': gaotd_operator_versions }]) }}"
+  no_log: True

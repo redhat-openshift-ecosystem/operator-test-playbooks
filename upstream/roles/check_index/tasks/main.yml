@@ -1,0 +1,97 @@
+---
+- name: "Sanity check of index image"
+  block:
+    - name: "Exporting information from index image '{{ bundle_index_image }}'"
+      include_role:
+        name: export_list_of_packages_from_index
+
+    - name: "Find all directories in git repo"
+      shell:
+        cmd: "find . -type d -mindepth 2 -maxdepth 2 | cut -sd / -f 2- | sort"
+        chdir: "{{ operator_base_dir }}"
+      register: chi_git_operators_out
+      no_log: true
+
+    - name: "Set list of all operators in index"
+      set_fact:
+        chi_index_operators: "{{ elopfi_index_operators }}"
+
+    - name: "Set list of all operators in git repo"
+      set_fact:
+        chi_git_operators: "{{ (chi_git_operators_out.stdout | replace('/',':v') ).split() }}"
+
+    - name: "Setting list of operators present in index, but not in git"
+      set_fact:
+        chi_index_not_git_operators: "{{ chi_index_operators | difference(chi_git_operators) }}"
+      no_log: true
+
+    - name: "Setting list of operators present in git, but not in index"
+      set_fact:
+        chi_git_not_index_operators: "{{ chi_git_operators | difference(chi_index_operators) }}"
+      no_log: true
+
+    - name: "Setting list of missing operators"
+      set_fact:
+        chi_missing_operators: "{{ chi_git_not_index_operators | union(chi_index_not_git_operators) }}"
+      no_log: true
+
+    - name: "Setting list of uncomplete packages"
+      set_fact:
+        chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
+
+    - name: "Reseting uncomplete packages"
+      set_fact:
+        chi_uncomplete_packages: []
+
+    - name: "Setting list of uncomplete packages"
+      set_fact:
+        chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
+      with_items: "{{ chi_uncomplete_packages_list }}"
+
+    - name: "Get list of  bundles in quay in {{ bundle_image_namespace }}"
+      block:
+        - name: "Get list of all repositories in {{ bundles_namespace }}"
+          uri:
+            url: "{{ registry_api_http_protocol | default('https') }}://quay.io/api/v1/repository?namespace={{ bundles_namespace }}"
+            method: GET
+            force_basic_auth: yes
+            headers:
+              Authorization: "Bearer {{ quay_api_token }}"
+          register: chi_list_bundles_in_quay
+          no_log: true
+
+        - name: "Setting list of repositories"
+          set_fact:
+            chi_list_bundles_in_quay: "{{ chi_list_bundles_in_quay.json.repositories | map(attribute='name') | list | sort }}"
+            chi_list_bundles_in_quay_excludes:
+              - "catalog"
+          no_log: true
+
+        - name: "Setting list of operators present in index, but not in quay as bundles"
+          set_fact:
+            chi_quay_bundles_not_index_operators: "{{ chi_list_bundles_in_quay | difference(elopfi_index_packages) | difference(chi_list_bundles_in_quay_excludes) }}"
+          no_log: true
+
+        - name: "Print list of missing bundles"
+          debug:
+            var: chi_quay_bundles_not_index_operators
+
+        - name: "Setting list of uncomplete packages from missing bundles"
+          set_fact:
+            chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
+          with_items: "{{ chi_quay_bundles_not_index_operators }}"
+
+      when:
+        - bundles_namespace is defined
+        - bundles_namespace != ""
+        - quay_api_token is defined
+        - quay_api_token != ""
+
+  tags:
+    - deploy_bundles
+    - index_check
+  when:
+    - bundle_index_image is defined
+    - bundle_index_image != ""
+    - bundle_index_image is not search("kind-registry:5000/.*")
+

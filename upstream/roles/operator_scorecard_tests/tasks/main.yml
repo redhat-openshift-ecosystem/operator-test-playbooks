@@ -1,0 +1,44 @@
+---
+- name: "Get the CR kind"
+  shell: "{{ yq_bin_path }} r {{ cr_path }} --tojson | {{ jq_bin_path }} --raw-output '.kind' | sed 's/ /_/g'"
+  register: cr_kind_result
+
+- set_fact:
+    cr_kind: "{{ cr_kind_result.stdout }}"
+
+- name: "Get the CR name"
+  shell: "{{ yq_bin_path }} r {{ cr_path }} --tojson | {{ jq_bin_path }} --raw-output '.metadata.name' | sed 's/ /_/g'"
+  register: cr_name_result
+
+- set_fact:
+    cr_name: "{{ cr_name_result.stdout }}"
+
+- name: "Process the osdk-scorecard template"
+  template:
+    src: "osdk-scorecard.yml.j2"
+    dest: "{{ work_dir }}/osdk-scorecard.yml"
+
+- name: "Run operator-sdk scorecard tests on the deployed operator in json form"
+  shell: "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --config {{ work_dir }}/osdk-scorecard.yml > {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  ignore_errors: true
+
+- name: "Parse json operator scorecard results"
+  shell: "cat {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json | {{ jq_bin_path }} '.results[] | select(.labels.suite == \"basic\") | select(.state == \"pass\").name' | wc -l"
+  register: scorecard_results_passed_result
+
+- debug:
+    msg: "Scorecard Basic Tests passed: {{ scorecard_results_passed_result.stdout }}"
+
+- name: "Delete the operator CR"
+  shell: "{{ oc_bin_path }} delete -f {{ cr_path }} --ignore-not-found=true --grace-period=60 --timeout=120s"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Fail if the operator didn't satisfy the Basic Tests requirement"
+  fail:
+    msg: 'Operator scorecard basic tests failed, check scorecard_results.txt for more details'
+  when:
+    - check_scorecard_results|bool
+    - scorecard_results_passed_result.stdout|int < 2

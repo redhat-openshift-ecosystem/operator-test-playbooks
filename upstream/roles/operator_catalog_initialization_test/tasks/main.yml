@@ -1,0 +1,77 @@
+---
+- name: "Git clone operator-registry repo with the initializer command"
+  git:
+    repo: 'https://github.com/operator-framework/operator-registry.git'
+    dest: /tmp/operator-registry
+    version: "{{ operator_registry_branch }}"
+    force: true
+
+- name: "Remove the previous catalog database file if exists"
+  file:
+    path: "/tmp/operator-registry/local.db"
+    state: absent
+
+- name: "Ensure the /tmp/offline-cataloger directory exists"
+  file:
+    path: "/tmp/offline-cataloger"
+    state: directory
+
+- name: "Remove all previous temporary catalog manifests"
+  shell: "rm /tmp/offline-cataloger/manifests-* -rf"
+
+- name: "Download the production bundle catalog manifests"
+  shell: "{{ offline_cataloger_bin_path }} generate-manifests {{ production_quay_namespace }}"
+  args:
+    chdir: "/tmp/offline-cataloger"
+
+- name: "Find the downloaded manifests directory name"
+  shell: "find /tmp/offline-cataloger -type d -name \"manifests-*\" 2>/dev/null"
+  register: catalog_manifests_dir_result
+  ignore_errors: true
+
+- set_fact:
+    catalog_manifests_dir: "{{ catalog_manifests_dir_result.stdout_lines[0] }}"
+  when:
+    - catalog_manifests_dir_result.stdout_lines is defined
+    - catalog_manifests_dir_result.stdout_lines|length > 0
+
+- name: "Remove the operator directory from the production bundle if exists"
+  file:
+    path: "{{ catalog_manifests_dir }}/{{ package_name }}"
+    state: absent
+
+- name: "Create the empty operator directory"
+  file:
+    path: "{{ catalog_manifests_dir }}/{{ package_name }}"
+    state: directory
+
+- name: "Copy the testing operator metadata to the production catalog bundle"
+  shell: "cp -R {{ operator_dir }}/* {{ catalog_manifests_dir }}/{{ package_name }}"
+
+- name: "Run the catalog initializer on the modified production catalog bundle"
+  shell: "{{ go_bin_path }} run -mod=vendor -tags=json1 ./cmd/initializer/main.go --manifests {{ catalog_manifests_dir }} --output local.db 2>&1"
+  register: catalog_initializer_result
+  args:
+    chdir: "/tmp/operator-registry"
+  ignore_errors: true
+
+- name: "Output the catalog initialization log to a debug file"
+  copy:
+    content: "{{ catalog_initializer_result.stdout }}"
+    dest: "{{ work_dir }}/catalog-init-debug-{{ operator_registry_branch }}.txt"
+  when:
+    - catalog_initializer_result.stdout != ""
+
+- name: "Output the catalog initialization return code to a debug file"
+  copy:
+    content: "{{ catalog_initializer_result.rc }}"
+    dest: "{{ work_dir }}/catalog-init-rc-{{ operator_registry_branch }}.txt"
+  when:
+    - catalog_initializer_result.rc is defined
+
+- name: "Fail if the operator didn't satisfy the catalog initialization test"
+  fail:
+    msg: 'Catalog initialization test failed, check catalog-init-debug.txt for more details'
+  when:
+    - check_initializer_result|bool
+    - catalog_initializer_result.rc != 0

@@ -1,0 +1,185 @@
+- name: "Running Prepare operator metadata"
+  block:
+
+  - name: "Determine the package path inside operator metadata directory"
+    find:
+      paths: "{{ operator_work_dir }}"
+      file_type: file
+      contains: 'packageName'
+    register: package_path_result
+
+    # assuming only one file matches the file path
+  - name: "set variable for package_path from package_path_result"
+    set_fact:
+      package_path: "{{ package_path_result.files[0].path }}"
+
+  - name: "Load variables from package path into variable package_vars"
+    include_vars:
+      file: "{{ package_path }}"
+      name: package_vars
+    when: not run_upstream|bool
+
+  - name: "Load variables from package path into variable package_vars (upstream only)"
+    block:
+    - name: Check if package file exists
+      stat:
+        path: "{{ package_path }}"
+      register: package_file_st
+
+    - name: Fail if package file doesn't exists
+      fail:
+      when: not package_file_st.stat.exists
+
+    - name: "Getting content of package file '{{ pkg_file_path }}'"
+      shell: "cat {{ package_path }}"
+      register: package_data
+
+    - name: Set facts
+      set_fact:
+        package_vars: "{{ package_data.stdout | from_yaml }}"
+    when: run_upstream|bool
+
+  - name: "GET package_name variable from loaded package_vars"
+    set_fact:
+      package_name: "{{ package_vars['packageName'] }}"
+
+  # Note:
+  # current logic will check the length of current_channel
+  # if the current_channel is empty string
+  # it defaults to defaultChannel attribute inside package_vars
+  # if the defaultChannel is undefined it fails over to
+  # first channel name inside package_var channels
+  - name: "Set default channel when the current_channel is empty"
+    set_fact:
+      current_channel: "{{ (current_channel |length > 0) |
+                            ternary(current_channel,
+                                    package_vars['defaultChannel'] |
+                                    default(package_vars['channels'][0]['name'])) }}"
+
+  # Note:
+  # the above logic do not cover the case when
+  # the defaultChannel is empty string (It covers when defaultChannel is undefined)
+  # the following task makes sure it sets to first found channel
+  # If not found it fails
+  - name: "If default_channel fetched is an empty string"
+    set_fact:
+      current_channel: "{{ package_vars['channels'][0]['name'] }}"
+    when: current_channel == ""
+
+  - name: "Determine the current clustersourceversion for the operator channel"
+    set_fact:
+      current_csv : "{{ package_vars['channels'] | json_query(query) }}"
+    vars:
+      query: "[?name=='{{ current_channel }}'].currentCSV"
+    failed_when: current_csv | length == 0
+
+  - name: "Get current_csv from current_csv query output"
+    set_fact:
+      current_csv: "{{ current_csv[0] }}"
+
+  - name: "Determine paths with kind ClusterServiceVersion"
+    find:
+      paths: "{{ operator_work_dir }}"
+      file_type: file
+      contains: 'kind: ClusterServiceVersion'
+      recurse: true
+    register: kind_custerserviceversion_file_paths
+
+  - name: "Grep paths with current_csv ClusterServiceVersion"
+    shell: "grep -l 'name: {{ current_csv }}' {{ item.path }}"
+    with_items: "{{ kind_custerserviceversion_file_paths['files'] }}"
+    register: grep_output_current_csv
+    ignore_errors: true
+
+  - name: "Search for grep_output_current_csv"
+    set_fact:
+      current_csv_path: "{{ item.item.path }}"
+    when: item.rc == 0
+    with_items: "{{ grep_output_current_csv.results }}"
+
+  - name: "Set variables for csv_path and current_csv_dir"
+    set_fact:
+      csv_path: "{{ current_csv_path }}"
+      current_csv_dir: "{{ current_csv_path | dirname }}"
+
+  - name: "Determine the package path in the operator metadata directory"
+    find:
+      paths: "{{ current_csv_dir }}"
+      file_type: file
+      contains: 'kind: CustomResourceDefinition'
+    register: crd_paths_result
+
+  - name: "Set crd_paths to collect crd_paths"
+    set_fact:
+      crd_paths: []
+
+  - name: "Get paths from crd_paths_result"
+    set_fact:
+      crd_paths: "{{ crd_paths + [item.path] }}"
+    with_items: "{{ crd_paths_result['files'] }}"
+
+  - name: "Include the package path into the ansible vars"
+    include_vars:
+      file: "{{ csv_path }}"
+      name: operator_vars
+    when: not run_upstream|bool
+
+  - name: "Determine and setfact for podname"
+    set_fact:
+      operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
+      operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
+      operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities | default('Basic Install') }}"
+
+  - name: "Determine operator_allnamespaces_support"
+    set_fact:
+      operator_allnamespaces_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='AllNamespaces'].supported"
+
+  - name: "Determine operator_ownnamespace_support"
+    set_fact:
+      operator_ownnamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='OwnNamespace'].supported"
+
+  - name: "Determine operator_singlenamespace_support"
+    set_fact:
+      operator_singlenamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='SingleNamespace'].supported"
+
+  - name: "Determine operator_multinamespace_support"
+    set_fact:
+      operator_multinamespace_support: "{{ operator_vars.spec.installModes | json_query(query) }}"
+    vars:
+      query: "[?type=='MultiNamespace'].supported"
+
+  - name: "Set boolean value for different types of namespaces"
+    set_fact:
+      operator_allnamespaces_support: "{{ false if operator_allnamespaces_support == [] else operator_allnamespaces_support[0] }}"
+      operator_ownnamespace_support: "{{ false if operator_ownnamespace_support == [] else operator_ownnamespace_support[0] }}"
+      operator_singlenamespace_support: "{{ false if operator_singlenamespace_support == [] else operator_singlenamespace_support[0] }}"
+      operator_multinamespace_support: "{{ false if operator_multinamespace_support == [] else operator_multinamespace_support[0] }}"
+
+  - name: "Output all collected data to a yaml file in work dir"
+    template:
+      src: "parsed_operator_data.yml.j2"
+      dest: "{{ work_dir }}/parsed_operator_data.yml"
+
+  rescue:
+
+    - name: "Rescue block contains the error messages"
+      debug:
+        msg: "Rescue block has found an error, The following are details of failed task."
+
+    - name: "FAILED task name in ansible is as follows:"
+      debug:
+        msg: "{{ ansible_failed_task.name }}"
+
+    - name: "Result of failed task"
+      debug:
+        msg: "{{ ansible_failed_result }}"
+
+    - name: "Result of failure"
+      fail:
+        msg: "Ansible playbook while preparing the operator metadata failed"
