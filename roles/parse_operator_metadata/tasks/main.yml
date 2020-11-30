@@ -8,7 +8,7 @@
       contains: 'packageName'
     register: package_path_result
 
-  - name: debug
+  - name: "Display the package path result"
     debug:
       msg: "{{ package_path_result }}"
 
@@ -16,6 +16,8 @@
   - name: "set variable for package_path from package_path_result"
     set_fact:
       package_path: "{{ package_path_result.files[0].path }}"
+    ignore_errors: true
+
 
   - name: "Load variables from package path into variable package_vars"
     include_vars:
@@ -108,6 +110,13 @@
     set_fact:
       csv_path: "{{ current_csv_path }}"
       current_csv_dir: "{{ current_csv_path | dirname }}"
+    ignore_errors: true
+    register: set_fact_csv_path_dir_output
+
+  - name: "Fail if the current csv path is not found"
+    fail:
+      msg: "Unable to find the current csv path please check the csv names in metadata"
+    when: set_fact_csv_path_dir_output.failed
 
   - name: "Determine the package path in the operator metadata directory"
     find:
