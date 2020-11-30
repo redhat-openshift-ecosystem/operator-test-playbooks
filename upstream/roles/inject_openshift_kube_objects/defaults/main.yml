@@ -1,0 +1,8 @@
+kube_objects_dir: "/home/jenkins/agent/kube_objects"
+
+# Assumed that real values will be passed in for these:
+kube_objects: kube_objects
+kubeconfig_path: "$WORKSPACE/operators/ocp-cluster-deployment/${clusterName}/auth/kubeconfig"
+rsa_private_key: rsa_private_key
+openshift_namespace: default
+symmetric_key: symmetric_key

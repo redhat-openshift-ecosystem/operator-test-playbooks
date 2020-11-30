@@ -1,0 +1,16 @@
+apiVersion: operators.coreos.com/v1alpha2
+kind: OperatorGroup
+metadata:
+  name: test-operators
+{% if operator_allnamespaces_support|bool != true %}
+spec:
+  targetNamespaces:
+  {% if operator_ownnamespace_support|bool == true %}
+    - {{ openshift_namespace }}
+  {% elif operator_singlenamespace_support|bool == true %}
+    - default
+  {% elif operator_multinamespace_support|bool == true %}
+    - {{ openshift_namespace }}
+    - default
+  {% endif %}
+{% endif %}

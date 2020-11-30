@@ -1,0 +1,80 @@
+---
+- name: "Checking operator format consistency"
+  block:
+    - name : "Find package file in '{{ cofc_operator_dir }}'"
+      find:
+        paths: "{{ cofc_operator_dir }}"
+        patterns: "*.package.yaml"
+      register: cofc_package_file_find
+      no_log: true
+
+    - name: "Checking validity for package maifest format"
+      block:
+        - name: "Serching for annotations files"
+          find:
+            paths: "{{ cofc_operator_dir }}"
+            patterns: "annotations.yaml"
+            recurse: true
+          register: cofc_annotation_files_find_manifest
+          no_log: true
+
+        - name: "Handling operator format inconsistecy"
+          block:
+            - name: "Getting list of annotations files"
+              set_fact:
+                cofc_annotations_manifest_failed: "{{ cofc_annotation_files_find_manifest.files | map(attribute='path' ) | list }}"
+            - name: "Printing list of failed format files"
+              debug:
+                var: cofc_annotations_manifest_failed
+            - name: "Printing failed message"
+              fail:
+                msg: "Operator '{{ cofc_operator_dir | basename }}' is in package manifest format, but contains some versions in bundle format (see above for list). Format mixing in one operator is not supported."
+          when: cofc_annotation_files_find_manifest.files|length > 0
+      when: cofc_package_file_find.files|length > 0
+
+    - name: "Checking validity for package maifest format"
+      block:
+        - name: "Serching for annotations files"
+          find:
+            paths: "{{ cofc_operator_dir }}"
+            patterns: "annotations.yaml"
+            recurse: true
+          register: cofc_annotation_bundle_files_find
+          no_log: true
+
+        - name: "Finding all versions in operator dir '{{ cofc_operator_dir }}'"
+          find:
+            paths: "{{ cofc_operator_dir }}"
+            recurse: no
+            file_type: directory
+          register: cofc_versions_find
+          no_log: true
+
+        - name: "Handling operator format inconsistecy"
+          block:
+            - name: "Getting list of annotations files"
+              set_fact:
+                cofc_annotations_bundle_failed: "{{ (cofc_annotation_bundle_files_find.files | map(attribute='path' ) | list | join(',') | regex_replace('/metadata/annotations.yaml') ).split(',') }}"
+                cofc_versions_bundle_failed: "{{ cofc_versions_find.files | map(attribute='path' ) | list }}"
+            - name: "Getting list of annotations files"
+              set_fact:
+                cofc_manifest_format_dirs: "{{ (cofc_versions_bundle_failed | difference(cofc_annotations_bundle_failed)) }}"
+
+            - name: "Printing list of annotations files (correct format)"
+              debug:
+                var: cofc_manifest_format_dirs
+            - name: "Printing failed message"
+              fail:
+                msg: "Operator '{{ cofc_operator_dir | basename }}' is in bundle format, but contains some versions in package manifest format (see above for list). Format mixing in one operator is not supported."
+          when: cofc_annotation_bundle_files_find.files|length != cofc_versions_find.files|length
+      when: cofc_package_file_find.files|length == 0
+
+    - name: "Printing msg that format consistency is ok"
+      debug:
+        msg: "Operator format consistency for operator '{{ cofc_operator_dir | basename }}' is OK"
+
+  tags:
+    - always
+    - test
+    - pure_test
+    - deploy_bundles

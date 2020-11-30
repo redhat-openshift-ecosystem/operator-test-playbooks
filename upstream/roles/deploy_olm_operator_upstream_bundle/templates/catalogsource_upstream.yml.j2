@@ -1,0 +1,12 @@
+apiVersion: "operators.coreos.com/v1alpha1"
+kind: "CatalogSource"
+metadata:
+  name: "test-operators-ocs"
+  namespace: "test-operators"
+  labels:
+    operator: test
+spec:
+  displayName: Community Operators
+  image: {{ bundle_index_image }}
+  publisher: upstream-community-operators
+  sourceType: grpc

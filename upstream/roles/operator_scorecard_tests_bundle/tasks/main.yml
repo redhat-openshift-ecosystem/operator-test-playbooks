@@ -1,0 +1,55 @@
+---
+
+- name: "Seting scorecards select variables"
+  set_fact:
+    bundle_scorecard_test_select_args: ""
+
+- name: "Seting scorecards variables by default setup"
+  set_fact:
+    bundle_scorecard_test_config: "{{ work_dir }}/scorecard_config.yml"
+    bundle_scorecard_test_select_args: "-l 'test in (basic-check-spec-test)'"
+    # bundle_scorecard_test_select_args: "-l 'test in (basic-check-spec-test,olm-bundle-validation-test,olm-status-descriptors-test)'"
+  when:
+    - (bundle_scorecard_test_config is undefined or bundle_scorecard_test_config == "")
+    - (bundle_scorecard_test_select is undefined or bundle_scorecard_test_select == "")
+
+- name: "Process the scorecard config template"
+  template:
+    src: "scorecard_config.yml.j2"
+    dest: "{{ work_dir }}/scorecard_config.yml"
+  # when:
+  #   - (bundle_scorecard_test_config is undefined or bundle_scorecard_test_config == "")
+  #   - (bundle_scorecard_test_select is undefined or bundle_scorecard_test_select == "")
+
+- name: "Seting scorecards variables by select '{{ bundle_scorecard_test_select_args }}'"
+  set_fact:
+    bundle_scorecard_test_select_args: "-l 'test in ({{ bundle_scorecard_test_select }})'"
+  when:
+    - bundle_scorecard_test_select is defined
+    - bundle_scorecard_test_select != ""
+
+- name: "Run operator-sdk scorecard tests on the deployed operator in json form"
+  shell: "{{ operator_sdk_bin_path }} alpha scorecard {{ bundle_image }} -c {{ bundle_scorecard_test_config }} {{ bundle_scorecard_test_select_args }}"
+  failed_when: false
+  register: bundle_scorecard_result
+
+# - name: "Parse json operator scorecard results"
+#   shell: "cat {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json | {{ jq_bin_path }} '.results[] | select(.labels.suite == \"basic\") | select(.state == \"pass\").name' | wc -l"
+#   register: scorecard_results_passed_result
+
+- name: "Print score card results"
+  debug:
+    var: bundle_scorecard_result.stdout
+
+- name: "Failing when bundle scorecard test failed"
+  fail:
+    msg: "Bundle scorecard test failed for bundle image {{ bundle_image }} !!!"
+  when: bundle_scorecard_result.rc != 0
+
+
+# - name: "Fail if the operator didn't satisfy the Basic Tests requirement"
+#   fail:
+#     msg: 'Operator scorecard basic tests failed, check scorecard_results.txt for more details'
+#   when:
+#     - check_scorecard_results|bool
+#     - scorecard_results_passed_result.stdout|int < 2

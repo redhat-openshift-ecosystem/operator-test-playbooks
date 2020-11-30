@@ -1,0 +1,20 @@
+---
+- name: "Test all operators and versions"
+  block:
+    - name: "Loop over all operators"
+      include_role:
+        name: gather_all_operators_to_dict
+
+    - debug:
+        var: all_operators_with_versions
+
+    - name: "Loop over all operators"
+      include_tasks: loop_operator_versions.yml
+      loop: "{{ all_operators_with_versions }}"
+      loop_control:
+        loop_var: lat_op
+  # when:
+  #   - run_upstream|bool
+  # tags:
+  #   - test_all
+  #   - pure_test_all

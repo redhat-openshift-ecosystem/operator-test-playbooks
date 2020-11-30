@@ -1,0 +1,49 @@
+- name: "Ensure that the operator bundle directory is empty"
+  file:
+    state: "absent"
+    path: "{{ operator_bundle_dir }}"
+  when: operator_bundle_dir is defined
+
+- name: "Ensure that the operator testing directory exists and is empty"
+  file:
+    state: "{{ item }}"
+    path: "{{ operator_work_dir }}"
+  with_items:
+    - absent
+    - directory
+  when: operator_work_dir is defined
+
+- name: "Copy the bundle image layers into a local directory using skopeo"
+  shell: "skopeo copy {{ image_protocol }}{{ bundle_image }} oci:{{ operator_bundle_dir }}:latest"
+  register: skopeo_copy_result
+
+- name: "Inspect the copied image directory"
+  shell: "skopeo inspect --raw oci://{{ operator_bundle_dir }}"
+  register: skopeo_dir_inspect_result
+
+- name: "Parse the image manifest json retrieved by skopeo"
+  set_fact:
+    image_manifest: "{{ skopeo_dir_inspect_result.stdout | from_json }}"
+
+- name: "Unpack the image layers using the umoci tool"
+  shell: "{{ umoci_bin_path }} unpack --rootless --image {{ operator_bundle_dir }}:latest {{ operator_bundle_dir }}/data"
+
+- name: "Copy the rootfs of the unpacked data into the operator work directory"
+  shell: "cp -r {{ operator_bundle_dir }}/data/rootfs/* {{ operator_work_dir }}"
+
+- name: Extract name and version from bundle input image
+  block:
+    - name: "Export CSV variables"
+      include_role:
+        name: export_csv
+      vars:
+        op_csv_dir: "{{ operator_bundle_dir }}/data/rootfs"
+        operator_format: "bundle"
+    - name: "Setting operator name and version from csv file"
+      set_fact:
+        operator_name: "{{ operator_vars.metadata.name.split('.')[0] }}"
+        op_version: "{{ operator_vars.metadata.name.split('.v')[1:] | join('.') }}"
+    # TODO PARSE version from spec.version to op_version
+  when:
+    - operator_input_image is defined
+    - operator_input_image != ""

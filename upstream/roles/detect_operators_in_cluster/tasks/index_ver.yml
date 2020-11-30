@@ -1,0 +1,22 @@
+---
+- name: "Set cluster version - checking {{ doic_allowed_versions }}"
+  set_fact:
+    dov_cluster_ver: "{{ doic_allowed_versions }}"
+    dov_operators_op_ver: []
+
+- name: "Loop over provided operators"
+  include_tasks: op_name.yml
+#  loop: "{{ operators_in }}"
+  loop: "{{ operators_for_index }}"
+  loop_control:
+    loop_var: doic_operators_for_index
+
+- name: "Add operator and supported versions to specific cluster config"
+  set_fact:
+   doic_full_list: "{{ doic_full_list | default([]) | union( [{'name': doic_allowed_versions, 'operators': dov_operators_op_ver }]) }}"
+  when:
+    - dov_operators_op_ver.0 is defined
+
+- name: "PARTIAL FULL LIST //////// {{ dov_cluster_ver }}"
+  debug:
+    var: doic_full_list

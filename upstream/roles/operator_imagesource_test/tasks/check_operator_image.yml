@@ -1,0 +1,11 @@
+---
+- name: "Parse the image registry url from the provided image"
+  shell: "echo {{ operator_image }} | cut -d',' -f1 | cut -d'/' -f1"
+  register: image_registry_url
+
+- name: "Add the image to the list of non approved images if it's not from an approved registry"
+  set_fact:
+    non_approved_images: "{{ non_approved_images|default([]) + [ operator_image ] }}"
+  when:
+    - operator_image not in ignored_images
+    - image_registry_url.stdout not in approved_registries
