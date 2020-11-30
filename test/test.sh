@@ -268,7 +268,9 @@ for t in $TESTS;do
     $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL rm -f $OP_TEST_NAME > /dev/null 2>&1
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL run -d --rm -it --name $OP_TEST_NAME $OP_TEST_CONAINER_RUN_DEFAULT_ARGS $OP_TEST_CONTAINER_RUN_EXTRA_ARGS $OP_TEST_IMAGE
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL cp $HOME/.kube $OP_TEST_NAME:/root/
+    set -e
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec -it $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
+    set +e
     echo -e "Test '$t' : [ OK ]\n"
 done
 
