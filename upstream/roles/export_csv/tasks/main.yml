@@ -1,0 +1,78 @@
+---
+- name: "Find csv file (bundle)"
+  block:
+    - name: "Searching for file cvs file (bundle)"
+      find:
+        paths: "{{ op_csv_dir }}/manifests/"
+        recurse: no
+        file_type: file
+        patterns: '*.clusterserviceversion.yaml'
+      register: csv_find_bundle
+
+    - name: "CSV file existence error message"
+      fail:
+        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+      when: csv_find_bundle.files|length == 0
+
+    - name: "Set csv_file_path"
+      set_fact:
+        csv_file_path: "{{ csv_find_bundle.files[0].path }}"
+  when: operator_format == "bundle"
+
+- name: "Find csv file (manifest)"
+  block:
+    - name: "Searching for file cvs file (manifest) in '{{ op_csv_dir }}'"
+      find:
+        paths: "{{ op_csv_dir }}"
+        recurse: no
+        file_type: file
+        patterns: '*.clusterserviceversion.yaml'
+      register: csv_find_manifest
+
+    - name: "Failing if csv file was found"
+      fail:
+        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+      when: csv_find_manifest.files|length == 0
+
+    - set_fact:
+        csv_file_path: "{{ csv_find_manifest.files[0].path }}"
+  when: operator_format == "manifest"
+
+- name: "Include the package path into the operator_vars (upstream only)"
+  block:
+  - name: "Check if csv file '{{ csv_file_path }}' exists"
+    stat:
+      path: "{{ csv_file_path }}"
+    register: csv_file_st
+    no_log: True
+
+  - name: "Fail if csv file '{{ csv_file_path }}' doesn't exists"
+    fail:
+      msg: "CSV file '{{ csv_file_path }}' doesn't exists !!!"
+    when: not csv_file_st.stat.exists
+
+  - name: "Getting metadata content from csv '{{ csv_file_path | basename}}'"
+    shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata"
+    register: csv_data_metadata
+    ignore_errors: yes
+
+  - name: "Fail if 'metadata' was not parsed from csv file '{{ csv_file_path }}'"
+    fail:
+      msg: "Cannot parse 'metadata' from CSV file '{{ csv_file_path }}' !!!"
+    when: csv_data_metadata.rc != 0
+
+  - name: "Getting spec content from csv '{{ csv_file_path | basename}}'"
+    shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t spec"
+    register: csv_data_spec
+    ignore_errors: yes
+
+  - name: "Fail if 'spec' was not parsed from csv file '{{ csv_file_path }}'"
+    fail:
+      msg: "Cannot parse 'spec' from CSV file '{{ csv_file_path }}' !!!"
+    when: csv_data_spec.rc != 0
+
+  - name: "Sets operator variables from csv '{{ csv_file_path | basename }}'"
+    set_fact:
+      operator_vars:
+        metadata: "{{ csv_data_metadata.stdout | from_yaml }}"
+        spec: "{{ csv_data_spec.stdout | from_yaml }}"

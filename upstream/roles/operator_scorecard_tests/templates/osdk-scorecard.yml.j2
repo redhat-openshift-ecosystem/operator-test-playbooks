@@ -1,0 +1,20 @@
+scorecard:
+  output: json
+  kubeconfig: {{ kubeconfig_path }}
+  plugins:
+    - basic:
+        csv-path: {{ csv_path }}
+        namespace: {{ openshift_namespace }}
+        crds-dir: {{ current_csv_dir }}
+        olm-deployed: true
+        init-timeout: 60
+        cr-manifest:
+          - {{ cr_path }}
+    - olm:
+        csv-path: {{ csv_path }}
+        namespace: {{ openshift_namespace }}
+        crds-dir: {{ current_csv_dir }}
+        olm-deployed: true
+        init-timeout: 60
+        cr-manifest:
+          - {{ cr_path }}

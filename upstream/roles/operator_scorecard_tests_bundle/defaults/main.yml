@@ -1,0 +1,10 @@
+---
+# sc_proxy_image: quay.io/operator-framework/scorecard-proxy:master
+# operator_work_dir: /tmp/cvp/operator-files
+# current_csv_dir: /tmp/cvp/operator-files
+# openshift_namespace: test-operator
+# operator_sdk_bin_path: operator-sdk
+# jq_bin_path: jq
+# check_scorecard_results: true
+
+bundle_image: kind-registry:5000/test-operator/aqua:v1.0.0

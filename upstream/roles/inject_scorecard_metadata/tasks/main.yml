@@ -1,0 +1,84 @@
+---
+- set_fact:
+    sc_secret_path: "{{ operator_work_dir }}/../scorecard.secret.yaml"
+
+- debug:
+    msg: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
+
+- name: "Git clone community operators repo with the required bash functions"
+  git:
+    repo: 'https://github.com/operator-framework/community-operators.git'
+    dest: /tmp/community-operators
+    version: master
+    force: true
+
+- name: "Insert kubeconfig volume into the operator CSV"
+  shell: |
+    source /tmp/community-operators/scripts/lib/file
+    insert_kubeconfig_volume {{ csv_path }}
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
+
+- name: "Insert kubeconfig secret mount into the operator CSV"
+  shell: |
+    source /tmp/community-operators/scripts/lib/file
+    insert_kubeconfig_secret_mount {{ csv_path }}
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
+
+- name: "Insert scorecard-proxy container into the operator CSV"
+  shell: |
+    source /tmp/community-operators/scripts/lib/file
+    insert_proxy_container {{ csv_path }} {{ sc_proxy_image }}
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
+
+- name: "Create scorecard kubeconfig secret file"
+  shell: |
+    source /tmp/community-operators/scripts/lib/file
+    create_kubeconfig_secret_file {{ sc_secret_path }} {{ openshift_namespace }}
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
+
+- name: "Load CSV into a csv_vars"
+  include_vars:
+    file: "{{ csv_path }}"
+    name: csv_vars
+
+- name: "Get spec from csv_vars"
+  set_fact:
+    csv_vars_spec: "{{ csv_vars['spec'] | default({}) }}"
+
+- name: "Get customresourcedefinitions from csv_vars_spec"
+  set_fact:
+    csv_vars_spec_crds: "{{ csv_vars_spec['customresourcedefinitions'] | default({}) }}"
+
+- name: "Get owned attribute from csv_vars_spec_crds"
+  set_fact:
+    csv_vars_spec_crds_owned: "{{ csv_vars_spec_crds['owned'] | default([]) }}"
+
+  # RUNS the following block only when csv_vars_spec_crds_owned is not empty
+- name: "Extract CR only when the CRs defined"
+  block:
+    - name: "Extract only the first CR from alm-examples in the CSV"
+      shell: "{{ yq_bin_path }} r {{ csv_path }} \"metadata.annotations.alm-examples\" | {{ jq_bin_path }} -c .[0] | {{ yq_bin_path }} w - \"metadata.namespace\" \"{{ openshift_namespace }}\" > {{ scorecard_cr_dir }}/first.cr.yaml"
+      when: scorecard_first_cr|bool
+
+    - name: "Extract all CRs from alm-examples in the CSV"
+      shell: |
+        source /tmp/community-operators/scripts/lib/file
+        create_cr_files_from_metadata {{ csv_path }} {{ scorecard_cr_dir }} {{ openshift_namespace }}
+      args:
+        executable: /bin/bash
+      environment:
+        PATH: "{{ testing_bin_path}}:{{ lookup('env', 'PATH') }}"
+      when: scorecard_first_cr|bool == false
+  when: csv_vars_spec_crds_owned | length > 0

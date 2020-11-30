@@ -1,0 +1,4 @@
+---
+sc_proxy_image: quay.io/operator-framework/scorecard-proxy:master
+operator_work_dir: /tmp/cvp/operator-files
+openshift_namespace: test-operator

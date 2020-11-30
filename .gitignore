@@ -1,1 +1,4 @@
 .lock
+filter_plugins/__pycache__
+filter_plugins/*.pyc
+.idea/
