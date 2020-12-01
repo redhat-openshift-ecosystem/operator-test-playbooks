@@ -28,12 +28,19 @@ OP_TEST_CONTAINER_EXEC_EXTRA_ARGS=${OP_TEST_CONTAINER_EXEC_EXTRA_ARGS-""}
 OP_TEST_EXEC_BASE=${OP_TEST_EXEC_BASE-"ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml -e run_upstream=true -e image_protocol='docker://'"}
 OP_TEST_EXEC_EXTRA=${OP_TEST_EXEC_EXTRA-"-e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="}
 OP_TEST_RUN_MODE=${OP_TEST_RUN_MODE-"privileged"}
+OP_TEST_LABELS=${OP_TEST_LABELS-""}
+OP_TEST_PROD=${OP_TEST_PROD-0}
 OP_TEST_DEBUG=${OP_TEST_DEBUG-0}
 OP_TEST_DRY_RUN=${OP_TEST_DRY_RUN-0}
 OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
 OP_TEST_RESET=${OP_TEST_RESET-1}
 OP_TEST_LOG_DIR=${OP_TEST_LOG_DIR-"/tmp/op-test"}
 OP_TEST_NOCOLOR=${OP_TEST_NOCOLOR-0}
+
+OP_TEST_VER_OVERWRITE=${OP_TEST_VER_OVERWRITE-0}
+OP_TEST_RECREATE=${OP_TEST_RECREATE-0}
+OP_TEST_FORCE_DEPLOY_ON_K8S=${OP_TEST_FORCE_DEPLOY_ON_K8S-0}
+
 
 [[ $OP_TEST_NOCOLOR -eq 1 ]] && ANSIBLE_NOCOLOR=1
 
@@ -121,6 +128,19 @@ if [ "$OP_TEST_CONTAINER_TOOL" = "podman" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
 fi
 
+# Handle labels
+if [ -n "$OP_TEST_LABELS" ];then
+    for l in $(echo $OP_TEST_LABELS);do
+    echo "Handling label '$l' ..."
+    [[ "$l" = "allow/operator-version-overwrite" ]] && export OP_TEST_VER_OVERWRITE=1
+    [[ "$l" = "allow/operator-recreate" ]] && export OP_TEST_RECREATE=1
+    [[ "$l" = "test/force-deploy-on-kubernetes" ]] && export OP_TEST_FORCE_DEPLOY_ON_K8S=1
+    [[ "$l" = "verbosity/high" ]] && export OP_TEST_DEBUG=1
+    [[ "$l" = "verbosity/debug" ]] && export OP_TEST_DEBUG=2
+    done
+else
+    echo "Info: No labels defined"
+fi
 [[ $OP_TEST_DEBUG -eq 0 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 # [[ $OP_TEST_DEBUG -eq 1 ]] && OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DEBUG -eq 2 ]] && OP_TEST_EXEC_EXTRA="-v $OP_TEST_EXEC_EXTRA"
@@ -152,6 +172,7 @@ if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo
     exit 1
 fi
+
 
 # Handle operator info
 OP_TEST_BASE_DIR=${OP_TEST_BASE_DIR-"/tmp/community-operators-for-catalog"}
@@ -188,15 +209,24 @@ else
     OP_TEST_CONTAINER_RUN_EXTRA_ARGS="$OP_TEST_CONTAINER_RUN_EXTRA_ARGS -v $p:/tmp/community-operators-for-catalog"
 fi
 
-if [ "$OP_TEST_STREAM" = "upstream-community-operators" ] ; then
-    PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/operatorhubio -e index_force_update=true'
-elif [ "$OP_TEST_STREAM" = "community-operators" ] ; then
-    PROD_REGISTRY_ARGS='-e production_registry_namespace=quay.io/openshift-community-operators -e index_force_update=true'
+
+
+if [[ "$OP_TEST_STREAM" = "upstream-community-operators" ]]; then
+    PROD_REGISTRY_ARGS="-e production_registry_namespace=quay.io/operatorhubio"
+elif [[ "$OP_TEST_STREAM" = "community-operators" ]]; then
+    PROD_REGISTRY_ARGS="-e production_registry_namespace=quay.io/openshift-community-operators"
+    # -e fail_on_no_index_change=true
+    # -e fail_on_no_index_change=false -e index_force_update=true
 else
   echo -e "\n Error: Unknown stream name : $OP_TEST_STREAM\n"
   echo -e "\n\t Full path to operator/version provided: '${2-$PWD}'\n"
   exit 1
 fi
+
+[[ $OP_TEST_VER_OVERWRITE -eq 1 ]] && PROD_REGISTRY_ARGS="$PROD_REGISTRY_ARGS -e operator_version=$OP_VER -e bundle_force_rebuild=true"
+[[ $OP_TEST_VER_OVERWRITE -eq 1 ]] && [[ $OP_TEST_PROD -eq 1 ]] && PROD_REGISTRY_ARGS="$PROD_REGISTRY_ARGS -e fail_on_no_index_change=false -e index_force_update=true"
+
+[[ $OP_TEST_VER_OVERWRITE -eq 1 ]] && [[ $OP_TEST_PROD -eq 1 ]] && echo "Running overwrite and prod '$PROD_REGISTRY_ARGS'"
 
 echo "Using $(ansible --version | head -n 1) ..."
 if [[ $OP_TEST_DEBUG -ge 2 ]];then

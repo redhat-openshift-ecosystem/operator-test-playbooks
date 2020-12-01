@@ -1,0 +1,76 @@
+name: otpu
+env:
+  ANSIBLE_CONFIG: "$PWD/upstream/ansible.cfg"
+  ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  otpu_bf:
+    name: Bundle format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/scripts/bundle-examples/prometheus -e operator_version=0.32.0 --tags pure_test -e strict_mode=true
+  otpu_mtbf:
+    name: Manifest to bundle format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e strict_mode=true
+  otpu_pmfto:
+    name: Pure manifest format test only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e run_bundle_test=false -e run_manifest_test=true -e strict_mode=true
+  otpu_ifs:
+    name: Index from scratch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml
+  otpu_ifp:
+    name: Index from production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_update=true
+  otpu_ifsmv:
+    name: Index from scratch (multiple versions)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true
