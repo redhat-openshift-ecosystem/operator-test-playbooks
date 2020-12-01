@@ -224,7 +224,12 @@ else
 fi
 
 [[ $OP_TEST_VER_OVERWRITE -eq 1 ]] && PROD_REGISTRY_ARGS="$PROD_REGISTRY_ARGS -e operator_version=$OP_VER -e bundle_force_rebuild=true"
-[[ $OP_TEST_VER_OVERWRITE -eq 1 ]] && [[ $OP_TEST_PROD -eq 1 ]] && PROD_REGISTRY_ARGS="$PROD_REGISTRY_ARGS -e fail_on_no_index_change=false -e index_force_update=true"
+
+if [[ $OP_TEST_VER_OVERWRITE -eq 1 ]];then
+    PROD_REGISTRY_ARGS="$PROD_REGISTRY_ARGS -e fail_on_no_index_change=false -e index_force_update=true"
+else
+    PROD_REGISTRY_ARGS="$PROD_REGISTRY_ARGS -e fail_on_no_index_change=true"
+fi
 
 [[ $OP_TEST_VER_OVERWRITE -eq 1 ]] && [[ $OP_TEST_PROD -eq 1 ]] && echo "Running overwrite and prod '$PROD_REGISTRY_ARGS'"
 
