@@ -2,15 +2,15 @@ package_name: {{ package_name }}
 package_path: {{ package_path }}
 current_channel: {{ current_channel }}
 current_csv: {{ current_csv }}
-current_csv_dir: {{ current_csv_dir }}
-csv_path: {{ csv_path }}
-operator_pod_name: {{ operator_pod_name }}
-operator_capabilities: {{ operator_capabilities }}
-operator_container_name: {{ operator_container_name }}
-operator_allnamespaces_support: {{ operator_allnamespaces_support }}
-operator_ownnamespace_support: {{ operator_ownnamespace_support }}
-operator_singlenamespace_support: {{ operator_singlenamespace_support }}
-operator_multinamespace_support: {{ operator_multinamespace_support }}
+current_csv_dir: {{ current_csv_dir | default('Error finding current_csv_dir') }}
+csv_path: {{ csv_path | default('Error finding csv_path') }}
+operator_pod_name: {{ operator_pod_name | default('Error finding operator_pod_name') }}
+operator_capabilities: {{ operator_capabilities | default('Error finding operator_capabilites') }}
+operator_container_name: {{ operator_container_name | default('Error finding operator_container_name') }}
+operator_allnamespaces_support: {{ operator_allnamespaces_support | default('Error finding operator_container_name') }}
+operator_ownnamespace_support: {{ operator_ownnamespace_support | default('Error finding operator_container_name') }}
+operator_singlenamespace_support: {{ operator_singlenamespace_support | default('Error finding operator_container_name') }}
+operator_multinamespace_support: {{ operator_multinamespace_support | default('Error finding operator_container_name') }}
 {% if crd_paths|length < 1 %}
 crd_paths: []
 {% else %}

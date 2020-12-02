@@ -1,6 +1,10 @@
 - name: "Running Prepare operator metadata"
   block:
 
+  - name: "Set crd_paths to collect crd_paths"
+    set_fact:
+      crd_paths: []
+
   - name: "Determine the package path inside operator metadata directory"
     find:
       paths: "{{ operator_work_dir }}"
@@ -222,3 +226,7 @@
       copy:
         content: "{{ parse_operator_metadata_results | to_nice_json }}" 
         dest: parse_operator_metadata_results.json
+    - name: "Output all collected data to a yaml file in work dir"
+      template:
+        src: "parsed_operator_data.yml.j2"
+        dest: "{{ work_dir }}/parsed_operator_data.yml"
