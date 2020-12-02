@@ -1,0 +1,37 @@
+---
+- name: "Run optional-operators-subscribe"
+  block:
+  - name: "Set facts for the Operator groups"
+    set_fact:
+      OO_INDEX: "{{ OO_INDEX }}"
+      OO_PACKAGE: "{{ OO_PACKAGE }}"
+      OO_CHANNEL: "{{ OO_CHANNEL }}"
+      OO_INSTALL_NAMESPACE: "{{ OO_INSTALL_NAMESPACE | default('') }}"
+      OO_TARGET_NAMESPACES: "{{ OO_TARGET_NAMESPACES | default('') }}"
+      ARTIFACT_DIR: "{{ ARTIFACT_DIR }}"
+
+  # incase of failure the following task fails
+  # we will be ignoring errors to display the results
+  - name: "Generate namespace name if not provided"
+    shell: "{{ lookup('template', 'optional-operators-subscribe-commands.sh') }}"
+    register: shell_script_output
+    environment:
+      KUBECONFIG: "{{ kubeconfig_path }}"
+      OO_INDEX: "{{ OO_INDEX }}"
+      OO_PACKAGE: "{{ OO_PACKAGE }}"
+      OO_CHANNEL: "{{ OO_CHANNEL }}"
+      OO_INSTALL_NAMESPACE: "{{ OO_INSTALL_NAMESPACE }}"
+      OO_TARGET_NAMESPACES: "{{ OO_TARGET_NAMESPACES }}"
+      ARTIFACT_DIR: "{{ ARTIFACT_DIR }}"
+    ignore_errors: true
+    
+  # incase of success/failure the output is being displayed the
+  - name: "Debug"
+    debug:
+      msg: "{{ shell_script_output.stdout_lines }}"
+
+  always:
+  - name: "Store the result in a JSON file"
+    copy:
+      dest: "optional_operator_subscribe.json"
+      content: "{{ shell_script_output }}"
