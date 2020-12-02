@@ -38,7 +38,7 @@ jobs:
           #context: .
           #file: Dockerfile
           push: true
-          tags: quay.io/operator_testing/operator-test-playbooks:latest
+          tags: quay.io/operator_testing/operator-test-playbooks:master
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

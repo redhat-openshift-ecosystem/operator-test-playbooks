@@ -2,6 +2,8 @@
 - name: "Setting 'bundle_index_image' variable"
   set_fact:
     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ ba_index_tag }}"
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
 
 - name: "Remove index image '{{ bundle_index_image }}'"
   shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
