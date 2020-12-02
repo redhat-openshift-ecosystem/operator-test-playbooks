@@ -78,4 +78,5 @@ $CONTAINER_TOOL exec -it \
 -e OP_BRANCH="$BRANCH" \
 -e OP_OSR_HASH="quay.io/operator_testing|$OP_TOKEN|$COMMIT" \
 -e OP_DEBUG=$OP_DEBUG \
-test /playbooks/test/osr_test.sh
+-e ANSIBLE_CONFIG="/playbooks/upstream/ansible.cfg" \
+test /playbooks/upstream/test/osr_test.sh
