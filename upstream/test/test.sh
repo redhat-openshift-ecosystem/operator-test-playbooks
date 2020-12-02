@@ -128,6 +128,9 @@ if [ "$OP_TEST_CONTAINER_TOOL" = "podman" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e opm_container_tool=podman -e container_tool=podman -e opm_container_tool_index="
 fi
 
+[ -d $OP_TEST_LOG_DIR ] || mkdir -p $OP_TEST_LOG_DIR
+[ -f $OP_TEST_LOG_DIR/log.out ] && rm -f $OP_TEST_LOG_DIR/log.out
+
 # Handle labels
 if [ -n "$OP_TEST_LABELS" ];then
     for l in $(echo $OP_TEST_LABELS);do
@@ -135,8 +138,8 @@ if [ -n "$OP_TEST_LABELS" ];then
     [[ "$l" = "allow/operator-version-overwrite" ]] && export OP_TEST_VER_OVERWRITE=1
     [[ "$l" = "allow/operator-recreate" ]] && export OP_TEST_RECREATE=1
     [[ "$l" = "test/force-deploy-on-kubernetes" ]] && export OP_TEST_FORCE_DEPLOY_ON_K8S=1
-    [[ "$l" = "verbosity/high" ]] && export OP_TEST_DEBUG=1
-    [[ "$l" = "verbosity/debug" ]] && export OP_TEST_DEBUG=2
+    [[ "$l" = "verbosity/high" ]] && export OP_TEST_DEBUG=2
+    [[ "$l" = "verbosity/debug" ]] && export OP_TEST_DEBUG=3
     done
 else
     echo "Info: No labels defined"
@@ -147,6 +150,7 @@ fi
 [[ $OP_TEST_DEBUG -eq 3 ]] && OP_TEST_EXEC_EXTRA="-vv $OP_TEST_EXEC_EXTRA"
 [[ $OP_TEST_DRY_RUN -eq 1 ]] && DRY_RUN_CMD="echo"
 
+echo "debug=$OP_TEST_DEBUG"
 
 # Handle test types
 [ -z $1 ] && help
@@ -272,9 +276,6 @@ if ! $DRY_RUN_CMD command -v kind > /dev/null 2>&1; then
 #     fi
 fi
 
-[ -d $OP_TEST_LOG_DIR ] || mkdir -p $OP_TEST_LOG_DIR
-[ -f $OP_TEST_LOG_DIR/log.out ] && rm -f $OP_TEST_LOG_DIR/log.out
-
 # Install prerequisites (kind cluster)
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run echo -e " [ Installing prerequisites ] "
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS $OP_TEST_ANSIBLE_EXTRA_ARGS -e run_prepare_catalog_repo_upstream=false
@@ -294,6 +295,7 @@ for t in $TESTS;do
     # Exec test
     OP_TEST_EXEC_USER=
     [ "$t" = "kiwi" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR -e operator_version=$OP_TEST_VERSION --tags pure_test"
+    [ "$t" = "kiwi" ] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_FORCE_DEPLOY_ON_K8S -eq 0 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e test_skip_deploy=true"
     [ "$t" = "lemon" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR --tags deploy_bundles"
     [ "$t" = "orange" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR $PROD_REGISTRY_ARGS --tags deploy_bundles"
 
