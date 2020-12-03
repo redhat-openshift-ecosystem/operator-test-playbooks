@@ -30,6 +30,15 @@
     name: parse_operator_bundle
   vars:
     bundle_image: "{{ lc_doic_bundles_processing }}"
+  when: lc_doic_bundles_processing.startswith('kind-registry')
+
+- name: "Parse the operator bundle image, manifest and metadata"
+  include_role:
+    name: parse_operator_bundle
+  vars:
+    bundle_image: "{{ lc_doic_bundles_processing }}"
+    image_protocol: "docker://"
+  when: not lc_doic_bundles_processing.startswith('kind-registry')
 
 - name: "Set check back, unset variable"
   set_fact:
