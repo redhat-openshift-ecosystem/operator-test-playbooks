@@ -8,4 +8,4 @@
 - name: "Adding versions in prod"
   set_fact:
     doic_final_list_versions_prod: "{{ doic_final_list_versions_prod | default([]) + [doic_versions_from_bundle] }}"
-  when: lc_doic_bundles_processing.startswith('quay.io')
+  when: not lc_doic_bundles_processing.startswith('kind-registry')
