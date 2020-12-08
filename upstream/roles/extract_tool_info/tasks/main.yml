@@ -1,0 +1,47 @@
+---
+- name: "Search for operator tools info file '{{ operator_tools_info_file }}'"
+  stat:
+    path: "{{ operator_tools_info_file }}"
+  register: otif
+
+- name: "Extract operator tools info from file"
+  block:
+    - name: "Get content of file"
+      shell: cat "{{ operator_tools_info_file }}"
+      register: otif_data
+
+    - name: "Extract operator tools info from file"
+      set_fact:
+        operator_tools_info: "{{ otif_data.stdout | from_yaml }}"
+
+  when: otif.stat.exists|bool
+
+- name: "Extract tools info"
+  set_fact:
+    operator_tools_info:
+      versions:
+        kind: "{{ kind_version }}"
+        kind_kube: "{{ kind_kube_version }}"
+        operator_sdk: "{{ operator_sdk_version }}"
+        operator_courier: "{{ operator_courier_version }}"
+        olm: "{{ olm_version }}"
+        opm: "{{ opm_version }}"
+        oc: "{{ oc_version }}"
+        kubectl: "{{ kubectl_version }}"
+        go: "{{ go_version }}"
+        jq: "{{ jq_version }}"
+        yq: "{{ yq_version }}"
+        umoci: "{{ umoci_version }}"
+
+  when: not otif.stat.exists|bool
+
+- name: "Print operator tools info"
+  debug:
+    var: operator_tools_info
+
+- name: "Save operator tools info to file"
+  copy: content="{{ operator_tools_info | to_nice_yaml }}" dest="{{ operator_tools_info_file }}"
+  when:
+    - save_operator_tools_info is defined
+    - save_operator_tools_info|bool
+

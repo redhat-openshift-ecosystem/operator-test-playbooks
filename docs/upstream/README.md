@@ -316,6 +316,8 @@ Usage:
 | use_cluster_filter | Enable multiple index images [bool]|false|true|
 | supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`4.6,4.7` for Openshift; `latest` for kubernetes|
 | copy_as_latest_index | Copy and tag specific index as `latest`|4.6|`4.6` for Openshift; not defined for kubernetes|
+| save_operator_tools_info | Save operator tools info [bool]|false|false|
+
 
 ## Tags to use
 

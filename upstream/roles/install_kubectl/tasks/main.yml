@@ -21,11 +21,15 @@
 
       - name: "Read kubectl Version from url"
         command: cat {{ kubectl_version_tmp_dir }}/kubectl_version
-        register: kubectl_version
+        register: kubectl_version_data
 
-      - name: "Install kubectl ({{ kubectl_version.stdout }})"
+      - name: "Setting kubectl version"
+        set_fact:
+          kubectl_version: "{{ kubectl_version_data.stdout }}"
+
+      - name: "Install kubectl ({{ kubectl_version }})"
         get_url:
-          url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl
+          url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
           dest: /usr/local/bin/kubectl
           mode: '0755'
         register: kubectl_install_result

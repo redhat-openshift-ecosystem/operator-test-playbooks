@@ -34,16 +34,6 @@ jobs:
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
         run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e strict_mode=true
-  otpu_pmfto:
-    name: Pure manifest format test only
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Preparing operator test environment
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
-      - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 --tags pure_test -e run_bundle_test=false -e run_manifest_test=true -e strict_mode=true
   otpu_ifs:
     name: Index from scratch
     runs-on: ubuntu-latest
