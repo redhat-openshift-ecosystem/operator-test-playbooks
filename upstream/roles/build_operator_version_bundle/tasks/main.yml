@@ -253,7 +253,7 @@
           register: bb_rc
 
         - name: "Push bundle image {{ bundle_image }}"
-          shell: "{{ container_tool }} push {{ bundle_image }}"
+          shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
           register: bbp_rc
           when:
             - bb_rc.rc is defined
@@ -315,7 +315,7 @@
           register: mb_rc
 
         - name: "Push bundle image {{ bundle_image }}"
-          shell: "{{ container_tool }} push {{ bundle_image }}"
+          shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
           register: mbp_rc
           when:
             - mb_rc.rc is defined

@@ -16,7 +16,7 @@
       shell: "{{ container_tool }} tag {{ operator_input_image }} {{ operator_input_local_image }}"
 
     - name: Push input image to local registry
-      shell: "{{ container_tool }} push {{ operator_input_local_image }}"
+      shell: "{{ container_tool }} push {{ container_push_extra }} {{ operator_input_local_image }}"
 
     - name: "Ensure that the operator tmp bundle input directory exists and is empty"
       file:

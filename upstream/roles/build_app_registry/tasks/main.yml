@@ -51,6 +51,7 @@
     app_registry_base_dir: "{{ bundle_export_dir_app_registry }}"
     app_registry_parallel: true
     bar_op: "{{ gaotd_operator_packages | join(',') }}"
+    eo_index_args: "{{ eo_index_args }}"
   when: index_export_parallel|bool
 
 - name: "Building and pushing app registry"
@@ -59,7 +60,7 @@
       shell: "{{ container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
 
     - name: "Push app registry image '{{ app_registry_image }}'"
-      shell: "{{ container_tool }} push {{ app_registry_image }}"
+      shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
   when:
     - app_registry_build_dir is defined
     - app_registry_build_dir != ""

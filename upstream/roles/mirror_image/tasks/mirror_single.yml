@@ -26,7 +26,7 @@
         - name: "Doing retag of '{{ mirror_input_image }}' to '{{ ms_info[0] }}'"
           shell: "{{ container_tool }} tag {{ mirror_input_image  }} {{ ms_info[0] }}"
         - name: "Push image '{{ ms_info[0] }}'"
-          shell: "{{ container_tool }} push {{ ms_info[0] }}"
+          shell: "{{ container_tool }} push {{ container_push_extra }} {{ ms_info[0] }}"
       when:
         - mirror_input_image is defined
         - mirror_input_image != ""

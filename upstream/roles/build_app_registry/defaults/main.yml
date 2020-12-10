@@ -5,6 +5,7 @@ bundle_export_dir_app_registry: "{{ work_dir }}/app_registry/upstream-community-
 container_tool: "docker"
 opm_container_tool: "docker"
 opm_container_tool_index: "docker"
+container_push_extra: ""
 eo_index_args: ""
 index_export_parallel: false
 app_registry_build_dir: "{{ catalog_repo_dir }}"
