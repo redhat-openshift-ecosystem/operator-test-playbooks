@@ -13,7 +13,8 @@
       shell: "{{ container_tool }} pull {{ bundle_index_image }}"
 
     - name: "Start index container {{ bundle_index_image }}"
-      shell: "{{ container_tool }} run -d --name {{ sanity_check_container_name }} {{ bundle_index_image }}"
+      # shell: "{{ container_tool }} run -d --name {{ sanity_check_container_name }} {{ bundle_index_image }}"
+      shell: "{{ container_tool }} create --name {{ sanity_check_container_name }} {{ bundle_index_image }}"
 
     - name: "Remove db filename '{{ sqlite_db_file }}'"
       file:

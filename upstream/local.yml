@@ -37,7 +37,7 @@
     operator_sdk_version: v0.18.2
     operator_courier_version: 2.1.11
     olm_version: 0.16.1
-    opm_version: v1.15.1
+    opm_version: v1.15.3
     oc_version: 4.3.5
     go_version: 1.13.7
     jq_version: 1.6
@@ -101,7 +101,7 @@
       set_fact:
         opm_container_tool: "podman"
         opm_container_tool_index: ""
-        container_push_extra: "--format=docker"
+        container_push_extra: "--format=v2s1"
       when: container_tool == "podman"
       tags:
         - always

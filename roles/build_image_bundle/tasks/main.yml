@@ -92,11 +92,11 @@
             chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
       when: operator_format == "bundle"
 
-    - name: "Generate bundle image {{ bundle_image }} from bundle format"
-      shell:
-        cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
-        chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
-      when: operator_format == "bundle"
+    # - name: "Generate bundle image {{ bundle_image }} from bundle format"
+    #   shell:
+    #     cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ operator_version }}/{{ operator_manifest_dir }} --package {{ operator_package_name }} -t {{ bundle_image }} -c {{ operator_channels }} -e {{ operator_channel_default }} -b {{ opm_container_tool }}"
+    #     chdir: "{{ operator_bundle_src_dir }}/{{ operator_name }}"
+    #   when: operator_format == "bundle"
 
     - name: "Generate bundle image {{ bundle_image }} from manifest format"
       shell:
