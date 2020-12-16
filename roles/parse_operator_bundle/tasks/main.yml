@@ -45,7 +45,7 @@
       package_name: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1'] }}"
       default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
       channels: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channels.v1'].split(',') }}"
-      ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'].split(',') }}"
+      ocp_versions: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'] }}"
       # if backport label missing, an empty is_backport means not set.
       is_backport: ""
 

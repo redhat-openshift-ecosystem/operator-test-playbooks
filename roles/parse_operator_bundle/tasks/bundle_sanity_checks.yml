@@ -1,12 +1,4 @@
 ---
-- name: "Verify ocp versions are valid"
-  fail:
-    msg: "the label com.redhat.openshift.versions can not contain {{ item }}"
-  loop: "{{ ocp_versions }}"
-  when: 
-    - item not in valid_ocp_versions
-    - not run_upstream|bool
-
 - name: "Read the variables from annotations.yaml"
   include_vars:
     file: "{{ operator_work_dir }}/metadata/annotations.yaml"
