@@ -1,5 +1,24 @@
+
 - name: "Removing operator"
   block:
+
+    - name: "Quay login via auth token"
+      shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+      no_log: True
+      when: 
+        - quay_api_token is defined
+        - quay_api_token != ""
+
+    - name: "Setting"
+      set_fact:
+        rob_index_version: "{{ bundle_index_image_version }}"
+
+    - name: "Setting"
+      set_fact:
+        rob_index_version: "{{ bob_remove_loop }}"
+      when:
+        - bob_remove_loop is defined
+        - bob_remove_loop != ""
 
     - name: "Setting operator dir name"
       set_fact:
@@ -29,8 +48,8 @@
 
         - name: "Setting bundle image name"
           set_fact:
-            bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
-            opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+            bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ rob_index_version }}"
+            opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ rob_index_version }}"
 
         - name: "Setting 'index rm' container option"
           set_fact:
@@ -43,9 +62,22 @@
           shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
           failed_when: false
 
+        - name: "Tmp quay fix"
+          block:
+            - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
+              shell: "{{ container_tool }} push {{ bundle_index_image }}"
+              environment: "{{ proxy_env }}"
+
+            - name: "Pull index image {{ bundle_index_image }} (quay_push_fix #2)"
+              shell: "{{ container_tool }} pull {{ bundle_index_image }}"
+              environment: "{{ proxy_env }}"
+          when:
+            - (quay_push_fix is undefined or quay_push_fix|bool)
+
         - name: "Push bundle image {{ bundle_index_image }}"
           shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
-          failed_when: false
+          environment: "{{ proxy_env }}"
+          ignore_errors: true
 
         - name: "Remove temporary bundle export dir '{{ bundle_export_dir_remove }}'"
           file:

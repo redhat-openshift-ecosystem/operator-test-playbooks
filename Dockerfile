@@ -20,6 +20,8 @@ RUN mkdir -p /etc/ansible
 RUN echo "localhost ansible_connection=local" >> /etc/ansible/hosts
 RUN mkdir -p /etc/containers/certs.d/kind-registry:5000
 RUN ln -sfn /usr/share/pki/ca-trust-source/anchors/ca.crt /etc/containers/certs.d/kind-registry:5000/ca.crt
+RUN echo "[engine]" > /etc/containers/containers.conf
+RUN echo "cgroup_manager=\"cgroupfs\"" >> /etc/containers/containers.conf
 WORKDIR /playbooks
 RUN ansible-playbook upstream/local.yml --tags reset_tools,image_build -e run_upstream=true -e operator_dir=/tmp/operator-dir-dummy -e run_prepare_catalog_repo_upstream=false -e save_operator_tools_info=true
 CMD ["/bin/bash"]

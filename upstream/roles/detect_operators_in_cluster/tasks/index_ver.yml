@@ -1,4 +1,5 @@
 ---
+#1
 - name: "Set cluster version - checking {{ doic_allowed_versions }}"
   set_fact:
     dov_cluster_ver: "{{ doic_allowed_versions }}"

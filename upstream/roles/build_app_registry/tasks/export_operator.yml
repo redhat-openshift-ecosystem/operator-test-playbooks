@@ -25,7 +25,11 @@
   debug:
     var: gaotd_operator_packages
 
-- name: "Setting 'index rm' container option"
+- name: "Reseting index export extra args"
+  set_fact:
+    eo_index_args: ""
+
+- name: "Setting index export extra args"
   set_fact:
     eo_index_args: "-c {{ opm_container_tool_index }}"
   when:

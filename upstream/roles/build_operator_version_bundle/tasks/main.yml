@@ -254,6 +254,7 @@
 
         - name: "Push bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
+          environment: "{{ proxy_env }}"
           register: bbp_rc
           when:
             - bb_rc.rc is defined
@@ -316,6 +317,7 @@
 
         - name: "Push bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
+          environment: "{{ proxy_env }}"
           register: mbp_rc
           when:
             - mb_rc.rc is defined

@@ -13,10 +13,26 @@
     path: "{{ operator_dir }}"
   register: bob_operator_dir_st
 
+- name: "Convert allowed input versions to list"
+  set_fact:
+   bob_allowed_versions: "{{ supported_cluster_versions.split(',') }}"
+
 - name: "Remove operator"
   include_role:
     name: remove_operator_bundle
-  when: not bob_operator_dir_st.stat.exists
+  when:
+   - not bob_operator_dir_st.stat.exists
+   - not use_cluster_filter|bool
+
+- name: "Remove operator"
+  include_role:
+    name: remove_operator_bundle
+  loop: "{{ bob_allowed_versions }}"
+  loop_control:
+    loop_var: bob_remove_loop
+  when:
+   - not bob_operator_dir_st.stat.exists
+   - use_cluster_filter|bool
 
 - name: "Handling operator '{{ operator_dir | basename }}'"
   block:

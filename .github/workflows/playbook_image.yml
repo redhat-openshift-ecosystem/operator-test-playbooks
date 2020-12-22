@@ -17,28 +17,25 @@ jobs:
   playbook_image:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      -
-        name: Login to Quay
+      - name: Login to Quay
         uses: docker/login-action@v1
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_PLAYBOOK_IMAGE_USERNAME }}
           password: ${{ secrets.QUAY_PLAYBOOK_IMAGE_TOKEN }}
-      -
-        name: Build and push
+      - name: Generate version for playbook image
+        run: ./upstream/playbook_version.sh
+      - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           #context: .
           #file: Dockerfile
           push: true
-          tags: quay.io/operator_testing/operator-test-playbooks:master
-      -
-        name: Image digest
+          tags: quay.io/operator_testing/operator-test-playbooks:${{ env.VERSION }},quay.io/operator_testing/operator-test-playbooks:latest
+      - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

@@ -3,3 +3,4 @@ operator_name: ""
 operators_for_index: []
 bundle_registry: kind-registry:5000
 bundle_image_namespace: test-operator
+supported_cluster_versions: "dummy"

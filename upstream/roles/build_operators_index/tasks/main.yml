@@ -56,13 +56,6 @@
 
 - name: "Convert allowed input versions to list"
   set_fact:
-   supported_cluster_versions: "{{ supported_cluster_versions_in }}"
-  when:
-    - use_cluster_filter is defined
-    - use_cluster_filter|bool
-
-- name: "Convert allowed input versions to list"
-  set_fact:
    ocs_allowed_versions: "{{ supported_cluster_versions.split(',') }}"
 
 - name: "Detect operator version in relation with cluster version"

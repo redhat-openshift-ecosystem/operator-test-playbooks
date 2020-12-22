@@ -17,6 +17,7 @@
 
     - name: Push input image to local registry
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ operator_input_local_image }}"
+      environment: "{{ proxy_env }}"
 
     - name: "Ensure that the operator tmp bundle input directory exists and is empty"
       file:

@@ -1,0 +1,15 @@
+---
+#4
+- name: "Set index address"
+  set_fact:
+    doic_supported_index_from_api_path: "{{ doic_supported_index_from_api.path }}"
+
+- name: "Parse index version from api - use string after semicolon"
+  set_fact:
+    doic_supported_index_from_api_parsed_version: "{{ doic_supported_index_from_api_path.split(':')[1] }}"
+
+- name: "Comparing current {{ doic_supported_index_from_api_parsed_version }} to target {{ dov_cluster_ver }}"
+  include_tasks: version_found.yml
+  when:
+      - doic_supported_index_from_api_parsed_version == dov_cluster_ver
+      - doic_supported_index_from_api_parsed_version is defined

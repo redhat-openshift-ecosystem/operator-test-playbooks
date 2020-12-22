@@ -2,6 +2,7 @@
 - name: "Setting 'bundle_index_image' variable"
   set_fact:
     bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ ba_index_tag }}"
+    bundle_index_image_version: "{{ ba_index_tag }}"
   when:
     - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
 
@@ -63,11 +64,11 @@
   set_fact:
     index_versions_in_registry: []
     opm_index_add_extra_args: ""
-    boi_current_index_version_list: "[ '{{ ba_index_tag}}' ]"
+    boi_current_index_version_list: "[ '{{ ba_index_tag }}' ]"
 
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
-    index_versions_in_registry: "{{ (boi_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions }}"
   when:
     - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2 == "")
     - boi_registry_versions.status == 200
@@ -97,8 +98,21 @@
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
       environment: "{{ proxy_env }}"
 
-    - name: Push bundle image {{ bundle_index_image }}
+    - name: "Tmp quay fix"
+      block:
+        - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
+          shell: "{{ container_tool }} push {{ bundle_index_image }}"
+          environment: "{{ proxy_env }}"
+
+        - name: "Pull index image {{ bundle_index_image }} (quay_push_fix #2)"
+          shell: "{{ container_tool }} pull {{ bundle_index_image }}"
+          environment: "{{ proxy_env }}"
+      when:
+        - (quay_push_fix is undefined or quay_push_fix|bool)
+
+    - name: "Push index image {{ bundle_index_image }}"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
+      environment: "{{ proxy_env }}"
   when:
     - boi_index_version_test.0 is defined
     - bundle_index_image_from is defined
@@ -118,6 +132,7 @@
       shell: "{{ container_tool }} tag {{ operator_input_image }} {{ bundle_images }}"
     - name: "Push image {{ operator_input_image }}"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_images }}"
+      environment: "{{ proxy_env }}"
   when:
     - operator_input_image is defined
     - operator_input_image != ""
@@ -133,8 +148,21 @@
   environment: "{{ proxy_env }}"
   register: boi_ia_rc
 
-- name: "Push bundle image '{{ bundle_index_image }}'"
+- name: "Tmp quay fix"
+  block:
+    - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
+      shell: "{{ container_tool }} push {{ bundle_index_image }}"
+      environment: "{{ proxy_env }}"
+    - name: "Pull index image {{ bundle_index_image }} (quay_push_fix #2)"
+      shell: "{{ container_tool }} pull {{ bundle_index_image }}"
+      environment: "{{ proxy_env }}"
+  when:
+    - (quay_push_fix is undefined or quay_push_fix|bool)
+    - boi_ia_rc.rc == 0
+
+- name: "Push idex image '{{ bundle_index_image }}'"
   shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
+  environment: "{{ proxy_env }}"
   register: boi_iap_rc
   when: boi_ia_rc.rc == 0
 
@@ -174,6 +202,7 @@
               shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ boi_bundle_latest_index_image }}"
             - name: "Push image {{ boi_bundle_latest_index_image }}"
               shell: "{{ container_tool }} push {{ container_push_extra }} {{ boi_bundle_latest_index_image }}"
+              environment: "{{ proxy_env }}"
           when:
             - copy_as_latest_index is defined
             - copy_as_latest_index != ""
