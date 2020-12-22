@@ -30,7 +30,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Generate version for playbook image
+        id: playbook-image-version
         run: ./upstream/playbook_version.sh
+      - name: Print version
+        run: echo "Image version is ${{ steps.playbook-image-version.outputs.image_version }}"
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -38,6 +41,8 @@ jobs:
           #context: .
           #file: Dockerfile
           push: true
-          tags: quay.io/operator_testing/operator-test-playbooks:${{ env.VERSION }},quay.io/operator_testing/operator-test-playbooks:latest
+          tags: quay.io/operator_testing/operator-test-playbooks:${{ steps.playbook-image-version.outputs.image_version }},quay.io/operator_testing/operator-test-playbooks:latest
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+    # outputs:
+    #   image_version: "${{ steps.playbook-image-version.outputs.image_version }}"
