@@ -27,6 +27,8 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_PLAYBOOK_IMAGE_USERNAME }}
           password: ${{ secrets.QUAY_PLAYBOOK_IMAGE_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: Generate version for playbook image
         run: ./upstream/playbook_version.sh
       - name: Build and push
