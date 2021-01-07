@@ -45,6 +45,17 @@
   tags:
     - install
     - host_build
+  when: not run_upstream|bool
+
+- name: "Install operator-sdk"
+  get_url:
+    url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk_linux_amd64
+    dest: "{{ operator_sdk_bin_path }}"
+    mode: "0755"
+  tags:
+    - install
+    - host_build
+  when: run_upstream|bool
 
 - name: "Install opm"
   get_url:
