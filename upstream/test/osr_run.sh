@@ -17,7 +17,7 @@ function DetectFromGit() {
   declare -A CHANGED_FILES
   ##community only
   echo "changed community files:"
-  CHANGED_FILES=$(git --no-pager log -m -1 --name-only --first-parent $COMMIT|grep -v 'upstream-community-operators/'|grep 'community-operators/') || { echo '******* No community operator (Openshift) modified, no reason to continue *******'; exit 0; }
+  CHANGED_FILES=$(git --no-pager log -m -1 --name-only $COMMIT|grep -v 'upstream-community-operators/'|grep 'community-operators/') || { echo '******* No community operator (Openshift) modified, no reason to continue *******'; exit 0; }
   echo
   for sf in ${CHANGED_FILES[@]}; do
   echo $sf
