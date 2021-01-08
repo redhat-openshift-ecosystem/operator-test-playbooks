@@ -30,9 +30,13 @@
     - name: Install python modules
       pip:
         name:
+          - jmespath        
+    - name: Install python modules (pip3)
+      pip:
+        name:
           - docker
           - docker-compose
-          - jmespath
+        executable: pip3
   become: yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   tags:

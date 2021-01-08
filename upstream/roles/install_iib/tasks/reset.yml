@@ -39,7 +39,7 @@
         cmd: "make up"
         chdir: "{{ iib_project_dir }}"
   tags:
-    - always
+    - never
     - iib
   # Remove 'become: yes' in future would be nice 
   become: yes 
