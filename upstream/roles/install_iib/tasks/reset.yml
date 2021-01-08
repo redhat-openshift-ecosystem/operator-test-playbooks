@@ -1,0 +1,45 @@
+---
+- name: "Delete kind cluster (Wait until success)"
+  block:
+    - name: Set the retry count
+      set_fact:
+        iib_retry_count: "{{ 2 if iib_retry_count is undefined else iib_retry_count|int + 1 }}"
+
+    - name: "Copy system ca certificate to {{ iib_project_dir }}/ca-bundle.crt"
+      copy:
+        src: /etc/ssl/certs/ca-certificates.crt
+        dest: "{{ iib_project_dir }}/ca-bundle.crt"
+        backup: yes
+      when:
+        - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+        - iib_apply_fix|bool
+
+    - name: "Overwrite docker_compose.yaml to support registry without auth"
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ iib_project_dir }}/docker-compose.yml"
+      when:
+        - iib_apply_fix|bool
+
+    - name: "Remove previous installation"
+      shell: 
+        cmd: "make down"
+        chdir: "{{ iib_project_dir }}"
+
+    - name: "Building and starting iib {{ iib_version }}"
+      shell: 
+        cmd: "make up"
+        chdir: "{{ iib_project_dir }}"
+
+  tags:
+    - always
+    - iib
+  rescue:
+    - fail:
+        msg: Ended after 5 retries
+      when: iib_retry_count|int > 5
+
+    - debug:
+        msg: "Failed to install iib - Retrying ({{ iib_retry_count }}/5) ..."
+
+    - include_tasks: reset.yml

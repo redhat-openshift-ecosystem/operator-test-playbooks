@@ -1,0 +1,33 @@
+---
+
+- name: "Install iib"
+  block:
+    - name: "Remove iib project directory '{{ iib_project_dir }}'"
+      file:
+        path: "{{ iib_project_dir }}"
+        state: absent
+      when: run_remove_iib_repo|bool
+
+    - name: "Check if  iib project directory '{{ iib_project_dir }}' directory exists"
+      stat:
+        path: "{{ iib_project_dir }}"
+      register: iib_project_dir_st
+
+    - name: "Git clone iib project : {{ iib_repo }} branch: {{ iib_version }} to '{{ iib_project_dir }}'"
+      git:
+        repo: "{{ iib_repo }}"
+        dest: "{{ iib_project_dir }}"
+        version: "{{ iib_version }}"
+        force: true
+      when: not iib_project_dir_st.stat.exists
+
+    - name: "Running iib install task"
+      include_tasks: reset.yml
+
+    - name: "Set the retry count"
+      set_fact:
+        iib_retry_count: 2
+  tags:
+    - always
+    - iib
+

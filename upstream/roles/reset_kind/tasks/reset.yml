@@ -79,6 +79,6 @@
       when: delete_kind_retry_count|int > 5
 
     - debug:
-        msg: "Failed to connect - Retrying ({{ delete_kind_retry_count }}/5) ..."
+        msg: "Failed to install kind and registry - Retrying ({{ delete_kind_retry_count }}/5) ..."
 
     - include_tasks: reset.yml
