@@ -398,6 +398,32 @@
   when: installplan_result.stdout is defined
   ignore_errors: true
 
+- name: "Output debug - installplan"
+  shell: "cat {{ work_dir }}/olm-installplan-debug.txt"
+  ignore_errors: true
+#  when:
+#    - (operator_result.rc != 0) or ((operator_uptime.rc is not defined) or (operator_uptime.rc != 0))
+
+- name: "Output debug - catalogsource"
+  shell: "cat {{ work_dir }}/olm-catalog-source-debug.txt"
+  ignore_errors: true
+
+- name: "Output debug - csv"
+  shell: "cat {{ work_dir }}/olm-operator-csv-debug.txt"
+  ignore_errors: true
+
+- name: "Output debug - operator pod"
+  shell: "cat {{ work_dir }}/olm-operator-pod-debug.txt"
+  ignore_errors: true
+
+- name: "Output debug - operator container"
+  shell: "cat {{ work_dir }}/olm-operator-container-debug.txt"
+  ignore_errors: true
+
+- name: "Output debug - catalog operator"
+  shell: "cat {{ work_dir }}/olm-catalog-operator-debug.txt"
+  ignore_errors: true
+
 - fail:
     msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
   when: operator_result.rc != 0
