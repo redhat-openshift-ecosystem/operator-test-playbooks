@@ -9,11 +9,19 @@
       copy:
         src: /etc/ssl/certs/ca-certificates.crt
         dest: "{{ iib_project_dir }}/ca-bundle.crt"
+        remote_src: yes
         backup: yes
       when:
         - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
         - iib_apply_fix|bool
 
+    - name: "Overwrite 'Dockerfile-workers' to fix PowerTools"
+      template:
+        src: Dockerfile-workers.j2
+        dest: "{{ iib_project_dir }}/docker/Dockerfile-workers"
+      when:
+        - iib_apply_fix|bool
+    
     - name: "Overwrite docker_compose.yaml to support registry without auth"
       template:
         src: docker-compose.yml.j2
@@ -21,7 +29,7 @@
       when:
         - iib_apply_fix|bool
 
-    - name: "Remove previous installation"
+    - name: "Remove previous iib installation"
       shell: 
         cmd: "make down"
         chdir: "{{ iib_project_dir }}"
@@ -30,10 +38,12 @@
       shell: 
         cmd: "make up"
         chdir: "{{ iib_project_dir }}"
-
   tags:
     - always
     - iib
+  # Remove 'become: yes' in future would be nice 
+  become: yes 
+
   rescue:
     - fail:
         msg: Ended after 5 retries
