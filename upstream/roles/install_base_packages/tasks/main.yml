@@ -31,6 +31,7 @@
       pip:
         name:
           - docker
+          - docker-compose
           - jmespath
   become: yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
@@ -53,3 +54,4 @@
       - install
       - host_build
       - image_build
+  

@@ -94,6 +94,7 @@
       set_fact:
         opm_container_tool: "docker"
         opm_container_tool_index: "docker"
+        operator_sdk_container_tool: "docker"
       when: container_tool == "docker"
       tags:
         - always
@@ -102,6 +103,7 @@
       set_fact:
         opm_container_tool: "podman"
         opm_container_tool_index: ""
+        operator_sdk_container_tool: "none"
         container_push_extra: "--format=docker"
       when: container_tool == "podman"
       tags:
@@ -112,6 +114,7 @@
     - { role: install_docker, tags: ["docker"], when: run_host_init|bool }
     - { role: install_kubectl, tags: ["kubectl"], when: run_host_init|bool }
     - { role: install_kind, tags: ["kind"], when: run_host_init|bool }
+    - { role: install_iib, tags: ["never", "iib"], when: run_upstream|bool }
     - { role: install_operator_prereqs, tags: ["never", "host_build"], when: run_upstream|bool }
     - { role: extract_tool_info, tags: ["always", "host_build"], when: run_upstream|bool }
     - { role: prepare_catalog_repo_upstream, tags: ["always"], when: (run_upstream|bool and run_prepare_catalog_repo_upstream|bool) }
