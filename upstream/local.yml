@@ -103,7 +103,7 @@
       set_fact:
         opm_container_tool: "podman"
         opm_container_tool_index: ""
-        operator_sdk_container_tool: "none"
+        operator_sdk_container_tool: "podman"
         container_push_extra: "--format=docker"
       when: container_tool == "podman"
       tags:
