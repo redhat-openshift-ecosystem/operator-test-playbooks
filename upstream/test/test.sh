@@ -243,7 +243,7 @@ function ExecParameters() {
     OP_TEST_EXEC_USER_SECRETS=
     OP_TEST_EXEC_USER_INDEX_CHECK=
     OP_TEST_SKIP=0
-    [[ $1 == kiwi* ]] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR -e operator_version=$OP_TEST_VERSION --tags pure_test"
+    [[ $1 == kiwi* ]] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR -e operator_version=$OP_TEST_VERSION --tags pure_test -e operator_channel_force=optest"
     [[ $1 == kiwi* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_FORCE_DEPLOY_ON_K8S -eq 0 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e test_skip_deploy=true"
     [[ $1 == lemon* ]] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR --tags deploy_bundles"
     [[ $1 == orange* ]] && [ "$OP_TEST_VERSION" != "sync" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR --tags deploy_bundles"
