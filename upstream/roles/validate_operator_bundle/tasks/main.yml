@@ -34,6 +34,13 @@
 
 - name: "Handle manifest and metadata validation for Openshift"
   block:
+    - name: "Pull index image '{{ bundle_validate }}' (operarot_sdk_none fix)"
+      shell: "{{ container_tool }} pull {{ bundle_validate }}"
+      environment: "{{ proxy_env }}"
+      when: 
+        - operator_sdk_container_tool is defined
+        - operator_sdk_container_tool == "none"
+
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
       shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} -b {{ operator_sdk_container_tool }}"
       register: sdk_validation_result
@@ -55,6 +62,14 @@
 
 - name: "Handle manifest and metadata validation for Kind"
   block:
+
+    - name: "Pull index image '{{ bundle_image }}' (operarot_sdk_none fix)"
+      shell: "{{ container_tool }} pull {{ bundle_image }}"
+      environment: "{{ proxy_env }}"
+      when:
+        - operator_sdk_container_tool is defined
+        - operator_sdk_container_tool == "none"
+
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
       shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }}"
       register: sdk_validation_upstream_result
