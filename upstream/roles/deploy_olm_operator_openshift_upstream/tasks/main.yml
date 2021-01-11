@@ -282,7 +282,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "General debug"
-  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}"
   register: debug_output_time_general
   ignore_errors: true
 
