@@ -79,6 +79,7 @@
           block:
             - name: "Installing OLM"
               shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
+              environment: "{{ proxy_env }}"
               register: olm_install_rc
               retries: 10
               delay: 5

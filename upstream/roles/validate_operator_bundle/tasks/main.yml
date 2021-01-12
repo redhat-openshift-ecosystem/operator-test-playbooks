@@ -44,6 +44,7 @@
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
       shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} -b {{ operator_sdk_container_tool }}"
       register: sdk_validation_result
+      environment: "{{ proxy_env }}"
       ignore_errors: true
 
     - name: "Output the return code of operator-sdk bundle validate command to a debug file"
@@ -72,6 +73,7 @@
 
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
       shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }}"
+      environment: "{{ proxy_env }}"
       register: sdk_validation_upstream_result
       ignore_errors: true
 
