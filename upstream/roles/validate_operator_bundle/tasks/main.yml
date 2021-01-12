@@ -72,7 +72,7 @@
         - operator_sdk_container_tool == "none"
 
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
-      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }}"
+      shell: "OPERATOR_BUNDLE_CATEGORIES={{ catalog_repo_dir }}/categories.json {{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }}  --select-optional suite=operatorframework"
       environment: "{{ proxy_env }}"
       register: sdk_validation_upstream_result
       ignore_errors: true

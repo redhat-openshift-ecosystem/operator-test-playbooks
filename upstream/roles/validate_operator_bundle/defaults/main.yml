@@ -3,3 +3,4 @@ operator_work_dir: /tmp/operator-test/operator-files
 operator_sdk_bin_path: operator-sdk
 operator_sdk_container_tool: docker
 check_validation_result: true
+catalog_repo_dir: /tmp/community-operators-for-catalog
