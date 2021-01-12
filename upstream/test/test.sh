@@ -35,6 +35,7 @@ OP_TEST_DEBUG=${OP_TEST_DEBUG-0}
 OP_TEST_DRY_RUN=${OP_TEST_DRY_RUN-0}
 OP_TEST_FORCE_INSTALL=${OP_TEST_FORCE_INSTALL-0}
 OP_TEST_RESET=${OP_TEST_RESET-1}
+OP_TEST_IIB_INSTALL=${OP_TEST_IIB_INSTALL-0}
 OP_TEST_LOG_DIR=${OP_TEST_LOG_DIR-"/tmp/op-test"}
 OP_TEST_NOCOLOR=${OP_TEST_NOCOLOR-0}
 
@@ -91,7 +92,23 @@ function clean() {
     exit 0
 }
 
-run() {
+function iib_install() {
+    echo "Installing iib ..."
+    $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS -e run_prepare_catalog_repo_upstream=false --tags iib
+    if [[ $? -eq 0 ]];then
+        echo "Loging to registry.redhat.io ..."
+        # $OP_TEST_CONTAINER_TOOL login registry.redhat.io 
+        # $OP_TEST_CONTAINER_TOOL cp $HOME/.docker/config.json iib_iib-worker_1:/root/.docker/config.json.template
+        echo -e "\n=================================================================================="
+        echo -e "IIB was installed successfully !!!"
+        echo -e "==================================================================================\n"
+    else
+        echo "Problem installing iib !!!"
+        exit 1
+    fi
+}
+
+function run() {
         if [[ $OP_TEST_DEBUG -ge 4 ]] ; then
                 v=$(exec 2>&1 && set -x && set -- "$@")
                 echo "#${v#*--}"
@@ -186,6 +203,9 @@ if [ "$ACTION" = "docker" ];then
     fi
     exit 0
 fi
+
+[ "$ACTION" = "iib" ] && { iib_install; exit 0; }
+
 if ! command -v $OP_TEST_CONTAINER_TOOL > /dev/null 2>&1; then
     echo -e "\nError: '$OP_TEST_CONTAINER_TOOL' is missing !!! Install it via:"
     [ "$OP_TEST_CONTAINER_TOOL" = "docker" ] && echo -e "\n\tbash <(curl -sL $OP_SCRIPT_URL) $OP_TEST_CONTAINER_TOOL"
@@ -363,6 +383,8 @@ fi
 # Install prerequisites (kind cluster)
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run echo -e " [ Installing prerequisites ] "
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS $OP_TEST_ANSIBLE_EXTRA_ARGS -e run_prepare_catalog_repo_upstream=false
+
+[[ $OP_TEST_IIB_INSTALL -eq 1 ]] && iib_install 
 
 if [ -n "$OP_TEST_REPO" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e catalog_repo=$OP_TEST_REPO -e catalog_repo_branch=$OP_TEST_BRANCH"

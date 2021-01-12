@@ -36,7 +36,7 @@
     - name: "Mirroring multi arch index image '{{ mirror_multiarch_image }}' to mirror location '{{ ms_info[0] }}'"
       block:
         - name: "Triggering http request to build multiarch image "
-          shell: "curl -s -u : --negotiate --request POST --url https://iib.engineering.redhat.com/api/v1/builds/add --header 'content-type: application/json' --data '{\"add_arches\": [\"amd64\", \"s390x\", \"ppc64le\"],\"binary_image\": \"{{ mirror_multiarch_image }}\",\"from_index\": \"{{ mirror_input_image }}\"}' --insecure"
+          shell: "curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header 'content-type: application/json' --data '{\"add_arches\": [\"amd64\", \"s390x\", \"ppc64le\"],\"binary_image\": \"{{ mirror_multiarch_image }}\",\"from_index\": \"{{ mirror_input_image }}\"}'"
           register: mi_ms_multiarch_request
 
         - name: "Fail in when request was not succesfull"
@@ -58,11 +58,11 @@
 
         - name: "Set input iib image"
           set_fact:
-            mi_ms_iib_image: "registry-proxy.engineering.redhat.com/rh-osbs/iib:{{ mi_ms_iib_id }}"
+            mi_ms_iib_image: "{{ iib_converted_image_base }}:{{ mi_ms_iib_id }}"
 
         - name: "Waiting for iib to finish image creation. Image: '{{ mi_ms_iib_image }}'"
           uri:
-            url: "https://iib.engineering.redhat.com/api/v1/builds/{{ mi_ms_iib_id }}/logs"
+            url: "{{ iib_base_url }}/api/v1/builds/{{ mi_ms_iib_id }}/logs"
             method: GET
             validate_certs: no
             return_content: yes

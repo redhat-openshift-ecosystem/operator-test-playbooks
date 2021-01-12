@@ -3,3 +3,9 @@ container_tool: "docker"
 container_push_extra: ""
 mirror_input_image: "kind-registry:5000/test-operator/catalog"
 mirror_index_images: "kind-registry:5000/test-operator/catalog_mirror_auth|user|password,kind-registry:5000/test-operator/catalog_mirror_no_auth"
+iib_base_url: http://localhost:8080
+# iib_base_url: https://iib.engineering.redhat.com
+iib_url_options: ""
+# iib_url_options: "-u : --negotiate --insecure"
+iib_converted_image_base: registry:8443/iib-build
+#iib_converted_image_base: registry-proxy.engineering.redhat.com/rh-osbs/iib
