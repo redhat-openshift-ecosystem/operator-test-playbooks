@@ -90,10 +90,10 @@
   include_role:
     name: parse_operator_metadata
 
-- name: "Run linting tests with operator-courier verify on the deployed operator"
-  include_role:
-    name: operator_courier_verify
-  when: run_lint|bool
+#- name: "Run linting tests with operator-courier verify on the deployed operator"
+#  include_role:
+#    name: operator_courier_verify
+#  when: run_lint|bool
 
 - name: "Run catalog initialization test on operator metadata"
   include_role:

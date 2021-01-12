@@ -16,10 +16,10 @@
 
 - name: "Verify the operator for run_upstream=false"
   block:
-    - name: "Verify the operator '{{ operator_work_dir | basename }}' metadata with operator-courier"
-      shell: "operator-courier verify {{ operator_work_dir }} --ui_validate_io --validation-output {{ work_dir}}/linting-results.json > {{ work_dir}}/linting-output.txt 2> {{ work_dir}}/linting-errors.txt"
-      register: courier_verify_result
-      ignore_errors: true
+#    - name: "Verify the operator '{{ operator_work_dir | basename }}' metadata with operator-courier"
+#      shell: "operator-courier verify {{ operator_work_dir }} --ui_validate_io --validation-output {{ work_dir}}/linting-results.json > {{ work_dir}}/linting-output.txt 2> {{ work_dir}}/linting-errors.txt"
+#      register: courier_verify_result
+#      ignore_errors: true
 
     - name: "Output the return code of operator-courier verify command to a debug file '{{ work_dir }}/linting-rc.txt'"
       copy:
@@ -38,10 +38,10 @@
 
 - name: "Verify the operator for run_upstream=true"
   block:
-    - name: "Verify the operator '{{ operator_work_dir | basename }}' metadata with operator-courier"
-      shell: "operator-courier verify {{ operator_work_dir }} --ui_validate_io --validation-output {{ work_dir}}/linting-results.json"
-      register: courier_verify_upstream_result
-      ignore_errors: true
+#    - name: "Verify the operator '{{ operator_work_dir | basename }}' metadata with operator-courier"
+#      shell: "operator-courier verify {{ operator_work_dir }} --ui_validate_io --validation-output {{ work_dir}}/linting-results.json"
+#      register: courier_verify_upstream_result
+#      ignore_errors: true
 
     # - name: "Output the return code of operator-courier verify command to a debug file '{{ work_dir }}/linting-rc.txt'"
     #   copy:

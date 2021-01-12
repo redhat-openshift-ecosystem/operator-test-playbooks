@@ -16,6 +16,7 @@
   shell: "operator-courier verify {{ operator_work_dir }} --ui_validate_io --validation-output {{ work_dir}}/linting-results.json > {{ work_dir}}/linting-output.txt 2> {{ work_dir}}/linting-errors.txt"
   register: courier_verify_result
   ignore_errors: true
+  when: not run_upstream|bool
 
 - name: "Output the return code of operator-courier verify command to a debug file"
   copy:
