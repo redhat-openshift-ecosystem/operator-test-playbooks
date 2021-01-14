@@ -29,6 +29,24 @@
       when:
         - iib_apply_fix|bool
 
+    - name: "Replace 'iib_registry' for to push to quay directly"
+      replace:
+        path: "{{ iib_project_dir }}/iib/workers/config.py"
+        regexp: '    iib_registry.*'
+        replace: "    iib_registry = '{{ iib_push_registry }}'"
+      when: 
+        - iib_push_registry is defined
+        - iib_push_registry != ""
+
+    - name: "Replace 'iib_image_push_template' for to push to quay directly"
+      replace:
+        path: "{{ iib_project_dir }}/iib/workers/config.py"
+        regexp: '    iib_image_push_template.*'
+        replace: "    iib_image_push_template = '{{ iib_push_image }}'"
+      when:
+        - iib_push_image is defined
+        - iib_push_image != ""
+
     - name: "Remove previous iib installation"
       shell: 
         cmd: "make down"

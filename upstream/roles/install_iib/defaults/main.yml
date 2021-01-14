@@ -3,3 +3,7 @@ iib_project_dir: /tmp/iib
 iib_repo: https://github.com/release-engineering/iib.git
 run_remove_iib_repo: true
 iib_apply_fix: true
+#iib_push_image: "registry:8443"
+# iib_push_image: "quay.io/operator_testing/catalog/latest"
+#iib_push_registry: "{registry}/iib-build:{request_id}"
+# iib_push_registry: "quay.io"

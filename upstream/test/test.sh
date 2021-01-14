@@ -42,12 +42,18 @@ OP_TEST_NOCOLOR=${OP_TEST_NOCOLOR-0}
 OHIO_INPUT_CATALOG_IMAGE=${OHIO_INPUT_CATALOG_IMAGE-"quay.io/operatorhubio/catalog:latest"}
 OHIO_REGISTRY_IMAGE=${OHIO_REGISTRY_IMAGE-"quay.io/operator-framework/upstream-community-operators:latest"}
 
+IIB_PUSH_IMAGE=${IIB_PUSH_IMAGE-"quay.io/operator_testing/catalog:latest"}
+IIB_INPUT_REGISTRY_USER=${IIB_INPUT_REGISTRY_USER-"mvalahtv"}
+IIB_INPUT_REGISTRY_TOKEN=${IIB_INPUT_REGISTRY_TOKEN-""}
+IIB_OUTPUT_REGISTRY_USER=${IIB_OUTPUT_REGISTRY_USER-"redhat+iib_community"}
+IIB_OUTPUT_REGISTRY_TOKEN=${IIB_OUTPUT_REGISTRY_TOKEN-""}
+
 OP_TEST_VER_OVERWRITE=${OP_TEST_VER_OVERWRITE-0}
 OP_TEST_RECREATE=${OP_TEST_RECREATE-0}
 OP_TEST_FORCE_DEPLOY_ON_K8S=${OP_TEST_FORCE_DEPLOY_ON_K8S-0}
 OP_TEST_CI_YAML_ONLY=${OP_TEST_CI_YAML_ONLY-0}
 OP_TEST_UNCOMPLETE="/tmp/operators_uncomplete-localhost.yaml"
-
+OP_TEST_MIRROR_LATEST_TAG=${OP_TEST_MIRROR_LATEST_TAG-"4.6"}
 
 [[ $OP_TEST_NOCOLOR -eq 1 ]] && ANSIBLE_NOCOLOR=1
 
@@ -95,10 +101,19 @@ function clean() {
 function iib_install() {
     echo "Installing iib ..."
     $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS -e run_prepare_catalog_repo_upstream=false --tags iib
+    # -e iib_push_image="$IIB_PUSH_IMAGE" -e iib_push_registry="$(echo $IIB_PUSH_IMAGE | cut -d '/' -f 1)"
     if [[ $? -eq 0 ]];then
         echo "Loging to registry.redhat.io ..."
-        # $OP_TEST_CONTAINER_TOOL login registry.redhat.io 
-        # $OP_TEST_CONTAINER_TOOL cp $HOME/.docker/config.json iib_iib-worker_1:/root/.docker/config.json.template
+        if [ -n "$IIB_INPUT_REGISTRY_TOKEN" ];then
+          echo "$IIB_INPUT_REGISTRY_TOKEN" | $OP_TEST_CONTAINER_TOOL login registry.redhat.io -u $IIB_INPUT_REGISTRY_USER --password-stdin || { echo "Problem to login to 'registry.redhat.io' !!!"; exit 1; }
+          if [ -n "$IIB_OUTPUT_REGISTRY_TOKEN" ];then
+            echo "$IIB_OUTPUT_REGISTRY_TOKEN" | $OP_TEST_CONTAINER_TOOL login quay.io -u $IIB_OUTPUT_REGISTRY_USER --password-stdin || { echo "Problem to login to 'quay.io' !!!"; exit 1; }
+          fi
+          $OP_TEST_CONTAINER_TOOL cp $HOME/.docker/config.json iib_iib-worker_1:/root/.docker/config.json.template || exit 1
+        else
+            echo "Variable \$IIB_INPUT_REGISTRY_TOKEN is not set or is empty !!!"
+            exit 1
+        fi
         echo -e "\n=================================================================================="
         echo -e "IIB was installed successfully !!!"
         echo -e "==================================================================================\n"
@@ -269,6 +284,7 @@ function ExecParameters() {
     [[ $1 == orange* ]] && [ "$OP_TEST_VERSION" != "sync" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR --tags deploy_bundles"
     # [[ $1 == orange* ]] && [ "$OP_TEST_VERSION" = "update" ] && [[ $OP_TEST_PROD -ge 1 ]] && [[ $OP_TEST_RECREATE -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER,remove_operator"
     [[ $1 == orange* ]] &&  [ "$OP_TEST_VERSION" = "sync" ] && OP_TEST_EXEC_USER="--tags deploy_bundles"
+    [[ $1 == orange_* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER,iib"
 
     ## TODO check if needed for sync in prod
     [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [ "$OP_TEST_VERSION" != "sync" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e production_registry_namespace=quay.io/openshift-community-operators"
@@ -290,6 +306,9 @@ function ExecParameters() {
 
     # If community and doing orange_<version>
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e use_cluster_filter=true -e supported_cluster_versions=${1/orange_/} -e bundle_index_image_version=${1/orange_/}"
+    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e mirror_multiarch_image=registry.redhat.io/openshift4/ose-operator-registry:v4.5 -e mirror_apply=true"
+    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW"
+    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" = "${1/orange_/}" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS,quay.io/redhat/redhat----community-operator-index:latest|redhat+iib_community|$QUAY_RH_INDEX_PW"
 
     # Failing test when upstream and orgage_<version> (not supported yet)
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="" && { echo "Warning: Index versions are not supported for 'upstream-community-operators' !!! Skipping ..."; OP_TEST_SKIP=1; }
