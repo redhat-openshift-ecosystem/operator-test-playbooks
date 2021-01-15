@@ -100,6 +100,7 @@ function clean() {
 
 function iib_install() {
     echo "Installing iib ..."
+    set -o pipefail
     $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS -e run_prepare_catalog_repo_upstream=false --tags iib
     # -e iib_push_image="$IIB_PUSH_IMAGE" -e iib_push_registry="$(echo $IIB_PUSH_IMAGE | cut -d '/' -f 1)"
     if [[ $? -eq 0 ]];then
@@ -121,6 +122,7 @@ function iib_install() {
         echo "Problem installing iib !!!"
         exit 1
     fi
+    set +o pipefail
 }
 
 function run() {
