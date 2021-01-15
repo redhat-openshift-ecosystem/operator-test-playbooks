@@ -80,6 +80,11 @@
         - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}'"
           shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }} --src-tls-verify=false"
           environment: "{{ proxy_env }}"
+
+        - name: "IIB cleanup"
+          shell: "{{ container_tool }} exec iib_iib-worker_1 rm -rf /var/lib/containers/cache/"
+          environment: "{{ proxy_env }}"
+          ignore_errors: true
           
       when:
         - mirror_input_image is defined
