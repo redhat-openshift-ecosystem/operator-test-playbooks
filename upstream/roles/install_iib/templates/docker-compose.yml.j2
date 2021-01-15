@@ -9,7 +9,6 @@ services:
       REGISTRY_HTTP_ADDR: 0.0.0.0:8443
       REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry.crt
       REGISTRY_HTTP_TLS_KEY: /certs/registry.key
-      BUILDAH_FORMAT: docker
 #      REGISTRY_AUTH: htpasswd
 #      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
 #      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
@@ -91,6 +90,7 @@ services:
     environment:
       IIB_DEV: 'true'
       REQUESTS_CA_BUNDLE: /etc/pki/tls/certs/ca-bundle.crt
+      BUILDAH_FORMAT: docker
     # Make this privileged to be able to build container images
     privileged: true
     volumes:
