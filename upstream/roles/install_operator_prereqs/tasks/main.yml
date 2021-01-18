@@ -17,6 +17,16 @@
     umoci_bin_path: "{{ testing_bin_path }}/umoci"
     # bundle_image: "{{ 'dummy' if run_upstream else '' }}"
     offline_cataloger_bin_path: "offline-cataloger"
+    
+- name: "Make sure that '{{ testing_bin_path }}' is present"
+  file:
+    path: "{{ testing_bin_path }}"
+    state: present
+  tags:
+    - install
+    - image_build
+    - uninstall
+    - reset_tools
 
 # Install the oc client to talk to any Openshift cluster
 - name: "Download and extract OpenShift client binary 'oc' ({{ oc_version }}) to {{ testing_bin_path }}"
@@ -204,6 +214,8 @@
         - uninstall
         - reset_tools
 
+
+
     - name: "Handling umoci binary"
       block:
 
@@ -211,6 +223,7 @@
           shell: "{{ umoci_bin_path }} -h"
           register: umoci_help_result
           failed_when: false
+          
 
         - name: "Install umoci ({{ umoci_version }})"
           get_url:
