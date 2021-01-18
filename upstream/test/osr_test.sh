@@ -22,4 +22,5 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e remove_replaces=true \
 -e openshift_robot_hash="$OP_OSR_HASH" \
 -e strict_mode=true \
+-e operator_channel_force=optest \
 $OP_ANSIBLE_EXTRA
