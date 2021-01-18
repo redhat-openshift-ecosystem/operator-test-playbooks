@@ -301,6 +301,8 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+#gather logs
+
 - name: "Get the details of the deployed CSVs"
   shell: "{{ oc_bin_path }} describe csvs"
   register: csv_describe_result
@@ -313,6 +315,13 @@
     content: "{{ csv_describe_result.stdout }}"
     dest: "{{ work_dir }}/olm-operator-csv-debug.txt"
   when: csv_describe_result.stdout != ""
+  ignore_errors: true
+
+- name: "Append error output to CSV log"
+  blockinfile:
+    path: "{{ work_dir }}/olm-operator-csv-debug.txt"
+    block: |
+      {{ csv_describe_result.stderr }}
   ignore_errors: true
 
 - name: "Get the pod status of the deployed operator"
@@ -332,6 +341,13 @@
     - operator_pod_result.stdout != ""
   ignore_errors: true
 
+- name: "Append error output to operator pod log"
+  blockinfile:
+    path: "{{ work_dir }}/olm-operator-pod-debug.txt"
+    block: |
+      {{ operator_pod_result.stderr }}
+  ignore_errors: true
+
 - name: "Get the pod container logs of the deployed operator"
   shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
   register: operator_container_result
@@ -349,6 +365,13 @@
     - operator_container_result.stdout != ""
   ignore_errors: true
 
+- name: "Append error output to operator container log"
+  blockinfile:
+    path: "{{ work_dir }}/olm-operator-container-debug.txt"
+    block: |
+      {{ operator_container_result.stderr }}
+  ignore_errors: true
+
 - name: "Get the catalogsource pod log"
   shell: "{{ oc_bin_path }} get --output=name pods -n openshift-marketplace | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-marketplace"
   register: catalog_source_result
@@ -361,6 +384,13 @@
     content: "{{ catalog_source_result.stdout }}"
     dest: "{{ work_dir }}/olm-catalog-source-debug.txt"
   when: catalog_source_result.stdout is defined
+  ignore_errors: true
+
+- name: "Append error output to operator container log"
+  blockinfile:
+    path: "{{ work_dir }}/olm-catalog-source-debug.txt"
+    block: |
+      {{ catalog_source_result.stderr }}
   ignore_errors: true
 
 - name: "Get the catalog-operator pod log"
@@ -377,15 +407,15 @@
   when: catalog_operator_result.stdout is defined
   ignore_errors: true
 
-- name: "Get the InstallPlan debug output"
-  shell: "{{ oc_bin_path }} describe installplan -n {{ openshift_namespace }}"
-  register: installplan_result
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+- name: "Append error output to operator container log"
+  blockinfile:
+    path: "{{ work_dir }}/olm-catalog-operator-debug.txt"
+    block: |
+      {{ catalog_operator_result.stderr }}
   ignore_errors: true
 
 - name: "Get the InstallPlan debug output"
-  shell: "{{ oc_bin_path }} describe installplan"
+  shell: "{{ oc_bin_path }} describe installplan -n {{ openshift_namespace }}"
   register: installplan_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
@@ -397,6 +427,15 @@
     dest: "{{ work_dir }}/olm-installplan-debug.txt"
   when: installplan_result.stdout is defined
   ignore_errors: true
+
+- name: "Append error output to operator container log"
+  blockinfile:
+    path: "{{ work_dir }}/olm-installplan-debug.txt"
+    block: |
+      {{ installplan_result.stderr }}
+  ignore_errors: true
+
+#output all
 
 - name: "Output debug - installplan"
   shell: "cat {{ work_dir }}/olm-installplan-debug.txt"
