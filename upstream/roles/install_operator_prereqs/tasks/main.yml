@@ -21,7 +21,7 @@
 - name: "Make sure that '{{ testing_bin_path }}' is present"
   file:
     path: "{{ testing_bin_path }}"
-    state: present
+    state: directory
   tags:
     - install
     - image_build
