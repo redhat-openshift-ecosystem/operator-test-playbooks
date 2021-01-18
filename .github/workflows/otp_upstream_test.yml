@@ -64,3 +64,12 @@ jobs:
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 && docker image ls|grep catalog|grep -v none|grep kind|grep '4\.6'
+
+  otpu_iib:
+    name: Install iib
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags iib
