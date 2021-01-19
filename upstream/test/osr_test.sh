@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e #fail in case of non zero return
 OP_DEBUG=${OP_DEBUG-0}
 [[ $OP_DEBUG -ge 2 ]] && set -x
 OP_STREAM=${OP_STREAM-"upstream-community-operators"}
