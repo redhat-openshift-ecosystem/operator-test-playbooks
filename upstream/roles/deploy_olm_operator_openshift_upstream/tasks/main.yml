@@ -463,8 +463,18 @@
   shell: "cat {{ work_dir }}/olm-catalog-operator-debug.txt"
   ignore_errors: true
 
+- name: "Check all containers"
+  shell: "{{ oc_bin_path }} get pods --all-namespaces"
+  register: debug_output_time_general
+  ignore_errors: true
+
+- name: "Check the namespace"
+  shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}"
+  register: debug_output_time_general
+  ignore_errors: true
+
 - fail:
-    msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
+    msg: 'Operator deployment with OLM failed, expand log and check logs from the bottom to the top ^'
   when: operator_result.rc != 0
 
 - fail:
