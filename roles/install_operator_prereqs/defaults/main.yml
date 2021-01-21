@@ -1,6 +1,6 @@
 ---
 testing_bin_path: /tmp/cvp/bin
-operator_sdk_version: v0.15.1
+operator_sdk_version: v1.3.0
 oc_version: 4.4.13  # The catalog initialization test requires oc v4.4+
 operator_courier_version: 2.1.9
 go_version: 1.13.7
