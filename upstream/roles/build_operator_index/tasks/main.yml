@@ -175,6 +175,20 @@
     - boi_iap_rc.rc is defined
     - boi_iap_rc.rc == 0
 
+- name: "Print failing msg that bundle was not added to catalog or not pushed"
+  debug:
+    msg: "Bundle {{ bundle_image }} was not added or not pushed to '{{ bundle_index_image }}': [FAIL]"
+  when:
+    - ((boi_ia_rc.rc is defined and boi_ia_rc.rc != 0) or (boi_iap_rc.rc is defined and boi_iap_rc.rc != 0))
+
+- name: "Failing when bundle was not added to catalog or not pushed"
+  fail:
+    msg: "Bundle {{ bundle_image }} was not added or not pushed to '{{ bundle_index_image }}' : [FAIL]"
+  when:
+    - ((boi_ia_rc.rc is defined and boi_ia_rc.rc != 0) or (boi_iap_rc.rc is defined and boi_iap_rc.rc != 0))
+    - strict_mode is defined
+    - strict_mode|bool
+
 - name: "Unset 'boi_latest_index_found'"
   set_fact:
     boi_latest_index_found:
