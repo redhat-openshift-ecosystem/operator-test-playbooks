@@ -2,3 +2,5 @@ work_dir: /tmp/operator-test
 operator_work_dir: /tmp/operator-test/operator-files
 operator_sdk_bin_path: operator-sdk
 check_validation_result: true
+select_optional_tests: ""
+run_operatorhub_checks: false
