@@ -35,15 +35,15 @@
         chi_missing_operators: "{{ chi_git_not_index_operators | union(chi_index_not_git_operators) }}"
       no_log: true
 
-    - name: "Setting list of uncomplete packages"
+    - name: "Setting list of incomplete packages"
       set_fact:
         chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
 
-    - name: "Reseting uncomplete packages"
+    - name: "Resetting incomplete packages"
       set_fact:
         chi_uncomplete_packages: []
 
-    - name: "Setting list of uncomplete packages"
+    - name: "Setting list of incomplete packages"
       set_fact:
         chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
       with_items: "{{ chi_uncomplete_packages_list }}"
@@ -76,10 +76,18 @@
           debug:
             var: chi_quay_bundles_not_index_operators
 
-        - name: "Setting list of uncomplete packages from missing bundles"
+        - name: "Setting list of incomplete packages from missing bundles"
           set_fact:
             chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
           with_items: "{{ chi_quay_bundles_not_index_operators }}"
+
+        - name: "Check if number of missing operators is very high that manual check is needed"
+          fail:
+            msg: "Number of missing operators is higher than {{ max_missing_operators_allowed }} - manual check is needed. Index overwrite safety check #2."
+          when:
+            - max_missing_operators_allowed is defined
+            - max_missing_operators_allowed != ""
+            - chi_uncomplete_packages|length>(max_missing_operators_allowed|int)
 
       when:
         - bundles_namespace is defined

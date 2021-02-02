@@ -25,6 +25,12 @@
           shell: "{{ container_tool }} pull {{ mirror_input_image  }}"
         - name: "Doing retag of '{{ mirror_input_image }}' to '{{ ms_info[0] }}'"
           shell: "{{ container_tool }} tag {{ mirror_input_image  }} {{ ms_info[0] }}"
+        - name: "Index safety check to avoid accidental overwrite"
+          include_role:
+            name: export_list_of_packages_from_index
+          vars:
+            index_pull_skip: true
+          when: min_operators_in_index_allowed is defined
         - name: "Push image '{{ ms_info[0] }}'"
           shell: "{{ container_tool }} push {{ container_push_extra }} {{ ms_info[0] }}"
           environment: "{{ proxy_env }}"

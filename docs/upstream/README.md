@@ -317,7 +317,9 @@ Usage:
 | supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`4.6,4.7` for Openshift; `latest` for kubernetes|
 | copy_as_latest_index | Copy and tag specific index as `latest`|4.6|`4.6` for Openshift; not defined for kubernetes|
 | save_operator_tools_info | Save operator tools info [bool]|false|false|
-
+| enable_production | set safety limits for index push `min_operators_in_index_allowed`, `max_missing_operators_allowed` and other prod defaults|N/A|true|
+| min_operators_in_index_allowed | minimal amount of operators in index before index push|N/A|30|
+| max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature|N/A|20|
 
 ## Tags to use
 

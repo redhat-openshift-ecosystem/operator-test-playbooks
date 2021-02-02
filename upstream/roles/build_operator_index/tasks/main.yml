@@ -103,6 +103,13 @@
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
       environment: "{{ proxy_env }}"
 
+    - name: "Index safety check to avoid accidental overwrite"
+      include_role:
+        name: export_list_of_packages_from_index
+      vars:
+        index_pull_skip: true
+      when: min_operators_in_index_allowed is defined
+
     - name: "Tmp quay fix"
       block:
         - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
@@ -114,6 +121,13 @@
           environment: "{{ proxy_env }}"
       when:
         - (quay_push_fix is undefined or quay_push_fix|bool)
+
+    - name: "Index safety check to avoid accidental overwrite"
+      include_role:
+        name: export_list_of_packages_from_index
+      vars:
+        index_pull_skip: true
+      when: min_operators_in_index_allowed is defined
 
     - name: "Push index image {{ bundle_index_image }}"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
@@ -153,6 +167,13 @@
   environment: "{{ proxy_env }}"
   register: boi_ia_rc
 
+- name: "Index safety check to avoid accidental overwrite"
+  include_role:
+    name: export_list_of_packages_from_index
+  vars:
+    index_pull_skip: true
+  when: min_operators_in_index_allowed is defined
+
 - name: "Tmp quay fix"
   block:
     - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
@@ -165,7 +186,14 @@
     - (quay_push_fix is undefined or quay_push_fix|bool)
     - boi_ia_rc.rc == 0
 
-- name: "Push idex image '{{ bundle_index_image }}'"
+- name: "Index safety check to avoid accidental overwrite"
+  include_role:
+    name: export_list_of_packages_from_index
+  vars:
+    index_pull_skip: true
+  when: min_operators_in_index_allowed is defined
+
+- name: "Push index image '{{ bundle_index_image }}'"
   shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
   environment: "{{ proxy_env }}"
   register: boi_iap_rc
@@ -219,6 +247,12 @@
           block:
             - name: "Retag image {{ bundle_index_image }}"
               shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ boi_bundle_latest_index_image }}"
+            - name: "Index safety check to avoid accidental overwrite"
+              include_role:
+                name: export_list_of_packages_from_index
+              vars:
+                index_pull_skip: true
+              when: min_operators_in_index_allowed is defined
             - name: "Push image {{ boi_bundle_latest_index_image }}"
               shell: "{{ container_tool }} push {{ container_push_extra }} {{ boi_bundle_latest_index_image }}"
               environment: "{{ proxy_env }}"

@@ -109,6 +109,16 @@
       tags:
         - always
 
+    - name: "Set safety variables for production"
+      set_fact:
+        min_operators_in_index_allowed: 30
+        max_missing_operators_allowed: 20
+      when:
+       - enable_production is defined
+       - enable_production|bool
+      tags:
+        - always
+
   roles:
     - { role: install_base_packages, tags: ["base"], when: run_host_init|bool }
     - { role: install_docker, tags: ["docker"], when: run_host_init|bool }

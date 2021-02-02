@@ -62,6 +62,13 @@
           shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
           failed_when: false
 
+        - name: "Index safety check to avoid accidental overwrite"
+          include_role:
+            name: export_list_of_packages_from_index
+          vars:
+            index_pull_skip: true
+          when: min_operators_in_index_allowed is defined
+
         - name: "Tmp quay fix"
           block:
             - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
@@ -73,6 +80,13 @@
               environment: "{{ proxy_env }}"
           when:
             - (quay_push_fix is undefined or quay_push_fix|bool)
+
+        - name: "Index safety check to avoid accidental overwrite"
+          include_role:
+            name: export_list_of_packages_from_index
+          vars:
+            index_pull_skip: true
+          when: min_operators_in_index_allowed is defined
 
         - name: "Push bundle image {{ bundle_index_image }}"
           shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
