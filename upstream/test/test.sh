@@ -10,6 +10,7 @@ OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/WhkV76k"}
 
 OP_TEST_BASE_DEP="ansible curl openssl git"
 
+INDEX_SAFETY="-e enable_production=true"
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
 OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
@@ -353,6 +354,9 @@ function ExecParameters() {
     [[ $1 == op_delete* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e quay_api_token=$QUAY_API_TOKEN_OPERATORHUBIO"
     [[ $1 == op_delete* ]] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e quay_api_token=$QUAY_API_TOKEN_OPERATOR_TESTING"
     [[ $1 == op_delete_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_index_image_version=${1/op_delete_/}"
+
+    # index safety - avoid accidental index destroy
+    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER $INDEX_SAFETY" && OP_TEST_EXEC_USER_INDEX_CHECK="$OP_TEST_EXEC_USER_INDEX_CHECK $INDEX_SAFETY"
 
     # Force strict mode (force to fail on 'bundle add' and 'index add')
     [[ $OP_TEST_PROD -eq 0 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e strict_mode=true"
