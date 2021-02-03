@@ -1,0 +1,40 @@
+---
+- name: "Detect stream"
+  set_fact:
+    cic_stream: "{{ operator_base_dir.split('/')[-1] }}"
+
+- name: "Starting index check cleanup process to ignore operators from git missing in the index intentionally due to bundle label cluster specification."
+  block:
+  - name: "Set community"
+    set_fact:
+      cic_community: true
+
+  - name: "Clean index only for community"
+    block:
+    - name: "Set parameter to modify cluster detector"
+      set_fact:
+        clean_index_check: true
+        dov_cluster_ver: "{{ bundle_index_image.split(':')[1] }}"
+        chi_git_not_index_operators_not_needed: []
+
+    - name: "Loop over chi_git_not_index_operators"
+      include_tasks: clean_list.yml
+      loop: "{{ chi_git_not_index_operators }}"
+      loop_control:
+        loop_var: cic_chi_git_not_index_operator
+    when: cic_community|bool
+
+  - name: "Updating chi_git_not_index_operators"
+    set_fact:
+      chi_git_not_index_operators: "{{ chi_git_not_index_operators | difference(chi_git_not_index_operators_not_needed) }}"
+    no_log: true
+
+  - name: "Printing stats"
+    debug:
+      msg: "Cleaned {{ chi_git_not_index_operators_not_needed | length }} operator version(s) as not needed in {{ dov_cluster_ver }} despite exist(s) in git."
+
+  - name: "Printing operator versions filtered out."
+    debug:
+      var: chi_git_not_index_operators_not_needed
+
+  when: cic_stream is match("community-operators")

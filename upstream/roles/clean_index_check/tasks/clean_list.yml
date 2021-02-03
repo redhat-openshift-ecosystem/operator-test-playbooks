@@ -1,0 +1,26 @@
+---
+- name: "Set operator name and version"
+  set_fact:
+    dov_op_name: "{{ cic_chi_git_not_index_operator.split(':')[0] }}"
+    doic_versions_processing: "{{ cic_chi_git_not_index_operator.split(':v')[1] }}"
+    ocp_version_annotation_stdout: "NotFound"
+
+- name: "Set path to the file containing labels for version {{ doic_versions_processing }}"
+  set_fact:
+    labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_annotations }}"
+
+- name: "Get info from {{ labels_file_path }}"
+  include_tasks: get_info.yml
+
+- name: "Check in another file for labels if not found in {{ labels_file_path }}"
+  include_tasks: get_info.yml
+  vars:
+    labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_dockerfile }}"
+  when: ocp_version_annotation_stdout == ""
+
+- name: "Detect operators in cluster"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: op_ver.yml
+  when: ocp_version_annotation_stdout != ""
+

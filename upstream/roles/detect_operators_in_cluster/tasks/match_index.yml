@@ -13,3 +13,21 @@
   when:
       - doic_supported_index_from_api_parsed_version == dov_cluster_ver
       - doic_supported_index_from_api_parsed_version is defined
+      - clean_index_check is not defined or not clean_index_check|bool
+
+- name: "clean_index_check final entry"
+  block:
+
+  - name: "Create chi_git_not_index_operators_not_needed line"
+    set_fact:
+      chi_git_not_index_operators_not_needed_line: "{{ dov_op_name }}:v{{ doic_versions_processing }}"
+
+  - name: "Comparing current {{ doic_supported_index_from_api_parsed_version }} to target {{ dov_cluster_ver }}"
+    set_fact:
+     chi_git_not_index_operators_not_needed: "{{ chi_git_not_index_operators_not_needed | default([]) + [chi_git_not_index_operators_not_needed_line] }}"
+
+  when:
+      - doic_supported_index_from_api_parsed_version is defined
+      - doic_supported_index_from_api_parsed_version != dov_cluster_ver
+      - clean_index_check is defined
+      - clean_index_check|bool

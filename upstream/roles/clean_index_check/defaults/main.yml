@@ -1,0 +1,7 @@
+stream_path: "/tmp/community-operators-for-catalog/community-operators"
+labels_dockerfile: "Dockerfile"
+labels_annotations: "metadata/annotations.yaml"
+work_dir: "/tmp/operator-test"
+
+
+

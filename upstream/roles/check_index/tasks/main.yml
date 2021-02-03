@@ -30,6 +30,18 @@
         chi_git_not_index_operators: "{{ chi_git_operators | difference(chi_index_operators) }}"
       no_log: true
 
+    - name: "Clean index check"
+      include_role:
+        name: clean_index_check
+
+    - name: "Printing list of operators present in git, but not in index after cleaning"
+      debug:
+        var: chi_git_not_index_operators
+
+    - name: "Printing operators stat after clening"
+      debug:
+        msg: "IsInGitNotIndex={{ chi_git_not_index_operators | length }} IsInIndexNotgit={{ chi_index_not_git_operators | length }}"
+
     - name: "Setting list of missing operators"
       set_fact:
         chi_missing_operators: "{{ chi_git_not_index_operators | union(chi_index_not_git_operators) }}"

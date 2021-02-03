@@ -58,7 +58,12 @@
       debug:
         msg: "IsInGitNotIndex={{ chi_git_not_index_operators | length }} IsInIndexNotgit={{ chi_index_not_git_operators | length }}"
 
-    - name: "Preparing config file of uncomplete operators"
+
+
+
+
+
+    - name: "Preparing config file of incomplete operators"
       block:
         - name: "Preparing variables for config file"
           set_fact:

@@ -1,46 +1,51 @@
 ---
 #3
-- name: "Reset range start"
-  set_fact:
-    ocp_range_start_old: "0"
+- name: "Default standard detection"
+  block:
+  - name: "Reset range start"
+    set_fact:
+      ocp_range_start_old: "0"
 
-- name: "Disable annotation check during the next parse"
-  set_fact:
-     doic_skip_file_check: true
-     bundle_sanity_checks: true
-     doic_versions_from_bundle: "{{ lc_doic_bundles_processing.split(':v')[1] }}"
-     ocp_version_annotation_stdout: "NotFound"
+  - name: "Disable annotation check during the next parse"
+    set_fact:
+       doic_skip_file_check: true
+       bundle_sanity_checks: true
+       doic_versions_from_bundle: "{{ lc_doic_bundles_processing.split(':v')[1] }}"
+       ocp_version_annotation_stdout: "NotFound"
 
-- name: "Parse the operator bundle image, manifest and metadata"
-  include_role:
-    name: parse_operator_bundle
-  vars:
-    bundle_image: "{{ lc_doic_bundles_processing }}"
-  when: lc_doic_bundles_processing.startswith('kind-registry')
+  - name: "Parse the operator bundle image, manifest and metadata"
+    include_role:
+      name: parse_operator_bundle
+    vars:
+      bundle_image: "{{ lc_doic_bundles_processing }}"
+    when: lc_doic_bundles_processing.startswith('kind-registry')
 
-- name: "Parse the operator bundle image, manifest and metadata"
-  include_role:
-    name: parse_operator_bundle
-  vars:
-    bundle_image: "{{ lc_doic_bundles_processing }}"
-    image_protocol: "docker://"
-  when: not lc_doic_bundles_processing.startswith('kind-registry')
+  - name: "Parse the operator bundle image, manifest and metadata"
+    include_role:
+      name: parse_operator_bundle
+    vars:
+      bundle_image: "{{ lc_doic_bundles_processing }}"
+      image_protocol: "docker://"
+    when: not lc_doic_bundles_processing.startswith('kind-registry')
 
-- name: "Set check back"
-  set_fact:
-     doic_skip_file_check: false
+  - name: "Set check back"
+    set_fact:
+       doic_skip_file_check: false
 
-- name: "Set cluster version from bundle label"
-  set_fact:
-     ocp_version_annotation_stdout: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'] }}"
+  - name: "Set cluster version from bundle label"
+    set_fact:
+       ocp_version_annotation_stdout: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'] }}"
+    when:
+      - skopeo_inspect_json.Labels['com.redhat.openshift.versions'] is defined
+      - skopeo_inspect_json.Labels['com.redhat.openshift.versions']!= ""
+
+  - name: "No cluster version defined on label, version is supported."
+    include_tasks: version_found.yml
+    when:
+      - (skopeo_inspect_json.Labels['com.redhat.openshift.versions'] is not defined) or (skopeo_inspect_json.Labels['com.redhat.openshift.versions']== "")
+  #do not run for clean_index_check in check_index, run only for release in deploy_bundles
   when:
-    - skopeo_inspect_json.Labels['com.redhat.openshift.versions'] is defined
-    - skopeo_inspect_json.Labels['com.redhat.openshift.versions']!= ""
-
-- name: "No cluster version defined on label, version is supported."
-  include_tasks: version_found.yml
-  when:
-    - (skopeo_inspect_json.Labels['com.redhat.openshift.versions'] is not defined) or (skopeo_inspect_json.Labels['com.redhat.openshift.versions']== "")
+    - clean_index_check is not defined or not clean_index_check|bool
 
 - name: "Cluster version defined on label"
   block:
@@ -165,3 +170,5 @@
 - name: "Unset 'ocp_versions' "
   set_fact:
     ocp_versions:
+  when:
+    - clean_index_check is not defined or not clean_index_check|bool
