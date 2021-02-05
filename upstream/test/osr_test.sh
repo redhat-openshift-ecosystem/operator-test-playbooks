@@ -24,4 +24,5 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e openshift_robot_hash="$OP_OSR_HASH" \
 -e strict_mode=true \
 -e operator_channel_force=optest \
+-e image_protocol="docker://" \
 $OP_ANSIBLE_EXTRA
