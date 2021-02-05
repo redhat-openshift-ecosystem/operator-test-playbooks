@@ -28,7 +28,9 @@ if [ ! -f $CERTS_DIR/domain.crt ] || [ ! openssl x509 -checkend $CERT_EXPIRED_IN
   mkdir -p $CERTS_DIR
 
   openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN='${reg_name}'' -out $CERTS_DIR/domain.crt -batch
-  ln -snf $CERTS_DIR/domain.crt $CERTS_DIR/ca.crt
+  cd $CERTS_DIR
+  ln -snf domain.crt ca.crt
+  cd -
 
 # Not working yet
 # cat <<EOF > $CERTS_DIR/cert.conf

@@ -75,7 +75,7 @@
 
 - name: "Filter index versions"
   set_fact:
-      boi_index_version_test: "{{ index_versions_in_registry | intersect(boi_current_index_version_list) }}"
+    boi_index_version_test: "{{ index_versions_in_registry | intersect(boi_current_index_version_list) }}"
 
 - name: "Setting opm index extra arguments"
   set_fact:
@@ -98,9 +98,10 @@
       shell: "{{ container_tool }} pull {{ bundle_index_image }}"
       environment: "{{ proxy_env }}"
       when: (opm_container_tool_index is undefined or opm_container_tool_index == "")
-      
+
     - name: "Remove previous versions of operator '{{ ba_name }}' from index image {{ bundle_index_image }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+      register: bio_index_rm_rc
       environment: "{{ proxy_env }}"
 
     - name: "Index safety check to avoid accidental overwrite"
@@ -109,29 +110,42 @@
       vars:
         index_pull_skip: true
       when: min_operators_in_index_allowed is defined
-
-    - name: "Tmp quay fix"
-      block:
-        - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
-          shell: "{{ container_tool }} push {{ bundle_index_image }}"
-          environment: "{{ proxy_env }}"
-
-        - name: "Pull index image {{ bundle_index_image }} (quay_push_fix #2)"
-          shell: "{{ container_tool }} pull {{ bundle_index_image }}"
-          environment: "{{ proxy_env }}"
-      when:
-        - (quay_push_fix is undefined or quay_push_fix|bool)
-
-    - name: "Index safety check to avoid accidental overwrite"
-      include_role:
-        name: export_list_of_packages_from_index
-      vars:
-        index_pull_skip: true
-      when: min_operators_in_index_allowed is defined
-
+      
     - name: "Push index image {{ bundle_index_image }}"
-      shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
-      environment: "{{ proxy_env }}"
+      include_role:
+        name: operator_push_image
+      vars:
+        fqp_image: "{{ bundle_index_image }}"
+      when: bio_index_rm_rc.rc == 0
+
+    - name: "Set 'result_rc' to false"
+      set_fact:
+        result_rc: false
+
+    - name: "Set 'result_rc'"
+      set_fact:
+        result_rc: true
+      when: ((bio_index_rm_rc.rc is defined and bio_index_rm_rc.rc == 0) and rc_last|bool)
+
+    - name: "Prints message that bundles were added to catalog"
+      debug:
+        msg: "Operator '{{ ba_name }}' were removed and push to catalog '{{ bundle_index_image }}' : [OK]"
+      when:
+        - result_rc|bool
+
+    - name: "Print failing msg that bundle was not added to catalog or not pushed"
+      debug:
+        msg: "Operator '{{ ba_name }}' were removed and push to catalog '{{ bundle_index_image }}' : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Failing when bundle was not added to catalog or not pushed"
+      fail:
+        msg: "Operator '{{ ba_name }}' were removed and push to catalog '{{ bundle_index_image }}' : : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is defined and strict_mode|bool)
   when:
     - boi_index_version_test.0 is defined
     - bundle_index_image_from is defined
@@ -141,9 +155,10 @@
   set_fact:
     ba_versions_tmp: "{{ ba_versions | difference(ba_versions_prod) }}"
 
-- name: "Setting bundle image names"
+- name: "Setting bundle image names index add mode"
   set_fact:
     bundle_images: "{{ ba_bundles | join(',') }}"
+    opm_index_add_mode: "semver"
 
 - name: "Retag bundle input image"
   block:
@@ -155,6 +170,45 @@
   when:
     - operator_input_image is defined
     - operator_input_image != ""
+
+- name: "Handling index add mode from '{{ ba_name }}/{{ opm_index_ci_filename }}' file"
+  block:
+    - name: "Fail when operator_base_dir is undefined or is empty"
+      fail:
+        msg: "Variable 'operator_base_dir' is undefined or is empty"
+      when: (operator_base_dir is undefined or operator_base_dir == "")
+
+    - name: "Check if file '{{ opm_index_ci_filename }}' exists"
+      stat:
+        path: "{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}"
+      register: boi_ci_file
+
+    - name: "Parsing file '{{ ba_name }}/{{ opm_index_ci_filename }}' when exists"
+      block:
+        - name: "Read from yaml file 'updateGraph' key"
+          shell: "{{ yq_bin_path }} r {{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }} -t updateGraph"
+          register: boi_ci_update_graph
+
+        - name: "Sets `boi_ci_update_graph_var` from '{{ opm_index_ci_filename }}' file"
+          set_fact:
+            boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
+
+        - name: "Failing when 'updateGraph' value is missing"
+          fail:
+            msg: "Key 'updateGraph' was not found in file '{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}'!!!"
+          when: boi_ci_update_graph_var == "null"
+
+        - name: "Setting index add mode from 'updateGraph' value to '{{ boi_ci_update_graph_var }}'"
+          set_fact:
+            opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
+      when: boi_ci_file.stat.exists|bool
+
+    - name: "Setting 'semver' mode when file doen't exists"
+      set_fact:
+        opm_index_add_mode: "semver"
+      when: not boi_ci_file.stat.exists|bool
+  when:
+    - (index_mode_from_ci is undefined or index_mode_from_ci|bool)
 
 - name: "Failing when mode is empty"
   fail:
@@ -173,54 +227,42 @@
   vars:
     index_pull_skip: true
   when: min_operators_in_index_allowed is defined
-
-- name: "Tmp quay fix"
-  block:
-    - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
-      shell: "{{ container_tool }} push {{ bundle_index_image }}"
-      environment: "{{ proxy_env }}"
-    - name: "Pull index image {{ bundle_index_image }} (quay_push_fix #2)"
-      shell: "{{ container_tool }} pull {{ bundle_index_image }}"
-      environment: "{{ proxy_env }}"
-  when:
-    - (quay_push_fix is undefined or quay_push_fix|bool)
-    - boi_ia_rc.rc == 0
-
-- name: "Index safety check to avoid accidental overwrite"
-  include_role:
-    name: export_list_of_packages_from_index
-  vars:
-    index_pull_skip: true
-  when: min_operators_in_index_allowed is defined
-
+  
 - name: "Push index image '{{ bundle_index_image }}'"
-  shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
-  environment: "{{ proxy_env }}"
-  register: boi_iap_rc
+  include_role:
+    name: operator_push_image
+  vars:
+    fqp_image: "{{ bundle_index_image }}"
   when: boi_ia_rc.rc == 0
+
+- name: "Set 'result_rc' to false"
+  set_fact:
+    result_rc: false
+
+- name: "Set 'result_rc'"
+  set_fact:
+    result_rc: true
+  when: ((boi_ia_rc.rc is defined and boi_ia_rc.rc == 0) and rc_last|bool)
 
 - name: "Prints message that bundles were added to catalog"
   debug:
-    msg: "Bundles {{ bundle_images }} were added and push to catalog {{ bundle_index_image }} : [OK]"
+    msg: "Bundles '{{ bundle_images }}'' were added and push to catalog '{{ bundle_index_image }}' using mode '{{ opm_index_add_mode }}' : [OK]"
   when:
-    - boi_ia_rc.rc is defined
-    - boi_ia_rc.rc == 0
-    - boi_iap_rc.rc is defined
-    - boi_iap_rc.rc == 0
+    - result_rc|bool
 
 - name: "Print failing msg that bundle was not added to catalog or not pushed"
   debug:
-    msg: "Bundle {{ bundle_image }} was not added or not pushed to '{{ bundle_index_image }}': [FAIL]"
+    msg: "Bundle '{{ bundle_image }}'' was not added or not pushed to '{{ bundle_index_image }}' using mode '{{ opm_index_add_mode }}' : [FAIL]"
   when:
-    - ((boi_ia_rc.rc is defined and boi_ia_rc.rc != 0) or (boi_iap_rc.rc is defined and boi_iap_rc.rc != 0))
+    - not result_rc|bool
+    - (strict_mode is undefined or not strict_mode|bool)
 
 - name: "Failing when bundle was not added to catalog or not pushed"
   fail:
-    msg: "Bundle {{ bundle_image }} was not added or not pushed to '{{ bundle_index_image }}' : [FAIL]"
+    msg: "Bundle '{{ bundle_image }}'' was not added or not pushed to '{{ bundle_index_image }}' using mode '{{ opm_index_add_mode }}' : [FAIL]"
   when:
-    - ((boi_ia_rc.rc is defined and boi_ia_rc.rc != 0) or (boi_iap_rc.rc is defined and boi_iap_rc.rc != 0))
-    - strict_mode is defined
-    - strict_mode|bool
+    - not result_rc|bool
+    - (strict_mode is defined and strict_mode|bool)
 
 - name: "Unset 'boi_latest_index_found'"
   set_fact:
@@ -232,10 +274,12 @@
 
 - name: "Handle 'latest' index"
   block:
-    - name: "Check if actual {{ ba_index_tag }} equals to {{ copy_as_latest_index }} (marked as latest)"
+    - name: "Check if actual {{ ba_index_tag }} equals to {{ supported_cluster_version_latest }} (marked as latest)"
       set_fact:
         boi_latest_index_found: True
-      when: ba_index_tag == copy_as_latest_index
+      when:
+        - ba_index_tag == supported_cluster_version_latest
+        - supported_cluster_version_latest != "latest"
 
     - name: "'Latest' identified"
       block:
@@ -247,18 +291,23 @@
           block:
             - name: "Retag image {{ bundle_index_image }}"
               shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ boi_bundle_latest_index_image }}"
-            - name: "Index safety check to avoid accidental overwrite"
+
+            # - name: "Index safety check to avoid accidental overwrite"
+            #   include_role:
+            #     name: export_list_of_packages_from_index
+            #   vars:
+            #     index_pull_skip: true
+            #   when: min_operators_in_index_allowed is defined
+              
+            - name: "Push index image '{{ boi_bundle_latest_index_image }}'"
               include_role:
-                name: export_list_of_packages_from_index
+                name: operator_push_image
               vars:
-                index_pull_skip: true
-              when: min_operators_in_index_allowed is defined
-            - name: "Push image {{ boi_bundle_latest_index_image }}"
-              shell: "{{ container_tool }} push {{ container_push_extra }} {{ boi_bundle_latest_index_image }}"
-              environment: "{{ proxy_env }}"
+                fqp_image: "{{ boi_bundle_latest_index_image }}"
+
           when:
-            - copy_as_latest_index is defined
-            - copy_as_latest_index != ""
+            - supported_cluster_version_latest is defined
+            - supported_cluster_version_latest != ""
             - boi_bundle_latest_index_image is defined
             - boi_bundle_latest_index_image != ""
       when:
@@ -266,8 +315,8 @@
         - boi_latest_index_found|bool
 
   when:
-    - copy_as_latest_index is defined
-    - copy_as_latest_index != ""
+    - supported_cluster_version_latest is defined
+    - supported_cluster_version_latest != ""
     - use_cluster_filter is defined
     - use_cluster_filter|bool
 
@@ -302,12 +351,12 @@
         msg: "Exporting of operator '{{ ba_name }}' from index '{{ bundle_index_image }}' failed !!!"
       when: rob_export_rc.rc != 0
 
-#    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
-#      include_role:
-#        name: operator_courier_verify
-#      vars:
-#        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
-#      when: run_lint|bool
+  #    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
+  #      include_role:
+  #        name: operator_courier_verify
+  #      vars:
+  #        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+  #      when: run_lint|bool
   when:
     - boi_ia_rc.rc == 0
     - (openshift_robot_hash is undefined or openshift_robot_hash == "")

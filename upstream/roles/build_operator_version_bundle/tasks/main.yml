@@ -150,7 +150,7 @@
 
         - name: "Ensure replaces is removed in the csv file"
           lineinfile:
-            path: '{{ clusterserviceversion_bundle_file_path }}'
+            path: "{{ clusterserviceversion_bundle_file_path }}"
             regexp: '^\s*replaces:'
             state: absent
           when:
@@ -166,7 +166,7 @@
     - name: "Fail if operators in one dir are not related to the only package"
       fail:
         msg: "Versions of {{ operator_name }} must be in one package, not a mix of {{ operator_package_name }} and {{ previous_package }}"
-      when:  operator_package_name != previous_package
+      when: operator_package_name != previous_package
 
     - name: "Set bundle image name"
       set_fact:
@@ -181,7 +181,6 @@
 
     - name: "Creating bundle image from bundle format directory structure"
       block:
-
         - name: "Remove bundle image {{ bundle_image }}"
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
           failed_when: false
@@ -203,8 +202,8 @@
           block:
             - name: "Reseting 'annotations_vars' and 'labels_vars'"
               set_fact:
-                  annotations_vars:
-                  labels_vars:
+                annotations_vars:
+                labels_vars:
 
             - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
               stat:
@@ -252,36 +251,41 @@
           ignore_errors: yes
           register: bb_rc
 
-        - name: "Push bundle image {{ bundle_image }}"
-          shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
-          environment: "{{ proxy_env }}"
-          register: bbp_rc
-          when:
-            - bb_rc.rc is defined
-            - bb_rc.rc == 0
+        - name: "Push image '{{ bundle_image }}'"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ bundle_image }}"
+          when: bb_rc.rc == 0
 
-        - name: "Prints message that bundle was created"
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
+
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when: ((bb_rc.rc is defined and bb_rc.rc == 0) and rc_last|bool)
+
+        - name: "Prints message that bundles were added to catalog"
           debug:
-            msg: "Bundle {{ bundle_image }} was created and pushed : [OK]"
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [OK]"
           when:
-            - bb_rc.rc is defined
-            - bb_rc.rc == 0
-            - bbp_rc.rc is defined
-            - bbp_rc.rc == 0
+            - result_rc|bool
 
         - name: "Print failing msg that bundle was not created or not pushed"
           debug:
-            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
           when:
-            - ((bb_rc.rc is defined and bb_rc.rc != 0) or (bbp_rc.rc is defined and bbp_rc.rc != 0))
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
 
         - name: "Failing when bundle was not created or not pushed"
           fail:
-            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
           when:
-            - ((bb_rc.rc is defined and bb_rc.rc != 0) or (bbp_rc.rc is defined and bbp_rc.rc != 0))
-            - strict_mode is defined
-            - strict_mode|bool
+            - not result_rc|bool
+            - (strict_mode is defined and strict_mode|bool)
 
         - name: "Operator scorcard bundle test"
           include_role:
@@ -311,40 +315,44 @@
           shell:
             cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }} --package {{ operator_package_name }} -t {{ bundle_image }} -b {{ opm_container_tool }} {{ opm_bundle_alpha_add_args }}"
             chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
-          # failed_when: false
           ignore_errors: yes
           register: mb_rc
 
-        - name: "Push bundle image {{ bundle_image }}"
-          shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
-          environment: "{{ proxy_env }}"
-          register: mbp_rc
-          when:
-            - mb_rc.rc is defined
-            - mb_rc.rc == 0
+        - name: "Push image '{{ bundle_image }}'"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ bundle_image }}"
+          when: mb_rc.rc == 0
+
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
+
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when: ((mb_rc.rc is defined and mb_rc.rc == 0) and rc_last|bool)
 
         - name: "Prints message that bundle was created"
           debug:
-            msg: "Bundle {{ bundle_image }} was created and pushed : [OK]"
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [OK]"
           when:
-            - mb_rc.rc is defined
-            - mb_rc.rc == 0
-            - mbp_rc.rc is defined
-            - mbp_rc.rc == 0
+            - result_rc|bool
 
         - name: "Print failing msg that bundle was not created or not pushed"
           debug:
-            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
           when:
-            - ((mb_rc.rc is defined and mb_rc.rc != 0) or (mbp_rc.rc is defined and mbp_rc.rc != 0))
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
 
-        - name: "Failing when bundle from packagemanifest was not created or not pushed"
+        - name: "Failing when bundle was not created or not pushed"
           fail:
-            msg: "Bundle {{ bundle_image }} was not created and not pushed : [FAIL]"
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
           when:
-            - ((mb_rc.rc is defined and mb_rc.rc != 0) or (mbp_rc.rc is defined and mbp_rc.rc != 0))
-            - strict_mode is defined
-            - strict_mode|bool
+            - not result_rc|bool
+            - (strict_mode is defined and strict_mode|bool)
 
         - name: "Operator scorcard bundle test"
           include_role:

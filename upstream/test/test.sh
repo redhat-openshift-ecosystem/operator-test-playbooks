@@ -291,25 +291,37 @@ function ExecParameters() {
     # [[ $1 == orange_* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER,iib"
 
     ## TODO check if needed for sync in prod
-    [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [ "$OP_TEST_VERSION" != "sync" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e production_registry_namespace=quay.io/openshift-community-operators"
-    [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && [ "$OP_TEST_VERSION" != "sync" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e production_registry_namespace=quay.io/operatorhubio"
+    [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [ "$OP_TEST_VERSION" != "sync" ] && [[ $OP_TEST_PROD -lt 2 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e production_registry_namespace=quay.io/openshift-community-operators"
+    [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && [ "$OP_TEST_VERSION" != "sync" ] && [[ $OP_TEST_PROD -lt 2 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e production_registry_namespace=quay.io/operatorhubio"
 
     # Handle index_check
-    [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/openshift-community-operators/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
+    [[ $1 == orange* ]] &&[ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/openshift-community-operators/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
+    [[ $1 == orange* ]] &&[ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/openshift-community-operators/catalog:${1/orange_/} -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
-    [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operatorhubio/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
-    [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && [[ $OP_TEST_PROD -eq 3 ]] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
+    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/catalog:${1/orange_/} -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
+    [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operatorhubio/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
+    [[ $1 == orange* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER_INDEX_CHECK="-e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/catalog:latest -e operator_base_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM"
+    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && { echo "Error: orange_xxx is not supported for 'upstream-community-operators' !!! Exiting ..."; exit 1; }
+
+    # Fix default of k8s in tests (not needed anymore)
+    # [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 0 ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e use_cluster_filter=false -e supported_cluster_versions=latest"
 
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_registry=quay.io -e bundle_image_namespace=openshift-community-operators -e bundle_index_image_namespace=openshift-community-operators -e bundle_index_image_name=catalog"
-    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_registry=quay.io -e bundle_image_namespace=operatorhubio -e bundle_index_image_namespace=operatorhubio -e bundle_index_image_name=catalog -e use_cluster_filter=false -e supported_cluster_versions=latest"
-    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_registry=quay.io -e bundle_image_namespace=operatorhubio -e bundle_index_image_namespace=operator_testing -e bundle_index_image_name=catalog"
+    
+    # Fix default of k8s in tests (not needed anymore) 
+    # [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_registry=quay.io -e bundle_image_namespace=operatorhubio -e bundle_index_image_namespace=operatorhubio -e bundle_index_image_name=catalog -e use_cluster_filter=false -e supported_cluster_versions=latest"
+    # Using default "-e use_cluster_filter=false -e supported_cluster_versions=latest" for k8s
+    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_registry=quay.io -e bundle_image_namespace=operatorhubio -e bundle_index_image_namespace=operatorhubio -e bundle_index_image_name=catalog"
+    
+    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_registry=quay.io -e bundle_image_namespace=operator_testing -e bundle_index_image_namespace=operator_testing -e bundle_index_image_name=catalog"
 
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e quay_api_token=$QUAY_API_TOKEN_OPENSHIFT_COMMUNITY_OP"
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e quay_api_token=$QUAY_API_TOKEN_OPERATORHUBIO"
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 2 ]] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e quay_api_token=$QUAY_API_TOKEN_OPERATOR_TESTING"
 
     # If community and doing orange_<version>
-    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e use_cluster_filter=true -e supported_cluster_versions=${1/orange_/} -e bundle_index_image_version=${1/orange_/}"
+    [[ $1 == orange* ]] && [[ $1 != orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e stream_kind=openshift_upstream"
+    [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e stream_kind=openshift_upstream -e supported_cluster_versions=${1/orange_/} -e bundle_index_image_version=${1/orange_/}"
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e mirror_multiarch_image=registry.redhat.io/openshift4/ose-operator-registry:v4.5 -e mirror_apply=true"
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" != "${1/orange_/}" ]&& OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW\""
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" = "${1/orange_/}" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW|quay.io/redhat/redhat----community-operator-index:latest\""
@@ -410,7 +422,7 @@ fi
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run echo -e " [ Installing prerequisites ] "
 [[ $OP_TEST_FORCE_INSTALL -eq 1 ]] && run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS $OP_TEST_ANSIBLE_EXTRA_ARGS -e run_prepare_catalog_repo_upstream=false
 
-[[ $OP_TEST_IIB_INSTALL -eq 1 ]] && iib_install 
+# [[ $OP_TEST_IIB_INSTALL -eq 1 ]] && iib_install 
 
 if [ -n "$OP_TEST_REPO" ];then
     OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA -e catalog_repo=$OP_TEST_REPO -e catalog_repo_branch=$OP_TEST_BRANCH"
@@ -452,7 +464,9 @@ for t in $TESTS;do
         run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec $OP_TEST_CONTAINER_OPT $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA --tags index_check $OP_TEST_EXEC_USER_INDEX_CHECK"
         $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec $OP_TEST_CONTAINER_OPT $OP_TEST_NAME /bin/bash -c "ls $OP_TEST_UNCOMPLETE" > /dev/null 2>&1 || continue
         OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e operators_config=$OP_TEST_UNCOMPLETE"
+        [[ $OP_TEST_IIB_INSTALL -eq 1 ]] && iib_install 
     fi
+ 
     echo "$OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER"
     run $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL exec $OP_TEST_CONTAINER_OPT $OP_TEST_NAME /bin/bash -c "update-ca-trust && $OP_TEST_EXEC_BASE $OP_TEST_EXEC_EXTRA $OP_TEST_EXEC_USER $OP_TEST_EXEC_USER_SECRETS"
     set +e

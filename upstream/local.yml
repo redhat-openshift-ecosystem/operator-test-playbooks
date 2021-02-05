@@ -58,8 +58,8 @@
 
     - name: "Setting basic task variables"
       set_fact:
-        supported_cluster_versions: "v4.6,v4.7"
-        copy_as_latest_index: 'v4.6'
+        supported_cluster_versions: "latest"
+        supported_cluster_version_latest: "latest"
         use_cluster_filter: false
         work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
         operator_dir: "{{ operator_dir | default('dummy') }}"
@@ -116,6 +116,15 @@
       when:
        - enable_production is defined
        - enable_production|bool
+      tags:
+        - always
+        
+    - name: "Sets variables for openshift"
+      set_fact:
+        supported_cluster_versions: "v4.6,v4.7"
+        supported_cluster_version_latest: "v4.6"
+        use_cluster_filter: true
+      when: (stream_kind is defined and stream_kind == "openshift_upstream")
       tags:
         - always
 

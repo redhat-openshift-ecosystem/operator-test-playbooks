@@ -286,7 +286,6 @@ Usage:
 | bundle_image_namespace | Quay registry url. [string] | test-operator | operator_testing |
 | bundle_index_image_namespace | Quay registry url. [string] | test-operator | operator_testing |
 | bundle_index_image_name | Quay registry url. [string] | index | upstream-community-operators-index |
-| supported_cluster_versions | List of supported cluster version. One version means one tag in index image[string] | latest | "v4.5,v4.6" for openshift |
 | container_tool | Container tool to use. [string] | docker  | as default |
 | opm_container_tool | Container tool to use when using opm tool. [string] | docker  | as default |
 | opm_container_tool_index | Container tool to use when using opm tool. [string] | docker  | as default |
@@ -314,12 +313,14 @@ Usage:
 | openshift_robot_hash | e.g. "quay.io/operator_testing|<push-token>|<git-hash>" [string] | undefined | undefined |
 | bundles_namespace | Quay namespace where to find list of packages and compare it with packages in index (eg. "openshift-community-operators" or "operatorhubio" )[string]|undefined||
 | use_cluster_filter | Enable multiple index images [bool]|false|true|
-| supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`4.6,4.7` for Openshift; `latest` for kubernetes|
-| copy_as_latest_index | Copy and tag specific index as `latest`|4.6|`4.6` for Openshift; not defined for kubernetes|
+| supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`v4.6,v4.7` for Openshift; `latest` for kubernetes|
+| supported_cluster_version_latest | Copy and tag specific index as `latest`|v4.6|`v4.6` for Openshift; not defined for kubernetes|
 | save_operator_tools_info | Save operator tools info [bool]|false|false|
 | enable_production | set safety limits for index push `min_operators_in_index_allowed`, `max_missing_operators_allowed` and other prod defaults|N/A|true|
 | min_operators_in_index_allowed | minimal amount of operators in index before index push|N/A|30|
 | max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature|N/A|20|
+| stream_kind | Setup variables for specific stream kind (e.g. opemshift_upstream) More info in local.yaml|undefined|undefined|
+
 
 ## Tags to use
 

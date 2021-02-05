@@ -165,6 +165,8 @@
             versions_add: "{{ versions_in_dir | intersect(version_list) }}"
             versions_remove: "{{ versions_in_registry | intersect(version_list) }}"
             versions_in_dir: "{{ versions_in_dir | intersect(version_list) }}"
+          when:
+            - (bundle_force_rebuild is undefined or not bundle_force_rebuild|bool)
 
         - name: "Force rebuild operator 'operator_version'"
           set_fact:
@@ -172,8 +174,7 @@
             versions_in_dir: "{{ versions_in_dir | union(versions_add) }}"
             versions_in_prod_registry: "{{ versions_in_prod_registry | difference(versions_add) }}"
           when:
-            - bundle_force_rebuild is defined
-            - bundle_force_rebuild|bool
+            - (bundle_force_rebuild is defined and bundle_force_rebuild|bool)
 
       when: operator_version is defined
 

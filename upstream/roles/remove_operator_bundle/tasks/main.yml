@@ -1,11 +1,9 @@
-
 - name: "Removing operator"
   block:
-
     - name: "Quay login via auth token"
       shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
       no_log: True
-      when: 
+      when:
         - quay_api_token is defined
         - quay_api_token != ""
 
@@ -45,7 +43,6 @@
 
     - name: "Removed operator '{{ operator_dir_name }}' from index '{{ bundle_registry }}{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}' when index exists"
       block:
-
         - name: "Setting bundle image name"
           set_fact:
             bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ rob_index_version }}"
@@ -60,38 +57,51 @@
 
         - name: "Remove operator '{{ operator_dir_name }}' from index image {{ bundle_index_image }}"
           shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
-          failed_when: false
-
-        - name: "Index safety check to avoid accidental overwrite"
-          include_role:
-            name: export_list_of_packages_from_index
-          vars:
-            index_pull_skip: true
-          when: min_operators_in_index_allowed is defined
-
-        - name: "Tmp quay fix"
-          block:
-            - name: "Push index image {{ bundle_index_image }} (quay_push_fix #1)"
-              shell: "{{ container_tool }} push {{ bundle_index_image }}"
-              environment: "{{ proxy_env }}"
-
-            - name: "Pull index image {{ bundle_index_image }} (quay_push_fix #2)"
-              shell: "{{ container_tool }} pull {{ bundle_index_image }}"
-              environment: "{{ proxy_env }}"
-          when:
-            - (quay_push_fix is undefined or quay_push_fix|bool)
-
-        - name: "Index safety check to avoid accidental overwrite"
-          include_role:
-            name: export_list_of_packages_from_index
-          vars:
-            index_pull_skip: true
-          when: min_operators_in_index_allowed is defined
-
-        - name: "Push bundle image {{ bundle_index_image }}"
-          shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
-          environment: "{{ proxy_env }}"
+          register: rob_rc
           ignore_errors: true
+
+        - name: "Index safety check to avoid accidental overwrite"
+          include_role:
+            name: export_list_of_packages_from_index
+          vars:
+            index_pull_skip: true
+          when: min_operators_in_index_allowed is defined
+
+        - name: "Push index image '{{ bundle_index_image }}'"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ bundle_index_image }}"
+          when: rob_rc.rc == 0
+
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
+
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when: ((rob_rc.rc is defined and rob_rc.rc == 0) and rc_last|bool)
+
+        - name: "Prints message that bundles were added to catalog"
+          debug:
+            msg: "Operator '{{ operator_dir_name }}' were removed and push to catalog '{{ bundle_index_image }}' : [OK]"
+          when:
+            - result_rc|bool
+
+        - name: "Print failing msg that bundle was not added to catalog or not pushed"
+          debug:
+            msg: "Operator '{{ operator_dir_name }}' were removed and push to catalog '{{ bundle_index_image }}' : [FAIL]"
+          when:
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
+
+        - name: "Failing when bundle was not added to catalog or not pushed"
+          fail:
+            msg: "Operator '{{ operator_dir_name }}' were removed and push to catalog '{{ bundle_index_image }}' : : [FAIL]"
+          when:
+            - not result_rc|bool
+            - (strict_mode is defined and strict_mode|bool)
 
         - name: "Remove temporary bundle export dir '{{ bundle_export_dir_remove }}'"
           file:

@@ -15,4 +15,4 @@ bundle_index_image_from: ""
 ba_add_name: ""
 ba_add_versions: []
 opm_index_ci_filename: "ci.yaml"
-opm_index_add_mode: "replaces"
+opm_index_add_mode: "semver"

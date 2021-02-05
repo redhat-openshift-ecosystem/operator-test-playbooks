@@ -28,7 +28,7 @@
 
 - name: "Fail when 'operators_for_index' is empty and it is forced to stop"
   block:
-    - name: "Print several lines of text"
+    - name: "Prints info if operator version is already present"
       set_fact:
         boi_msg: |
           All operator versions are already in catalog !!!

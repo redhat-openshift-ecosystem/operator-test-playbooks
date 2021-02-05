@@ -1,0 +1,57 @@
+---
+- name: "Push image"
+  block:
+    - name: "Set 'rc_last' to false"
+      set_fact:
+        rc_last: false
+
+    - name: "Push image '{{ fqp_image }}' to quay using podman"
+      block:
+        - name: "Ensure that the temporary image dir '{{ fqp_image_dir }}' exists and is empty"
+          file:
+            state: "{{ item }}"
+            path: "{{ fqp_image_dir }}"
+          with_items:
+            - absent
+            - directory
+
+        - name: "Converting and compressing image '{{ fqp_image }}' to '{{ fqp_image_dir }}'"
+          shell: "{{ container_tool }} push --compress {{ fqp_image }} dir:{{ fqp_image_dir }}"
+          environment: "{{ proxy_env }}"
+          ignore_errors: true
+          register: opi_push_quay_convert_rc
+
+        - name: "Copy '{{ fqp_image_dir }}' to final destination '{{ fqp_image }}'"
+          shell: "skopeo copy dir:{{ fqp_image_dir }} {{ image_protocol }}{{ fqp_image }}"
+          environment: "{{ proxy_env }}"
+          ignore_errors: true
+          register: opi_push_quay_skopeo_copy_rc
+
+        - name: "Set 'rc_last' to tasks rc"
+          set_fact:
+            rc_last: true
+          when: ((opi_push_quay_convert_rc.rc == 0) and (opi_push_quay_skopeo_copy_rc.rc == 0))
+
+      when: (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
+
+    - name: "Push image '{{ fqp_image }}'"
+      block:
+        - name: "Push image '{{ fqp_image }}'"
+          shell: "{{ container_tool }} push {{ container_push_extra }} {{ fqp_image }}"
+          environment: "{{ proxy_env }}"
+          ignore_errors: true
+          register: opi_push_rc
+
+        - name: "Set 'rc_last' to tasks rc"
+          set_fact:
+            rc_last: true
+          when: (opi_push_rc.rc == 0)
+
+      when: not (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
+
+    - name: "Debug 'rc_last'"
+      debug:
+        var: rc_last
+
+  when:
+    - (fqp_image is defined and fqp_image != "")

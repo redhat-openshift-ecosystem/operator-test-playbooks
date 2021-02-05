@@ -6,9 +6,10 @@
 # RUN dnf -y copr enable rhcontainerbot/container-selinux
 # # RUN curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
 # RUN curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8_Stream/devel:kubic:libcontainers:stable.repo
-FROM fedora:33
+FROM fedora:34
 RUN dnf install -y git podman buildah python3-libselinux python3-pip
-RUN pip3 install ansible==2.9.15 jmespath
+#RUN pip3 install ansible==2.9.15 jmespath
+RUN pip3 install ansible==2.10.5 jmespath
 RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
