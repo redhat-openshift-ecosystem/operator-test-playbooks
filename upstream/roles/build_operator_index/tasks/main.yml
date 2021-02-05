@@ -297,6 +297,8 @@
             #     name: export_list_of_packages_from_index
             #   vars:
             #     index_pull_skip: true
+            # #   Maybe we can implement own image variable
+            # #   elopfi_index_image: "{{ boi_bundle_latest_index_image }}"
             #   when: min_operators_in_index_allowed is defined
               
             - name: "Push index image '{{ boi_bundle_latest_index_image }}'"
