@@ -316,11 +316,11 @@ Usage:
 | supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`v4.6,v4.7` for Openshift; `latest` for kubernetes|
 | supported_cluster_version_latest | Copy and tag specific index as `latest`|v4.6|`v4.6` for Openshift; not defined for kubernetes|
 | save_operator_tools_info | Save operator tools info [bool]|false|false|
-| enable_production | set safety limits for index push `min_operators_in_index_allowed`, `max_missing_operators_allowed` and other prod defaults|N/A|true|
-| min_operators_in_index_allowed | minimal amount of operators in index before index push|N/A|30|
-| max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature|N/A|20|
 | stream_kind | Setup variables for specific stream kind (e.g. opemshift_upstream) More info in local.yaml|undefined|undefined|
-
+| enable_production | set safety limits for index push `min_operators_in_index_allowed`, `max_missing_operators_allowed` and other prod defaults [bool]|N/A|true|
+| min_operators_in_index_allowed | minimal amount of operators in index before index push [int]|N/A|30|
+| max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature [int]|N/A|20|
+| delete_appreg | Activate appregistry delete during release `push to quay` operation [bool]|N/A|`true` in case of operator delete|
 
 ## Tags to use
 
