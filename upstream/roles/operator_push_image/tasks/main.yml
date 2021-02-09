@@ -49,9 +49,5 @@
 
       when: not (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
 
-    - name: "Debug 'rc_last'"
-      debug:
-        var: rc_last
-
   when:
     - (fqp_image is defined and fqp_image != "")

@@ -353,12 +353,59 @@
         msg: "Exporting of operator '{{ ba_name }}' from index '{{ bundle_index_image }}' failed !!!"
       when: rob_export_rc.rc != 0
 
-  #    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
-  #      include_role:
-  #        name: operator_courier_verify
-  #      vars:
-  #        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
-  #      when: run_lint|bool
+    - name: "Append '{{ ba_name }}' to '{{ operator_bundle_dir_for_courier }}'"
+      set_fact:
+        bio_export_dir_op: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+
+    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
+      include_role:
+        name: operator_courier_verify
+      vars:
+        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+      when: run_lint|bool
+
+    - name: "Search for all operator versions '{{ bio_export_dir_op }}'"
+      find:
+        paths: "{{ bio_export_dir_op }}"
+        recurse: no
+        file_type: directory
+      register: boi_operators_find
+
+    - name: "Search for all operator versions '{{ operator_base_dir }}/{{ ba_name }}'"
+      find:
+        paths: "{{ operator_base_dir }}/{{ ba_name }}"
+        recurse: no
+        file_type: directory
+      register: boi_git_operators_find
+
+    - name: "Setting list of operators and operator base dir"
+      set_fact:
+        bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+        bio_versions_git: "{{ boi_git_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+
+    - name: "Setting list of operators and operator base dir"
+      set_fact:
+        bio_versions_diff: "{{ bio_versions_index | difference(bio_versions_git) }}"
+
+    - name: "Prints message that operator versions in index are in sync with git"
+      debug:
+        msg: "Operator '{{ ba_name }}'' is in sync between index and git : [OK]"
+      when:
+        - bio_versions_diff.files.0 is undefined
+
+    - name: "Prints message that operator versions in index are NOT in sync with git"
+      debug:
+        msg: "Operator '{{ ba_name }}'' is NOT in sync between index and git : [FAIL]"
+      when:
+        - bio_versions_diff.files.0 is defined
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Prints message that operator versions in index are NOT in sync with git"
+      fail:
+        msg: "Operator '{{ ba_name }}'' is NOT in sync between index and git : [FAIL]"
+      when:
+        - bio_versions_diff.files.0 is defined
+        - (strict_mode is defined and strict_mode|bool)
   when:
     - boi_ia_rc.rc == 0
     - (openshift_robot_hash is undefined or openshift_robot_hash == "")

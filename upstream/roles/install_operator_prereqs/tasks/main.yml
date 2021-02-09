@@ -159,6 +159,7 @@
   #   - operator_dir != ""
   tags:
     - install
+    - reset_tools
     - image_build
 
 - name: "Install prerequisites specific to operator bundle image testing"
