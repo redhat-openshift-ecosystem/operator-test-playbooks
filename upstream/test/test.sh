@@ -56,6 +56,7 @@ OP_TEST_FORCE_DEPLOY_ON_K8S=${OP_TEST_FORCE_DEPLOY_ON_K8S-0}
 OP_TEST_CI_YAML_ONLY=${OP_TEST_CI_YAML_ONLY-0}
 OP_TEST_UNCOMPLETE="/tmp/operators_uncomplete-localhost.yaml"
 OP_TEST_MIRROR_LATEST_TAG=${OP_TEST_MIRROR_LATEST_TAG-"v4.6"}
+DELETE_APPREG=${DELETE_APPREG-0}
 
 [[ $OP_TEST_NOCOLOR -eq 1 ]] && ANSIBLE_NOCOLOR=1
 
@@ -79,7 +80,7 @@ function checkExecutable() {
         ! command -v $p > /dev/null 2>&1 && pm="$p $pm"
     done
     if [[ "$pm" != "" ]]; then
-        echo "Error: Folowing packages needs to be installed !!!"
+        echo "Error: Following packages needs to be installed !!!"
         for p in $pm;do
             echo -e "\t$p\n"
         done
@@ -355,6 +356,7 @@ function ExecParameters() {
     [[ $OP_TEST_PROD -ge 1 ]] && [[ $1 == lemon* ]] && { echo "Warning: No support for 'lemon' test when 'OP_TEST_PROD=$OP_TEST_PROD' !!! Skipping ..."; OP_TEST_SKIP=1; }
 
     [[ $1 == push_to_quay* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_RESET=1 && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER --tags deploy_bundles -e operator_dir=/tmp/community-operators-for-catalog/$OP_TEST_STREAM/$OP_TEST_OPERATOR -e quay_appregistry_api_token=$QUAY_APPREG_TOKEN -e quay_appregistry_courier_token=$QUAY_COURIER_TOKEN -e production_registry_namespace=quay.io/openshift-community-operators -e index_force_update=true -e bundle_index_image_name=catalog"
+    [[ $1 == push_to_quay* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_RESET=1 && [[ DELETE_APPREG -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e delete_appreg='true'"
     [[ $1 == push_to_quay* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_RESET=0 && OP_TEST_EXEC_USER="" && { echo "Warning: Push to quay is not supported for 'upstream-community-operators' !!! Skipping ..."; OP_TEST_SKIP=1; }
 
     [[ $1 == ohio_image* ]] && OP_TEST_RESET=0 && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER --tags app_registry -e bundle_index_image=$OHIO_INPUT_CATALOG_IMAGE -e index_export_parallel=true -e app_registry_image=$OHIO_REGISTRY_IMAGE -e quay_api_token=$OHIO_REGISTRY_TOKEN"
