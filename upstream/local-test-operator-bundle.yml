@@ -8,7 +8,7 @@
     run_upstream: false
     run_prereqs: true
     run_cleanup: true
-    run_lint: true
+    run_lint: false
     run_catalog_init: true
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"

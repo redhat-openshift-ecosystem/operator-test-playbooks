@@ -7,7 +7,7 @@
   vars:
     run_prereqs: true
     run_upstream: false
-    run_lint: true
+    run_lint: false
     run_catalog_init: true
     run_deploy: true
     run_scorecard: true
