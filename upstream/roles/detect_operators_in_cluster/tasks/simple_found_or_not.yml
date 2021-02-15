@@ -1,0 +1,6 @@
+---
+#ptq
+
+  - name: "Cluster version is supported"
+    set_fact:
+      ptq_cluster_version_support: true

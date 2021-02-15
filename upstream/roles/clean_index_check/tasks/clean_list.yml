@@ -18,6 +18,14 @@
     labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_dockerfile }}"
   when: ocp_version_annotation_stdout == ""
 
+- name: "Supported (ptq)"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: simple_found_or_not.yml
+  when:
+    - (ocp_version_annotation_stdout is not defined) or (ocp_version_annotation_stdout== "")
+    - quay_appregistry_courier_token is defined
+
 - name: "Detect operators in cluster"
   include_role:
     name: detect_operators_in_cluster

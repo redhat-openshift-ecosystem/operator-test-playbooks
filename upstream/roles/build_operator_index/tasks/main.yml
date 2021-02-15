@@ -94,12 +94,12 @@
         - opm_container_tool_index is defined
         - opm_container_tool_index != ""
 
-    - name: "Pull index image '{{ bundle_index_image }}' (before removal of operator '{{ ba_name }}')"
+    - name: "Pull index image '{{ bundle_index_image }}' (before removal of '{{ ba_name }}' operator)"
       shell: "{{ container_tool }} pull {{ bundle_index_image }}"
       environment: "{{ proxy_env }}"
       when: (opm_container_tool_index is undefined or opm_container_tool_index == "")
 
-    - name: "Remove previous versions of operator '{{ ba_name }}' from index image {{ bundle_index_image }}"
+    - name: "Remove previous versions of '{{ ba_name }}' operator from index image {{ bundle_index_image }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
       register: bio_index_rm_rc
       environment: "{{ proxy_env }}"
@@ -215,7 +215,7 @@
     msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
   when: opm_index_add_mode is undefined or opm_index_add_mode == ""
 
-- name: "Add operator '{{ ba_name }}' to index image {{ bundle_index_image }}"
+- name: "Add '{{ ba_name }}' operator to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
   ignore_errors: yes
   environment: "{{ proxy_env }}"

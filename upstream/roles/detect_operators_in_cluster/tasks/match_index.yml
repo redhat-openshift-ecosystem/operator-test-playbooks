@@ -15,7 +15,7 @@
       - doic_supported_index_from_api_parsed_version is defined
       - clean_index_check is not defined or not clean_index_check|bool
 
-- name: "clean_index_check final entry"
+- name: "clean_index_check final entry if version not found (cleaner usage)"
   block:
 
   - name: "Create chi_git_not_index_operators_not_needed line"
@@ -29,5 +29,21 @@
   when:
       - doic_supported_index_from_api_parsed_version is defined
       - doic_supported_index_from_api_parsed_version != dov_cluster_ver
+      - clean_index_check is defined
+      - clean_index_check|bool
+
+- name: "clean_index_check final entry if cluster version found (ptq usage)"
+  block:
+
+  - name: "Supported (ptq)"
+    include_tasks: simple_found_or_not.yml
+    when:
+      - (ocp_version_annotation_stdout is defined) and (ocp_version_annotation_stdout!= "")
+      - quay_appregistry_courier_token is defined
+      - (doic_supported_index_from_api_parsed_version is defined) and (doic_supported_index_from_api_parsed_version == dov_cluster_ver)
+
+  when:
+      - doic_supported_index_from_api_parsed_version is defined
+      - doic_supported_index_from_api_parsed_version == dov_cluster_ver
       - clean_index_check is defined
       - clean_index_check|bool
