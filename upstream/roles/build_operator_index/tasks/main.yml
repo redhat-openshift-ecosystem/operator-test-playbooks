@@ -96,13 +96,11 @@
 
     - name: "Pull index image '{{ bundle_index_image }}' (before removal of '{{ ba_name }}' operator)"
       shell: "{{ container_tool }} pull {{ bundle_index_image }}"
-      environment: "{{ proxy_env }}"
       when: (opm_container_tool_index is undefined or opm_container_tool_index == "")
 
     - name: "Remove previous versions of '{{ ba_name }}' operator from index image {{ bundle_index_image }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
       register: bio_index_rm_rc
-      environment: "{{ proxy_env }}"
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -110,7 +108,7 @@
       vars:
         index_pull_skip: true
       when: min_operators_in_index_allowed is defined
-      
+
     - name: "Push index image {{ bundle_index_image }}"
       include_role:
         name: operator_push_image
@@ -166,7 +164,6 @@
       shell: "{{ container_tool }} tag {{ operator_input_image }} {{ bundle_images }}"
     - name: "Push image {{ operator_input_image }}"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ bundle_images }}"
-      environment: "{{ proxy_env }}"
   when:
     - operator_input_image is defined
     - operator_input_image != ""
@@ -218,7 +215,6 @@
 - name: "Add '{{ ba_name }}' operator to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
   ignore_errors: yes
-  environment: "{{ proxy_env }}"
   register: boi_ia_rc
 
 - name: "Index safety check to avoid accidental overwrite"
@@ -227,7 +223,7 @@
   vars:
     index_pull_skip: true
   when: min_operators_in_index_allowed is defined
-  
+
 - name: "Push index image '{{ bundle_index_image }}'"
   include_role:
     name: operator_push_image
@@ -300,7 +296,7 @@
             # #   Maybe we can implement own image variable
             # #   elopfi_index_image: "{{ boi_bundle_latest_index_image }}"
             #   when: min_operators_in_index_allowed is defined
-              
+
             - name: "Push index image '{{ boi_bundle_latest_index_image }}'"
               include_role:
                 name: operator_push_image
@@ -345,7 +341,6 @@
 
     - name: "Trying to export operator '{{ ba_name }}' from index image '{{ bundle_index_image }}'"
       shell: "{{ opm_bin_path }} index export {{ boi_index_args }} --package {{ ba_name }} --index {{ bundle_index_image }} --download-folder {{ operator_bundle_dir_for_courier }}"
-      environment: "{{ proxy_env }}"
       register: rob_export_rc
 
     - name: "Failing when export of operator '{{ ba_name }}' fails"

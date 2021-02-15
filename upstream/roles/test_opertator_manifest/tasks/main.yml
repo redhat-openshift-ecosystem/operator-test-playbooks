@@ -48,7 +48,6 @@
       block:
         - name: "Installing OLM"
           shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }}"
-          environment: "{{ proxy_env }}"
         - name: "Delete catalogsource"
           shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
           failed_when: false

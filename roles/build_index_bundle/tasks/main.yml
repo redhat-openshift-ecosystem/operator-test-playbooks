@@ -11,4 +11,4 @@
 
 - name: "Push bundle image {{ bundle_index_image }}"
   shell: "{{ opm_container_tool }} push {{ container_push_extra }} {{ bundle_index_image }}"
-  environment: "{{ proxy_env }}"
+  

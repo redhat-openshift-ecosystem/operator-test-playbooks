@@ -3,7 +3,6 @@
   block:
   - name: "Inspect the bundle image with skopeo"
     shell: "skopeo inspect {{ image_protocol }}{{ bundle_image }}"
-    environment: "{{ proxy_env }}"
     register: skopeo_inspect_result
 
   - name: "Save the skopeo inspect output to a log file"

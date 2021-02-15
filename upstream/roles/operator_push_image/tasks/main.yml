@@ -17,13 +17,11 @@
 
         - name: "Converting and compressing image '{{ fqp_image }}' to '{{ fqp_image_dir }}'"
           shell: "{{ container_tool }} push --compress {{ fqp_image }} dir:{{ fqp_image_dir }}"
-          environment: "{{ proxy_env }}"
           ignore_errors: true
           register: opi_push_quay_convert_rc
 
         - name: "Copy '{{ fqp_image_dir }}' to final destination '{{ fqp_image }}'"
           shell: "skopeo copy dir:{{ fqp_image_dir }} {{ image_protocol }}{{ fqp_image }}"
-          environment: "{{ proxy_env }}"
           ignore_errors: true
           register: opi_push_quay_skopeo_copy_rc
 
@@ -38,7 +36,6 @@
       block:
         - name: "Push image '{{ fqp_image }}'"
           shell: "{{ container_tool }} push {{ container_push_extra }} {{ fqp_image }}"
-          environment: "{{ proxy_env }}"
           ignore_errors: true
           register: opi_push_rc
 

@@ -30,7 +30,6 @@
 
 - name: "Run operator-sdk scorecard tests on the deployed operator in json form"
   shell: "{{ operator_sdk_bin_path }} alpha scorecard {{ bundle_image }} -c {{ bundle_scorecard_test_config }} {{ bundle_scorecard_test_select_args }}"
-  environment: "{{ proxy_env }}"
   failed_when: false
   register: bundle_scorecard_result
 

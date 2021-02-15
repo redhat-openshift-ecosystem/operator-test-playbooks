@@ -15,7 +15,6 @@
 
 - name: "Copy the bundle image layers into a local directory using skopeo"
   shell: "skopeo copy {{ image_protocol }}{{ bundle_image }} oci:{{ operator_bundle_dir }}:latest"
-  environment: "{{ proxy_env }}"
   register: skopeo_copy_result
 
 - name: "Inspect the copied image directory"

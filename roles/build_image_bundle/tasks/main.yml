@@ -106,7 +106,5 @@
 
     - name: "Push bundle image {{ bundle_image }}"
       shell: "{{ opm_container_tool }} push {{ container_push_extra }} {{ bundle_image }}"
-      environment: "{{ proxy_env }}"
-
-
+      
   when: operator_input_image_convert|bool
