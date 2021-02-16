@@ -58,6 +58,8 @@ OP_TEST_UNCOMPLETE="/tmp/operators_uncomplete-localhost.yaml"
 OP_TEST_MIRROR_LATEST_TAG=${OP_TEST_MIRROR_LATEST_TAG-"v4.6"}
 DELETE_APPREG=${DELETE_APPREG-0}
 
+export GODEBUG=${GODEBUG-x509ignoreCN=0}
+
 [[ $OP_TEST_NOCOLOR -eq 1 ]] && ANSIBLE_NOCOLOR=1
 
 function help() {
