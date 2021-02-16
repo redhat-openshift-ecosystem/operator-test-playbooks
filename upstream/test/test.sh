@@ -397,7 +397,7 @@ if [[ $OP_TEST_DEBUG -ge 2 ]];then
     run echo "OP_TEST_ANSIBLE_PULL_BRANCH='$OP_TEST_ANSIBLE_PULL_BRANCH'"
     run echo "OP_TEST_ANSIBLE_DEFAULT_ARGS='$OP_TEST_ANSIBLE_DEFAULT_ARGS'"
     run echo "OP_TEST_ANSIBLE_EXTRA_ARGS='$OP_TEST_ANSIBLE_EXTRA_ARGS'"
-    run echo "OP_TEST_CONAINER_RUN_DEFAULT_ARGS='$OP_TEST_CONTAINER_RUN_EXTRA_ARGS'"
+    run echo "OP_TEST_CONAINER_RUN_DEFAULT_ARGS='$OP_TEST_CONAINER_RUN_DEFAULT_ARGS'"
     run echo "OP_TEST_CONTAINER_RUN_EXTRA_ARGS='$OP_TEST_CONTAINER_RUN_EXTRA_ARGS'"
     run echo "OP_TEST_CONTAINER_EXEC_DEFAULT_ARGS='$OP_TEST_CONTAINER_EXEC_EXTRA_ARGS'"
     run echo "OP_TEST_CONTAINER_EXEC_EXTRA_ARGS='$OP_TEST_CONTAINER_EXEC_EXTRA_ARGS'"
@@ -450,7 +450,7 @@ for t in $TESTS;do
     echo -e "Test '$t' for '$OP_TEST_STREAM $OP_TEST_OPERATOR $OP_TEST_VERSION' ..."
     if [[ $OP_TEST_RESET -eq 1 ]];then
         echo -e "[$t] Reseting kind cluster ..."
-        run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS --tags reset
+        run $DRY_RUN_CMD ansible-pull -U $OP_TEST_ANSIBLE_PULL_REPO -C $OP_TEST_ANSIBLE_PULL_BRANCH $OP_TEST_ANSIBLE_DEFAULT_ARGS -e run_prepare_catalog_repo_upstream=false --tags reset
     fi
     if [ -n "$OP_TEST_PRETEST_CUSTOM_SCRIPT" ];then
         echo "Running custom script '$OP_TEST_PRETEST_CUSTOM_SCRIPT' ..."
@@ -482,6 +482,5 @@ done
 echo "Done"
 
 # For playbook developers
-# export OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks"
-# OP_TEST_DEBUG=1 OP_TEST_ANSIBLE_PULL_REPO="https://github.com/J0zi/operator-test-playbooks" bash <(curl -s https://raw.githubusercontent.com/J0zi/operator-test-playbooks/upstream-community/test/test.sh)
+# OP_TEST_DEBUG=2 bash <(curl -sL https://raw.githubusercontent.com/operator-framework/operator-test-playbooks/master/upstream/test/test.sh) orange community-operators/aqua/5.3.0 https://github.com/operator-framework/community-operators master
 # export CURLOPT_FRESH_CONNECT=true
