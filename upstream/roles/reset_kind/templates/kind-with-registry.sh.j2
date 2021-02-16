@@ -3,7 +3,7 @@ set -o errexit
 
 KIND_CMD=${1-{{ kind_bin_path }}}
 CONTAINER_CMD="{{ container_tool }}"
-CERTS_DIR=${CERTS_DIR-"/tmp/certs"}
+CERTS_DIR=${CERTS_DIR-"$HOME/.optest/certs"}
 CERT_EXPIRED_IN=${CERT_EXPIRED_IN-86400}
 
 # create registry container unless it already exists

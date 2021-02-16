@@ -12,7 +12,7 @@ OP_TEST_BASE_DEP="ansible curl openssl git"
 
 INDEX_SAFETY="-e enable_production=true"
 OP_TEST_IMAGE=${OP_TEST_IMAGE-"quay.io/operator_testing/operator-test-playbooks:latest"}
-OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"/tmp/certs"}
+OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"$HOME/.optest/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
 OP_TEST_CONTAINER_OPT=${OP_TEST_CONTAINER_OPT-"-it"}
 OP_TEST_NAME=${OPT_TEST_NAME-"op-test"}
