@@ -438,6 +438,8 @@ echo -e " [ Preparing testing container '$OP_TEST_NAME' from '$OP_TEST_IMAGE' ] 
 $DRY_RUN_CMD $OP_TEST_CONTAINER_TOOL pull $OP_TEST_IMAGE > /dev/null 2>&1 || { echo "Error: Problem pulling image '$OP_TEST_IMAGE' !!!"; exit 1; }
 
 OP_TEST_CONTAINER_OPT="$OP_TEST_CONTAINER_OPT -e ANSIBLE_CONFIG=/playbooks/upstream/ansible.cfg"
+OP_TEST_CONTAINER_OPT="$OP_TEST_CONTAINER_OPT -e GODEBUG=$GODEBUG"
+
 OP_TEST_SKIP=0
 for t in $TESTS;do
 
