@@ -31,10 +31,12 @@
 - debug:
     msg: "Scorecard Basic Tests passed: {{ scorecard_results_passed_result.stdout }}"
 
+  # The scorecard test may have already deleted the CR, so ignore any errors
 - name: "Delete the operator CR"
   shell: "{{ oc_bin_path }} delete -f {{ cr_path }} --ignore-not-found=true --grace-period=60 --timeout=120s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  ignore_errors: true
 
 - name: "Fail if the operator didn't satisfy the Basic Tests requirement"
   fail:
