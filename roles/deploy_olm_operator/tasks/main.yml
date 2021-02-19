@@ -207,6 +207,19 @@
       set_fact:
         deploy_olm_operator_results: {'result': 'pass', 'msg': ''}
 
+    - name: "Get replicaset logs for operators that failed olm-deployment output"
+      shell: "{{ oc_bin_path }} get replicasets -o go-template={%raw%}'{{range .items}}{{.status.conditions}}{{\"\\n\"}}{{end}}'{%endraw%} -n {{ openshift_namespace }}"
+      register: olm_replicaset_output
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: operator_result.rc != 0
+      
+    - name: "Output logs for operators that failed olm-deployment output to a debug file"
+      copy:
+        content: "{{ olm_replicaset_output.stdout }}"
+        dest: "{{ work_dir }}/operator-olm-replicaset-output.txt"
+      when: olm_replicaset_output.stdout is defined
+
     - name: "Failed operator deployment while waiting for operator pod deployment"
       fail:
         msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
