@@ -1,0 +1,24 @@
+# Once the `oc get events` command in tasks/main.yml is run, we will end up
+# with a list of timestamps and pulling messages in CSV format.  main.yml will
+# pass each line into this file for parsing, so "item" will be formatted as
+# follows:
+#
+# 2021-02-15T14:14:19Z,pulling image "docker-registry.default.svc:5000/cvp-ci/cvp-slave:stable"
+#
+# The timestamp is obviously the first item here
+# The second item is the message from which we get the image name.
+# This is hacky, but unfortunately it's the only way to do it right now.
+# The "item.split(',')[1][15:-1]" below gets the substring that contains the
+# image name.  item.split(',')[1] get the message from the item.  [15] is the
+# index of the character after the first quotation mark.  [-1] moves in one
+# character from the right of the string, which chops off the quotation mark at
+# the end of the array.
+- name: "split item"
+  set_fact:
+    timestamp: "{{ item.split(',')[0] }}"
+    image: "{{ item.split(',')[1][15:-1] }}"
+
+- name: "parse and return image name when timestamp is after start_time"
+  set_fact:
+    pulled_images: "{{ pulled_images + [image] }}"
+  when: "{{ timestamp > deployment_start_time }}"

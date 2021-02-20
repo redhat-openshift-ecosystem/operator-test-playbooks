@@ -1,0 +1,37 @@
+---
+# # In order for this role to work, add the following task to your playbook
+# # immediately before calling the deployment role.
+# - name: "Set the deployment start time"
+#   shell: "date -u '+%Y-%m-%dT%H:%M:%SZ'"
+#   register: deployment_start_time
+# 
+# The above shell command gets the date in the same format passed by openshift
+# in the `oc get events` command below.  The below command gets all images
+# pulled to the cluster.  This includes images that were not pulled as part of
+# the deployment.  deployment_start time is used in the parse_image_names file
+# to filter out images pulled before the deployment started.  Since this role
+# should be run immediately after the deployment, there should be no need to filter
+# images pulled after the deployment.
+
+
+
+- name: "Generate events.json"
+  shell: "{{ oc_bin_path }} {% raw %}get events --all-namespaces --field-selector reason==Pulling -o go-template='{{range .items}}{{.lastTimestamp}},{{.message}}{{\"\\n\"}}{{end}}'{% endraw %}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: events
+
+- name: "get list of images in events.json"
+  include_tasks: parse_image_names.yml
+  with_items:
+    - "{{ events.stdout_lines }}"
+
+- name: "Print images"
+  debug:
+    msg: "pulled images: {{ pulled_images }}"
+
+- name: "Save images to file"
+  module: copy
+  content: "{{ pulled_images | to_json }}"
+  dest: "{{ events_file_path }}"
+  delegate_to: localhost

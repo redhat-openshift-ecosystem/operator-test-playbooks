@@ -21,6 +21,7 @@
     testing_bin_path: "{{ work_dir }}/bin"
     current_channel: '' # Added to avoid a potential bug with undefined variables
     olm_ver: 0.14.1
+    events_file_path: "{{ work_dir }}/events.json"
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
@@ -150,9 +151,27 @@
             openshift_images_before: " {{ os_registry_is_result_before.stdout_lines }} + {{ os_pod_is_result_before.stdout_lines }}"
           when: not run_upstream|bool
 
+        - name: "Set the deployment start time"
+          shell: "date -u '+%Y-%m-%dT%H:%M:%SZ'"
+          register: start_time
+          when:
+            - run_deploy|bool
+            - not run_upstream|bool
+
         - name: "Deploy the operator on the OpenShift 4.0 with OLM"
           include_role:
             name: deploy_olm_operator
+          when:
+            - run_deploy|bool
+            - not run_upstream|bool
+
+        - name: "Collect the names of the images modified during the deployment"
+          include_role:
+            name: collect_modified_images
+          vars:
+            deployment_start_time: "{{ start_time }}"
+            events_file_path: "{{ events_file_path }}"
+            kubeconfig_path: "{{ kubeconfig_path }}"
           when:
             - run_deploy|bool
             - not run_upstream|bool
