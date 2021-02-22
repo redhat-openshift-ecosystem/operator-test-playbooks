@@ -34,7 +34,7 @@
 
 - name: "Handle manifest and metadata validation for Openshift"
   block:
-    - name: "Pull index image '{{ bundle_validate }}' (operarot_sdk_none fix)"
+    - name: "Pull index image '{{ bundle_validate }}' (operator_sdk_none fix)"
       shell: "{{ container_tool }} pull {{ bundle_validate }}"
       when: 
         - operator_sdk_container_tool is defined
@@ -62,7 +62,7 @@
 - name: "Handle manifest and metadata validation for Kind"
   block:
 
-    - name: "Pull index image '{{ bundle_image }}' (operarot_sdk_none fix)"
+    - name: "Pull index image '{{ bundle_image }}' (operator_sdk_none fix)"
       shell: "{{ container_tool }} pull {{ bundle_image }}"
       when:
         - operator_sdk_container_tool is defined
@@ -72,6 +72,42 @@
       shell: "OPERATOR_BUNDLE_CATEGORIES={{ catalog_repo_dir }}/categories.json {{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }}  --select-optional suite=operatorframework"
       register: sdk_validation_upstream_result
       ignore_errors: true
+
+    - name: "Parse operator external image"
+      set_fact:
+        operator_external_image: "{{ operator_vars.metadata.annotations.containerImage }}"
+
+    - name: "Check external image"
+      block:
+
+        - name: "Check if '{{ operator_external_image }}' is used in a container"
+          shell: "grep {{ operator_external_image }} {{ csv_path }}|wc -l"
+          register: vob_annotation_image_count
+
+        - name: "Set annotation image count"
+          set_fact:
+            vob_annotation_image_count_stdout: "{{ vob_annotation_image_count.stdout }}"
+          when:
+            - vob_annotation_image_count is defined and vob_annotation_image_count!=""
+
+        - name: "Print err message"
+          fail:
+            msg: "Value of 'metadata.annotations.containerImage' not used in any container, please check."
+          when: vob_annotation_image_count_stdout|int < 2
+
+        - name: "Pull external operator image '{{ operator_external_image }}'"
+          shell: "{{ container_tool }} pull {{ operator_external_image }}"
+          register: vob_pull_external_image
+          ignore_errors: true
+
+        - name: "Print err message"
+          fail:
+            msg: "Unable to pull {{ operator_external_image }}, please check permissions or path."
+          when: vob_pull_external_image.rc|int!=0
+
+      when:
+        - operator_external_image is defined
+        - operator_external_image != ""
 
     # - name: "Output the return code of operator-sdk bundle validate command to a debug file"
     #   copy:
@@ -93,7 +129,7 @@
         - check_validation_result|bool
         - sdk_validation_upstream_result.rc != 0
 
-    - name: "Handle permisive mode when operator is failing to deploy on kind cluster"
+    - name: "Handle permissive mode when operator is failing to deploy on kind cluster"
       set_fact:
         test_all_add_failed_name_version_validation: "{{ test_all_add_failed_name_version_validation | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
       when:

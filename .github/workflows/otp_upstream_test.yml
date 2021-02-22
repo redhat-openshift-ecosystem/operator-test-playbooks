@@ -24,7 +24,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/scripts/bundle-examples/prometheus -e operator_version=0.32.0 --tags pure_test -e strict_mode=true
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/community-operators/cockroachdb -e operator_version=5.0.3 --tags pure_test -e strict_mode=true
   otpu_mtbf:
     name: Manifest to bundle format
     runs-on: ubuntu-latest
