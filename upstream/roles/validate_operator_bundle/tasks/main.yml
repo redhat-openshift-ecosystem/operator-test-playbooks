@@ -73,42 +73,6 @@
       register: sdk_validation_upstream_result
       ignore_errors: true
 
-    - name: "Parse operator external image"
-      set_fact:
-        operator_external_image: "{{ operator_vars.metadata.annotations.containerImage }}"
-
-    - name: "Check external image"
-      block:
-
-        - name: "Check if '{{ operator_external_image }}' is used in a container"
-          shell: "grep {{ operator_external_image }} {{ csv_path }}|wc -l"
-          register: vob_annotation_image_count
-
-        - name: "Set annotation image count"
-          set_fact:
-            vob_annotation_image_count_stdout: "{{ vob_annotation_image_count.stdout }}"
-          when:
-            - vob_annotation_image_count is defined and vob_annotation_image_count!=""
-
-        - name: "Print err message"
-          fail:
-            msg: "Value of 'metadata.annotations.containerImage' not used in any container, please check."
-          when: vob_annotation_image_count_stdout|int < 2
-
-        - name: "Pull external operator image '{{ operator_external_image }}'"
-          shell: "{{ container_tool }} pull {{ operator_external_image }}"
-          register: vob_pull_external_image
-          ignore_errors: true
-
-        - name: "Print err message"
-          fail:
-            msg: "Unable to pull {{ operator_external_image }}, please check permissions or path."
-          when: vob_pull_external_image.rc|int!=0
-
-      when:
-        - operator_external_image is defined
-        - operator_external_image != ""
-
     # - name: "Output the return code of operator-sdk bundle validate command to a debug file"
     #   copy:
     #     content: "{{ sdk_validation_upstream_result.rc }}"
@@ -138,3 +102,39 @@
         - sdk_validation_upstream_result.rc != 0
 
   when: run_upstream|bool
+
+- name: "Parse operator external image"
+  set_fact:
+    operator_external_image: "{{ operator_vars.metadata.annotations.containerImage }}"
+
+- name: "Check external image"
+  block:
+
+    - name: "Check if '{{ operator_external_image }}' is used in a container"
+      shell: "grep {{ operator_external_image }} {{ csv_path }}|wc -l"
+      register: vob_annotation_image_count
+
+    - name: "Set annotation image count"
+      set_fact:
+        vob_annotation_image_count_stdout: "{{ vob_annotation_image_count.stdout }}"
+      when:
+        - vob_annotation_image_count is defined and vob_annotation_image_count!=""
+
+    - name: "Print err message"
+      fail:
+        msg: "Value of 'metadata.annotations.containerImage' not used in any container, please check."
+      when: vob_annotation_image_count_stdout|int < 2
+
+    - name: "Pull external operator image '{{ operator_external_image }}'"
+      shell: "{{ container_tool }} pull {{ operator_external_image }}"
+      register: vob_pull_external_image
+      ignore_errors: true
+
+    - name: "Print err message"
+      fail:
+        msg: "Unable to pull {{ operator_external_image }}, please check permissions or path."
+      when: vob_pull_external_image.rc|int!=0
+
+  when:
+    - operator_external_image is defined
+    - operator_external_image != ""
