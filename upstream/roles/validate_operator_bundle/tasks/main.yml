@@ -93,31 +93,21 @@
         - check_validation_result|bool
         - sdk_validation_upstream_result.rc != 0
 
-#    - name: "Read csv.yaml file"
-#      shell: "cat {{ csv_file_path }}"
-#      register: vob_csv_file_output
-#
-#    - name: "Load CSV to variable"
-#      set_fact:
-#        vob_csv_file_output_stdout: "{{ vob_csv_file_output.stdout|to_yaml }}"
-#
-#    - name: "Load CSV categories to the variable"
-#      set_fact:
-#        vob_categories: "{{ vob_csv_file_output_stdout.metadata.annotations.categories }}"
-#      ignore_errors: true
-#
-    - name: "Parse operator categories"
+    - name: "Getting categories content from csv '{{ csv_file_path | basename}}'"
+      shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata.annotations.categories"
+      register: csv_data_metadata_annotations_categories
+      ignore_errors: yes
+
+    - name: "Sets operator categories from csv '{{ csv_file_path | basename }}'"
       set_fact:
-        vob_categories: "{{ operator_vars.metadata.annotations.categories }}"
-      ignore_errors: true
-      when:
-        - operator_vars is defined
-        - operator_vars != ""
+        vob_categories: "{{ csv_data_metadata_annotations_categories.stdout | from_yaml }}"
+      ignore_errors: yes
+      when: csv_data_metadata_annotations_categories is defined
 
     - name: "Failing when 'categories' are missing'"
       fail:
         msg: "Key not found - 'metadata.annotations.categories'"
-      when: vob_categories is not defined
+      when: csv_data_metadata_annotations_categories is not defined
 
     - name: "Failing when 'categories' are empty'"
       fail:
