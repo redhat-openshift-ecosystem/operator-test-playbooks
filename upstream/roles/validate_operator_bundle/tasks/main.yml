@@ -124,23 +124,22 @@
 
   when: run_upstream|bool
 
-- name: "Parse operator external image block"
-  block:
+- name: "Getting external image from csv '{{ csv_file_path | basename}}'"
+  shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata.annotations.containerImage"
+  register: operator_external_image_raw
+  ignore_errors: yes
 
-    - name: "Parse operator external image"
-      set_fact:
-        operator_external_image: "{{ operator_vars.metadata.annotations.containerImage }}"
-      ignore_errors: true
+- name: "Sets operator external image from csv '{{ csv_file_path | basename }}'"
+  set_fact:
+    operator_external_image: "{{ operator_external_image_raw.stdout | from_yaml }}"
+  ignore_errors: yes
+  when: operator_external_image_raw is defined
 
-    - name: "Print err message if image not found"
-      fail:
-        msg: "Value of 'metadata.annotations.containerImage' not found, please check."
-      when:
-        - operator_external_image is not defined
-
+- name: "Print err message if image not found"
+  fail:
+    msg: "Value of 'metadata.annotations.containerImage' not found, please check."
   when:
-    - operator_vars is defined
-    - operator_vars != ""
+    - operator_external_image is not defined
 
 - name: "Check external image"
   block:
