@@ -93,6 +93,37 @@
         - check_validation_result|bool
         - sdk_validation_upstream_result.rc != 0
 
+#    - name: "Read csv.yaml file"
+#      shell: "cat {{ csv_file_path }}"
+#      register: vob_csv_file_output
+#
+#    - name: "Load CSV to variable"
+#      set_fact:
+#        vob_csv_file_output_stdout: "{{ vob_csv_file_output.stdout | from_yaml }}"
+#
+#    - name: "Load CSV to variable"
+#      set_fact:
+#        vob_categories: "{{ vob_csv_file_output_stdout.metadata.annotations.categories }}"
+#      ignore_errors: true
+
+    - name: "Parse operator categories"
+      set_fact:
+        vob_categories: "{{ operator_vars.metadata.annotations.categories }}"
+      ignore_errors: true
+      when:
+        - operator_vars is defined
+        - operator_vars != ""
+
+    - name: "Failing when 'categories' are missing'"
+      fail:
+        msg: "Key not found - 'metadata.annotations.categories'"
+      when: vob_categories is not defined
+
+    - name: "Failing when 'categories' are empty'"
+      fail:
+        msg: "An empty value found - 'metadata.annotations.categories'"
+      when: vob_categories == ""
+
     - name: "Handle permissive mode when operator is failing to deploy on kind cluster"
       set_fact:
         test_all_add_failed_name_version_validation: "{{ test_all_add_failed_name_version_validation | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
@@ -103,9 +134,23 @@
 
   when: run_upstream|bool
 
-- name: "Parse operator external image"
-  set_fact:
-    operator_external_image: "{{ operator_vars.metadata.annotations.containerImage }}"
+- name: "Parse operator external image block"
+  block:
+
+    - name: "Parse operator external image"
+      set_fact:
+        operator_external_image: "{{ operator_vars.metadata.annotations.containerImage }}"
+      ignore_errors: true
+
+    - name: "Print err message if image not found"
+      fail:
+        msg: "Value of 'metadata.annotations.containerImage' not found, please check."
+      when:
+        - operator_external_image is not defined
+
+  when:
+    - operator_vars is defined
+    - operator_vars != ""
 
 - name: "Check external image"
   block:

@@ -274,8 +274,8 @@ Usage:
 | Option  | Description  | Default value | Prod default|
 |---|---|---| --- |
 | run_upstream | Flag when running upstream part of playbooks. [bool] | false | true |
-| run_prepare_catalog_repo_upstream | Prepare git repo for comunity-operators. [bool] | true | true |
-| run_remove_catalog_repo | Removes existing git repo for comunity-operators. [bool] | true | true |
+| run_prepare_catalog_repo_upstream | Prepare git repo for community-operators. [bool] | true | true |
+| run_remove_catalog_repo | Removes existing git repo for community-operators. [bool] | true | true |
 | catalog_repo | Community operators repo url. [string] | https://github.com/operator-framework/community-operators.git | as default |
 | catalog_repo_branch | Community operators branch in repo. [string] | master | as default |
 | operators_config | Path to operators config file using when deploying multiple operators. Examle in test/operators_config.yaml. [string] | undefined  | operators_config.yaml |
@@ -301,8 +301,8 @@ Usage:
 | bundle_scorecard_test_config | Config file where scorecard tests are defined. [string] | generated | n/a |
 | bundle_scorecard_test_select | Runs specific scorecard tests. [string] | basic-check-spec-test,olm-bundle-validation-test,olm-status-descriptors-test | n/a |
 | recreate_skip_repo_clean | Skip removing all repos in namespace from registry. (Applied only when is defined and value is true). [bool] | undefined | undefined |
-| remove_base_dir | Sepcify base directory right after cloning comunity-operators project. Needs to specify `remove_operator_dirs`. See bellow. [string] | undefined | undefined |
-| remove_operator_dirs | List directory right after cloning comunity-operators project relative to `remove_base_dir`. [string] | undefined | undefined |
+| remove_base_dir | Specify base directory right after cloning community-operators project. Needs to specify `remove_operator_dirs`. See bellow. [string] | undefined | undefined |
+| remove_operator_dirs | List directory right after cloning community-operators project relative to `remove_base_dir`. [string] | undefined | undefined |
 | all_operator_find_filter | Filter pattern to find list of operators when running all tests (tags: test_all, pure_test_all). [string] | undefined | undefined |
 | all_operator_find_excludes | Comma separated list of operators that should be excluded (tags: test_all, pure_test_all). [string] | undefined | undefined |
 | permisive | Olm deploy will not fail when this flag is true. [bool] | undefined | undefined |
@@ -316,7 +316,7 @@ Usage:
 | supported_cluster_versions | Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]|latest|`v4.6,v4.7` for Openshift; `latest` for kubernetes|
 | supported_cluster_version_latest | Copy and tag specific index as `latest`|v4.6|`v4.6` for Openshift; not defined for kubernetes|
 | save_operator_tools_info | Save operator tools info [bool]|false|false|
-| stream_kind | Setup variables for specific stream kind (e.g. opemshift_upstream) More info in local.yaml|undefined|undefined|
+| stream_kind | Setup variables for specific stream kind (e.g. openshift_upstream) More info in local.yaml|undefined|undefined|
 | enable_production | set safety limits for index push `min_operators_in_index_allowed`, `max_missing_operators_allowed` and other prod defaults [bool]|N/A|true|
 | min_operators_in_index_allowed | minimal amount of operators in index before index push [int]|N/A|30|
 | max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature [int]|N/A|20|
