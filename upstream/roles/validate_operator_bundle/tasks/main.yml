@@ -99,13 +99,13 @@
 #
 #    - name: "Load CSV to variable"
 #      set_fact:
-#        vob_csv_file_output_stdout: "{{ vob_csv_file_output.stdout | from_yaml }}"
+#        vob_csv_file_output_stdout: "{{ vob_csv_file_output.stdout|to_yaml }}"
 #
-#    - name: "Load CSV to variable"
+#    - name: "Load CSV categories to the variable"
 #      set_fact:
 #        vob_categories: "{{ vob_csv_file_output_stdout.metadata.annotations.categories }}"
 #      ignore_errors: true
-
+#
     - name: "Parse operator categories"
       set_fact:
         vob_categories: "{{ operator_vars.metadata.annotations.categories }}"
