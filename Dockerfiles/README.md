@@ -6,18 +6,19 @@ CVP midstream operator bundle validate container
 ## Building image on local machine 
 
 ```
-git clone https://github.com/redhat-operator-ecosystem/operator-bundle-validate-container
-cd operator-bundle-validate-container
-### podman build -t <image_name>:<tagname> -f <filepath>
-podman build -t midstream_image:latest -f Dockerfile
+git clone https://github.com/redhat-operator-ecosystem/operator-test-playbooks.git
+cd Dockerfiles
+### podman build -t <image_name>:<tagname> -f <filepath> --build-arg OPERATOR_SDK_VERSION=<operator_sdk_version> --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=<operator_test_playbooks_tag>
+### example:
+podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=v1.0.11
 ```
 
 ## Running image with operator bundle
 
 ```
 podman run -it -v <operator_bundle_dir>:/project/operator-bundle -v <output_log>:/project/output --security-opt label=disable <imagename>:<tagname>
-
-podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output --security-opt label=disable midstream:latest 
+mkdir output_logs
+podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output --security-opt label=disable midstream_image:latest 
 ```
 
 ### Note:
