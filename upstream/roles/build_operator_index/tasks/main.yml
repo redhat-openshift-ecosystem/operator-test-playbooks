@@ -380,7 +380,7 @@
 
     - name: "Setting list of operators and operator base dir"
       set_fact:
-        bio_versions_diff: "{{ bio_versions_index | difference(bio_versions_git) }}"
+        bio_versions_diff: "{{ bio_versions_index | symmetric_difference(bio_versions_git) }}"
 
     - name: "Prints message that operator versions in index are in sync with git"
       debug:
