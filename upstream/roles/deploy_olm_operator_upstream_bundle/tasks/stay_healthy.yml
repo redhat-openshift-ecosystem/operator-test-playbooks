@@ -1,0 +1,46 @@
+---
+- name: "Run health check"
+  block:
+  - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for a specific time (upstream only)"
+    shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running | head -n 1 | rev | cut -d' ' -f 1 | rev"
+    register: operator_uptime_raw
+    ignore_errors: true
+    environment:
+      KUBECONFIG: "{{ kubeconfig_path }}"
+
+  - name: "Set 'operator_uptime_raw' as a fact"
+    set_fact:
+      operator_uptime_raw_rc: "{{ operator_uptime_raw.rc }}"
+
+  - name: "Parse uptime in minutes (block)"
+    block:
+
+    - name: "Parse uptime in minutes"
+      set_fact:
+        operator_uptime: "{{ operator_uptime_raw.stdout.split('m')[0] }}"
+
+    - name: "Uptime test result"
+      set_fact:
+        operator_uptime_passed: true
+      when: operator_uptime|int>1
+
+    when: '"m" in operator_uptime_raw.stdout'
+
+  - name: "Parse uptime in seconds (block)"
+    block:
+
+    - name: "Parse uptime in seconds"
+      set_fact:
+       operator_uptime: "{{ operator_uptime_raw.stdout.split('s')[0] }}"
+
+    - name: "Uptime test result"
+      set_fact:
+        operator_uptime_passed: true
+      when: operator_uptime|int>60
+
+    when: '"m" not in operator_uptime_raw.stdout'
+
+  - pause:
+      seconds: "{{ pod_stay_healthy_delay }}"
+
+  when: not operator_uptime_passed|bool

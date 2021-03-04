@@ -84,15 +84,18 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+- name: "Reset uptime test result"
+  set_fact:
+    operator_uptime_passed: false
+    pod_stay_healthy_start: 1
+
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for a specific time (upstream only)"
-  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running | head -n 1 | rev | cut -d' ' -f 1 | rev | sed 's/.$//'`) -ge 60 ]"
-  register: operator_uptime
-  retries: "{{ pod_stay_healthy_retries }}"
-  delay: "{{ pod_stay_healthy_delay }}"
-  until: operator_uptime.rc == 0
-  ignore_errors: true
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
+  include_tasks: stay_healthy.yml
+#  retries: "{{ pod_stay_healthy_retries }}"
+#  delay: "{{ pod_stay_healthy_delay }}"
+#  until: operator_uptime_passed|bool
+  loop: "{{ range(pod_stay_healthy_start, pod_stay_healthy_retries + 1)|list }}"
+#  ignore_errors: true
   when: operator_result.rc == 0
 
 - name: "Get the details of the deployed CSVs"
@@ -110,12 +113,17 @@
   when: csv_describe_result.stdout != ""
   no_log: True
 
+- debug:
+    var: operator_result.rc
+- debug:
+    var: operator_uptime_raw_rc
+
 - name: "Print CSV in case of an error"
   debug:
     var: csv_describe_result.stdout
   when:
     - csv_describe_result.stdout != ""
-    - operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod status of the deployed operator"
   shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
@@ -141,7 +149,7 @@
   when:
     - csv_describe_result.stdout != ""
     - operator_pod_result.stdout != ""
-    - operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod container logs of the deployed operator"
   shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
@@ -167,7 +175,7 @@
   when:
     - csv_describe_result.stdout != ""
     - operator_container_result.stdout != ""
-    - operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the catalogsource pod log (upstream)"
   shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
@@ -190,7 +198,7 @@
     var: catalog_source_result.stdout
   when:
     - catalog_source_result.stdout is defined
-    - operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the catalog-operator pod log (upstream)"
   shell: "{{ oc_bin_path }} get --output=name pods -n olm | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n olm | tail -n 100"
@@ -212,7 +220,7 @@
     var: catalog_operator_result.stdout
   when:
     - catalog_operator_result.stdout is defined
-    - operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the InstallPlan debug output"
   shell: "{{ oc_bin_path }} describe installplan -n {{ openshift_namespace }}"
@@ -240,7 +248,7 @@
     var: installplan_result.stdout
   when:
     - installplan_result.stdout is defined
-    - operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Fail when operator is failing to deploy on kind cluster"
   block:
@@ -254,13 +262,13 @@
     - name: "Operator deployment with OLM error status"
       fail:
         msg: 'Operator deployment with OLM failed, check the outputs above for more details'
-      when: operator_result.rc != 0 or operator_uptime.rc != 0 or operator_uptime.rc is not defined
+      when: operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
     - name: "Stay healthy error status"
       fail:
         msg: 'Operator was not capable to stay healthy for a specific time'
       when:
-        - operator_uptime.rc != 0
+        - operator_uptime_raw_rc|int != 0
         - run_upstream|bool
   when: permisive is not defined or not permisive|bool
 
@@ -270,7 +278,7 @@
   when:
     - permisive is defined
     - permisive|bool
-    - operator_result.rc != 0 or operator_uptime is undefined or (operator_uptime is defined and operator_uptime.rc != 0)
+    - operator_result.rc != 0 or operator_uptime is undefined or (operator_uptime is defined and operator_uptime_raw_rc|int != 0)
     - run_upstream|bool
 
 - name: "Set 'test_all_add_ok_name_version' when operator is ok"
@@ -282,5 +290,5 @@
     - operator_result.rc is defined
     - operator_result.rc == 0
     - operator_uptime is defined
-    - operator_uptime.rc == 0
+    - operator_uptime_raw_rc|int == 0
     - run_upstream|bool
