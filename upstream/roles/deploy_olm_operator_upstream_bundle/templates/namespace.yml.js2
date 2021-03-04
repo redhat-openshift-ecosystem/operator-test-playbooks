@@ -1,6 +1,6 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: test-operators
+  name: {{ operator_suggested_namespace }}
   labels:
     operator: test

@@ -2,7 +2,7 @@ apiVersion: "operators.coreos.com/v1alpha1"
 kind: "CatalogSource"
 metadata:
   name: "test-operators-ocs"
-  namespace: "test-operators"
+  namespace: {{ operator_suggested_namespace }}
   labels:
     operator: test
 spec:

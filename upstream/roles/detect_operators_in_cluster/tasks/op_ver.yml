@@ -70,6 +70,21 @@
       - doic_supported_indexes is defined
       - doic_supported_indexes != ""
 
+  - block:
+
+      - name: "Create chi_git_not_index_operators_not_needed line"
+        set_fact:
+          chi_git_not_index_operators_not_needed_line: "{{ dov_op_name }}:v{{ doic_versions_processing }}"
+
+      - name: "Pyxis returns empty value means suitable for exclude"
+        set_fact:
+         chi_git_not_index_operators_not_needed: "{{ chi_git_not_index_operators_not_needed | default([]) + [chi_git_not_index_operators_not_needed_line] }}"
+
+    when:
+        - clean_index_check is defined and clean_index_check|bool
+        - doic_supported_indexes_json is defined
+        - doic_supported_indexes_json.data|length==0
+
   - name: "Loop over supported indexes"
     include_tasks: match_index.yml
     loop: "{{ doic_supported_indexes_json.data }}"

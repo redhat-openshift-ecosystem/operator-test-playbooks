@@ -3,8 +3,17 @@
   shell: "grep 'com.redhat.openshift.versions=' {{ labels_file_path }}|head -n 1|awk -F'redhat.openshift.versions=\"' '{print $2}'|awk -F'\"' '{print $1}'"
   register: ocp_version_annotation
   ignore_errors: true
+  when: '"Dockerfile" in labels_file_path'
+
+- name: "Get info about supported cluster for {{ dov_op_name }} {{ doic_versions_processing }} from {{ labels_file_path }}"
+  shell: "{{ yq_bin_path }} r {{ labels_file_path }} -t annotations.[com.redhat.openshift.versions]"
+  register: ocp_version_annotation
+  ignore_errors: true
+  when: '"Dockerfile" not in labels_file_path'
 
 - name: "Set parsed versions"
-  when: ocp_version_annotation.stdout is defined
+  when:
+   - ocp_version_annotation is defined
+   - ocp_version_annotation.stdout!='null'
   set_fact:
     ocp_version_annotation_stdout: "{{ ocp_version_annotation.stdout }}"

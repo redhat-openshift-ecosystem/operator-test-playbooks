@@ -24,7 +24,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/community-operators/cockroachdb -e operator_version=5.0.3 --tags pure_test -e strict_mode=true
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/community-operators/cockroachdb -e operator_version=5.0.3 --tags pure_test -e strict_mode=true -vv
   otpu_mtbf:
     name: Manifest to bundle format
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=5.3.0 --tags pure_test -e strict_mode=true
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=5.3.0 --tags pure_test -e strict_mode=true -vv
   otpu_ifs:
     name: Index from scratch
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -vv
   otpu_ifp:
     name: Index from production
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_update=true
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_update=true -vv
   otpu_ifsmv:
     name: Index from scratch (multiple versions)
     runs-on: ubuntu-latest
@@ -64,7 +64,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 && docker image ls|grep catalog|grep -v none|grep kind|grep '4\.6'
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 -vv && docker image ls|grep catalog|grep -v none|grep kind|grep '4\.6'
 
   otpu_iib:
     name: Install iib

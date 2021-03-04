@@ -159,6 +159,25 @@
     when:
       - (doic_skip_file_check is not defined) or (not doic_skip_file_check|bool)
 
+  - name: "Getting suggested-namespace from csv '{{ csv_file_path | basename}}'"
+    shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t 'metadata.annotations.[operatorframework.io/suggested-namespace]'"
+    register: operator_suggested_namespace_raw
+    ignore_errors: yes
+
+  - name: "Sets operator suggested-namespace from csv '{{ csv_file_path | basename }}'"
+    set_fact:
+      operator_suggested_namespace: "{{ operator_suggested_namespace_raw.stdout | from_yaml }}"
+    ignore_errors: yes
+    when:
+      - operator_suggested_namespace_raw is defined
+      - operator_suggested_namespace_raw.stdout!=""
+
+  - name: "Sets operator suggested-namespace from default'"
+    set_fact:
+      operator_suggested_namespace: "{{ operator_suggested_namespace_default }}"
+    when:
+      - operator_suggested_namespace is defined
+      - operator_suggested_namespace==""
 
   - name: "Sanity check the operator bundle's information"
     include_tasks: "bundle_sanity_checks.yml"

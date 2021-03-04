@@ -1,7 +1,8 @@
 stream_path: "/tmp/community-operators-for-catalog/community-operators"
 labels_dockerfile: "Dockerfile"
 labels_annotations: "metadata/annotations.yaml"
-work_dir: "/tmp/operator-test"
-
+work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
+testing_bin_path: "{{ work_dir }}/bin"
+yq_bin_path: "{{ testing_bin_path }}/yq"
 
 

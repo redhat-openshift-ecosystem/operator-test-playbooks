@@ -2,18 +2,18 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: test-operators
-  namespace: test-operators
+  namespace: {{ operator_suggested_namespace }}
   labels:
     operator: test
 {% if operator_allnamespaces_support != true %}
 spec:
   targetNamespaces:
   {% if operator_ownnamespace_support == true %}
-    - test-operators
+    - {{ operator_suggested_namespace }}
   {% elif operator_singlenamespace_support == true %}
     - default
   {% elif operator_multinamespace_support == true %}
-    - test-operators
+    - {{ operator_suggested_namespace }}
     - default
   {% endif %}
 {% endif %}

@@ -1,12 +1,23 @@
 ---
-- set_fact:
+- name: "Set defaults"
+  set_fact:
     quay_release: "0.0.1"
-    upstream_namespace_param: "{{ '-n test-operators' if run_upstream else '' }}"
+    upstream_namespace_param: ''
     olm_operator_files_path: /tmp/operator-test/olm-operator-files
 
-# - name: "Check operator version (upstream only)"
-#   shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
-#   register: op_ver
+- name: "Set custom namespace command"
+  set_fact:
+    upstream_namespace_param: "-n {{ operator_suggested_namespace }}"
+  when:
+    - run_upstream|bool
+    - operator_suggested_namespace!=""
+
+- name: "Set custom namespace command"
+  set_fact:
+    upstream_namespace_param: "-n {{ operator_suggested_namespace_default }}"
+  when:
+    - run_upstream|bool
+    - operator_suggested_namespace==""
 
 - name: "Create the olm operator files directory"
   file:
@@ -49,7 +60,7 @@
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml"
 
 - name: "Wait for the catalogsource pod to start up"
-  shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep test-operators- | grep Running"
+  shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep {{ operator_suggested_namespace }}- | grep Running"
   register: operator_source_result
   retries: 60
   delay: 10
@@ -60,7 +71,7 @@
   when: not run_upstream|bool
 
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
-  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n {{ operator_suggested_namespace }}"
   register: packagemanifest_presence
   retries: "{{ packagemanifest_retries }}"
   delay: "{{ packagemanifest_delay }}"
@@ -250,8 +261,22 @@
     - installplan_result.stdout is defined
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
+- name: "Get namespace state"
+  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}"
+  register: dooub_namespace_state
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Print namespace state"
+  debug:
+    var: dooub_namespace_state.stdout
+  when:
+    - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
+
 - name: "Fail when operator is failing to deploy on kind cluster"
   block:
+
     - name: "Operator error status among packagemanifests"
       fail:
         msg: 'Operator was not found among packagemanifests'

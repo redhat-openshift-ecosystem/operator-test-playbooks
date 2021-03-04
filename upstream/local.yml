@@ -76,6 +76,7 @@
         run_remove_catalog_repo: "{{ run_remove_catalog_repo | default(true) }}"
         operator_format: "bundle"
         check_verify_result: "{{ check_verify_result | default(true) }}"
+        operator_suggested_namespace_default: test-operators
 #        operator_sdk_version: v1.3.0
 
       tags:
