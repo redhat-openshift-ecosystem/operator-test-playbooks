@@ -101,7 +101,7 @@
       # no_log: true
 
   when:
-   - ptq_cluster_version_support is defined
-   - ptq_cluster_version_support|bool
+   - ptq_ready is defined
+   - ptq_ready|bool
 
 

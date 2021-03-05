@@ -3,32 +3,77 @@
   set_fact:
     dov_op_name: "{{ cic_chi_git_not_index_operator.split(':')[0] }}"
     doic_versions_processing: "{{ cic_chi_git_not_index_operator.split(':v')[1] }}"
-    ocp_version_annotation_stdout: "NotFound"
+#    ocp_version_annotation_stdout: "NotFound"
+    ptq_ready: false
+    ocp_version_annotation_stdout:
 
 - name: "Set path to the file containing labels for version {{ doic_versions_processing }}"
   set_fact:
     labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_annotations }}"
 
+- name: "Check that {{ labels_file_path }} exists"
+  stat:
+    path: "{{ labels_file_path }}"
+  register: annotations_file_path_presence
+
 - name: "Get info from {{ labels_file_path }}"
   include_tasks: get_info.yml
-
-- name: "Check in another file for labels if not found in {{ labels_file_path }}"
-  include_tasks: get_info.yml
-  vars:
-    labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_dockerfile }}"
-  when: ocp_version_annotation_stdout == ""
-
-- name: "Supported (ptq)"
-  include_role:
-    name: detect_operators_in_cluster
-    tasks_from: simple_found_or_not.yml
   when:
-    - (ocp_version_annotation_stdout is not defined) or (ocp_version_annotation_stdout== "")
+    - annotations_file_path_presence.stat.exists
+
+- name: "Check in another file for labels if not found"
+  set_fact:
+    labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_dockerfile }}"
+
+- name: "Check that {{ labels_file_path }} exists"
+  stat:
+    path: "{{ labels_file_path }}"
+  register: dockerfile_file_path_presence
+
+- name: "Get info from {{ labels_file_path }}"
+  include_tasks: get_info.yml
+  when:
+    - dockerfile_file_path_presence.stat.exists
+    - ocp_version_annotation_stdout is not defined
+
+- debug:
+    var: annotations_file_path_presence
+
+- debug:
+    var: dockerfile_file_path_presence
+
+- name: "No files to check cluster version - ready for 'Push to appreg'"
+  set_fact:
+    ptq_ready: true
+  when:
+    - not dockerfile_file_path_presence.stat.exists
+    - not annotations_file_path_presence.stat.exists
     - quay_appregistry_courier_token is defined
 
 - name: "Detect operators in cluster"
   include_role:
     name: detect_operators_in_cluster
     tasks_from: op_ver.yml
-  when: ocp_version_annotation_stdout != ""
+  when:
+    - ocp_version_annotation_stdout != ""
+    - (dockerfile_file_path_presence.stat.exists) or (annotations_file_path_presence.stat.exists)
+    - quay_appregistry_courier_token is not defined
+
+- name: "Detect operators in cluster for appregistry (ptq)"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: op_ver_own_logic.yml
+  when:
+    - ocp_version_annotation_stdout != ""
+    - dockerfile_file_path_presence.stat.exists or annotations_file_path_presence.stat.exists
+    - quay_appregistry_courier_token is defined
+
+- name: "Supported (ptq)"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: simple_found_or_not.yml
+  when:
+#    - (ocp_version_annotation_stdout is not defined) or (ocp_version_annotation_stdout== "")
+    - ptq_ready|bool
+    - quay_appregistry_courier_token is defined
 
