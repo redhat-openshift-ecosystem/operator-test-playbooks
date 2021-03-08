@@ -1,0 +1,55 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterresourceoverrides.operator.autoscaling.openshift.io
+spec:
+  group: operator.autoscaling.openshift.io
+  version: v1
+  versions:
+    - name: v1
+      served: true
+      storage: true
+  scope: Cluster
+  subresources:
+    # status enables the status subresource.
+    status: {}
+  names:
+    plural: clusterresourceoverrides
+    singular: clusterresourceoverride
+    kind: ClusterResourceOverride
+    listKind: ClusterResourceOverrideList
+    shortNames:
+      - cro
+  validation:
+    openAPIV3Schema:
+      description: Allows cluster administrator to control the level of overcommit and manage container density on nodes.
+      properties:
+        spec:
+          type: object
+          description: Spec for a ClusterResourceOverride.
+          properties:
+            podResourceOverride:
+              type: object
+              description: Configuration for Pod resource overrides.
+              properties:
+                spec:
+                  type: object
+                  description: Spec for Pod resource overrides.
+                  properties:
+                    memoryRequestToLimitPercent:
+                      type: integer
+                      description: (optional, 1-100) If a container memory limit has been specified or defaulted, the memory request is overridden to this percentage of the limit.
+                      minimum: 1
+                      maximum: 100
+                    cpuRequestToLimitPercent:
+                      type: integer
+                      description: (optional, 1-100) If a container CPU limit has been specified or defaulted, the CPU request is overridden to this percentage of the limit.
+                      minimum: 1
+                      maximum: 100
+                    limitCPUToMemoryPercent:
+                      type: integer
+                      description: (optional, positive integer) If a container memory limit has been specified or defaulted, the CPU limit is overridden to a percentage of the memory limit, with a 100 percentage scaling 1Gi of RAM to equal 1 CPU core. This is processed prior to overriding CPU request (if configured).
+                      minimum: 0
+        status:
+          type: object
+          description: The status of the ClusterResourceOverride
