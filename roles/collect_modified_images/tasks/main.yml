@@ -13,25 +13,33 @@
 # should be run immediately after the deployment, there should be no need to filter
 # images pulled after the deployment.
 
+- name: "Set the output CSV file location"
+  set_fact:
+    image_pull_events: "{{ work_dir }}/image_pull_events.csv"
+  when: image_pull_events is not defined
 
-
-- name: "Generate events.json"
-  shell: "{{ oc_bin_path }} {% raw %}get events --all-namespaces --field-selector reason==Pulling -o go-template='{{range .items}}{{.lastTimestamp}},{{.message}}{{\"\\n\"}}{{end}}'{% endraw %}"
+- name: "Collect the image pull events from the cluster in a CSV format"
+  shell: "{{ lookup('file', 'optional-operators-cvp-common-test-commands.sh') }}"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  register: events
+    ARTIFACT_DIR: "{{ work_dir }}"
+  when: collect_pull_events|bool
 
-- name: "get list of images in events.json"
+- name: "Read the resulting file and split it by lines"
+  set_fact:
+    image_pull_events_lines: "{{ lookup('file', image_pull_events).splitlines() }}"
+
+- name: "Filter the list of images in the image_pull_events.csv by timestamp"
   include_tasks: parse_image_names.yml
   with_items:
-    - "{{ events.stdout_lines }}"
+    - "{{ image_pull_events_lines }}"
 
-- name: "Print images"
+- name: "Print filtered images"
   debug:
     msg: "pulled images: {{ pulled_images }}"
 
-- name: "Save images to file"
-  module: copy
-  content: "{{ pulled_images | to_json }}"
-  dest: "{{ events_file_path }}"
+- name: "Save images to an output json file"
+  copy:
+    content: "{{ pulled_images | to_json }}"
+    dest: "{{ events_file_path }}"
   delegate_to: localhost

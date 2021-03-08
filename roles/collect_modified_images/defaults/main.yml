@@ -1,3 +1,4 @@
 pulled_images: []
 events_file_path: /tmp/events.json
 deployment_start_time: 1970-01-01T00:00:00Z
+collect_pull_events: true
