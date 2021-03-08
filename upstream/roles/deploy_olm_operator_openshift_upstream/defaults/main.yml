@@ -36,6 +36,7 @@ operator_dir_name: "{{ operator_dir | basename }}"
 #test_quay_namespace: openshift-community-operators
 test_quay_namespace: operator_testing
 oc_version_test: "4.6"
+operator_suggested_namespace_default: test-operators
 #operator_work_dir: /home/jenkins/agent/test-operator
 #run_host_init: true
 #run_prereqs: true

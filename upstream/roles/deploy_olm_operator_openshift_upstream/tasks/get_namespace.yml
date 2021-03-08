@@ -1,0 +1,65 @@
+---
+##export csv
+#- name: "Find csv file (bundle)"
+#  block:
+#    - name: "Searching for file cvs file (bundle)"
+#      find:
+#        paths: "{{ op_csv_dir }}/manifests/"
+#        recurse: no
+#        file_type: file
+#        patterns: '*.clusterserviceversion.yaml'
+#      register: csv_find_bundle
+#
+#    - name: "CSV file existence error message"
+#      fail:
+#        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+#      when: csv_find_bundle.files|length == 0
+#
+#    - name: "Set csv_file_path"
+#      set_fact:
+#        csv_file_path: "{{ csv_find_bundle.files[0].path }}"
+#  when: operator_format == "bundle"
+#
+#- name: "Find csv file (manifest)"
+#  block:
+#    - name: "Searching for file cvs file (manifest) in '{{ op_csv_dir }}'"
+#      find:
+#        paths: "{{ op_csv_dir }}"
+#        recurse: no
+#        file_type: file
+#        patterns: '*.clusterserviceversion.yaml'
+#      register: csv_find_manifest
+#
+#    - name: "Failing if csv file was found"
+#      fail:
+#        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+#      when: csv_find_manifest.files|length == 0
+#
+#    - set_fact:
+#        csv_file_path: "{{ csv_find_manifest.files[0].path }}"
+#  when: operator_format == "manifest"
+
+#parse operator bundle
+- name: "Getting suggested-namespace from csv '{{ csv_file_path | basename}}'"
+  shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t 'metadata.annotations.[operatorframework.io/suggested-namespace]'"
+  register: operator_suggested_namespace_raw
+  ignore_errors: yes
+
+- name: "Sets operator suggested-namespace from csv '{{ csv_file_path | basename }}'"
+  set_fact:
+    operator_suggested_namespace: "{{ operator_suggested_namespace_raw.stdout | from_yaml }}"
+  ignore_errors: yes
+  when:
+    - operator_suggested_namespace_raw is defined
+    - operator_suggested_namespace_raw.stdout!=""
+
+- name: "Sets operator suggested-namespace from default'"
+  set_fact:
+    operator_suggested_namespace: "{{ operator_suggested_namespace_default }}"
+  when:
+    - operator_suggested_namespace is defined
+    - operator_suggested_namespace==""
+
+- name: "Set namespace"
+  set_fact:
+    openshift_namespace: "{{ operator_suggested_namespace }}"
