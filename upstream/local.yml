@@ -84,6 +84,7 @@
     - name: "Sets 'run_prereqs' to false when running 'pure_test' tag"
       set_fact:
         run_prereqs: false
+        index_git_check: false
       tags:
         - never
         - pure_test

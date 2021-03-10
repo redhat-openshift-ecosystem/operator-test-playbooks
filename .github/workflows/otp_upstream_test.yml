@@ -34,7 +34,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=5.3.0 --tags pure_test -e strict_mode=true -vv
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=6.0.0 --tags pure_test -e strict_mode=true -vv
   otpu_ifs:
     name: Index from scratch
     runs-on: ubuntu-latest

@@ -16,3 +16,4 @@ ba_add_name: ""
 ba_add_versions: []
 opm_index_ci_filename: "ci.yaml"
 opm_index_add_mode: "semver"
+index_git_check: true
