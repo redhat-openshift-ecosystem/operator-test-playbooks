@@ -1,0 +1,18 @@
+---
+- name: "Parse the collected image pull events"
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_upstream: false
+    operator_work_dir: "/home/jenkins/agent/test-operator"
+    work_dir: "{{ lookup('env', 'WORKSPACE') }}"
+    collect_pull_events: false
+
+  tasks:
+    - name: "Parse the collected image pull events"
+      include_role:
+        name: collect_modified_images
+      vars:
+        events_file_path: "{{ work_dir }}/image_pull_events.json"
