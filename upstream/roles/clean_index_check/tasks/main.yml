@@ -1,4 +1,5 @@
 ---
+# used by index check, deploy bundles, deploy bundles (push to quay)
 - name: "Detect stream"
   set_fact:
     cic_stream: "{{ operator_base_dir.split('/')[-1] }}"

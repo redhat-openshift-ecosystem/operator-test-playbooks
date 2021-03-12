@@ -67,6 +67,7 @@
     - ocp_version_annotation_stdout != ""
     - dockerfile_file_path_presence.stat.exists or annotations_file_path_presence.stat.exists
     - quay_appregistry_courier_token is defined
+    - not ptq_ready|bool
 
 - name: "Supported (ptq)"
   include_role:
