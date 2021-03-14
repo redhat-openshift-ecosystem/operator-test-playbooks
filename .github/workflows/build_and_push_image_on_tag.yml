@@ -1,0 +1,37 @@
+name: "Build and push on tag event"
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on tag events events but only for the master branch
+  push:
+    tags:
+      - '*'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a set of commands using the runners shell
+      - name: "Build the midstream image inside Dockerfiles"
+        env:
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: |
+          latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          git checkout $latestTag
+          echo "Latest tag is $latestTag"
+          podman --version
+          cd Dockerfiles 
+          podman build -t midstream_image:$latestTag -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=v1.0.11
+          podman login -u="$QUAY_USERNAME" -p="$QUAY_PASSWORD" quay.io
+          podman push midstream_image:$latestTag quay.io/samvarankashyap/cvp-midstream-image:$latestTag
