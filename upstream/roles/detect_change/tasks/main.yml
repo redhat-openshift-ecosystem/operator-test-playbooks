@@ -1,0 +1,155 @@
+---
+#Detect if a change is cosmetic
+- block:
+    - name: "Searching for cvs file"
+      find:
+        paths: "{{ operator_dir }}/{{ operator_version }}"
+        recurse: yes
+        file_type: file
+        patterns: '*.clusterserviceversion.yaml'
+      register: dc_csv
+    - fail:
+        msg: "Could not find csv file in '{{ operator_dir }}'"
+      when: dc_csv.files|length == 0
+    - set_fact:
+        csv_file_path: "{{ dc_csv.files[0].path }}"
+
+    - name: "Set stream"
+      set_fact:
+        dc_csv_file_end: "{{ csv_file_path.split('community-operators-for-catalog/')[-1] }}"
+        dc_csv_pkg_format_found: false
+        dc_csv_current_format_found: false
+        dc_diff_result:
+        dc_diff_keys_result:
+
+    - name: "Target csv"
+      set_fact:
+        dc_master_csv_file_path: "https://raw.githubusercontent.com/operator-framework/community-operators/master/{{ dc_csv_file_end }}"
+
+    - name: "Check if CSV file is present on master"
+      uri:
+        url: "{{ dc_master_csv_file_path }}"
+    #    url:  https://raw.githubusercontent.com/operator-framework/community-operators/master/community-operators/flux/0.5.1/manifests/flux.v0.5.1.clusterser
+        timeout: 1
+        return_content: yes
+      register: dc_master_csv
+      changed_when: no
+      check_mode: no
+      failed_when: no
+
+    - name: "Mark csv as found"
+      set_fact:
+        dc_csv_current_format_found: true
+      when: not dc_master_csv.content.startswith("404")
+
+    - name: "Check in package manifest format"
+      block:
+        - name: "Path according package manifest format"
+          set_fact:
+            dc_master_csv_file_path: "{{ dc_csv_file_end | replace('manifests/','')}}"
+
+        - debug:
+            var: dc_master_csv_file_path
+
+        - name: "Set dc_master_csv_file_path"
+          set_fact:
+            dc_master_csv_file_path: "https://raw.githubusercontent.com/operator-framework/community-operators/master/{{ dc_csv_file_end }}"
+
+        - name: "Check if file is present on master"
+          uri:
+            url: "{{ dc_master_csv_file_path }}"
+            timeout: 1
+            return_content: yes
+          register: dc_master_csv_pkg_format
+          changed_when: no
+          check_mode: no
+          failed_when: no
+
+        - name: "Set 'true' that CSV found in an old format on the master"
+          set_fact:
+            dc_csv_pkg_format_found: true
+          when: not dc_master_csv_pkg_format.content.startswith("404")
+
+      when: not dc_csv_current_format_found|bool
+
+    - debug:
+        var: dc_master_csv
+
+    - name: "CSV found on Git"
+      block:
+        - name: "Detect diff with dyff"
+          shell: 'dyff between -b -l {{ dc_master_csv_file_path }} {{ csv_file_path }}'
+          register: dc_diff_result
+          environment:
+            PATH: "/tmp/operator-test/bin:{{ ansible_env.PATH }}"
+
+        - debug:
+            var: dc_diff_result.stdout
+        - debug:
+            var: dc_diff_result.stdout|length
+
+        - name: "Diff found"
+          block:
+
+          - name: "Detect keys from the diff"
+            shell: 'dyff between -b -l {{ dc_master_csv_file_path }} {{ csv_file_path }}|grep -E "^[a-zA-Z(]"'
+            register: dc_diff_keys_result
+            environment:
+              PATH: "/tmp/operator-test/bin:{{ ansible_env.PATH }}"
+
+          - debug:
+              var: dc_diff_keys_result.stdout
+          - debug:
+              var: dc_changes_allowed
+
+
+          - name: "Set changes"
+            set_fact:
+              dc_changes_all: "{{ dc_diff_keys_result.stdout.splitlines()|list }}"
+            when:
+              - dc_diff_keys_result.stdout is defined
+              - dc_diff_keys_result.stdout!=""
+
+          - debug:
+              var: dc_changes_all
+
+          - set_fact:
+    #          dc_changes_forbidden: "{{ dc_changes_all | not intersect(dc_changes_allowed) }}"
+    #          dc_changes_forbidden: "{{ dc_changes_all | contains_any(dc_changes_allowed) }}"
+              dc_changes_forbidden: "{{ dc_changes_all | reject('in', dc_changes_allowed) }}"
+    #          dc_changes_forbidden: "{{ dc_changes_all | difference(dc_changes_allowed) }}"
+
+          - debug:
+              var: dc_changes_forbidden|length
+
+          - name: "Status in case of bigger change"
+            fail:
+              msg: "Only cosmetic change to {{ dc_csv_file_end }} is allowed. Detected following changes: {{ dc_changes_forbidden }}. Consider bumping your operator version. In exceptional cases, it could be overridden by setting 'allow/serious-changes-to-existing' label"
+            when:
+              - dc_changes_forbidden|length>0
+
+          - name: "Status in case of a cosmetic change"
+            debug:
+              msg: "Changes to {{ dc_csv_file_end }} are just cosmetic - [OK]"
+            when:
+              - dc_changes_forbidden|length==0
+
+          when:
+            - dc_diff_result.stdout is defined
+            - dc_diff_result.stdout|length>1
+
+        - name: "Status in case of no difference"
+          debug:
+            msg: "No CSV difference against master [OK]"
+          when:
+            - dc_diff_result.stdout|length<2
+      when: (dc_csv_current_format_found|bool) or (dc_csv_pkg_format_found|bool)
+
+    - name: "Status in case of no CSV to compare"
+      debug:
+        msg: "No CSV for comparison on master [OK]"
+      when:
+        - not dc_csv_current_format_found|bool
+        - not dc_csv_pkg_format_found|bool
+  tags:
+    - cosmetics

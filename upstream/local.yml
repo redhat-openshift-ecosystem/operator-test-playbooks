@@ -56,6 +56,10 @@
 
     - name: "Setting basic task variables"
       set_fact:
+        dc_changes_allowed:
+          - spec.description
+          - spec.DisplayName
+          - spec.icon
         supported_cluster_versions: "latest"
         supported_cluster_version_latest: "latest"
         use_cluster_filter: false

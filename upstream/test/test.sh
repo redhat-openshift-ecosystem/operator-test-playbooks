@@ -182,6 +182,7 @@ if [ -n "$OP_TEST_LABELS" ];then
     echo "Handling label '$l' ..."
     [[ "$l" = "allow/operator-version-overwrite" ]] && export OP_TEST_VER_OVERWRITE=1
     [[ "$l" = "allow/operator-recreate" ]] && export OP_TEST_RECREATE=1
+    [[ "$l" = "allow/serious-changes-to-existing" ]] && export OP_ALLOW_BIG_CHANGES_TO_EXISTING=1
     [[ "$l" = "test/force-deploy-on-kubernetes" ]] && export OP_TEST_FORCE_DEPLOY_ON_K8S=1
     [[ "$l" = "verbosity/high" ]] && export OP_TEST_DEBUG=2
     [[ "$l" = "verbosity/debug" ]] && export OP_TEST_DEBUG=3
@@ -329,6 +330,7 @@ function ExecParameters() {
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e mirror_multiarch_image=registry.redhat.io/openshift4/ose-operator-registry:v4.5 -e mirror_apply=true"
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" != "${1/orange_/}" ]&& OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW\""
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" = "${1/orange_/}" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW|quay.io/redhat/redhat----community-operator-index:latest\""
+    [[ OP_ALLOW_BIG_CHANGES_TO_EXISTING -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e allow_big_changes_to_existing=true"
 
     # Failing test when upstream and orgage_<version> (not supported yet)
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="" && { echo "Warning: Index versions are not supported for 'upstream-community-operators' !!! Skipping ..."; OP_TEST_SKIP=1; }

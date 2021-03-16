@@ -7,6 +7,7 @@
     - install
     - image_build
     - reset_tools
+    - cosmetics
 
 - name: "Set basic facts"
   set_fact:
@@ -78,6 +79,7 @@
     - install
     - uninstall
     - reset_tools
+    - cosmetics
 
 - name: "Download jq ({{ jq_version }})"
   get_url:
@@ -93,6 +95,7 @@
     - install
     - image_build
     - reset_tools
+    - cosmetics
 
 - name: "Remove '{{ yq_bin_path }}' binary"
   file:
@@ -102,6 +105,7 @@
     - install
     - uninstall
     - reset_tools
+    - cosmetics
 
 - name: "Download yq ({{ yq_version }})"
   get_url:
@@ -118,6 +122,19 @@
     - image_build
     - uninstall
     - reset_tools
+    - cosmetics
+
+- name: "Download dyff"
+  shell: "curl --silent --location https://tinyurl.com/y4qvdl4d | bash"
+  register: dyff_install_result
+  failed_when: dyff_install_result is failure
+  environment:
+    PATH: "/tmp/operator-test/bin:{{ ansible_env.PATH }}"
+  become: yes
+  tags:
+    - install
+    - reset_tools
+    - cosmetics
 
 - name: "Install prerequisites specific to legacy operator manifest testing"
   block:

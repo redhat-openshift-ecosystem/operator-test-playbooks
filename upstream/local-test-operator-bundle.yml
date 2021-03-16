@@ -32,6 +32,8 @@
     - name: "Running bundle test for operator"
       include_role:
         name: test_opertator_bundle
+      tags:
+        - cosmetics
 
     - name: "Cleanup created resources on the KIND cluster"
       include_role:

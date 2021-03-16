@@ -321,6 +321,7 @@ Usage:
 | min_operators_in_index_allowed | minimal amount of operators in index before index push [int]|N/A|30|
 | max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature [int]|N/A|20|
 | delete_appreg | Activate appregistry delete during release `push to quay` operation [bool]|N/A|`true` in case of operator delete|
+| allow_big_changes_to_existing | Do not stop pipeline if change to a CSV is outside of `dc_changes_allowed` [bool]|N/A|N/A|
 
 ## Tags to use
 

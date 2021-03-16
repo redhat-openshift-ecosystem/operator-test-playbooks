@@ -35,6 +35,18 @@
     remove_replaces: true
   when: run_upstream|bool
 
+- name: "Detect if a change is cosmetic"
+  include_role:
+    name: detect_change
+  vars:
+    op_version: "{{ operator_version }}"
+  when:
+    - run_upstream|bool
+    - (allow_big_changes_to_existing is not defined) or (not allow_big_changes_to_existing|bool)
+  tags:
+    - cosmetics
+    - never
+
 - name: "Check package unification"
   include_role:
     name: check_package_bundle
