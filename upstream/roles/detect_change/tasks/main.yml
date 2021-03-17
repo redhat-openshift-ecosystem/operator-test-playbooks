@@ -1,22 +1,19 @@
 ---
 #Detect if a change is cosmetic
+
 - block:
-    - name: "Searching for cvs file"
-      find:
-        paths: "{{ operator_dir }}/{{ operator_version }}"
-        recurse: yes
-        file_type: file
-        patterns: '*.clusterserviceversion.yaml'
-      register: dc_csv
-    - fail:
-        msg: "Could not find csv file in '{{ operator_dir }}'"
-      when: dc_csv.files|length == 0
-    - set_fact:
-        csv_file_path: "{{ dc_csv.files[0].path }}"
+
+    - name: "Detect file path"
+      shell: "echo {{ csv_external_file_path }} |cut -f 7- -d'/'"
+      register: dc_csv_file_end_raw
+
+    - debug:
+        var: dc_csv_file_end_raw.stdout
 
     - name: "Set stream"
       set_fact:
-        dc_csv_file_end: "{{ csv_file_path.split('community-operators-for-catalog/')[-1] }}"
+#        dc_csv_file_end: "{{ csv_file_path.split('community-operators-for-catalog/')[-1] }}"
+        dc_csv_file_end: "{{ dc_csv_file_end_raw.stdout }}"
         dc_csv_pkg_format_found: false
         dc_csv_current_format_found: false
         dc_diff_result:
@@ -70,7 +67,9 @@
             dc_csv_pkg_format_found: true
           when: not dc_master_csv_pkg_format.content.startswith("404")
 
-      when: not dc_csv_current_format_found|bool
+      when:
+        - not dc_csv_current_format_found|bool
+        - "'manifest' in dc_master_csv_file_path"
 
     - debug:
         var: dc_master_csv
@@ -78,7 +77,7 @@
     - name: "CSV found on Git"
       block:
         - name: "Detect diff with dyff"
-          shell: 'dyff between -b -l {{ dc_master_csv_file_path }} {{ csv_file_path }}'
+          shell: 'dyff between -b -l {{ dc_master_csv_file_path }} {{ csv_external_file_path }}'
           register: dc_diff_result
           environment:
             PATH: "/tmp/operator-test/bin:{{ ansible_env.PATH }}"
@@ -92,7 +91,7 @@
           block:
 
           - name: "Detect keys from the diff"
-            shell: 'dyff between -b -l {{ dc_master_csv_file_path }} {{ csv_file_path }}|grep -E "^[a-zA-Z(]"'
+            shell: 'dyff between -b -l {{ dc_master_csv_file_path }} {{ csv_external_file_path }}|grep -E "^[a-zA-Z(]"'
             register: dc_diff_keys_result
             environment:
               PATH: "/tmp/operator-test/bin:{{ ansible_env.PATH }}"
@@ -114,10 +113,7 @@
               var: dc_changes_all
 
           - set_fact:
-    #          dc_changes_forbidden: "{{ dc_changes_all | not intersect(dc_changes_allowed) }}"
-    #          dc_changes_forbidden: "{{ dc_changes_all | contains_any(dc_changes_allowed) }}"
               dc_changes_forbidden: "{{ dc_changes_all | reject('in', dc_changes_allowed) }}"
-    #          dc_changes_forbidden: "{{ dc_changes_all | difference(dc_changes_allowed) }}"
 
           - debug:
               var: dc_changes_forbidden|length

@@ -43,6 +43,7 @@
   when:
     - run_upstream|bool
     - (allow_big_changes_to_existing is not defined) or (not allow_big_changes_to_existing|bool)
+    - (csv_external_file_path is defined) and (csv_external_file_path != "")
   tags:
     - cosmetics
     - never
