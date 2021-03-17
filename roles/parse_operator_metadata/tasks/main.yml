@@ -154,7 +154,7 @@
 
   - name: "Set facts for csv_data alm-examples"
     set_fact:
-      csv_alm_examples: "{{ (csv_vars | from_yaml).metadata.annotations['alm-examples'] }}"
+      csv_alm_examples: "{{ (csv_vars | from_yaml).metadata.annotations['alm-examples'] | default([]) }}"
 
   - name: "Fail when alm-examples are set to empty"
     fail:
