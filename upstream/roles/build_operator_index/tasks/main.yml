@@ -368,17 +368,17 @@
             file_type: directory
           register: boi_operators_find
 
-        - name: "Search for all operator versions '{{ operator_base_dir }}/{{ ba_name }}'"
-          find:
-            paths: "{{ operator_base_dir }}/{{ ba_name }}"
-            recurse: no
-            file_type: directory
-          register: boi_git_operators_find
+#        - name: "Search for all operator versions '{{ operator_base_dir }}/{{ ba_name }}'"
+#          find:
+#            paths: "{{ operator_base_dir }}/{{ ba_name }}"
+#            recurse: no
+#            file_type: directory
+#          register: boi_git_operators_find
 
         - name: "Setting list of operator versions from git and index"
           set_fact:
             bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
-            bio_versions_git: "{{ boi_git_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+            bio_versions_git: "{{ ba_versions | sort_versions }}"
 
         - name: "Setting list version diff list"
           set_fact:
