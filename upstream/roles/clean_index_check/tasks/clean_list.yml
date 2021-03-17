@@ -30,11 +30,14 @@
     path: "{{ labels_file_path }}"
   register: dockerfile_file_path_presence
 
+- debug:
+    var: ptq_ready
+
 - name: "Get info from {{ labels_file_path }}"
   include_tasks: get_info.yml
   when:
     - dockerfile_file_path_presence.stat.exists
-    - ocp_version_annotation_stdout is not defined
+    - ptq_ready|bool
 
 - debug:
     var: annotations_file_path_presence

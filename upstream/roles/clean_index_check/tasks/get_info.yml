@@ -1,9 +1,10 @@
 ---
 - name: "Get info about supported cluster for {{ dov_op_name }} {{ doic_versions_processing }} from {{ labels_file_path }}"
   shell: "grep 'com.redhat.openshift.versions=' {{ labels_file_path }}|head -n 1|awk -F'redhat.openshift.versions=\"' '{print $2}'|awk -F'\"' '{print $1}'"
-  register: ocp_version_annotation
+  register: ocp_version_annotation_dockerfile
   ignore_errors: true
   when:
+    - ptq_ready|bool
     - dockerfile_file_path_presence.stat.exists
 
 - name: "Get info about supported cluster for {{ dov_op_name }} {{ doic_versions_processing }} from {{ labels_file_path }}"
@@ -12,15 +13,29 @@
   ignore_errors: true
   when:
     - annotations_file_path_presence.stat.exists
+    - not ptq_ready|bool
 
 - name: "Set parsed versions"
   when:
    - ocp_version_annotation is defined
    - ocp_version_annotation.stdout is defined
    - ocp_version_annotation.stdout!='null'
-   - annotations_file_path_presence.stat.exists or dockerfile_file_path_presence.stat.exists
+   - ocp_version_annotation.stdout!=''
+   - annotations_file_path_presence.stat.exists
   set_fact:
     ocp_version_annotation_stdout: "{{ ocp_version_annotation.stdout }}"
+    ptq_ready: false
+
+- name: "Set parsed versions"
+  when:
+   - ocp_version_annotation_dockerfile is defined
+   - ocp_version_annotation_dockerfile.stdout is defined
+   - ocp_version_annotation_dockerfile.stdout!='null'
+   - ocp_version_annotation_dockerfile.stdout!=''
+   - dockerfile_file_path_presence.stat.exists
+  set_fact:
+    ocp_version_annotation_stdout: "{{ ocp_version_annotation_dockerfile.stdout }}"
+    ptq_ready: false
 
 - name: "Dockerfile or annotation file exists with no entry about OCP version"
   when:
