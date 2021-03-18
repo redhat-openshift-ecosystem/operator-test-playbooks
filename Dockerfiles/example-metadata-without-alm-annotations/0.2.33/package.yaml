@@ -1,0 +1,5 @@
+packageName: erynis-operator
+channels:
+- name: alpha
+  currentCSV: erynis-operator.v0.2.33
+defaultChannel: alpha
