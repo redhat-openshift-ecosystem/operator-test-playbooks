@@ -1,2 +1,3 @@
 op_dir: "dummy"
 op_ver: "dummy"
+catalog_repo_dir: /tmp/community-operators-for-catalog

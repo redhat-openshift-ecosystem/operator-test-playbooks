@@ -7,7 +7,7 @@
     - install
     - image_build
     - reset_tools
-    - cosmetics
+    - cosmetics_install
 
 - name: "Set basic facts"
   set_fact:
@@ -79,7 +79,7 @@
     - install
     - uninstall
     - reset_tools
-    - cosmetics
+    - cosmetics_install
 
 - name: "Download jq ({{ jq_version }})"
   get_url:
@@ -95,7 +95,7 @@
     - install
     - image_build
     - reset_tools
-    - cosmetics
+    - cosmetics_install
 
 - name: "Remove '{{ yq_bin_path }}' binary"
   file:
@@ -105,7 +105,7 @@
     - install
     - uninstall
     - reset_tools
-    - cosmetics
+    - cosmetics_install
 
 - name: "Download yq ({{ yq_version }})"
   get_url:
@@ -122,7 +122,7 @@
     - image_build
     - uninstall
     - reset_tools
-    - cosmetics
+    - cosmetics_install
 
 - name: "Download dyff"
   shell: "curl --silent --location https://tinyurl.com/y4qvdl4d | bash"
@@ -134,7 +134,7 @@
   tags:
     - install
     - reset_tools
-    - cosmetics
+    - cosmetics_install
 
 - name: "Install prerequisites specific to legacy operator manifest testing"
   block:
