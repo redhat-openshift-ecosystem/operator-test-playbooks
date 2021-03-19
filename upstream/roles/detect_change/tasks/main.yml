@@ -127,7 +127,7 @@
               var: dc_changes_all
 
           - set_fact:
-              dc_changes_forbidden: "{{ dc_changes_all | reject('in', dc_changes_allowed) }}"
+              dc_changes_forbidden: "{{ dc_changes_all | difference(dc_changes_allowed) }}"
 
           - debug:
               var: dc_changes_forbidden|length
