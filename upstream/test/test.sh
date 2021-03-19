@@ -338,7 +338,9 @@ function ExecParameters() {
     # Don't reset kind when production (It should speedup deploy when kind and registry is not needed)
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 1 ]] && OP_TEST_RESET=0
 
-    [[ $1 == orange* ]] && [[ $OP_TEST_VER_OVERWRITE -eq 0 ]] && [ "$OP_TEST_VERSION" != "update" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e fail_on_no_index_change=true"
+    # [[ $1 == orange* ]] && [[ $OP_TEST_VER_OVERWRITE -eq 0 ]] && [ "$OP_TEST_VERSION" != "update" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e fail_on_no_index_change=true"
+    [[ $1 == orange* ]] && [[ $OP_TEST_VER_OVERWRITE -eq 0 ]] && [ "$OP_TEST_VERSION" != "update" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e fail_on_no_index_change=false"
+    
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 1 ]] && [[ $OP_TEST_VER_OVERWRITE -eq 0 ]] && [ "$OP_TEST_VERSION" == "sync" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e index_force_update=true"
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 1 ]] && [[ $OP_TEST_CI_YAML_ONLY -eq 1 ]] && [ "$OP_TEST_VERSION" == "sync" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e operator_dir=/tmp/community-operators-for-catalog/$OP_TEST_STREAM/$OP_TEST_OPERATOR"
     # [[ $1 == orange* ]] && [[ $OP_TEST_VER_OVERWRITE -eq 0 ]] && [[ $OP_TEST_RECREATE -eq 0 ]] && [ "$OP_TEST_VERSION" != "update" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e fail_on_no_index_change=true"
