@@ -4,16 +4,18 @@
 - block:
 
     - name: "Detect file path"
-      shell: "echo {{ csv_external_file_path }} |cut -f 7- -d'/'"
-      register: dc_csv_file_end_raw
+#      shell: "echo {{ csv_external_file_path }} |cut -f 7- -d'/'"
+#      register: dc_csv_file_end_raw
+      set_fact:
+        dc_csv_file_end: "{{ csv_external_file_path.split('community-operators/')[-1] }}"
 
-    - debug:
-        var: dc_csv_file_end_raw.stdout
+#    - debug:
+#        var: dc_csv_file_end_raw.stdout
 
     - name: "Set stream"
       set_fact:
 #        dc_csv_file_end: "{{ csv_file_path.split('community-operators-for-catalog/')[-1] }}"
-        dc_csv_file_end: "{{ dc_csv_file_end_raw.stdout }}"
+#        dc_csv_file_end: "{{ dc_csv_file_end_raw.stdout }}"
         dc_csv_pkg_format_found: false
         dc_csv_current_format_found: false
         dc_diff_result:
@@ -21,9 +23,9 @@
 
     - name: "Prepare local path components"
       set_fact:
-          dc_operator_name: "{{ dc_csv_file_end.split('/')[1] }}"
-          dc_stream_name: "{{ dc_csv_file_end.split('/')[0] }}"
-          operator_version: "{{ dc_csv_file_end.split('/')[2] }}"
+          dc_operator_name: "{{ dc_csv_file_end.split('/')[0] }}"
+#          dc_stream_name: "{{ dc_csv_file_end.split('/')[0] }}"
+          operator_version: "{{ dc_csv_file_end.split('/')[1] }}"
 
     - name: "Set local path"
       set_fact:
@@ -31,7 +33,7 @@
 
     - name: "Target csv"
       set_fact:
-        dc_master_csv_file_path: "https://raw.githubusercontent.com/operator-framework/community-operators/master/{{ dc_csv_file_end }}"
+        dc_master_csv_file_path: "https://raw.githubusercontent.com/operator-framework/community-operators/master/{{ dc_stream_name }}/{{ dc_csv_file_end }}"
 #https://raw.githubusercontent.com/operator-framework/community-operators/master/0.8.2/manifests/flux.v0.8.2.clusterserviceversion.yaml
 #https://raw.githubusercontent.com/operator-framework/community-operators/master/community-operators/aqua/6.0.0/aqua-operator.v6.0.0.clusterserviceversion.yaml
 
@@ -132,7 +134,7 @@
 
           - name: "Status in case of a bigger change"
             fail:
-              msg: "Only cosmetic change to {{ dc_csv_file_end }} is allowed. Detected following changes: {{ dc_changes_forbidden }}. Consider bumping your operator version. In exceptional cases, it could be overridden by setting 'allow/serious-changes-to-existing' label"
+              msg: "Only minor (cosmetic) change to {{ dc_csv_file_end }} is allowed. Detected following changes: {{ dc_changes_forbidden }}. Consider bumping your operator version. In exceptional cases, it could be overridden by setting 'allow/serious-changes-to-existing' label"
             when:
               - dc_changes_forbidden|length>0
 
