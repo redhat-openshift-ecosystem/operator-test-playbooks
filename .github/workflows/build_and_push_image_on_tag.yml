@@ -30,8 +30,7 @@ jobs:
           latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
           git checkout $latestTag
           echo "Latest tag is $latestTag"
-          podman --version
           cd Dockerfiles 
-          podman build -t midstream_image:$latestTag -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=v1.0.11
+          podman build -t midstream_image:$latestTag -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=$latestTag
           podman login -u="$QUAY_USERNAME" -p="$QUAY_PASSWORD" quay.io
           podman push midstream_image:$latestTag quay.io/samvarankashyap/cvp-midstream-image:$latestTag
