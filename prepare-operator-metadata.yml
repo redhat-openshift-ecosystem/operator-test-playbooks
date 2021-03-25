@@ -1,6 +1,6 @@
 ---
-# Playbook parameters: 
-# 
+# Playbook parameters:
+#
 # operator_work_dir: Operator_work_dir is essentially empty folder
 # operator_dir: where the operator metadata is unziped and copied
 #               using operator-courier
@@ -10,7 +10,7 @@
 # yq_bin_path: Path to yaml query binary is installed
 # testing_bin_path: Path were all the testing binaries exists
 # current_channel: Operator channel determined from the metadata
-              
+
 - name: "Prepare operator metadata for usage with the operator testing pipeline"
   hosts: all
   become: false
@@ -27,7 +27,7 @@
     current_channel: '' # Added to avoid a bug with undefined variables
 
   tasks:
-    
+
     - name: "Set variables for operator_work_dir and operator_dir"
       set_fact:
         operator_work_dir: "{{ operator_work_dir | default('/home/jenkins/agent/test-operator')}}"

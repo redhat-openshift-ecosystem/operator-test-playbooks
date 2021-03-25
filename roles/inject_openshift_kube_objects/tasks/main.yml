@@ -43,19 +43,19 @@
 - name: "Create the kube_objects on the testing openshift cluster for operator certification"
   shell: "oc apply -f {{ kube_objects_dir }}/kube_objects.yaml"
   environment:
-    KUBECONFIG: "{{ kubeconfig_path }}" 
+    KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Read yaml file content to get the namespace"
-  set_fact: 
+  set_fact:
     content="{{ lookup('file', '{{ kube_objects_dir }}/kube_objects.yaml') | from_yaml }}"
   no_log: true
-  ignore_errors: true   
-  
+  ignore_errors: true
+
 - name: "Verify kube_objects created on openshift cluster"
   shell: "oc get secrets -n {{ content.metadata.namespace }}"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  ignore_errors: true  
+  ignore_errors: true
 
 - name: "Remove the directory created for kube_object"
   shell: "rm -rf {{ kube_objects_dir }}"

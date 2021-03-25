@@ -8,7 +8,7 @@
       shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
       register: quay_release_result
       no_log: true
-      
+
     - name: "Increment testing quay app release if exists"
       shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
       register: quay_increment_release_result
@@ -51,7 +51,7 @@
       when:
         - kube_objects is defined
         - kube_objects != "N/A"
-        - kube_objects != "null"  
+        - kube_objects != "null"
 
     - name: "Create the olm operator files directory"
       shell: "mkdir -p {{ olm_operator_files_path }}"
@@ -202,7 +202,7 @@
         content: "{{ installplan_result.stdout }}"
         dest: "{{ work_dir }}/olm-installplan-debug.txt"
       when: installplan_result.stdout is defined
-    
+
     - name: "Set fact for deploy olm operator results"
       set_fact:
         deploy_olm_operator_results: {'result': 'pass', 'msg': ''}
@@ -213,7 +213,7 @@
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
       when: operator_result.rc != 0
-      
+
     - name: "Output logs for operators that failed olm-deployment output to a debug file"
       copy:
         content: "{{ olm_replicaset_output.stdout }}"
@@ -246,7 +246,7 @@
     - name: "Failed on deploy_olm_operator_results"
       fail:
         msg: "{{ deploy_olm_operator_results }}"
-  
+
   always:
     - name: "Write deploy_olm_operator results to json file"
       copy:
