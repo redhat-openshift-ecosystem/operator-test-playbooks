@@ -24,8 +24,15 @@ jobs:
       - name: "Ansible-lint"
       # Install ansible-lint(5.0.6) together with yamllint(1.26.0) and run the linting on the whole repo
         run: |
-          sudo pip install ansible-lint==5.0.6 yamllint==1.26.0
-          ansible-lint -c ansible-lint.yml *.yml
+          python -m pip install ansible
+          pip install ansible-lint==5.0.6 yamllint==1.26.0
+          ansible-lint -c ansible-lint.yml *.yml |& tee lint-output.txt
+          if  egrep -i '^(warning.*listing.*violation\(s)\)' lint-output.txt; then
+              exit 1
+          else
+              exit 0
+          fi
+
 
       - name: "Yaml-lint"
         run: |

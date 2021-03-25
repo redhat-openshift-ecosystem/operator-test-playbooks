@@ -34,6 +34,7 @@
   template:
     src: "namespace.yml.js2"
     dest: "/tmp/namespace.yml"
+    mode: 0644
   tags:
     - catalog_build
 

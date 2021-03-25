@@ -62,6 +62,7 @@
       file:
         path: "{{ scorecard_cr_dir }}"
         state: directory
+        mode: 0644
       when:
         - run_scorecard|bool
         - not run_upstream|bool
@@ -104,6 +105,7 @@
         src: "{{ operator_dir }}/"
         dest: "{{ operator_work_dir }}"
         remote_src: yes
+        mode: 0644
       when: run_upstream|bool
 
     - name: "Parse operator metadata needed to run the tests (Openshift)"

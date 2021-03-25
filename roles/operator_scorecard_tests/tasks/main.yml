@@ -17,6 +17,7 @@
   template:
     src: "osdk-scorecard.yml.j2"
     dest: "{{ work_dir }}/osdk-scorecard.yml"
+    mode: 0644
 
 - name: "Run operator-sdk scorecard tests on the deployed operator in json form"
   shell: "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --config {{ work_dir }}/osdk-scorecard.yml > {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"

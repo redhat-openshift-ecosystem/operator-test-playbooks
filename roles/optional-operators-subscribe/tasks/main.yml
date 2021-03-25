@@ -35,3 +35,4 @@
     copy:
       dest: "optional_operator_subscribe.json"
       content: "{{ shell_script_output }}"
+      mode: 0644

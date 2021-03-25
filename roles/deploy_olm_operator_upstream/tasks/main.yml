@@ -89,6 +89,7 @@
   template:
     src: "namespace.yml.js2"
     dest: "{{ olm_operator_files_path }}/namespace.yml"
+    mode: 0644
 
 - name: "Create the namespace"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/namespace.yml"
@@ -99,28 +100,33 @@
   template:
     src: "{{ 'operatorgroup_upstream.yml.j2' if run_upstream else \"operatorgroup.yml.j2\" }}"
     dest: "{{ olm_operator_files_path }}/operatorgroup.processed.yml"
+    mode: 0644
 
 - name: "Process the marketplacesecret template"
   template:
     src: "marketplacesecret.yml.j2"
     dest: "{{ olm_operator_files_path }}/marketplacesecret.processed.yml"
+    mode: 0644
   when: not run_upstream|bool
 
 - name: "Process the subscription template"
   template:
     src: "{{ 'subscription_upstream.yml.j2' if run_upstream else \"subscription.yml.j2\" }}"
     dest: "{{ olm_operator_files_path }}/subscription.yml"
+    mode: 0644
 
 - name: "Process the operatorsource template"
   template:
     src: operatorsource.yml.j2
     dest: "{{ olm_operator_files_path }}/operatorsource.yml"
+    mode: 0644
   when: not run_upstream|bool
 
 - name: "Process the catalogsource template"
   template:
     src: "catalogsource_upstream.yml.j2"
     dest: "{{ olm_operator_files_path }}/catalogsource.yml"
+    mode: 0644
 
 
 - name: "Create all processed resources in the deploy directory"
@@ -211,6 +217,7 @@
   copy:
     content: "{{ csv_describe_result.stdout }}"
     dest: "{{ work_dir }}/olm-operator-csv-debug.txt"
+    mode: 0644
   when: csv_describe_result.stdout != ""
 
 - name: "Get the pod status of the deployed operator"
@@ -225,6 +232,7 @@
   copy:
     content: "{{ operator_pod_result.stdout }}"
     dest: "{{ work_dir }}/olm-operator-pod-debug.txt"
+    mode: 0644
   when:
     - csv_describe_result.stdout != ""
     - operator_pod_result.stdout != ""
@@ -241,6 +249,7 @@
   copy:
     content: "{{ operator_container_result.stdout }}"
     dest: "{{ work_dir }}/olm-operator-container-debug.txt"
+    mode: 0644
   when:
     - csv_describe_result.stdout != ""
     - operator_container_result.stdout != ""
@@ -263,6 +272,7 @@
   copy:
     content: "{{ catalog_source_result.stdout }}"
     dest: "{{ work_dir }}/olm-catalog-source-debug.txt"
+    mode: 0644
   when: catalog_source_result.stdout is defined
 
 - name: "Get the catalog-operator pod log"
@@ -283,6 +293,7 @@
   copy:
     content: "{{ catalog_operator_result.stdout }}"
     dest: "{{ work_dir }}/olm-catalog-operator-debug.txt"
+    mode: 0644
   when: catalog_operator_result.stdout is defined
 
 - name: "Get the InstallPlan debug output"
@@ -301,6 +312,7 @@
   copy:
     content: "{{ installplan_result.stdout }}"
     dest: "{{ work_dir }}/olm-installplan-debug.txt"
+    mode: 0644
   when: installplan_result.stdout is defined
 
 - name: "Operator deployment with OLM error status"

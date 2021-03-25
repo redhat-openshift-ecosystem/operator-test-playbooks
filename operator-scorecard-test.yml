@@ -43,5 +43,6 @@
           copy:
             content: "{{ operator_container_result.stdout }}"
             dest: "{{ work_dir }}/scorecard-operator-container-debug.txt"
+            mode: 0644
           when:
             - operator_container_result.stdout != ""

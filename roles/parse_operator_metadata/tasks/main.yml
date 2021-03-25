@@ -202,6 +202,7 @@
     template:
       src: "parsed_operator_data.yml.j2"
       dest: "{{ work_dir }}/parsed_operator_data.yml"
+      mode: 0644
 
   - name: "Set success result"
     set_fact:
@@ -235,7 +236,9 @@
       copy:
         content: "{{ parse_operator_metadata_results | to_nice_json }}"
         dest: parse_operator_metadata_results.json
+        mode: 0644
     - name: "Output all collected data to a yaml file in work dir"
       template:
         src: "parsed_operator_data.yml.j2"
         dest: "{{ work_dir }}/parsed_operator_data.yml"
+        mode: 0644

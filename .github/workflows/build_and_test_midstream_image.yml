@@ -32,7 +32,7 @@ jobs:
 
       - name: "Run example bundle through midstream_image -> POSITVE test"
         run: |
-          cd Dockerfiles/midstream/ 
+          cd Dockerfiles/midstream/
           mkdir output_logs
           podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output midstream_image:latest
           # Test for files inside output_logs

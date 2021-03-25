@@ -17,12 +17,14 @@
   copy:
     content: "Imagesource test passed, all images are from approved sources"
     dest: "{{ work_dir }}/imagesource-output.txt"
+    mode: 0644
   when: non_approved_images | length == 0
 
 - name: "Write the list of non-approved images to the output file if any were found"
   copy:
     content: "Imagesource test failed! Non-approved images found:\n{% for non_approved_image in non_approved_images %}{{ non_approved_image }}\n{% endfor %}"
     dest: "{{ work_dir }}/imagesource-output.txt"
+    mode: 0644
   when: non_approved_images | length > 0
 
 - name: "Fail if list of non-approved images is not empty"

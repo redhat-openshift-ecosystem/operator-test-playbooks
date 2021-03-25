@@ -6,14 +6,13 @@
 
 
   vars:
-    vault_file_path: "{{ vault_file_path | default('{{ playbook_dir }}/../../../config/ansible/vault.yml')}}"
     run_upstream: false
     openshift_namespace: "test-operator"
     operator_work_dir: "/home/jenkins/agent/test-operator"
     scorecard_cr_dir: "/home/jenkins/agent/scorecard-cr-files"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
     olm_operator_files_path: "{{ work_dir }}/olm-operator-files"
-    quay_token: "{{ cvp_vault.quay_token }}"
+    quay_token: "{{ quay_token }}"
     quay_namespace: "cvpops"
     oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
     jq_bin_path : "/usr/bin/jq"
