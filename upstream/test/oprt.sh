@@ -18,7 +18,7 @@ git config --global user.email "test@example.com"
 git config --global user.name "Test User"
 
 git remote add upstream https://github.com/operator-framework/community-operators -f > /dev/null 2>&1
-git pull --rebase upstream $OPRT_SRC_BRANCH > /dev/null 2>&1
+git pull --rebase -Xours upstream $OPRT_SRC_BRANCH 
 
 export OP_TEST_ADDED_FILES=$(git diff --diff-filter=A upstream/$OPRT_SRC_BRANCH --name-only | tr '\r\n' ' ')
 export OP_TEST_MODIFIED_FILES=$(git diff --diff-filter=M upstream/$OPRT_SRC_BRANCH --name-only | tr '\r\n' ' ')
