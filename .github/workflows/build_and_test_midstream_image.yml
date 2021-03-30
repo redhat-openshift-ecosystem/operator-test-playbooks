@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: "Build and test midstream CI imaga"
+name: "Build and test midstream CI image"
 
 # Controls when the action will run. 
 on:
@@ -27,14 +27,18 @@ jobs:
       - name: "Build the midstream image inside Dockerfiles"
         run: |
           podman --version
-          cd Dockerfiles 
-          podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=v1.0.11
+          cd Dockerfiles/midstream/ 
+          podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=master
 
       - name: "Run example bundle through midstream_image -> POSITVE test"
         run: |
-          cd Dockerfiles
+          cd Dockerfiles/midstream/ 
           mkdir output_logs
-          podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output --security-opt label=disable midstream_image:latest
+          podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output midstream_image:latest
+          # Test for files inside output_logs
+          test -f output_logs/validation-output.txt
+          test -f output_logs/validation-rc.txt
+          test -f output_logs/validation-version.txt
           # clean output logs for next step
           rm -rf output_logs/*
 
@@ -42,10 +46,13 @@ jobs:
         continue-on-error: true
         run: |
           # cd into Dockerfiles since it resets everystep
-          cd Dockerfiles
+          cd Dockerfiles/midstream/
           mkdir empty-example-bundle
-          podman run -it -v ./empty-example-bundle:/project/operator-bundle -v ./output_logs:/project/output --security-opt label=disable midstream_image:latest
+          podman run -it -v ./empty-example-bundle:/project/operator-bundle -v ./output_logs:/project/output midstream_image:latest
 
       - name: "Fail when previous step does not fail"
         run: |
-          grep -inr "metadata not found in ../operator-bundle" Dockerfiles/output_logs/
+          test -f Dockerfiles/midstream/output_logs/validation-output.txt
+          test -f Dockerfiles/midstream/output_logs/validation-rc.txt
+          test -f Dockerfiles/midstream/output_logs/validation-version.txt
+          grep -inr "metadata not found in ../operator-bundle" Dockerfiles/midstream/output_logs/
