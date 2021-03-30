@@ -5,6 +5,14 @@
       set_fact:
         rc_last: false
 
+    # echo "FROM quay.io/operator_testing/catalog:defa89bd" | docker build --label quay.expires-after="1h" -t "quay.io/operator_testing/catalog:defa89bd" -
+    - name: "Add Quay expiration label if index is just temporary"
+      shell: 'echo "FROM {{ fqp_image }}" | {{ container_tool }} build --label quay.expires-after="15h" -t "{{ fqp_image }}" -'
+      when:
+        - openshift_robot_hash is defined
+        - openshift_robot_hash != ""
+        - openshift_robot_hash.startswith('quay.io')
+
     - name: "Push image '{{ fqp_image }}' to quay using podman"
       block:
         - name: "Ensure that the temporary image dir '{{ fqp_image_dir }}' exists and is empty"
@@ -31,14 +39,6 @@
           when: ((opi_push_quay_convert_rc.rc == 0) and (opi_push_quay_skopeo_copy_rc.rc == 0))
 
       when: (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
-
-    # echo "FROM quay.io/operator_testing/catalog:defa89bd" | docker build --label quay.expires-after="1h" -t "quay.io/operator_testing/catalog:defa89bd" -
-    - name: "Add Quay expiration label if index is just temporary"
-      shell: 'echo "FROM {{ fqp_image }}" | {{ container_tool }} build --label quay.expires-after="15h" -t "{{ fqp_image }}" -'
-      when:
-        - openshift_robot_hash is defined
-        - openshift_robot_hash != ""
-        - openshift_robot_hash.startswith('quay.io')
 
     - name: "Push image '{{ fqp_image }}'"
       block:
