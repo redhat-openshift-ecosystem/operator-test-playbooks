@@ -23,6 +23,7 @@
       OO_INSTALL_NAMESPACE: "{{ OO_INSTALL_NAMESPACE }}"
       OO_TARGET_NAMESPACES: "{{ OO_TARGET_NAMESPACES }}"
       ARTIFACT_DIR: "{{ ARTIFACT_DIR }}"
+      SHARED_DIR: "{{ ARTIFACT_DIR }}"
     ignore_errors: true
     
   # incase of success/failure the output is being displayed the
