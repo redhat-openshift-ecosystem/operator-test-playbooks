@@ -50,6 +50,10 @@
     src: "catalogsource_upstream.yml.j2"
     dest: "{{ olm_operator_files_path }}/catalogsource.yml"
 
+- name: "Process the catalogsource-prod template"
+  template:
+    src: "catalogsource_upstream_default.yml.j2"
+    dest: "{{ olm_operator_files_path }}/catalogsource-prod.yml"
 
 - name: "Create all processed resources in the deploy directory"
   shell: 'for f in $(find {{ olm_operator_files_path }} -maxdepth 1 -name "*processed.yml"); do {{ oc_bin_path }} apply -f $f; done'
@@ -58,6 +62,9 @@
 
 - name: "Create the catalogsource"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml"
+
+- name: "Create a catalogsource from production"
+  shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource-prod.yml"
 
 - name: "Wait for the catalogsource pod to start up"
   shell: "{{ oc_bin_path }} get pods -n openshift-marketplace | grep {{ operator_suggested_namespace }}- | grep Running"
@@ -102,11 +109,7 @@
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for a specific time (upstream only)"
   include_tasks: stay_healthy.yml
-#  retries: "{{ pod_stay_healthy_retries }}"
-#  delay: "{{ pod_stay_healthy_delay }}"
-#  until: operator_uptime_passed|bool
   loop: "{{ range(pod_stay_healthy_start, pod_stay_healthy_retries + 1)|list }}"
-#  ignore_errors: true
   when: operator_result.rc == 0
 
 - name: "Get the details of the deployed CSVs"

@@ -1,0 +1,12 @@
+apiVersion: "operators.coreos.com/v1alpha1"
+kind: "CatalogSource"
+metadata:
+  name: "test-operators-ocs-prod"
+  namespace: {{ operator_suggested_namespace }}
+  labels:
+    operator: test
+spec:
+  displayName: Community Operators From Prod
+  image: "quay.io/operatorhubio/catalog:latest"
+  publisher: upstream-community-operators
+  sourceType: grpc

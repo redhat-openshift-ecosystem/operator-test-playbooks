@@ -83,18 +83,18 @@
     return_content: yes
   register: dooou_manifes_digest_output
 
-- name: "Parse 1"
+- name: "Parsing manifest"
   set_fact:
     dooou_manifes_digest_output_test: "{{ dooou_manifes_digest_output.json.tags }}"
     dooou_manifes_digest_output_key: "{{ commit_tag }}"
 #    dooou_manifes_digest_output_key: "v{{ op_version }}"
 
-- name: "Parse 2"
+- name: "Parsing by a key"
   set_fact:
     dooou_manifes_digest_output_debug: "{{ dooou_manifes_digest_output_test[dooou_manifes_digest_output_key] }}"
     key_to_pick: "manifest_digest"
 
-- name: "Parse 3"
+- name: "Digest parsed"
   set_fact:
     dooou_manifes_digest: "{{ dooou_manifes_digest_output_debug[key_to_pick] }}"
 
@@ -196,11 +196,10 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
-- name: "Create the namespace"
-  shell: "{{ oc_bin_path }} patch OperatorHub cluster --type json -p '[{\"op\": \"add\", \"path\": \"/spec/disableAllDefaultSources\", \"value\": true}]'"
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-
+#- name: "Disable default sources"
+#  shell: "{{ oc_bin_path }} patch OperatorHub cluster --type json -p '[{\"op\": \"add\", \"path\": \"/spec/disableAllDefaultSources\", \"value\": true}]'"
+#  environment:
+#    KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Apply catalogsource"
   shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/catalogsource.yml'
