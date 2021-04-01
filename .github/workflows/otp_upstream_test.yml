@@ -3,6 +3,7 @@ env:
   ANSIBLE_CONFIG: "$PWD/upstream/ansible.cfg"
   ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"
   GODEBUG: "x509ignoreCN=0"
+  ANSIBLE_VERSION: "2.9.6"
 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
@@ -21,6 +22,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
@@ -31,6 +38,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
@@ -41,6 +54,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
@@ -51,6 +70,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
@@ -61,6 +86,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
@@ -72,5 +103,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags iib

@@ -190,14 +190,20 @@
           set_fact:
             boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
 
-        - name: "Failing when 'updateGraph' value is missing"
-          fail:
-            msg: "Key 'updateGraph' was not found in file '{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}'!!!"
+        # - name: "Failing when 'updateGraph' value is missing"
+        #   fail:
+        #     msg: "Key 'updateGraph' was not found in file '{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}'!!!"
+        #   when: boi_ci_update_graph_var == "null"
+
+        - name: "Setting index add mode from 'updateGraph' value to 'semver' because it is not present in '{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}'"
+          set_fact:
+            opm_index_add_mode: "semver"
           when: boi_ci_update_graph_var == "null"
 
         - name: "Setting index add mode from 'updateGraph' value to '{{ boi_ci_update_graph_var }}'"
           set_fact:
             opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
+          when: boi_ci_update_graph_var != "null"
       when: boi_ci_file.stat.exists|bool
 
     - name: "Setting 'semver' mode when file doen't exists"
