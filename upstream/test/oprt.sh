@@ -26,7 +26,7 @@ export OP_TEST_REMOVED_FILES=$(git diff --diff-filter=D upstream/$OPRT_SRC_BRANC
 export OP_TEST_RENAMED_FILES=$(git diff --diff-filter=R upstream/$OPRT_SRC_BRANCH --name-only | tr '\r\n' ' ')
 export OP_TEST_ADDED_MODIFIED_FILES=$(git diff --diff-filter=AM upstream/$OPRT_SRC_BRANCH --name-only | tr '\r\n' ' ')
 
-BRANCH_NAME=$(git branch -a --contains $OPRT_SHA | cut -d '/' -f 3-)
+# BRANCH_NAME=$(git branch -a --contains $OPRT_SHA | cut -d '/' -f 3-)
 echo "BRANCH_NAME=$BRANCH_NAME"
 echo "::set-output name=op_test_repo_branch::$OPRT_REPO/${BRANCH_NAME}"
 
