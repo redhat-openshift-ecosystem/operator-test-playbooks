@@ -25,7 +25,7 @@
       ARTIFACT_DIR: "{{ ARTIFACT_DIR }}"
       SHARED_DIR: "{{ ARTIFACT_DIR }}"
     ignore_errors: true
-    
+
   # incase of success/failure the output is being displayed the
   - name: "Debug"
     debug:
@@ -36,3 +36,4 @@
     copy:
       dest: "optional_operator_subscribe.json"
       content: "{{ shell_script_output }}"
+      mode: 0644

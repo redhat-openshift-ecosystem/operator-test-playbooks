@@ -21,10 +21,12 @@
       file:
         state: "directory"
         path: "{{ operator_bundle_src_dir }}"
+        mode: 0644
     - name: "Copy manifest format files to {{ operator_bundle_src_dir }}"
       copy:
         src: "{{ operator_dir }}"
         dest: "{{ operator_bundle_src_dir }}"
+        mode: 0644
         remote_src: yes
 
     - set_fact:

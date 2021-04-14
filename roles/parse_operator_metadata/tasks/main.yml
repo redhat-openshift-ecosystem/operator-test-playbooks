@@ -166,7 +166,7 @@
       operator_pod_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].name }}"
       operator_container_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
       operator_capabilities: "{{ (csv_vars | from_yaml).metadata.annotations.capabilities }}"
-  
+
   - name: "Determine operator_allnamespaces_support"
     set_fact:
       operator_allnamespaces_support: "{{ (csv_vars | from_yaml).spec.installModes | json_query(query) }}"
@@ -202,6 +202,7 @@
     template:
       src: "parsed_operator_data.yml.j2"
       dest: "{{ work_dir }}/parsed_operator_data.yml"
+      mode: 0644
 
   - name: "Set success result"
     set_fact:
@@ -233,9 +234,11 @@
   always:
     - name: "Write parse_operator_metadata results to json file"
       copy:
-        content: "{{ parse_operator_metadata_results | to_nice_json }}" 
+        content: "{{ parse_operator_metadata_results | to_nice_json }}"
         dest: parse_operator_metadata_results.json
+        mode: 0644
     - name: "Output all collected data to a yaml file in work dir"
       template:
         src: "parsed_operator_data.yml.j2"
         dest: "{{ work_dir }}/parsed_operator_data.yml"
+        mode: 0644

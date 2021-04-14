@@ -4,7 +4,7 @@
 # - name: "Set the deployment start time"
 #   shell: "date -u '+%Y-%m-%dT%H:%M:%SZ'"
 #   register: deployment_start_time
-# 
+#
 # The above shell command gets the date in the same format passed by openshift
 # in the `oc get events` command below.  The below command gets all images
 # pulled to the cluster.  This includes images that were not pulled as part of
@@ -42,4 +42,5 @@
   copy:
     content: "{{ pulled_images | to_json }}"
     dest: "{{ events_file_path }}"
+    mode: 0644
   delegate_to: localhost

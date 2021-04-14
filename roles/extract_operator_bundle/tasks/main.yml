@@ -2,12 +2,14 @@
   file:
     state: "absent"
     path: "{{ operator_bundle_dir }}"
+    mode: o+rwx
   when: operator_bundle_dir is defined
 
 - name: "Ensure that the operator testing directory exists and is empty"
   file:
     state: "{{ item }}"
     path: "{{ operator_work_dir }}"
+    mode: o+rwx
   with_items:
     - absent
     - directory

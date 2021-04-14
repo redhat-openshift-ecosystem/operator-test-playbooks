@@ -10,6 +10,7 @@
   copy:
     content: "{{ sdk_version_result.stdout }}"
     dest: "{{ work_dir }}/validation-version.txt"
+    mode: 0644
   when: sdk_version_result.stdout is defined
 
 - name: "Set bundle_validate variable"
@@ -36,6 +37,7 @@
   copy:
     content: "{{ sdk_validation_result.rc }}"
     dest: "{{ work_dir }}/validation-rc.txt"
+    mode: 0644
   when: sdk_validation_result.rc is defined
 
 - name: "Fail if the operator didn't satisfy the operator-sdk validation test"

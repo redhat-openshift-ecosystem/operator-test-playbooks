@@ -10,6 +10,7 @@
     copy:
       content: "{{ skopeo_inspect_result.stdout }}"
       dest: "{{ work_dir }}/bundle-skopeo-inspect.json"
+      mode: 0644
     when:
       - skopeo_inspect_result is defined
       - skopeo_inspect_result.stdout != ""
@@ -140,6 +141,7 @@
     template:
       src: "parsed_operator_data.yml.j2"
       dest: "{{ work_dir }}/parsed_operator_data.yml"
+      mode: 0644
 
   - name: "Sanity check the operator bundle's information"
     include_tasks: "bundle_sanity_checks.yml"

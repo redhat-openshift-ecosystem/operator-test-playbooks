@@ -22,6 +22,7 @@
       file:
         state: "{{ item }}"
         path: "{{ bundle_input_tmp_dir }}"
+        mode: 0644
       with_items:
         - absent
         - directory
@@ -31,6 +32,7 @@
       file:
         state: "{{ item }}"
         path: "{{ bundle_input_src_dir }}"
+        mode: 0644
       with_items:
         - absent
         - directory

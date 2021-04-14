@@ -1,6 +1,6 @@
 name: "Build and push on tag event"
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on tag events events but only for the master branch
   push:
@@ -15,7 +15,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -31,7 +31,7 @@ jobs:
           git checkout $latestTag
           echo "Latest tag is $latestTag"
           podman --version
-          cd Dockerfiles 
+          cd Dockerfiles
           podman build -t midstream_image:$latestTag -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=v1.0.11
           podman login -u="$QUAY_USERNAME" -p="$QUAY_PASSWORD" quay.io
           podman push midstream_image:$latestTag quay.io/samvarankashyap/cvp-midstream-image:$latestTag

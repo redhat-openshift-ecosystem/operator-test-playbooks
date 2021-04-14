@@ -29,6 +29,7 @@
       file:
         path: "{{ ocp_install_directory }}/{{ cluster_name }}"
         state: "{{ item }}"
+        mode: 0644
       with_items:
         - absent
         - directory
@@ -37,6 +38,7 @@
       template:
         src: "{{ ocp_install_config_template }}"
         dest: "{{ ocp_install_directory }}/{{ cluster_name }}/install-config.yaml"
+        mode: 0644
 
     - name: Read pull_secret_file
       shell: "cat {{ pull_secret_file }}"

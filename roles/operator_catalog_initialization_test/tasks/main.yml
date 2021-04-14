@@ -34,6 +34,7 @@
   file:
     path: "{{ catalog_manifests_dir }}/{{ package_name }}"
     state: directory
+    mode: o+rwx
 
 - name: "Copy the testing operator metadata to the production catalog bundle"
   shell: "cp -R {{ operator_dir }}/* {{ catalog_manifests_dir }}/{{ package_name }}"
@@ -49,6 +50,7 @@
   copy:
     content: "{{ catalog_initializer_result.stdout }}"
     dest: "{{ work_dir }}/catalog-init-debug-{{ operator_registry_branch }}.txt"
+    mode: o+rwx
   when:
     - catalog_initializer_result.stdout != ""
 
@@ -56,6 +58,7 @@
   copy:
     content: "{{ catalog_initializer_result.rc }}"
     dest: "{{ work_dir }}/catalog-init-rc-{{ operator_registry_branch }}.txt"
+    mode: o+rwx
   when:
     - catalog_initializer_result.rc is defined
 

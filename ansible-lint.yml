@@ -1,0 +1,27 @@
+---
+
+exclude_paths:
+  - ansible-lint.yml
+  - yamllint.yml
+quiet: false
+skip_list:
+  - 'colons'
+  - 'comments'
+  - 'line-length'
+  - 'empty-lines'
+  - 'indentation'
+  - 'new-line-at-end-of-file'
+  - 'truthy'
+  - 'braces'
+  - 'comments-indentation'
+  - '102'
+  - '206'
+  - '301'
+  - '302'
+  - '303'
+  - '305'
+  - '306'
+  - '403'
+  - '502'
+  - '601'
+  - '602'

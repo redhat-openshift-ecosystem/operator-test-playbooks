@@ -13,7 +13,7 @@
     - reset
     - uninstall
 
-# TODO 
+# TODO
 # - check if docker exists
 # - check if registry exists
 - name: "Destroy current registry"
