@@ -149,7 +149,7 @@ ansible-playbook -vv -i "localhost," --connection=local local-test-operator.yml 
 If we would like to run the optional operator subscribe on the pre-built operator indices we can invoke the following playbook as follows:
 
 ```bash
-ansible-playbook -vvvv -i "localhost," connection=local optional-operators-subscribe.yml \
+ansible-playbook -vvvv -i "localhost," --connection=local optional-operators-subscribe.yml \
     -e kubeconfig_path="${KUBECONFIG_PATH}" \
     -e "OO_INDEX=${OPERATOR_INDEX}" \
     -e "OO_PACKAGE=${OPERATOR_PACKAGE}" \
