@@ -34,7 +34,7 @@ jobs:
           mkdir ./output_logs
           podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output midstream_image:latest
 
-      - name: "Run example operator-metadata through midstream ci image  --> negative test"
+      - name: "Run example operator-metadata through midstream ci image  --> negative parsing test"
         continue-on-error: true
         run: |
           rm -rf ./output_logs
@@ -51,3 +51,22 @@ jobs:
         if: ${{ cancelled() }}
         run: |
           exit 0
+
+      - name: "Run example operator-metadata through midstream ci image  --> negative operator-sdk validation test"
+        continue-on-error: true
+        run: |
+          rm -rf ./output_logs
+          mkdir ./output_logs
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output -e IMAGE_TO_TEST=quay.io/cvpops/test-operator:invalid-dependencies-v1 midstream_image:latest
+
+      - name: "Succeed if the negative test fails"
+        continue-on-error: false
+        if: ${{ failure() }}
+        run: |
+          exit 0
+
+      - name: "Fail if the previous job skips"
+        if: ${{ cancelled() }}
+        run: |
+          exit 0
+

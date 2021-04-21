@@ -33,10 +33,6 @@
   register: sdk_validation_result
   ignore_errors: true
 
-- name: "Display the validation results"
-  debug:
-    msg: "Operator sdk validation output:\n {{ sdk_validation_result.stdout_lines }}"
-
 - name: "Output the return code of operator-sdk bundle validate command to a debug file"
   copy:
     content: "{{ sdk_validation_result.rc }}"
@@ -50,6 +46,10 @@
     dest: "{{ work_dir }}/validation-output.txt"
     mode: 0644
   when: sdk_validation_result.stdout is defined
+
+- name: "Display the validation results"
+  debug:
+    msg: "Operator sdk validation output:\n {{ sdk_validation_result.stdout_lines }}"
 
 - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
   fail:
