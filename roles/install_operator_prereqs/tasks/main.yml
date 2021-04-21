@@ -3,7 +3,7 @@
   file:
     path: "{{ testing_bin_path }}"
     state: directory
-    mode: 0644
+    mode: 0744
   tags:
     - install
     - image_build

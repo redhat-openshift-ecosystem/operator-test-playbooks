@@ -11,7 +11,7 @@ RUN export ARCH=$(case $(arch) in x86_64) echo -n amd64 ;; aarch64) echo -n arm6
     curl -fL -o /usr/local/bin/umoci https://github.com/opencontainers/umoci/releases/download/${UMOCI_VERSION}/umoci.amd64 && \
     chmod a+x /usr/local/bin/umoci && \
     mkdir /project/output && \
-    dnf install --setopt=install_weak_deps=False -y git-core ansible skopeo dnf-plugins-core && \
+    dnf install --setopt=install_weak_deps=False -y git-core ansible skopeo && \
     dnf clean all
 ADD ./run_tests.py /run_tests.py
 CMD ["/run_tests.py"]
