@@ -34,6 +34,6 @@
   always:
   - name: "Store the result in a JSON file"
     copy:
-      dest: "optional_operator_subscribe.json"
+      dest: "{{ ARTIFACT_DIR }}/optional_operator_subscribe.json"
       content: "{{ shell_script_output }}"
       mode: 0644
