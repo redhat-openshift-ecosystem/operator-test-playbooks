@@ -17,7 +17,6 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -28,31 +27,46 @@ jobs:
         run: |
           podman --version
           cd Dockerfiles/midstream/
-          podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=master
-
-      - name: "Run example bundle through midstream_image -> POSITVE test"
+          podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0
+      - name: "Run example operator-metadata through midstream ci image  --> positive test"
+        continue-on-error: false
         run: |
-          cd Dockerfiles/midstream/
-          mkdir output_logs
-          podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output midstream_image:latest
-          # Test for files inside output_logs
-          test -f output_logs/validation-output.txt
-          test -f output_logs/validation-rc.txt
-          test -f output_logs/validation-version.txt
-          # clean output logs for next step
-          rm -rf output_logs/*
+          mkdir ./output_logs
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output midstream_image:latest
 
-      - name: "Run example bundle through midstream_image --> negative test"
+      - name: "Run example operator-metadata through midstream ci image  --> negative parsing test"
         continue-on-error: true
         run: |
-          # cd into Dockerfiles since it resets everystep
-          cd Dockerfiles/midstream/
-          mkdir empty-example-bundle
-          podman run -it -v ./empty-example-bundle:/project/operator-bundle -v ./output_logs:/project/output midstream_image:latest
+          rm -rf ./output_logs
+          mkdir ./output_logs
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output -e IMAGE_TO_TEST=quay.io/cvpops/test-operator:missing-alm-examples-v1 midstream_image:latest
 
-      - name: "Fail when previous step does not fail"
+      - name: "Succeed if the negative test fails"
+        continue-on-error: false
+        if: ${{ failure() }}
         run: |
-          test -f Dockerfiles/midstream/output_logs/validation-output.txt
-          test -f Dockerfiles/midstream/output_logs/validation-rc.txt
-          test -f Dockerfiles/midstream/output_logs/validation-version.txt
-          grep -inr "metadata not found in ../operator-bundle" Dockerfiles/midstream/output_logs/
+          exit 0
+
+      - name: "Fail if the previous job skips"
+        if: ${{ cancelled() }}
+        run: |
+          exit 0
+
+      - name: "Run example operator-metadata through midstream ci image  --> negative operator-sdk validation test"
+        continue-on-error: true
+        run: |
+          rm -rf ./output_logs
+          mkdir ./output_logs
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output -e IMAGE_TO_TEST=quay.io/cvpops/test-operator:invalid-dependencies-v1 midstream_image:latest
+
+      - name: "Succeed if the negative test fails"
+        continue-on-error: false
+        if: ${{ failure() }}
+        run: |
+          exit 0
+
+      - name: "Fail if the previous job skips"
+        if: ${{ cancelled() }}
+        run: |
+          exit 0
+
