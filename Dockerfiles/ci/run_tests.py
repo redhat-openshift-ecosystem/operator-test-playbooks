@@ -19,7 +19,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         self.playbooks_dir = os.getenv('PLAYBOOKS_DIR',
                                        "/project/operator-test-playbooks/")
 
-    def test_for_report_failed_empty_alm_examples(self):
+    def test_for_report_success_empty_alm_examples(self):
         exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
                     operator-test-playbooks/prepare-operator-metadata.yml \
                     -e 'operator_dir={operator_dir}' \
@@ -33,9 +33,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         with open("{}/parse_operator_metadata_results.json".format(self.playbooks_dir), "r") as fd:
             result_output = json.load(fd)
             print(result_output)
-            fail_msg = "Failed due to CSV.metadata.annotations['alm-examples'] is set to empty"
-            self.assertIn(fail_msg,
-                          result_output["msg"]["msg"])
+            self.assertEqual(result_output["result"], "pass")
 
 if __name__ == '__main__':
     unittest.main()

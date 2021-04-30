@@ -62,7 +62,7 @@
       file:
         path: "{{ scorecard_cr_dir }}"
         state: directory
-        mode: 0644
+        mode: 0744
       when:
         - run_scorecard|bool
         - not run_upstream|bool

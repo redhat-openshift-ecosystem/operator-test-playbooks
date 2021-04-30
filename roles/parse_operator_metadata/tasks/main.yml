@@ -152,15 +152,6 @@
       csv_vars: "{{ csv_data.stdout }}"
     when: not run_upstream|bool
 
-  - name: "Set facts for csv_data alm-examples"
-    set_fact:
-      csv_alm_examples: "{{ (csv_vars | from_yaml).metadata.annotations['alm-examples'] | default([]) }}"
-
-  - name: "Fail when alm-examples are set to empty"
-    fail:
-      msg: "Failed due to CSV.metadata.annotations['alm-examples'] is set to empty"
-    when: csv_alm_examples | length == 0
-
   - name: "Determine and setfact for podname"
     set_fact:
       operator_pod_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].name }}"
