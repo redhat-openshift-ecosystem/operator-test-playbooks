@@ -26,8 +26,9 @@ jobs:
         run: |
           podman --version
           podman build -t upstream_ci_image:latest -f Dockerfiles/ci/Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0
-      - name: "Run example operator-metadata through upstream_ci_image --> negative test"
+
+      - name: "Run example operator-metadata with missing alm-examples through upstream_ci_image --> positive test"
         continue-on-error: false
         run: |
           mkdir test_operator_work_dir output_logs
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-metadata-without-alm-annotations:/project/operator_dir -v ./output_logs:/project/output -v ./test_operator_work_dir:/project/test_operator_work_dir -e TEST_NAME=test_for_report_failed_empty_alm_examples -e OPERATOR_DIR=/project/operator_dir -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-metadata-without-alm-annotations:/project/operator_dir -v ./output_logs:/project/output -v ./test_operator_work_dir:/project/test_operator_work_dir -e TEST_NAME=test_for_report_success_empty_alm_examples -e OPERATOR_DIR=/project/operator_dir -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
