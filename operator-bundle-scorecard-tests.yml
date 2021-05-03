@@ -1,0 +1,15 @@
+---
+- name: "Run operator bundle scorecard test"
+  hosts: localhost
+  become: false
+  gather_facts: false
+
+  tasks:
+    # an existing deployment is a prerequisite for the scorecard tests
+    - name: "Run optional operators subscribe step"
+      include_role:
+        name: optional-operators-subscribe
+
+    - name: "Run the operator scorecard tests step"
+      include_role:
+        name: operator_bundle_scorecard_tests
