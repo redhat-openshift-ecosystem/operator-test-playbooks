@@ -31,45 +31,9 @@ jobs:
           podman --version
           cd Dockerfiles/midstream/
           podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0
-      - name: "Run example operator-metadata through midstream ci image  --> positive test"
+
+      - name: "Run unit tests"
         continue-on-error: false
         run: |
-          mkdir ./output_logs
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output midstream_image:latest
-
-      - name: "Run example operator-metadata through midstream ci image  --> negative parsing test"
-        continue-on-error: true
-        run: |
-          rm -rf ./output_logs
-          mkdir ./output_logs
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output -e IMAGE_TO_TEST=quay.io/cvpops/test-operator:missing-alm-examples-v1 midstream_image:latest
-
-      - name: "Succeed if the negative test fails"
-        continue-on-error: false
-        if: ${{ failure() }}
-        run: |
-          exit 0
-
-      - name: "Fail if the previous job skips"
-        if: ${{ cancelled() }}
-        run: |
-          exit 0
-
-      - name: "Run example operator-metadata through midstream ci image  --> negative operator-sdk validation test"
-        continue-on-error: true
-        run: |
-          rm -rf ./output_logs
-          mkdir ./output_logs
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./output_logs:/project/output -e IMAGE_TO_TEST=quay.io/cvpops/test-operator:invalid-dependencies-v1 midstream_image:latest
-
-      - name: "Succeed if the negative test fails"
-        continue-on-error: false
-        if: ${{ failure() }}
-        run: |
-          exit 0
-
-      - name: "Fail if the previous job skips"
-        if: ${{ cancelled() }}
-        run: |
-          exit 0
+          podman run -it -v $PWD:/project/operator-test-playbooks midstream_image:latest python3 /unit_tests.py
 
