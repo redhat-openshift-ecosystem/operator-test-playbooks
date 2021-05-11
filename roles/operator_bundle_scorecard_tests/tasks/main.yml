@@ -1,0 +1,25 @@
+---
+- name: "Run operator scorecard test"
+  block:
+  # in case of failure the following task fails
+  # we will be ignoring errors to display the results
+  - name: "Generate namespace name if not provided"
+    shell: "{{ lookup('file', 'optional-operators-cvp-common-scorecard-commands.sh') }}"
+    register: shell_script_output
+    environment:
+      OO_BUNDLE: "{{ OO_BUNDLE }}"
+      SHARED_DIR: "{{ ARTIFACT_DIR }}"
+      ARTIFACT_DIR: "{{ ARTIFACT_DIR }}"
+    ignore_errors: true
+
+  # incase of success/failure the output is being displayed the
+  - name: "Debug"
+    debug:
+      msg: "{{ shell_script_output.stdout_lines }}"
+
+  always:
+  - name: "Store the result in a text file"
+    copy:
+      dest: "{{ ARTIFACT_DIR }}/operator_bundle_scorecard_tests.txt"
+      content: "{{ shell_script_output }}"
+      mode: 0644
