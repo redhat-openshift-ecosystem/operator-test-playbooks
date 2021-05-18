@@ -234,6 +234,16 @@
         msg: 'Operator deployment with OLM failed, check the olm-*.txt files for more details'
       when: operator_result.rc != 0
 
+    - name: "Wait for the operator CSV {{ current_csv }} to be in the `Succeeded` phase before finishing"
+      shell: "{{ oc_bin_path }} -n {{ openshift_namespace }} get csv {{ current_csv }} -o jsonpath='{.status.phase}' || true"
+      register: operator_csv_phase
+      retries: 90
+      delay: 10
+      until: operator_csv_phase.stdout == "Succeeded"
+      ignore_errors: true
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
   rescue:
 
     - name: "Rescue block contains the error messages"
