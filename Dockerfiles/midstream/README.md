@@ -1,6 +1,14 @@
 # operator-bundle-validate-container
 CVP midstream operator bundle validate container
 
+## Prerequisites
+
+In order to run unit_tests.py on your local without any issues, you need to make sure 
+you run the command with specific options. 
+Here is an example of running the unit_tests.py locally
+`sudo podman run -it -v $PWD:/project/operator-test-playbooks:z <midstream_image> /unit_tests.py`
+First thing you reckon is that you are running this command directly from upstream repo `operator-test-playbooks` and you have build your own midstream_image locally from Dockerfiles/midstream/Dockerfile.
+
 # Usage
 
 ## Building image on local machine 
