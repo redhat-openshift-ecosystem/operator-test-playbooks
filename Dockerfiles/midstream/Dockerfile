@@ -3,7 +3,7 @@ WORKDIR /project
 ARG OPERATOR_SDK_VERSION=v1.4.0
 ARG OPERATOR_TEST_PLAYBOOKS_TAG=v1.0.11
 ARG UMOCI_VERSION=v0.4.5
-ADD ./entrypoint.sh /entrypoint.sh
+ADD ./fix_etc_passwd.sh /usr/bin/fix_etc_passwd.sh
 RUN export ARCH=$(case $(arch) in x86_64) echo -n amd64 ;; aarch64) echo -n arm64 ;; *) echo -n $(arch) ;; esac);\
     export OS=$(uname | awk '{print tolower($0)}');\
     export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/;\
