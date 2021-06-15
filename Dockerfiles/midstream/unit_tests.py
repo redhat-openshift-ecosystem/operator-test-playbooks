@@ -11,8 +11,18 @@ class Testing(unittest.TestCase):
         export IMAGE_TO_TEST=quay.io/cvpops/test-operator:v1.0-16
         /run_tests.py
         """
-        self.assertFalse(os.path.exists(".errormessage"), "File .errormessage should not be present!")
         result = subprocess.run(exec_cmd, shell=True)
+        self.assertFalse(os.path.exists(".errormessage"), "File .errormessage should not be present!")
+        self.assertEqual(0, result.returncode)
+
+    # Running the container with correctly set environment variables, default channel missing, all tasks should pass
+    def test_positive_missing_default_channel(self):
+        exec_cmd = """
+        export IMAGE_TO_TEST=quay.io/cvpops/test-operator:missing-default-channel-v1
+        /run_tests.py
+        """
+        result = subprocess.run(exec_cmd, shell=True)
+        self.assertFalse(os.path.exists(".errormessage"), "File .errormessage should not be present!")
         self.assertEqual(0, result.returncode)
 
     # Set env variable to custom made image that makes playbook extract-operator-bundle.yml fail
