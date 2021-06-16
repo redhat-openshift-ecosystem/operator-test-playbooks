@@ -1,0 +1,4 @@
+oc_bin_path: "{{ 'kubectl' if run_upstream else 'oc' }}"
+openshift_namespace: test-operator
+current_channel: alpha
+kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"

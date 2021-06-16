@@ -1,0 +1,45 @@
+---
+- name: "Export list of packages"
+  include_role:
+    name: export_list_of_packages_from_index
+  vars:
+    bundle_index_image_input: "{{ sis_index_image_output }}"
+    min_operators_in_index_allowed: ""
+
+- name: "Setting list of package"
+  set_fact:
+    output_packages: "{{ elopfi_index_packages | map('regex_replace', '@sha256', '') | list }}"
+
+- name: "Export list of packages"
+  include_role:
+    name: export_list_of_packages_from_index
+  vars:
+    bundle_index_image_input: "{{ sis_index_image_input }}"
+    min_operators_in_index_allowed: ""
+
+- name: "Setting list of package"
+  set_fact:
+    input_packages: "{{ elopfi_index_packages }}"
+
+
+- name: "Setting list of package"
+  set_fact:
+    sis_missing_packages: "{{ input_packages | difference(output_packages) }}"
+
+- name: "Prints input packages"
+  debug:
+    var: input_packages
+
+- name: "Prints output packages"
+  debug:
+    var: output_packages
+
+- name: "Prints missing packages"
+  debug:
+    var: sis_missing_packages
+
+- name: "Loop over missing packages"
+  include_tasks: single_operator.yml
+  loop: "{{ sis_missing_packages }}"
+  loop_control:
+    loop_var: si_item

@@ -1,0 +1,72 @@
+---
+- name: "Fail if 'bundle_index_image' is not defined"
+  fail:
+    msg: "Variable 'bundle_index_image' is missing. Please set it via '-e bundle_index_image=<bundle-index-image>'"
+  when: bundle_index_image is undefined or bundle_index_image|length == 0
+
+- name: "Quay login"
+  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  no_log: true
+  when:
+    - quay_user is defined
+    - quay_password is defined
+    - quay_user|length > 0
+    - quay_password|length > 0
+
+- name: "Quay login via auth token"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+  no_log: true
+  when:
+    - (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0)
+    - quay_api_token is defined and quay_api_token|length > 0
+
+- name: "Gather list of all operators"
+  include_role:
+    name: gather_all_operators_to_dict
+  vars:
+    gaotd_include_versions: false
+
+- name: "Setting operator dirs"
+  debug:
+    var: gaotd_operator_dirs
+
+- name: "Ensure that the 'bundle_export_dir_app_registry' directory exists and is empty"
+  file:
+    state: "{{ item }}"
+    path: "{{ bundle_export_dir_app_registry }}"
+  with_items:
+    - absent
+    - directory
+
+- name: "Loop over all operators and export them"
+  include_tasks: export_operator.yml
+  vars:
+    app_registry_base_dir: "{{ bundle_export_dir_app_registry }}"
+    app_registry_parallel: false
+  loop: "{{ gaotd_operator_packages }}"
+  loop_control:
+    loop_var: bar_op
+  when: not index_export_parallel|bool
+
+- name: "Export all operators in parallel"
+  include_tasks: export_operator.yml
+  vars:
+    app_registry_base_dir: "{{ bundle_export_dir_app_registry }}"
+    app_registry_parallel: true
+    bar_op: "{{ gaotd_operator_packages | join(',') }}"
+  when: index_export_parallel|bool
+
+- name: "Building and pushing app registry"
+  block:
+    - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}'"
+      shell: "{{ container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
+
+    - name: "Push app registry image '{{ app_registry_image }}'"
+      shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
+  when:
+    - app_registry_build_dir is defined
+    - app_registry_build_dir|length > 0
+    - app_registry_build_file is defined
+    - app_registry_build_file|length > 0
+    - app_registry_image is defined
+    - app_registry_image|length > 0

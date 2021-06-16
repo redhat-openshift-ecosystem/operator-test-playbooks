@@ -1,0 +1,62 @@
+---
+- name: "Install required system packages"
+  package:
+    name:
+      - curl
+      - findutils
+      - openssl
+      - screen
+      - ca-certificates
+      - python3-pip
+      - python3-setuptools
+    state: present
+    update_cache: true
+  become: true
+  tags:
+    - install
+    - host_build
+    - image_build
+
+- name: "Install required for Ubuntu system only"
+  block:
+    - name: Install packages via system package manager
+      package:
+        name:
+          - software-properties-common
+          - virtualenv
+          - sqlite3
+        state: present
+        update_cache: true
+
+    - name: Install python modules
+      pip:
+        name:
+          - jmespath
+
+    - name: Install python modules (pip3)
+      pip:
+        name:
+          - docker
+          - docker-compose
+        executable: pip3
+  become: true
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  tags:
+    - install
+    - host_build
+    - image_build
+
+- name: "Install required for RedHat/CentOS system only"
+  package:
+    name:
+      - python3-virtualenv
+      - python3-dockerpty
+      - sqlite
+    state: present
+    update_cache: true
+  become: true
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' or ansible_distribution == 'Fedora'
+  tags:
+    - install
+    - host_build
+    - image_build

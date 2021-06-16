@@ -1,0 +1,113 @@
+---
+
+- name: "Find all validation files"
+  find:
+    paths: "{{ work_dir }}"
+    patterns: "validation-*"
+  register: vob_validation_files_to_delete
+
+- name: "Remove previous validation results"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ vob_validation_files_to_delete.files }}"
+
+- name: "Output the operator-sdk version"
+  shell: "{{ operator_sdk_bin_path }} version"
+  register: sdk_version_result
+
+- name: "Output the operator-sdk version to a debug file"
+  copy:
+    content: "{{ sdk_version_result.stdout }}"
+    dest: "{{ work_dir }}/validation-version.txt"
+  when: sdk_version_result.stdout is defined
+
+- name: "Set bundle_validate variable"
+  set_fact:
+    bundle_validate: "{{ bundle_image }}"
+  when: run_upstream|bool
+
+- name: "Set bundle_validate variable"
+  set_fact:
+    bundle_validate: "{{ operator_work_dir }}"
+  when: not run_upstream|bool
+
+- name: "Handle manifest and metadata validation for Openshift"
+  block:
+    - name: "Pull index image '{{ bundle_validate }}' (operator_sdk_none fix)"
+      shell: "{{ container_tool }} pull {{ bundle_validate }}"
+      when:
+        - operator_sdk_container_tool is defined
+        - operator_sdk_container_tool == "none"
+
+    - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
+      shell: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_validate }} -b {{ operator_sdk_container_tool }}"
+      register: sdk_validation_result
+      ignore_errors: true
+
+    - name: "Output the return code of operator-sdk bundle validate command to a debug file"
+      copy:
+        content: "{{ sdk_validation_result.rc }}"
+        dest: "{{ work_dir }}/validation-rc.txt"
+      when: sdk_validation_result.rc is defined
+
+    - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
+      fail:
+        msg: 'Operator sdk validation test failed, check validation-output.txt for more details'
+      when:
+        - check_validation_result|bool
+        - sdk_validation_result.rc != 0
+  when: not run_upstream|bool
+
+- name: "Checking validation of operator bundle"
+  block:
+
+    - name: "Pull index image '{{ bundle_image }}' (operator_sdk_none fix)"
+      shell: "{{ container_tool }} pull {{ bundle_image }}"
+      when:
+        - operator_sdk_container_tool is defined
+        - operator_sdk_container_tool == "none"
+
+    - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
+      shell: "OPERATOR_BUNDLE_CATEGORIES={{ catalog_repo_dir }}/categories.json {{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }} {{ operator_sdk_validate_extra_args }}"
+      register: sdk_validation_upstream_result
+      ignore_errors: true
+
+    - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
+      fail:
+        msg: 'Operator sdk validation test failed, check validation-output.txt for more details'
+      when:
+        - permisive is not defined or not permisive|bool
+        - check_validation_result|bool
+        - sdk_validation_upstream_result.rc != 0
+
+    - name: "Getting categories content from csv '{{ csv_file_path | basename }}'"
+      shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata.annotations.categories"
+      register: csv_data_metadata_annotations_categories
+      ignore_errors: true
+
+    - name: "Sets operator categories from csv '{{ csv_file_path | basename }}'"
+      set_fact:
+        vob_categories: "{{ csv_data_metadata_annotations_categories.stdout | from_yaml }}"
+      ignore_errors: true
+      when: csv_data_metadata_annotations_categories is defined
+
+    - name: "Failing when 'categories' are missing'"
+      fail:
+        msg: "Key not found - 'metadata.annotations.categories'"
+      when: csv_data_metadata_annotations_categories is not defined
+
+    - name: "Failing when 'categories' are empty'"
+      fail:
+        msg: "An empty value found - 'metadata.annotations.categories'"
+      when: vob_categories|length == 0
+
+    - name: "Handle permissive mode when operator is failing to deploy on kind cluster"
+      set_fact:
+        test_all_add_failed_name_version_validation: "{{ test_all_add_failed_name_version_validation | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
+      when:
+        - permisive is defined
+        - permisive|bool
+        - sdk_validation_upstream_result.rc != 0
+
+  when: run_upstream|bool

@@ -1,0 +1,112 @@
+---
+- name: "Handle operator input image"
+  block:
+    - name: "Seting image protocol"
+      set_fact:
+        image_protocol: "docker-daemon:"
+
+    - name: "Handle operator image input"
+      include_role:
+        name: convert_bundle_image_to_dir
+  when:
+    - operator_input_image is defined
+    - operator_input_image|length > 0
+
+- name: "Detect operator format"
+  block:
+    - name: "Failing when operator version is not defined"
+      fail:
+        msg: "Operator version 'op_version' is undefined !!!"
+      when:
+        - (op_version is undefined or op_version|length == 0)
+
+    - name: "Search for annotations.yml"
+      find:
+        paths: "{{ operator_dir }}/{{ op_version }}/metadata"
+        patterns: "annotations.yaml"
+      register: annotations_presence
+
+    - name: "Set operator_format to package manifest or bundle"
+      set_fact:
+        operator_format: '{{ ''bundle'' if annotations_presence.files else ''manifest'' }}'
+        operator_name: "{{ operator_dir | basename }}"
+        operator_dir_name: "{{ operator_dir | basename }}"
+        operator_base_dir: "{{ operator_dir | dirname }}"
+
+    - name: "Export CSV variables"
+      include_role:
+        name: export_csv
+      vars:
+        op_csv_dir: "{{ operator_dir }}/{{ op_version }}"
+
+    - name: "Export Package variables"
+      include_role:
+        name: export_manifest_package_info
+      vars:
+        op_dir: "{{ operator_dir }}"
+      when: operator_format == "manifest"
+
+    - name: "Set operator name variable from csv"
+      set_fact:
+        operator_name: "{{ operator_vars.metadata.name.split('.')[0] }}"
+        image_protocol: "docker-daemon:"
+        run_manifest_test: "{{ run_manifest_test | default(false) }}"
+        run_bundle_test: "{{ run_bundle_test | default(true) }}"
+
+    - name: "Read the variables from annotations.yaml"
+      block:
+        - name: "Setting path names for csv and annotation"
+          set_fact:
+            annotation_file_path: "{{ operator_dir }}/{{ op_version }}/metadata/annotations.yaml"
+
+        - name: "Check if annotation file exists"
+          stat:
+            path: "{{ annotation_file_path }}"
+          register: annotation_file_st
+
+        - name: "Fail if annotation file doesn't exists"
+          fail:
+          when: not annotation_file_st.stat.exists
+
+        - name: "Getting content of annotation.yaml file"
+          shell: "cat {{ annotation_file_path }}"
+          register: annotation_data
+
+        - name: "Sets `annotations_vars` from yaml file"
+          set_fact:
+            annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
+
+        - name: "Verify required annotation(s)"
+          block:
+            - name: "Reset 'df_failed_annotations_keys'"
+              set_fact:
+                df_failed_annotations_keys: ""
+
+            - name: "If the required keys is not found among the image labels, add it to the failed_labels"
+              set_fact:
+                df_failed_annotations_keys: "{{ df_failed_annotations_keys }} {{ item }}"
+              when: item not in annotations_vars.annotations
+              loop: "{{ required_annotations }}"
+
+            - name: "Fail if any of the required operator annotation(s) are not found"
+              fail:
+                msg: "Required operator bundle annotation(s) not found: {{ df_failed_annotations_keys }}"
+              when: df_failed_annotations_keys|length > 0
+
+          when: run_upstream|bool
+
+
+        - name: "Set operators variables from annotation file"
+          set_fact:
+            operator_channels: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'] }}"
+            operator_manifest_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1'] }}"
+            operator_metadata_dir: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1'] }}"
+            operator_package_name: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] }}"
+
+        - name: "Failing when package name '{{ operator_package_name }}' is not same as operator dir name '{{ operator_dir_name }}'"
+          fail:
+            msg: "Package name from '{{ annotation_file_path }}' is '{{ operator_package_name }}' and it is not same as operator dir '{{ operator_dir_name }}' !!!"
+          when:
+            - operator_package_name != operator_dir_name
+
+      when: operator_format == "bundle"

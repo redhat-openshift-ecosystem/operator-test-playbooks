@@ -1,0 +1,51 @@
+---
+- name: "Verify ocp versions are valid"
+  fail:
+    msg: "com.redhat.openshift.versions must only contain v4.5"
+  when:
+    - (ocp_versions|length==0) or (ocp_versions|length>1) or ocp_versions[0] != "v4.5"
+    - not run_upstream|bool
+
+- name: "Read the variables from annotations.yaml"
+  include_vars:
+    file: "{{ operator_work_dir }}/metadata/annotations.yaml"
+    name: annotations_vars
+  when: not run_upstream|bool
+
+- name: "Read the variables from annotations.yaml"
+  block:
+    - name: "Get content of annotations.yaml file"
+      shell: cat "{{ operator_work_dir }}/metadata/annotations.yaml"
+      register: annotation_data
+
+    - name: "Seting annotation variables"
+      set_fact:
+        annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
+
+  when:
+    - run_upstream|bool
+    - doic_skip_file_check is not defined
+    - not doic_skip_file_check|bool
+
+- name: "Printing labels from skopeo inspect"
+  debug:
+    var: skopeo_inspect_json.Labels
+    verbosity: 2
+
+- name: "Printing annotation vars"
+  debug:
+    var: annotations_vars.annotations
+    verbosity: 2
+
+- name: "Loop ver all annotation values"
+  include_tasks: check_annotation_label.yml
+  with_items:
+    - operators.operatorframework.io.bundle.channels.v1
+    - operators.operatorframework.io.bundle.manifests.v1
+    - operators.operatorframework.io.bundle.mediatype.v1
+    - operators.operatorframework.io.bundle.metadata.v1
+    - operators.operatorframework.io.bundle.package.v1
+    - com.redhat.openshift.versions
+  when:
+    - doic_skip_file_check is not defined
+    - not doic_skip_file_check|bool

@@ -1,0 +1,56 @@
+---
+- name: "Set operator name and version"
+  set_fact:
+    dov_op_name: "{{ cic_chi_git_not_index_operator.split(':')[0] }}"
+    doic_versions_processing: "{{ cic_chi_git_not_index_operator.split(':v')[1] }}"
+    ptq_ready: false
+    ocp_version_annotation_stdout: ""
+
+- name: "Set path to the file containing labels for version {{ doic_versions_processing }}"
+  set_fact:
+    labels_file_path: "{{ stream_path }}/{{ dov_op_name }}/{{ doic_versions_processing }}/{{ labels_annotations }}"
+
+- name: "Check that {{ labels_file_path }} exists"
+  stat:
+    path: "{{ labels_file_path }}"
+  register: annotations_file_path_presence
+
+- name: "Get info from {{ labels_file_path }}"
+  include_tasks: get_info.yml
+  when:
+    - annotations_file_path_presence.stat.exists
+
+- name: "No files to check cluster version - ready for 'Push to appreg'"
+  set_fact:
+    ptq_ready: true
+  when:
+    - not annotations_file_path_presence.stat.exists
+    - quay_appregistry_courier_token is defined
+
+- name: "Detect operators in cluster"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: op_ver.yml
+  when:
+    - ocp_version_annotation_stdout|length > 0
+    - annotations_file_path_presence.stat.exists
+    - quay_appregistry_courier_token is not defined
+    - not ptq_ready|bool
+
+- name: "Detect operators in cluster for appregistry (ptq)"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: op_ver_own_logic.yml
+  when:
+    - ocp_version_annotation_stdout|length > 0
+    - annotations_file_path_presence.stat.exists
+    - quay_appregistry_courier_token is defined
+    - not ptq_ready|bool
+
+- name: "Supported (ptq)"
+  include_role:
+    name: detect_operators_in_cluster
+    tasks_from: simple_found_or_not.yml
+  when:
+    - ptq_ready|bool
+    - quay_appregistry_courier_token is defined

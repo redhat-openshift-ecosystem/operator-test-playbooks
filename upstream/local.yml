@@ -1,0 +1,232 @@
+---
+- name: "Test operator main playbook"
+  hosts: all
+  become: false
+  gather_facts: false
+  vars:
+    run_host_init: true
+    run_prereqs: true
+    run_upstream: false
+    run_lint: false
+    run_catalog_init: true
+    run_deploy: true
+    run_scorecard: true
+    run_imagesource: true
+    run_cleanup: true
+    run_remove_catalog_repo: true
+    run_manifest_test: false
+    run_bundle_test: true
+    run_prepare_catalog_repo_upstream: true
+    work_dir: "/tmp/operator-test"
+    operator_dir: "dummy" # so operator-courier will be installed
+    operator_input_image: ""
+    image_protocol: "docker://"
+    bundle_image: "dummy" # so skopeo and umoci will be installed
+    operator_work_dir: "{{ work_dir }}/operator-files"
+    operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
+    testing_bin_path: "{{ work_dir }}/bin"
+    jq_bin_path: "{{ testing_bin_path }}/jq"
+    yq_bin_path: "{{ testing_bin_path }}/yq"
+    go_bin_path: "{{ testing_bin_path }}/go/bin/go"
+    operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
+    umoci_bin_path: "{{ testing_bin_path }}/umoci"
+    opm_bin_path: "{{ testing_bin_path }}/opm"
+    offline_cataloger_bin_path: "offline-cataloger"
+    kind_version: v0.9.0
+    kind_kube_version: v1.21.1
+    operator_sdk_version: v1.8.0
+    operator_courier_version: 2.1.11
+    olm_version: 0.17.0
+    opm_version: v1.17.0
+    oc_version: 4.3.5
+    go_version: 1.13.7
+    jq_version: 1.6
+    yq_version: 2.2.1
+    umoci_version: v0.4.5
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+
+  pre_tasks:
+    - setup:
+      tags:
+        - always
+      when: run_upstream|bool
+
+    - name: "Setting basic task variables"
+      set_fact:
+        dc_changes_allowed:
+          - spec.description
+          - spec.displayName
+          - spec.icon
+          - metadata.annotations.description
+          - metadata.annotations.alm-examples
+        supported_cluster_versions: "latest"
+        supported_cluster_version_latest: "latest"
+        use_cluster_filter: false
+        work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
+        operator_dir: "{{ operator_dir | default('dummy') }}"
+        operator_input_image: "{{ operator_input_image | default('') }}"
+        image_protocol: "{{ image_protocol | default('docker://') }}"
+        bundle_image: "{{ bundle_image | default('dummy') }}"
+        run_host_init: "{{ run_host_init | default(true) }}"
+        run_prereqs: "{{ run_prereqs | default(true) }}"
+        run_upstream: "{{ run_upstream | default(false) }}"
+        run_lint: "{{ run_lint | default(false) }}"
+        run_catalog_init: "{{ run_catalog_init | default(true) }}"
+        run_deploy: "{{ run_deploy | default(true) }}"
+        run_scorecard: "{{ run_scorecard | default(true) }}"
+        run_imagesource: "{{ run_imagesource | default(true) }}"
+        run_cleanup: "{{ run_cleanup | default(true) }}"
+        run_remove_catalog_repo: "{{ run_remove_catalog_repo | default(true) }}"
+        operator_format: "bundle"
+        check_verify_result: "{{ check_verify_result | default(true) }}"
+        operator_suggested_namespace_default: test-operators
+
+      tags:
+        - always
+    - name: "Sets 'run_prereqs' to false when running 'pure_test' tag"
+      set_fact:
+        run_prereqs: false
+        index_git_check: false
+      tags:
+        - never
+        - pure_test
+        - pure_test_all
+
+    - name: "Sets variables for docker"
+      set_fact:
+        opm_container_tool: "docker"
+        opm_container_tool_index: "docker"
+        operator_sdk_container_tool: "docker"
+      when: container_tool == "docker"
+      tags:
+        - always
+
+    - name: "Sets variables for podman"
+      set_fact:
+        opm_container_tool: "podman"
+        opm_container_tool_index: ""
+        operator_sdk_container_tool: "none"
+        container_push_extra: "--format=docker"
+      when: container_tool == "podman"
+      tags:
+        - always
+
+    - name: "Set safety variables for production"
+      set_fact:
+        min_operators_in_index_allowed: 30
+        max_missing_operators_allowed: 20
+      when:
+        - enable_production is defined
+        - enable_production|bool
+      tags:
+        - always
+
+    - name: "Sets variables for openshift"
+      set_fact:
+        supported_cluster_versions: "v4.6,v4.7,v4.8"
+        supported_cluster_version_latest: "v4.6"
+        use_cluster_filter: true
+        operator_sdk_validate_extra_args: "--select-optional suite=operatorframework"
+        # operator_sdk_validate_extra_args: "--select-optional suite=operatorframeworkd --select-optional name=community"
+      when: (stream_kind is defined and stream_kind == "openshift_upstream")
+      tags:
+        - always
+
+  roles:
+    - {role: install_base_packages, tags: ["base"], when: run_host_init|bool}
+    - {role: install_docker, tags: ["docker"], when: run_host_init|bool}
+    - {role: install_kubectl, tags: ["kubectl"], when: run_host_init|bool}
+    - {role: install_kind, tags: ["kind"], when: run_host_init|bool}
+    - {role: install_iib, tags: ["never", "iib"], when: run_upstream|bool}
+    - {role: install_operator_prereqs, tags: ["never", "host_build"], when: run_upstream|bool}
+    - {role: extract_tool_info, tags: ["always", "host_build"], when: run_upstream|bool}
+    - {role: prepare_catalog_repo_upstream, tags: ["always"], when: (run_upstream|bool and run_prepare_catalog_repo_upstream|bool)}
+    - {role: quay_login, tags: ["always"], when: run_upstream|bool}
+    - {role: loop_all_tests, tags: [never, "test_all", "pure_test_all"], when: run_upstream|bool}
+    - {role: check_prod_bundle, tags: [never, "test_lite", "pure_test_lite"], when: run_upstream|bool}
+    - {role: build_app_registry, tags: [never, "app_registry"], when: run_upstream|bool}
+    - {role: sync_index_sha, tags: ["sync_index_sha"]}
+
+  tasks:
+    - name: "Setting input variables for testing"
+      set_fact:
+        run_manifest_test: "{{ run_manifest_test | default(false) }}"
+        run_bundle_test: "{{ run_bundle_test | default(true) }}"
+        image_protocol: "{{ image_protocol | default('docker://') }}"
+        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+      tags:
+        - always
+        - test
+        - pure_test
+
+    - name: "Sets 'run_prereqs' to false when running 'pure_test' tag"
+      set_fact:
+        run_prereqs: false
+      tags:
+        - never
+        - pure_test
+        - pure_test_lite
+        - pure_test_all
+        - pure_test_all
+
+    - name: "Failing when input image is specified"
+      fail:
+        msg: "Input image is not supported for now"
+      when:
+        - operator_input_image is defined
+        - operator_input_image|length > 0
+      tags:
+        - always
+        - test
+        - pure_test
+
+    - name: "Check operator format consistency"
+      include_role:
+        name: check_operator_format_consistency
+      when:
+        - operator_dir is defined
+        - operator_dir|length > 0
+        - operator_dir != "dummy"
+      tags:
+        - always
+        - test
+        - pure_test
+
+    - name: "Force remove operator"
+      include_role:
+        name: remove_operator_bundle
+      when:
+        - operator_dir is defined
+        - operator_dir|length > 0
+        - operator_dir != "dummy"
+      tags:
+        - never
+        - remove_operator
+
+- name: "Running operator manifest test"
+  import_playbook: local-test-operator.yml
+  when:
+    - run_upstream|bool
+    - run_manifest_test|bool
+  tags:
+    - test
+    - pure_test
+
+- name: "Running operator bundle test"
+  import_playbook: local-test-operator-bundle.yml
+  when:
+    - run_upstream|bool
+    - run_bundle_test|bool
+  tags:
+    - test
+    - pure_test
+
+- name: "Deploy operator bundle for each"
+  import_playbook: local-deploy-operator-bundle.yml
+  when:
+    - run_upstream|bool
+  tags:
+    - never
+    - deploy_bundles

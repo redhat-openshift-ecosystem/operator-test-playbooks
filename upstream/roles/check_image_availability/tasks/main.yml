@@ -1,0 +1,101 @@
+---
+# executed from Kubernetes and Openshift
+- name: "Prepare vars for Openshift run"
+  block:
+    - name: "Set basics"
+      find:
+        paths: "{{ operator_dir }}/{{ op_version }}"
+        recurse: true
+        file_type: file
+        patterns: "*.clusterserviceversion.yaml"
+      register: cia_csv_paths
+
+    - name: "Set CSV path"
+      set_fact:
+        csv_file_path: "{{ cia_csv_paths.files | map(attribute='path' ) | list | first }}"
+
+    - name: "Download yq ({{ yq_version }})"
+      get_url:
+        url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
+        dest: "{{ yq_bin_path }}"
+        mode: "0755"
+      register: yq_install_result
+      until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: yq_install_result is failure
+
+  when: not run_upstream|bool
+
+- name: "Getting external image from csv '{{ csv_file_path | basename }}'"
+  shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata.annotations.containerImage"
+  register: operator_external_image_raw
+  ignore_errors: true
+
+- name: "Sets operator external image from csv '{{ csv_file_path | basename }}'"
+  set_fact:
+    operator_external_image: "{{ operator_external_image_raw.stdout | from_yaml }}"
+  ignore_errors: true
+  when: operator_external_image_raw is defined
+
+- name: "Print err message if image not found"
+  fail:
+    msg: "Value of 'metadata.annotations.containerImage' not found, please check."
+  when:
+    - operator_external_image is not defined
+
+- name: "Check external image"
+  block:
+
+    - name: "Check if '{{ operator_external_image }}' is used in a container"
+      shell: "grep {{ operator_external_image }} {{ csv_file_path }}|wc -l"
+      register: vob_annotation_image_count
+
+    - name: "Set annotation image count"
+      set_fact:
+        vob_annotation_image_count_stdout: "{{ vob_annotation_image_count.stdout }}"
+      when:
+        - vob_annotation_image_count is defined and vob_annotation_image_count|length > 0
+
+    - name: "Print err message"
+      fail:
+        msg: "Value of 'metadata.annotations.containerImage' not used in any container, please check."
+      when: vob_annotation_image_count_stdout|int < 2
+
+    - name: "Pull external operator image '{{ operator_external_image }}' on Kubernetes"
+      shell: "{{ container_tool }} pull {{ operator_external_image }}"
+      register: vob_pull_external_image_kube
+      ignore_errors: true
+      when: run_upstream|bool
+
+    - name: "Print err message on Kubernetes"
+      fail:
+        msg: "Unable to pull {{ operator_external_image }}, please check permissions or path."
+      when:
+        - run_upstream|bool
+        - vob_pull_external_image_kube.rc|int!=0
+
+    - name: "Openshift"
+      block:
+        - name: "Namespace"
+          shell: "{{ oc_bin_path }} create namespace testimagepull"
+          register: vob_pull_external_image_oc
+          ignore_errors: true
+
+        - name: "Run external operator image '{{ operator_external_image }}' on Openshift"
+          shell: "{{ oc_bin_path }} run testimagepull --image={{ operator_external_image }} -n testimagepull"
+          register: vob_pull_external_image_oc
+          ignore_errors: true
+
+      when: not run_upstream|bool
+
+    - name: "Print err message on Openshift"
+      fail:
+        msg: "Unable to pull/run {{ operator_external_image }}, please check permissions or path."
+      when:
+        - not run_upstream|bool
+        - vob_pull_external_image_oc.rc|int!=0
+
+  when:
+    - operator_external_image is defined
+    - operator_external_image|length > 0

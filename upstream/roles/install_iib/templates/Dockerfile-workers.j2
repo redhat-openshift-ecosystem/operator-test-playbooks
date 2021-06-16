@@ -1,0 +1,80 @@
+FROM centos:8 AS builder
+
+RUN dnf -y install dnf-plugins-core \
+    && dnf -y install epel-release \
+    && dnf config-manager --set-enabled powertools
+
+RUN dnf -y install \
+    --setopt=deltarpm=0 \
+    --setopt=install_weak_deps=false \
+    --setopt=tsflags=nodocs \
+    git \
+    golang \
+    make \
+    git \
+    rpm-build \
+    redhat-rpm-config \
+    go-compilers-golang-compiler \
+    glib2-devel \
+    glibc-static \
+    gpgme-devel \
+    libassuan-devel \
+    libgpg-error-devel \
+    libseccomp-devel \
+    ostree-devel \
+    systemd-devel \
+    && dnf clean all
+
+ENV OPM_SRC="/src"
+ENV OPM_TAG="v1.14.2"
+
+RUN git clone https://github.com/operator-framework/operator-registry $OPM_SRC && \
+    (cd $OPM_SRC && git checkout $OPM_TAG && make build) && \
+    cp $OPM_SRC/bin/opm /usr/bin/opm
+
+# Version 1.9.3 not available due to https://bugs.centos.org/view.php?id=17786
+COPY ./docker/podman-1.9.3-2.module+el8.2.1+6867+366c07d6.src.rpm /tmp/podman-1.9.3-2.module+el8.2.1+6867+366c07d6.src.rpm
+COPY ./docker/golang-github-cpuguy83-go-md2man-1.0.7-13.module+el8.1.0+3342+b2bcedec.src.rpm /tmp/golang-github-cpuguy83-go-md2man-1.0.7-13.module+el8.1.0+3342+b2bcedec.src.rpm
+RUN rpmbuild --rebuild /tmp/golang-github-cpuguy83-go-md2man-1.0.7-13.module+el8.1.0+3342+b2bcedec.src.rpm \
+    && dnf install -y ~/rpmbuild/RPMS/x86_64/golang-github-cpuguy83-go-md2man-1.0.7-13.el8.x86_64.rpm
+RUN rpmbuild --rebuild /tmp/podman-1.9.3-2.module+el8.2.1+6867+366c07d6.src.rpm \
+    && cp ~/rpmbuild/RPMS/x86_64/podman-1.9.3-2.el8.x86_64.rpm /tmp/podman-1.9.3-2.el8.x86_64.rpm
+
+FROM centos:8
+LABEL maintainer="Red Hat - EXD"
+
+WORKDIR /src
+# Install podman 1.7.0 from Fedora 30 as a workaround for
+# https://bugzilla.redhat.com/show_bug.cgi?id=1801874
+RUN dnf -y install \
+    --setopt=deltarpm=0 \
+    --setopt=install_weak_deps=false \
+    --setopt=tsflags=nodocs \
+    /etc/containers/storage.conf \
+    buildah \
+    fuse-overlayfs \
+    gcc \
+    krb5-devel \
+    runc \
+    python3-devel \
+    python3-pip \
+    skopeo \
+    && dnf clean all
+
+COPY --from=builder /tmp/podman-1.9.3-2.el8.x86_64.rpm /tmp/podman-1.9.3-2.el8.x86_64.rpm
+RUN dnf -y install /tmp/podman-1.9.3-2.el8.x86_64.rpm
+
+COPY --from=builder /usr/bin/opm /usr/bin/opm
+ADD https://github.com/estesp/manifest-tool/releases/download/v1.0.0/manifest-tool-linux-amd64 /usr/bin/manifest-tool
+ADD https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz /src/grpcurl_1.7.0_linux_x86_64.tar.gz
+RUN cd /usr/bin && tar -xf /src/grpcurl_1.7.0_linux_x86_64.tar.gz grpcurl && rm -f /src/grpcurl_1.7.0_linux_x86_64.tar.gz
+RUN chmod +x /usr/bin/manifest-tool
+
+# Adjust storage.conf to enable Fuse storage.
+RUN sed -i -e 's|^#mount_program|mount_program|g' /etc/containers/storage.conf
+COPY docker/libpod.conf /usr/share/containers/libpod.conf
+
+COPY . .
+RUN pip3 install -r requirements.txt --no-deps --require-hashes
+RUN pip3 install . --no-deps
+CMD ["/bin/celery-3", "-A", "iib.workers.tasks", "worker", "--loglevel=info"]
