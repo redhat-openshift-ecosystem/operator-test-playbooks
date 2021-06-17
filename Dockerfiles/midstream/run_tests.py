@@ -88,6 +88,8 @@ class RunMidstreamCVPTests():
 
 if __name__ == '__main__':
     resultcodes = [0, 50, 70, 102, 103]
+    # run fix_etc_passwd.sh to setup random user generated in openshift
+    subprocess.call(['sh', "/usr/bin/fix_etc_passwd.sh"])
     runTest = RunMidstreamCVPTests()
     with open("tests_result.log", 'w') as f:
         if (runTest.test_for_extract_and_validate_bundle_image() not in resultcodes):
