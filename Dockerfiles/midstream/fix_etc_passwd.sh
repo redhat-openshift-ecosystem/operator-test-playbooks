@@ -16,11 +16,13 @@ setup_passwd() {
     local username="${1:?}"
     local home="${2:?}"
     local uid="$(id -u)"
-    local gid="${4:-0}"
-    ! whoami 2>/dev/null || return 0
-    if ! [[ $(getent passwd $uid) ]]; then
-       echo "There is no permission to add user $username to $passwd"
-       return 0
+    local gid="${3:-0}"
+    local passwd=/etc/passwd
+
+    ! getent passwd $uid 2>/dev/null || return 0
+    if ! [[ -w "$passwd" ]]; then
+        echo "There is no permission to add user $username to $passwd"
+        return 0
     fi
     [[ "$uid" ]] || uid="$(id -u)"
     echo \
