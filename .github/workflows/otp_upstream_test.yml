@@ -1,0 +1,177 @@
+name: Operator test playbook upstream (otpu) tests
+env:
+  ANSIBLE_CONFIG: "$PWD/upstream/ansible.cfg"
+  ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"
+  ANSIBLE_VERSION: "2.9.21"
+
+on:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  otpu_bundle_format:
+    name: Bundle format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=6.0.0 --tags pure_test -e strict_mode=true -vv
+  otpu_manifest_to_bundle_format:
+    name: Manifest to bundle format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=6.0.0 --tags pure_test -e strict_mode=true -vv
+  otpu_index_from_scratch:
+    name: Index from scratch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -vv
+  otpu_index_from_production:
+    name: Index from production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e index_force_update=true -vv
+  otpu_index_from_scratch_mv:
+    name: Index from scratch (multiple versions)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 -vv && docker image ls|grep catalog|grep -v none|grep kind|grep '4\.6'
+
+  otpu_index_check_bundles_with_matching_ocp_version:
+    name: Index check bundles with matching OCP version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_missing_operator=community-kubevirt-hyperconverged:v1.4.0 -vv
+
+  otpu_index_check_bundles_without_matching_ocp_version:
+    name: Index check bundles without matching OCP version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-no-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_operator_filtered_out=community-windows-machine-config-operator:v1.0.0 -vv
+
+  otpu_index_check_bundles_without_any_ocp_version_defined:
+    name: Index check bundles without any OCP version defined
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-no-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_missing_operator=oadp-operator:v0.2.3 -vv
+
+  otpu_index_check_bundles_test_minimum_numbers:
+    name: Index check bundles test minumum number of packages in index
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 -e min_operators_in_index_allowed=30 -vv && false || true
+
+  otpu_iib:
+    name: Install iib
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags iib

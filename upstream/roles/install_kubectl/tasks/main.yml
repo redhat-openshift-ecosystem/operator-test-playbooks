@@ -1,0 +1,43 @@
+- name: "Uninstall 'kubectl' binary"
+  file:
+    path: /usr/local/bin/kubectl
+    state: absent
+  become: true
+  tags:
+    - uninstall
+
+- name: "Install kubectl"
+  block:
+    - name: "Remove  kubectl Version file"
+      file:
+        path: "{{ kubectl_version_tmp_dir }}/kubectl_version"
+        state: absent
+
+    - name: "Get kubectl Version"
+      get_url:
+        url: "https://storage.googleapis.com/kubernetes-release/release/stable.txt"
+        dest: "{{ kubectl_version_tmp_dir }}/kubectl_version"
+
+    - name: "Read kubectl Version from url"
+      command: cat {{ kubectl_version_tmp_dir }}/kubectl_version
+      register: kubectl_version_data
+
+    - name: "Setting kubectl version"
+      set_fact:
+        kubectl_version: "{{ kubectl_version_data.stdout }}"
+
+    - name: "Install kubectl ({{ kubectl_version }})"
+      get_url:
+        url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+      register: kubectl_install_result
+      until: kubectl_install_result.status_code is undefined or kubectl_install_result.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: kubectl_install_result is failure
+      become: true
+  tags:
+    - install
+    - image_build
+    - host_build

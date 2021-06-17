@@ -1,0 +1,14 @@
+---
+- name: "Quay login"
+  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  no_log: true
+  when:
+    - quay_user is defined
+    - quay_password is defined
+    - quay_user|length > 0
+    - quay_password|length > 0
+
+- name: "Quay login via auth token"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+  no_log: true
+  when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and quay_api_token is defined and quay_api_token|length > 0

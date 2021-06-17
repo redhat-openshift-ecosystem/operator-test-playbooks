@@ -1,0 +1,20 @@
+# .ansible-lint
+exclude_paths:
+  - .cache/  # implicit unless exclude_paths is defined in config
+  - .github/
+  - roles/
+  - Dockerfiles
+  - ./*.yml
+
+warn_list: [] # or 'skip_list' to silence them completely
+
+skip_list:
+  - deprecated-command-syntax  # Using command rather than an argument to e.g. file
+  - no-changed-when  # Commands should not change things if nothing needs doing
+  - risky-shell-pipe  # Shells that use pipes should set the pipefail option
+  - experimental  # all rules tagged as experimental
+  - command-instead-of-module  # Using command rather than module
+  - command-instead-of-shell  # Use shell only when shell functionality is required
+  # - yaml  # Violations reported by yamllint
+  - line-length
+  - comments

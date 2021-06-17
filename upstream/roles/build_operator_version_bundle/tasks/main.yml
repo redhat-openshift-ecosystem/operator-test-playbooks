@@ -1,0 +1,416 @@
+- name: "Handle bundle image from source image"
+  block:
+    - name: "Setting operator parameters from input image"
+      set_fact:
+        bundle_image: "{{ operator_input_image }}"
+        operator_name: "{{ operator_input_image.split(':')[0] | basename }}"
+        op_version: "{{ operator_input_image.split(':')[1] }}"
+        operator_format: "bundle"
+
+    - name: "Remove bundle image {{ bundle_image }}"
+      shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+      failed_when: false
+  when:
+    - operator_input_image is defined
+    - operator_input_image|length > 0
+
+- name: "Handle bundle image from source dir"
+  block:
+    - name: "Ensure that the operator manifest to bundle directory exists and is empty"
+      file:
+        state: "{{ item }}"
+        path: "{{ operator_bundle_src_dir }}"
+      with_items:
+        - absent
+        - directory
+
+    - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
+      copy:
+        src: "{{ operator_dir }}"
+        dest: "{{ operator_bundle_src_dir }}"
+        remote_src: true
+
+    - name: detect format
+      include_role:
+        name: detect_format
+
+    - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of manifest format"
+      set_fact:
+        bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
+        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/{{ csv_file_path | basename }}"
+      when: operator_format == "manifest"
+
+    - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of bundle format"
+      set_fact:
+        bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
+        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/manifests/{{ csv_file_path | basename }}"
+      when: operator_format == "bundle"
+
+    - name: "Failing when version as directory name is not same with version defined in csv file for '{{ operator_package_name }} {{ op_version }}'"
+      fail:
+        msg: "Operator '{{ operator_package_name }} with version {{ op_version }}' has different version name defined in '{{ csv_file_path }}' as 'spec.version' !!!"
+      when:
+        - (operator_vars.spec.version is undefined or operator_vars.spec.version != op_version)
+
+    - name: "Handling mode from '{{ operator_package_name }}/{{ opm_index_ci_filename }}' file"
+      block:
+        - name: "Check if file '{{ opm_index_ci_filename }}' exists"
+          stat:
+            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}"
+          register: boi_ci_file
+
+        - name: "Parsing file '{{ operator_package_name }}/{{ opm_index_ci_filename }}' when exists"
+          block:
+            - name: "Read from yaml file 'updateGraph' key"
+              shell: "{{ yq_bin_path }} r {{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }} -t updateGraph"
+              register: boi_ci_update_graph
+
+            - name: "Sets `boi_ci_update_graph_var` from '{{ opm_index_ci_filename }}' file"
+              set_fact:
+                boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
+
+            - name: "Setting index add mode from 'updateGraph' value to 'semver' because it is not present in '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}'"
+              set_fact:
+                opm_index_add_mode: "semver"
+              when: boi_ci_update_graph_var == "null"
+
+            - name: "Setting index add mode from 'updateGraph' value to '{{ boi_ci_update_graph_var }}'"
+              set_fact:
+                opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
+              when: boi_ci_update_graph_var != "null"
+
+          when: boi_ci_file.stat.exists|bool
+
+        - name: "Setting 'semver' mode when file doen't exists"
+          set_fact:
+            opm_index_add_mode: "semver"
+          when: not boi_ci_file.stat.exists|bool
+      when:
+        - (index_mode_from_ci is undefined or index_mode_from_ci|bool)
+
+    - name: "Checking 'semver' mode consistency"
+      fail:
+        msg: "Operator '{{ operator_package_name }}/{{ op_version }}' is running in 'semver' mode and contains 'replaces' key in '{{ csv_file_path }}' !!!"
+      when:
+        - opm_index_add_mode == "semver"
+        - (operator_vars.spec.replaces is defined or operator_vars.spec.skips is defined)
+
+    - name: "Setting 'operator_channels_list' in case of manifest format and if package file was parsed"
+      set_fact:
+        operator_channels_list: "{{ op_manifest_pkg_vars.channels | map(attribute='name' ) | list }}"
+      when:
+        - op_manifest_pkg_vars is defined
+        - operator_format == "manifest"
+
+    - name: "Setting 'operator_channels'"
+      set_fact:
+        operator_channels: "{{ operator_channels_list | join(',') }}"
+      when:
+        - operator_format == "manifest"
+        - operator_channels_list.0 is defined
+
+    - name: "Faile when default channel is missing"
+      fail:
+        msg: "Multiple channels defined and 'defaultChannel' is missing !!!"
+      when:
+        - operator_channel_force is defined
+        - operator_channel_force|length == 0
+        - op_manifest_pkg_vars is defined
+        - operator_channels_list is defined
+        - operator_channels_list|length > 1
+        - op_manifest_pkg_vars.defaultChannel is undefined or op_manifest_pkg_vars.defaultChannel|length == 0
+
+    # we tolerate no default_channel in case the only channel
+    - name: "Setting 'operator_channel_default'"
+      set_fact:
+        operator_channel_default: "{{ op_manifest_pkg_vars.defaultChannel | default(operator_channels_list[0]) }}"
+      when:
+        - operator_format == "manifest"
+        - operator_channels_list.0 is defined
+
+    - name: "Forcing to set 'operator_channels' and 'operator_channel_default' when 'operator_channel_force' is defined and empty"
+      set_fact:
+        operator_channels: "{{ operator_channel_force }}"
+        operator_channel_default: "{{ operator_channel_force }}"
+      when:
+        - operator_channel_force is defined
+        - operator_channel_force|length > 0
+        - operator_format == "manifest"
+
+    - name: "Ensure replaces is removed in this test"
+      block:
+        - name: "Check if csv file exists"
+          stat:
+            path: "{{ clusterserviceversion_bundle_file_path }}"
+          register: clusterserviceversion_bundle_file_st
+
+        - name: "Fail if csv file doesn't exists"
+          fail:
+            msg: "CSV file '{{ clusterserviceversion_bundle_file_path }}' doesn't exists !!!"
+          when: not clusterserviceversion_bundle_file_st.stat.exists
+
+        - name: "Ensure replaces is removed in the csv file"
+          lineinfile:
+            path: "{{ clusterserviceversion_bundle_file_path }}"
+            regexp: '^\s*replaces:'
+            state: absent
+          when:
+            - remove_replaces is defined
+            - remove_replaces|bool
+
+    - name: "The first operator has no package conflict"
+      set_fact:
+        previous_package: ""
+      when:
+        - previous_package is undefined
+
+    - name: "The first operator has no package conflict"
+      set_fact:
+        previous_package: "{{ operator_package_name }}"
+      when:
+        - previous_package|length == 0
+
+    - name: "Fail if operators in one dir are not related to the only package"
+      fail:
+        msg: "Versions of {{ operator_name }} must be in one package, not a mix of {{ operator_package_name }} and {{ previous_package }}"
+      when: operator_package_name != previous_package
+
+    - name: "Set bundle image name"
+      set_fact:
+        bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
+
+    - name: "Set bundle image name (openshift robot case)"
+      set_fact:
+        bundle_image: "{{ openshift_robot_hash_array[0] }}/{{ operator_package_name }}:{{ openshift_robot_hash_array[2] }}"
+      when:
+        - openshift_robot_hash_array.2 is defined
+        - openshift_robot_hash_array.2|length > 0
+
+
+    - name: "Handle situation when bundle force rebuild"
+      block:
+        - name: "Remove bundle image {{ bundle_image }}"
+          shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+          failed_when: false
+
+        - name: "Checking existence of bundle image '{{ bundle_image }}'"
+          shell: "{{ container_tool }} pull {{ bundle_image }}"
+          failed_when: false
+          register: bovb_bundle_image_pull_test
+      when:
+        - (bundle_force_rebuild is undefined or not bundle_force_rebuild|bool)
+
+    - name: "Creating bundle image from bundle format directory structure"
+      block:
+        - name: "Remove bundle image {{ bundle_image }}"
+          shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+          failed_when: false
+
+        - name: "Remove docker file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile'"
+          file:
+            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+            state: absent
+
+        - name: "Checking for presence of Dockerfile in '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}'"
+          stat:
+            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+          register: bovb_bundle_dockerfile
+
+        - name: "Trying to generate Dockerfile when not present."
+          block:
+            - name: "Reseting 'annotations_vars' and 'labels_vars'"
+              set_fact:
+                annotations_vars:
+                labels_vars:
+
+            - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
+              stat:
+                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml"
+              register: bovb_bundle_annotations_file
+
+            - name: "Getting info from 'annotations.yaml'"
+              block:
+                - name: "Getting content of labels file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
+                  shell: cat "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml"
+                  register: bovb_annotation_data
+
+                - name: "Seting annotation variables"
+                  set_fact:
+                    annotations_vars: "{{ bovb_annotation_data.stdout | from_yaml }}"
+              when: bovb_bundle_annotations_file.stat.exists
+
+            - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml'"
+              stat:
+                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml"
+              register: bovb_bundle_labels_file
+
+            - name: "Getting info from 'labels.yaml'"
+              block:
+                - name: "Getting content of labels file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml'"
+                  shell: cat "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml"
+                  register: bovb_bundle_labels_data
+
+                - name: "Setting lables variables"
+                  set_fact:
+                    labels_vars: "{{ bovb_bundle_labels_data.stdout | from_yaml }}"
+              when: bovb_bundle_labels_file.stat.exists
+
+            - name: "Check if scorecard test directory exits"
+              block:
+                - name: "Fail if value of 'operators.operatorframework.io.test.config.v1' is empty "
+                  fail:
+                    msg: "Value 'operators.operatorframework.io.test.config.v1' form annotations.yaml file is empty"
+                  when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1']|length == 0
+
+                - name: "Check if directory exits"
+                  stat:
+                    path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
+                  register: bovb_testing_config
+                - name: "Fail if directory doesn't exists"
+                  fail:
+                    msg: "Directory '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
+                  when: not bovb_testing_config.stat.exists
+              when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] is defined
+
+            - name: "Generating Dockerfile using info from metadata directory."
+              template:
+                src: "Dockerfile.j2"
+                dest: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+
+          when: not bovb_bundle_dockerfile.stat.exists
+
+        - name: "Generate bundle image {{ bundle_image }} in bundle format"
+          shell:
+            cmd: "{{ container_tool }} build --tag {{ bundle_image }} ."
+            chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}"
+          ignore_errors: true
+          register: bb_rc
+
+        - name: "Push image '{{ bundle_image }}'"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ bundle_image }}"
+          when: bb_rc.rc == 0
+
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
+
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when: ((bb_rc.rc is defined and bb_rc.rc == 0) and rc_last|bool)
+
+        - name: "Prints message that bundles were added to catalog"
+          debug:
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [OK]"
+          when:
+            - result_rc|bool
+
+        - name: "Print failing msg that bundle was not created or not pushed"
+          debug:
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
+          when:
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
+
+        - name: "Failing when bundle was not created or not pushed"
+          fail:
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
+          when:
+            - not result_rc|bool
+            - strict_mode is defined
+            - strict_mode|bool
+
+        - name: "Operator scorcard bundle test"
+          include_role:
+            name: operator_scorecard_tests_bundle
+          when:
+            - run_bundle_scorecard_test is defined
+            - run_bundle_scorecard_test|bool
+            - bb_rc.rc is defined
+            - bb_rc.rc == 0
+            - bbp_rc.rc is defined
+            - bbp_rc.rc == 0
+
+      when:
+        - operator_format == "bundle"
+        - (bovb_bundle_image_pull_test.rc is undefined or bovb_bundle_image_pull_test.rc != 0)
+
+    - name: "Creating bundle image from manifest format directory structure"
+      block:
+        - name: "Adding operator channels and default channel as arguments"
+          set_fact:
+            opm_bundle_alpha_add_args: "-c {{ operator_channels }} -e {{ operator_channel_default }}"
+          when: operator_channel_force is defined
+
+        - name: Remove bundle image {{ bundle_image }}
+          shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
+          failed_when: false
+
+        - name: "Generate bundle image {{ bundle_image }} from manifest format"
+          shell:
+            cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ op_version }} --package {{ operator_package_name }} -t {{ bundle_image }} -b {{ opm_container_tool }} {{ opm_bundle_alpha_add_args }}"
+            chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
+          ignore_errors: true
+          register: mb_rc
+
+        - name: "Push image '{{ bundle_image }}'"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ bundle_image }}"
+          when: mb_rc.rc == 0
+
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
+
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when: ((mb_rc.rc is defined and mb_rc.rc == 0) and rc_last|bool)
+
+        - name: "Prints message that bundle was created"
+          debug:
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [OK]"
+          when:
+            - result_rc|bool
+
+        - name: "Print failing msg that bundle was not created or not pushed"
+          debug:
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
+          when:
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
+
+        - name: "Failing when bundle was not created or not pushed"
+          fail:
+            msg: "Bundle '{{ bundle_image }}' was created and pushed : [FAIL]"
+          when:
+            - not result_rc|bool
+            - strict_mode is defined
+            - strict_mode|bool
+
+        - name: "Operator scorcard bundle test"
+          include_role:
+            name: operator_scorecard_tests_bundle
+          when:
+            - run_bundle_scorecard_test is defined
+            - run_bundle_scorecard_test|bool
+            - mb_rc.rc is defined
+            - mb_rc.rc == 0
+
+      when:
+        - operator_format == "manifest"
+        - (bovb_bundle_image_pull_test.rc is undefined or bovb_bundle_image_pull_test.rc != 0)
+
+    - name: "Add failed operators when creating bundle"
+      set_fact:
+        bundle_add_failed: "{{ bundle_add_failed | default([]) }} + [ '{{ operator_package_name }}' ]"
+        bundle_add_failed_name_version: "{{ bundle_add_failed_name_version | default([]) }} + [ '{{ bundle_image }}' ]"
+      when: (bb_rc.rc is defined and bb_rc.rc != 0) or (mb_rc.rc is defined and mb_rc.rc != 0)
+
+  when:
+    - operator_input_image|length == 0

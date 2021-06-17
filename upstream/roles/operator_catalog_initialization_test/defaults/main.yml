@@ -1,0 +1,5 @@
+---
+production_quay_namespace: "redhat-operators"
+offline_cataloger_bin_path: "/usr/local/bin/offline-cataloger"
+operator_registry_branch: "release-4.3"
+check_initializer_result: true

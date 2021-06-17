@@ -1,0 +1,11 @@
+---
+- name: Deploy on OCP
+  hosts: all
+  become: false
+  gather_facts: false
+
+  tasks:
+
+    - name: "Deploy on OCP"
+      include_role:
+        name: deploy_olm_operator_openshift_upstream

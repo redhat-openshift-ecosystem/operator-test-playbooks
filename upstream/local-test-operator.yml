@@ -1,0 +1,41 @@
+---
+- name: Test the operator on a kind/OCP cluster with OLM
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_prereqs: true
+    run_upstream: false
+    run_lint: false
+    run_catalog_init: true
+    run_deploy: true
+    run_scorecard: true
+    run_imagesource: true
+    run_cleanup: true
+    run_remove_catalog_repo: true
+    run_manifest_test: false
+    scorecard_first_cr: true
+    openshift_namespace: "test-operator"
+    work_dir: "/tmp/operator-test"
+    testing_bin_path: "{{ work_dir }}/bin"
+    current_channel: "" # Added to avoid a potential bug with undefined variables
+    olm_version: 0.14.1
+
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+
+  pre_tasks:
+    - name: "Setup"
+      setup:
+      tags:
+        - always
+      when: run_upstream|bool
+  tasks:
+    - name: "Setting basic variables for test tasks"
+      set_fact:
+        doic_skip_file_check: false
+
+    - name: "Running manifest test for operator"
+      include_role:
+        name: test_opertator_manifest

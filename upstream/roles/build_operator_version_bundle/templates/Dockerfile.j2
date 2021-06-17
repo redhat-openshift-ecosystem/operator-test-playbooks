@@ -1,0 +1,30 @@
+FROM scratch
+
+{% if annotations_vars.annotations is defined %}
+# from metadata/annotations.yaml
+{% for key, value in annotations_vars.annotations.items() %}
+{% if value is string %}
+LABEL {{ key }}="{{ value }}"
+{% else %}
+LABEL {{ key }}={{ value }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if labels_vars.labels is defined %}
+
+# from metadata/labels.yaml
+{% for key, value in labels_vars.labels.items() %}
+{% if value is string %}
+LABEL {{ key }}="{{ value }}"
+{% else %}
+LABEL {{ key }}={{ value }}
+{% endif %}
+{% endfor %}
+
+{% endif %}
+COPY ./manifests manifests/
+COPY ./metadata metadata/
+{% if annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] is defined %}
+COPY ./{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }} {{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}
+{% endif %}
