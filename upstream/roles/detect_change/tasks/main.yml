@@ -37,7 +37,7 @@
     - name: "Mark csv as found"
       set_fact:
         dc_csv_current_format_found: true
-      when: falset dc_master_csv.content.startswith("404")
+      when: dc_master_csv.status == 200
 
     - name: "Check in package manifest format"
       block:
