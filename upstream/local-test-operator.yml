@@ -38,4 +38,4 @@
 
     - name: "Running manifest test for operator"
       include_role:
-        name: test_opertator_manifest
+        name: test_operator_manifest

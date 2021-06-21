@@ -12,13 +12,13 @@
 
 - name: "Running manifest test for operator '{{ operator_package_name }}:{{ operator_version }}'"
   include_role:
-    name: test_opertator_manifest
+    name: test_operator_manifest
   when:
     - run_manifest_test|bool
 
 - name: "Running bundle test for operator '{{ operator_package_name }}:{{ operator_version }}'"
   include_role:
-    name: test_opertator_bundle
+    name: test_operator_bundle
   when:
     - run_bundle_test|bool
 

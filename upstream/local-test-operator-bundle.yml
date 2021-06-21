@@ -31,7 +31,7 @@
 
     - name: "Running bundle test for operator"
       include_role:
-        name: test_opertator_bundle
+        name: test_operator_bundle
       tags:
         - cosmetics
 
