@@ -128,8 +128,6 @@
         supported_cluster_versions: "v4.6,v4.7,v4.8"
         supported_cluster_version_latest: "v4.6"
         use_cluster_filter: true
-        operator_sdk_validate_extra_args: "--select-optional suite=operatorframework"
-        # operator_sdk_validate_extra_args: "--select-optional suite=operatorframeworkd --select-optional name=community"
       when: (stream_kind is defined and stream_kind == "openshift_upstream")
       tags:
         - always

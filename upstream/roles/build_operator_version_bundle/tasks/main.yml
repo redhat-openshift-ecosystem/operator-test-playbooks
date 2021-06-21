@@ -286,6 +286,14 @@
           ignore_errors: true
           register: bb_rc
 
+        - name: "Validate bundle for openshift"
+          block:
+            - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
+              shell:
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community --optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/Dockerfile"
+                chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
+          when: (stream_kind is defined and stream_kind == "openshift_upstream")
+
         - name: "Push image '{{ bundle_image }}'"
           include_role:
             name: operator_push_image
@@ -355,6 +363,22 @@
             chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
           ignore_errors: true
           register: mb_rc
+
+        - name: "Validate bundle for openshift"
+          block:
+            - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
+              copy:
+                src: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/"
+                dest: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/manifests/"
+                remote_src: true
+
+            - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
+              shell:
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_dir_name }}/ --select-optional name=community --optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/bundle.Dockerfile"
+                chdir: "{{ operator_bundle_src_dir }}"
+          when: (stream_kind is defined and stream_kind == "openshift_upstream")
+
+        - pause:
 
         - name: "Push image '{{ bundle_image }}'"
           include_role:
