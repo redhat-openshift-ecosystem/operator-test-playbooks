@@ -1,0 +1,5 @@
+iib_version: v3.9.2
+iib_project_dir: /tmp/iib
+iib_repo: https://github.com/release-engineering/iib.git
+run_remove_iib_repo: true
+iib_apply_fix: true

@@ -1,0 +1,74 @@
+---
+- name: "Delete kind cluster (Wait until success)"
+  block:
+    - name: Set the retry count
+      set_fact:
+        iib_retry_count: "{{ 2 if iib_retry_count is undefined else iib_retry_count|int + 1 }}"
+
+    - name: "Copy system ca certificate to {{ iib_project_dir }}/ca-bundle.crt"
+      copy:
+        src: /etc/ssl/certs/ca-certificates.crt
+        dest: "{{ iib_project_dir }}/ca-bundle.crt"
+        remote_src: true
+        backup: true
+      when:
+        - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+        - iib_apply_fix|bool
+
+    - name: "Overwrite 'Dockerfile-workers' to fix PowerTools"
+      template:
+        src: Dockerfile-workers.j2
+        dest: "{{ iib_project_dir }}/docker/Dockerfile-workers"
+      when:
+        - iib_apply_fix|bool
+
+    - name: "Overwrite docker_compose.yaml to support registry without auth"
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ iib_project_dir }}/docker-compose.yml"
+      when:
+        - iib_apply_fix|bool
+
+    - name: "Replace 'iib_registry' for to push to quay directly"
+      replace:
+        path: "{{ iib_project_dir }}/iib/workers/config.py"
+        regexp: '    iib_registry.*'
+        replace: "    iib_registry = '{{ iib_push_registry }}'"
+      when:
+        - iib_push_registry is defined
+        - iib_push_registry|length > 0
+
+    - name: "Replace 'iib_image_push_template' for to push to quay directly"
+      replace:
+        path: "{{ iib_project_dir }}/iib/workers/config.py"
+        regexp: '    iib_image_push_template.*'
+        replace: "    iib_image_push_template = '{{ iib_push_image }}'"
+      when:
+        - iib_push_image is defined
+        - iib_push_image|length > 0
+
+    - name: "Remove previous iib installation"
+      shell:
+        cmd: "make down"
+        chdir: "{{ iib_project_dir }}"
+
+    - name: "Building and starting iib {{ iib_version }}"
+      shell:
+        cmd: "make up"
+        chdir: "{{ iib_project_dir }}"
+  tags:
+    - never
+    - iib
+  become: true
+
+  rescue:
+    - name: "Fail when number of retries were reached"
+      fail:
+        msg: Ended after 5 retries
+      when: iib_retry_count|int > 5
+
+    - name: "Print iib install message"
+      debug:
+        msg: "Failed to install iib - Retrying ({{ iib_retry_count }}/5) ..."
+
+    - include_tasks: reset.yml

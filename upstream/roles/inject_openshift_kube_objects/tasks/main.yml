@@ -1,0 +1,52 @@
+---
+- name: "Create the kube_objects directory"
+  shell: "mkdir -p {{ kube_objects_dir }}"
+
+- name: "Decode the symmetric key received from the user"
+  shell: "echo \"{{ symmetric_key }}\" | base64 --decode > {{ kube_objects_dir }}/get_sym_key"
+  no_log: true
+
+- name: "Decrypt the symmetric key using RSA private key"
+  shell: "openssl rsautl -decrypt -oaep -inkey {{ rsa_private_key }} -in {{ kube_objects_dir }}/get_sym_key -out {{ kube_objects_dir }}/secret.key"
+
+- name: "Verify the shared symmetric key"
+  shell: "stat -c %s {{ kube_objects_dir }}/secret.key"
+  register: symmetric_key_size
+
+- name: "Fail if the shared symmetric key is not 32 bytes"
+  fail:
+    msg: "The decrypted shared symmetric key is {{ symmetric_key_size.stdout }} bytes. The shared key should be of 32 bytes"
+  when: symmetric_key_size.stdout != "32"
+
+- name: "Read the encrypted kube_objects decode and store them in a file"
+  shell: "echo \"{{ kube_objects }}\" | tr \" \" \"\n\" | base64 --decode > {{ kube_objects_dir }}/get_kubeObjects.txt"
+  no_log: true
+
+- name: "Decrypt the kube_objects through the shared symmetric key"
+  shell: "openssl aes-256-cbc -d -in {{ kube_objects_dir }}/get_kubeObjects.txt -out {{ kube_objects_dir }}/kube_objects.yaml -pass file:{{ kube_objects_dir }}/secret.key"
+
+- name: "Create the kube_objects on the testing openshift cluster for operator certification"
+  shell: "oc apply -f {{ kube_objects_dir }}/kube_objects.yaml"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Read yaml file content to get the namespace"
+  set_fact:
+    content="{{ lookup('file', '{{ kube_objects_dir }}/kube_objects.yaml') | from_yaml }}"
+  no_log: true
+  ignore_errors: true
+
+- name: "Verify kube_objects created on openshift cluster"
+  shell: "oc get secrets -n {{ content.metadata.namespace }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  ignore_errors: true
+
+- name: "Remove the directory created for kube_object"
+  shell: "rm -rf {{ kube_objects_dir }}"
+  register: kube_objects_directory_removed
+
+- name: "Prints message when kube_objects directory has been removed successfully"
+  debug:
+    msg: "The kube_objects directory has been removed successfully"
+  when: kube_objects_directory_removed.rc == 0

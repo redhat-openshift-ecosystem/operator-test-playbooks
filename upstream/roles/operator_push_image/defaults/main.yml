@@ -1,0 +1,2 @@
+container_tool: "docker"
+fqp_image_dir: /tmp/operator-test/fqp_image_dir

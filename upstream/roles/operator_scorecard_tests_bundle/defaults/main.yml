@@ -1,0 +1,2 @@
+---
+bundle_image: kind-registry:5000/test-operator/aqua:v1.0.0

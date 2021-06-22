@@ -1,0 +1,21 @@
+---
+- name: "Check if ci file exists"
+  stat:
+    path: "{{ ecy_path }}"
+  register: ci_yaml_file_st
+
+- name: "Set default ci.yaml file when file '{{ ecy_path }}' doesn't exists"
+  set_fact:
+    ci_yaml_vars:
+      updateGraph: "semver"
+  when: not ci_yaml_file_st.stat.exists
+
+- name: "Getting content from ci.yaml '{{ ecy_path | basename }}'"
+  shell: "cat {{ ecy_path }}"
+  register: ci_data_updateGraph
+  ignore_errors: true
+
+- name: "Sets operator variables from ci.yaml '{{ ecy_path | basename }}'"
+  set_fact:
+    ci_yaml_vars: "{{ ci_data_updateGraph.stdout | from_yaml }}"
+  when: ci_data_updateGraph.rc == 0

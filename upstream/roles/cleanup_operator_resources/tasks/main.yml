@@ -1,0 +1,41 @@
+---
+- name: "Find all processed resources in the deploy directory"
+  find:
+    paths: "{{ olm_operator_files_path }}"
+    recurse: false
+    file_type: file
+    patterns: "*.yml"
+  register: cor_all_yml
+
+- name: "Delete all processed resources in the deploy directory"
+  shell: "{{ oc_bin_path }} delete -f {{ cor_all_yml_item }} --ignore-not-found=true --timeout=60s"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  with_items: "{{ cor_all_yml.files | default([]) | map(attribute='path' ) | list }}"
+  loop_control:
+    loop_var: cor_all_yml_item
+
+- name: "Delete the operator owned CRDs if any"
+  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout=60s"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  with_items: "{{ crd_paths|default([]) }}"
+  loop_control:
+    loop_var: owned_crd_path
+
+- block:
+    - name: "Verify if {{ openshift_namespace }} project exists"
+      shell: "{{ oc_bin_path }} project {{ openshift_namespace }}"
+      register: openshift_namespace_check_result
+      failed_when: false
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+
+    - name: "Delete the project {{ openshift_namespace }}"
+      shell: "{{ oc_bin_path }} delete project {{ openshift_namespace }} --grace-period=1"
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when:
+        - openshift_namespace_check_result is defined
+        - openshift_namespace_check_result.rc == 0
+  when: not run_upstream|bool

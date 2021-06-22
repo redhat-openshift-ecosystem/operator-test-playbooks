@@ -1,0 +1,13 @@
+---
+operator_images: []
+non_approved_images: []
+sc_proxy_image: quay.io/operator-framework/scorecard-proxy:master
+approved_registries:
+  - 'registry.connect.dev.redhat.com'
+  - 'registry.connect.qa.redhat.com'
+  - 'registry.connect.stage.redhat.com'
+  - 'registry.connect.redhat.com'
+  - 'registry.redhat.io'
+  - 'registry.access.redhat.com'
+ignored_images:
+  - "{{ sc_proxy_image }}"

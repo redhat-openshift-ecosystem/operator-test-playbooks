@@ -1,0 +1,11 @@
+---
+- name: "Push to quay appregistry"
+  include_tasks: push_to_quay_appreg.yml
+  when:
+   - delete_appreg is not defined or not delete_appreg|bool
+
+- name: "Delete from quay appregistry"
+  include_tasks: delete_from_quay_appreg.yml
+  when:
+   - delete_appreg is defined
+   - delete_appreg|bool

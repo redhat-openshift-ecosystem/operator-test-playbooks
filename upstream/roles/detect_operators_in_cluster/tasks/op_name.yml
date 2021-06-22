@@ -1,0 +1,41 @@
+---
+- name: "Task #2: init values"
+  set_fact:
+    doic_final_list: []
+    doic_final_list_bundles: []
+    doic_final_list_versions_prod: []
+
+
+- name: "Set operator name - checking {{ doic_operators_for_index.name }}"
+  set_fact:
+    dov_op_name: "{{ doic_operators_for_index.name }}"
+
+- name: "Pass operator versions to loop"
+  set_fact:
+    doic_bundles_processing: "{{ doic_operators_for_index.bundles }}"
+
+- name: "Faile when 'doic_bundles_processing' is empty"
+  fail:
+    msg: "Versions for {{ dov_op_name }} not defined"
+  when: doic_bundles_processing|length == 0
+
+- name: "Loop over all operator versions"
+  include_tasks: op_ver.yml
+  loop: "{{ doic_bundles_processing }}"
+  loop_control:
+    loop_var: lc_doic_bundles_processing
+
+- name: "Prints 'doic_final_list'"
+  debug:
+    var:
+      - doic_final_list
+
+- name: "Prints 'doic_full_list'"
+  debug:
+    var:
+      - doic_full_list
+
+- name: "{{ dov_cluster_ver }} {{ dov_op_name }}: Adding versions"
+  set_fact:
+    dov_operators_op_ver: "{{ dov_operators_op_ver | default([]) | union( [{'name': dov_op_name, 'versions': doic_final_list, 'bundles': doic_final_list_bundles, 'versions_prod': doic_final_list_versions_prod }]) }}"
+  when: (doic_final_list|length>0)

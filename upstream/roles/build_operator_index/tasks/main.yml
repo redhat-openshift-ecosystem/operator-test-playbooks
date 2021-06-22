@@ -1,0 +1,431 @@
+---
+- name: "Setting 'bundle_index_image' variable"
+  set_fact:
+    bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ ba_index_tag }}"
+    bundle_index_image_version: "{{ ba_index_tag }}"
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
+
+- name: "Remove index image '{{ bundle_index_image }}'"
+  shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
+  failed_when: false
+
+- name: "Get list of tags for index image from bundle registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
+  uri:
+    url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
+  register: boi_registry_versions
+  failed_when: false
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
+
+- name: "Create repo for index image with public visibility '{{ bundle_image_namespace }}/{{ bundle_index_image_name }}'"
+  uri:
+    url: "https://quay.io/api/v1/repository"
+    method: POST
+    body: '{"kind":"image","namespace":"{{ bundle_image_namespace }}","repository":"{{ bundle_index_image_name }}","description":"","visibility":"public"}'
+    body_format: json
+    force_basic_auth: true
+    headers:
+      Authorization: "Bearer {{ quay_api_token }}"
+    status_code: 201
+    return_content: true
+  when:
+    - quay_api_token is defined
+    - quay_api_token|length > 0
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
+    - boi_registry_versions.status != 200
+
+- name: "Get list of tags for index image from bundle registry (osr) '{{ openshift_robot_hash_array[0] | dirname }}/{{ openshift_robot_hash_array[0] | basename }}/{{ bundle_index_image_name }}'"
+  uri:
+    url: "{{ registry_api_http_protocol | default('https') }}://{{ openshift_robot_hash_array[0] | dirname }}/v2/{{ openshift_robot_hash_array[0] | basename }}/{{ bundle_index_image_name }}/tags/list"
+  register: boi_registry_versions_osr
+  failed_when: false
+  when:
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2|length > 0
+
+- name: "Create repo for index image with public visibility (osr)'{{ openshift_robot_hash_array[0] }}/{{ bundle_index_image_name }}'"
+  uri:
+    url: "https://quay.io/api/v1/repository"
+    method: POST
+    body: '{"kind":"image","namespace":"{{ openshift_robot_hash_array[0] | basename }}","repository":"{{ bundle_index_image_name }}","description":"","visibility":"public"}'
+    body_format: json
+    force_basic_auth: true
+    headers:
+      Authorization: "Bearer {{ openshift_robot_hash_array[1] }}"
+    status_code: 201
+    return_content: true
+  when:
+    - openshift_robot_hash_array.2 is defined
+    - openshift_robot_hash_array.2|length > 0
+    - boi_registry_versions_osr.status != 200
+
+- name: "Reseting 'index_versions_in_registry' variable"
+  set_fact:
+    index_versions_in_registry: []
+    opm_index_add_extra_args: ""
+    boi_current_index_version_list: "[ '{{ ba_index_tag }}' ]"
+
+- name: "Setting all versions to 'index_versions_in_registry' variable"
+  set_fact:
+    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions }}"
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
+    - boi_registry_versions.status == 200
+
+- name: "Filter index versions"
+  set_fact:
+    boi_index_version_test: "{{ index_versions_in_registry | intersect(boi_current_index_version_list) }}"
+
+- name: "Setting opm index extra arguments"
+  set_fact:
+    bundle_index_image_from: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ boi_index_version_test.0 }}"
+    opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ boi_index_version_test.0 }}"
+  when:
+    - boi_index_version_test.0 is defined
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
+
+- name: "Handling previous index image"
+  block:
+    - name: "Setting 'index rm' container option"
+      set_fact:
+        boi_index_args: "-c {{ opm_container_tool_index }}"
+      when:
+        - opm_container_tool_index is defined
+        - opm_container_tool_index|length > 0
+
+    - name: "Pull index image '{{ bundle_index_image }}' (before removal of '{{ ba_name }}' operator)"
+      shell: "{{ container_tool }} pull {{ bundle_index_image }}"
+      when: (opm_container_tool_index is undefined or opm_container_tool_index|length == 0)
+
+    - name: "Remove previous versions of '{{ ba_name }}' operator from index image {{ bundle_index_image }}"
+      shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+      register: bio_index_rm_rc
+
+    - name: "Index safety check to avoid accidental overwrite"
+      include_role:
+        name: export_list_of_packages_from_index
+      vars:
+        bundle_index_image_input: "{{ bundle_index_image }}"
+        index_pull_skip: true
+      when: min_operators_in_index_allowed is defined
+
+    - name: "Push index image {{ bundle_index_image }}"
+      include_role:
+        name: operator_push_image
+      vars:
+        fqp_image: "{{ bundle_index_image }}"
+      when: bio_index_rm_rc.rc == 0
+
+    - name: "Set 'result_rc' to false"
+      set_fact:
+        result_rc: false
+
+    - name: "Set 'result_rc'"
+      set_fact:
+        result_rc: true
+      when: ((bio_index_rm_rc.rc is defined and bio_index_rm_rc.rc == 0) and rc_last|bool)
+
+    - name: "Prints message that bundles were added to catalog"
+      debug:
+        msg: "Operator '{{ ba_name }}' were removed and push to catalog '{{ bundle_index_image }}' : [OK]"
+      when:
+        - result_rc|bool
+
+    - name: "Print failing msg that bundle was not added to catalog or not pushed"
+      debug:
+        msg: "Operator '{{ ba_name }}' were removed and push to catalog '{{ bundle_index_image }}' : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Failing when bundle was not added to catalog or not pushed"
+      fail:
+        msg: "Operator '{{ ba_name }}' were removed and push to catalog '{{ bundle_index_image }}' : : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is defined and strict_mode|bool)
+  when:
+    - boi_index_version_test.0 is defined
+    - bundle_index_image_from is defined
+    - bundle_index_image_from|length > 0
+
+- name: "Setting tmp versions"
+  set_fact:
+    ba_versions_tmp: "{{ ba_versions | difference(ba_versions_prod) }}"
+
+- name: "Setting bundle image names index add mode"
+  set_fact:
+    bundle_images: "{{ ba_bundles | join(',') }}"
+    opm_index_add_mode: "semver"
+
+- name: "Handling index add mode from '{{ ba_name }}/{{ opm_index_ci_filename }}' file"
+  block:
+    - name: "Fail when operator_base_dir is undefined or is empty"
+      fail:
+        msg: "Variable 'operator_base_dir' is undefined or is empty"
+      when: (operator_base_dir is undefined or operator_base_dir|length == 0)
+
+    - name: "Check if file '{{ opm_index_ci_filename }}' exists"
+      stat:
+        path: "{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}"
+      register: boi_ci_file
+
+    - name: "Parsing file '{{ ba_name }}/{{ opm_index_ci_filename }}' when exists"
+      block:
+        - name: "Read from yaml file 'updateGraph' key"
+          shell: "{{ yq_bin_path }} r {{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }} -t updateGraph"
+          register: boi_ci_update_graph
+
+        - name: "Sets `boi_ci_update_graph_var` from '{{ opm_index_ci_filename }}' file"
+          set_fact:
+            boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
+
+        - name: "Setting index add mode from 'updateGraph' value to 'semver' because it is not present in '{{ operator_base_dir }}/{{ ba_name }}/{{ opm_index_ci_filename }}'"
+          set_fact:
+            opm_index_add_mode: "semver"
+          when: boi_ci_update_graph_var == "null"
+
+        - name: "Setting index add mode from 'updateGraph' value to '{{ boi_ci_update_graph_var }}'"
+          set_fact:
+            opm_index_add_mode: "{{ boi_ci_update_graph_var }}"
+          when: boi_ci_update_graph_var != "null"
+      when: boi_ci_file.stat.exists|bool
+
+    - name: "Setting 'semver' mode when file doen't exists"
+      set_fact:
+        opm_index_add_mode: "semver"
+      when: not boi_ci_file.stat.exists|bool
+  when:
+    - (index_mode_from_ci is undefined or index_mode_from_ci|bool)
+
+- name: "Failing when mode is empty"
+  fail:
+    msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
+  when: opm_index_add_mode is undefined or opm_index_add_mode|length == 0
+
+- name: "Add '{{ ba_name }}' operator to index image {{ bundle_index_image }}"
+  shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
+  ignore_errors: true
+  register: boi_ia_rc
+  when: bundle_images|length > 0
+
+- name: "Index safety check to avoid accidental overwrite"
+  include_role:
+    name: export_list_of_packages_from_index
+  vars:
+    bundle_index_image_input: "{{ bundle_index_image }}"
+    index_pull_skip: true
+  when: min_operators_in_index_allowed is defined
+
+- name: "Push index image '{{ bundle_index_image }}'"
+  include_role:
+    name: operator_push_image
+  vars:
+    fqp_image: "{{ bundle_index_image }}"
+  when: boi_ia_rc.rc == 0
+
+- name: "Set 'result_rc' to false"
+  set_fact:
+    result_rc: false
+
+- name: "Set 'result_rc'"
+  set_fact:
+    result_rc: true
+  when:
+    - boi_ia_rc.rc is defined
+    - boi_ia_rc.rc == 0
+    - rc_last|bool
+
+- name: "Prints message that bundles were added to catalog"
+  debug:
+    msg: "Bundles '{{ bundle_images }}'' were added and push to catalog '{{ bundle_index_image }}' using mode '{{ opm_index_add_mode }}' : [OK]"
+  when:
+    - result_rc|bool
+
+- name: "Print failing msg that bundle was not added to catalog or not pushed"
+  debug:
+    msg: "Bundle '{{ bundle_image }}'' was not added or not pushed to '{{ bundle_index_image }}' using mode '{{ opm_index_add_mode }}' : [FAIL]"
+  when:
+    - not result_rc|bool
+    - (strict_mode is undefined or not strict_mode|bool)
+
+- name: "Failing when bundle was not added to catalog or not pushed"
+  fail:
+    msg: "Bundle '{{ bundle_image }}'' was not added or not pushed to '{{ bundle_index_image }}' using mode '{{ opm_index_add_mode }}' : [FAIL]"
+  when:
+    - not result_rc|bool
+    - strict_mode is defined
+    - strict_mode|bool
+
+- name: "Build operator '{{ ba_name }}' from '{{ bundle_index_image }}'' to sha index"
+  include_role:
+    name: build_operator_index_sha
+  vars:
+    sis_index_image_input: "{{ bundle_index_image }}"
+    sis_index_image_output: "{{ sis_index_image_input }}{{ bundle_index_sha_posfix }}"
+    sis_package_name: "{{ ba_name }}"
+  when:
+    - bundle_index_image is defined
+    - bundle_index_sha_posfix is defined
+    - bundle_index_sha_posfix|length > 0
+
+- name: "Unset 'boi_latest_index_found'"
+  set_fact:
+    boi_latest_index_found:
+
+- name: "Unset 'bundle_latest_index_image' variable"
+  set_fact:
+    boi_bundle_latest_index_image:
+
+- name: "Handle 'latest' index"
+  block:
+    - name: "Check if actual {{ ba_index_tag }} equals to {{ supported_cluster_version_latest }} (marked as latest)"
+      set_fact:
+        boi_latest_index_found: true
+      when:
+        - ba_index_tag == supported_cluster_version_latest
+        - supported_cluster_version_latest != "latest"
+
+    - name: "'Latest' identified"
+      block:
+        - name: "Setting 'bundle_latest_index_image' variable"
+          set_fact:
+            boi_bundle_latest_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:latest"
+
+        - name: "Retag index to latest "
+          block:
+            - name: "Retag image {{ bundle_index_image }}"
+              shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ boi_bundle_latest_index_image }}"
+
+            - name: "Push index image '{{ boi_bundle_latest_index_image }}'"
+              include_role:
+                name: operator_push_image
+              vars:
+                fqp_image: "{{ boi_bundle_latest_index_image }}"
+
+            - name: "Retag index to latest "
+              block:
+                - name: "Retag image {{ boi_bundle_latest_index_image }}{{ bundle_index_sha_posfix }}"
+                  shell: "{{ container_tool }} tag {{ bundle_index_image }}{{ bundle_index_sha_posfix }} {{ boi_bundle_latest_index_image }}{{ bundle_index_sha_posfix }}"
+
+                - name: "Push index image '{{ boi_bundle_latest_index_image }}{{ bundle_index_sha_posfix }}'"
+                  include_role:
+                    name: operator_push_image
+                  vars:
+                    fqp_image: "{{ boi_bundle_latest_index_image }}{{ bundle_index_sha_posfix }}"
+              when:
+                - bundle_index_sha_posfix is defined
+                - bundle_index_sha_posfix|length > 0
+
+          when:
+            - supported_cluster_version_latest is defined
+            - supported_cluster_version_latest|length > 0
+            - boi_bundle_latest_index_image is defined
+            - boi_bundle_latest_index_image|length > 0
+      when:
+        - boi_latest_index_found is defined
+        - boi_latest_index_found|bool
+
+  when:
+    - supported_cluster_version_latest is defined
+    - supported_cluster_version_latest|length > 0
+    - use_cluster_filter is defined
+    - use_cluster_filter|bool
+
+- name: "Add failed operators when creating index from bundle"
+  set_fact:
+    bundle_index_add_failed: "{{ bundle_index_add_failed | default([]) }} + [ '{{ ba_name }}' ]"
+  when: boi_ia_rc.rc is defined and boi_ia_rc.rc != 0
+
+- name: "Running courier test on operator '{{ ba_name }}'"
+  block:
+    - name: "Ensure that the operator bundle for courier directory exists and is empty"
+      file:
+        state: "{{ item }}"
+        path: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+      with_items:
+        - absent
+        - directory
+
+    - name: "Setting 'index export' container option"
+      set_fact:
+        boi_index_args: "-c {{ opm_container_tool_index }}"
+      when:
+        - opm_container_tool_index is defined
+        - opm_container_tool_index|length > 0
+
+    - name: "Trying to export operator '{{ ba_name }}' from index image '{{ bundle_index_image }}'"
+      shell: "{{ opm_bin_path }} index export {{ boi_index_args }} --package {{ ba_name }} --index {{ bundle_index_image }} --download-folder {{ operator_bundle_dir_for_courier }}"
+      register: rob_export_rc
+
+    - name: "Failing when export of operator '{{ ba_name }}' fails"
+      fail:
+        msg: "Exporting of operator '{{ ba_name }}' from index '{{ bundle_index_image }}' failed !!!"
+      when: rob_export_rc.rc != 0
+
+    - name: "Append '{{ ba_name }}' to '{{ operator_bundle_dir_for_courier }}'"
+      set_fact:
+        bio_export_dir_op: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+
+    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
+      include_role:
+        name: operator_courier_verify
+      vars:
+        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+      when: run_lint|bool
+
+    - name: "Checking index vs git"
+      block:
+        - name: "Search for all operator versions '{{ bio_export_dir_op }}'"
+          find:
+            paths: "{{ bio_export_dir_op }}"
+            recurse: false
+            file_type: directory
+          register: boi_operators_find
+
+        - name: "Setting list of operator versions from git and index"
+          set_fact:
+            bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+            bio_versions_git: "{{ ba_versions | sort_versions }}"
+
+        - name: "Setting list version diff list"
+          set_fact:
+            bio_versions_diff: "{{ bio_versions_index | symmetric_difference(bio_versions_git) }}"
+
+        - name: "Prints message that operator versions in index are in sync with git"
+          debug:
+            msg: "Operator '{{ ba_name }}' is in sync between index and git : [OK]"
+          when:
+            - bio_versions_diff.0 is undefined
+
+        - name: "Prints message that operator versions in index are NOT in sync with git"
+          debug:
+            msg: "Operator '{{ ba_name }}' is NOT in sync between index and git : [FAIL]"
+          when:
+            - bio_versions_diff.0 is defined
+            - (strict_mode is undefined or not strict_mode|bool)
+
+        - name: "Prints message that operator versions in index are NOT in sync with git"
+          block:
+            - name: "Prints message that operator versions in index are NOT in sync with git"
+              set_fact:
+                bio_error_msg: |
+                  Operator '{{ ba_name }}' is NOT in sync between index and git : [FAIL]
+                  This means that some versions that were added to index were not exported back from index.
+                  Note: This might happen when operator runs in replaces mode and has missing some 'replaces' tag in csv file."
+
+            - name: "Printing error message"
+              fail:
+                msg: "{{ bio_error_msg.split('\n') }}"
+
+          when:
+            - bio_versions_diff.0 is defined
+            - strict_mode is defined
+            - strict_mode|bool
+      when:
+        - index_git_check is defined
+        - index_git_check|bool
+  when:
+    - boi_ia_rc.rc == 0
+    - (openshift_robot_hash is undefined or openshift_robot_hash|length == 0)

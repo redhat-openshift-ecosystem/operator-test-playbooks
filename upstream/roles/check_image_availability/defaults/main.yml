@@ -1,0 +1,2 @@
+yq_version: 2.2.1
+yq_bin_path: "/tmp/oc-{{ dir_suffix_part }}/bin/yq"

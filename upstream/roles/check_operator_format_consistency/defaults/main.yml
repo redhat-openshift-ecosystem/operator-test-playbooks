@@ -1,0 +1,1 @@
+cofc_operator_dir: "{{ operator_dir | default('') }}"
