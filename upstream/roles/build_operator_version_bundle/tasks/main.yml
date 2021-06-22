@@ -378,8 +378,6 @@
                 chdir: "{{ operator_bundle_src_dir }}"
           when: (stream_kind is defined and stream_kind == "openshift_upstream")
 
-        - pause:
-
         - name: "Push image '{{ bundle_image }}'"
           include_role:
             name: operator_push_image
