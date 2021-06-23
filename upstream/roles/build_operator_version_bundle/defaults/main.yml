@@ -13,3 +13,4 @@ opm_bundle_alpha_add_args: ""
 previous_package: ""
 opm_index_ci_filename: "ci.yaml"
 opm_index_add_mode: "semver"
+enable_bundle_validate_community: true

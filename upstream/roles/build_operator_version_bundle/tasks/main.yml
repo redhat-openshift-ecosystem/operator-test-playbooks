@@ -292,7 +292,10 @@
               shell:
                 cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community --optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/Dockerfile"
                 chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
-          when: (stream_kind is defined and stream_kind == "openshift_upstream")
+          when:
+            - stream_kind is defined
+            - stream_kind == "openshift_upstream"
+            - enable_bundle_validate_community|bool
 
         - name: "Push image '{{ bundle_image }}'"
           include_role:
@@ -376,7 +379,10 @@
               shell:
                 cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_dir_name }}/ --select-optional name=community --optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/bundle.Dockerfile"
                 chdir: "{{ operator_bundle_src_dir }}"
-          when: (stream_kind is defined and stream_kind == "openshift_upstream")
+          when:
+            - stream_kind is defined
+            - stream_kind == "openshift_upstream"
+            - enable_bundle_validate_community|bool
 
         - name: "Push image '{{ bundle_image }}'"
           include_role:

@@ -1,0 +1,14 @@
+---
+- name: "Prints item"
+  debug:
+    var: si_item
+
+- name: "Removing operator '{{ si_item }}' from '{{ sis_index_image }}'' to sha index"
+  include_role:
+    name: build_operator_index_sha
+  vars:
+    sis_index_image_input: "{{ sis_index_image }}"
+    sis_package_name: "{{ si_item }}"
+    sis_export_skip: true
+    sis_index_rm_skip: false
+    sis_index_add_skip: true
