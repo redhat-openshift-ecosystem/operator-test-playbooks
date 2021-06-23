@@ -66,7 +66,7 @@
       set_fact:
         result_rc: true
       when: ((sis_index_rm_rc.rc is defined and sis_index_rm_rc.rc == 0) and rc_last|bool)
-    - name: "Prints message that bundles were removed to catalog"
+    - name: "Prints message that bundles were removed from catalog"
       debug:
         msg: "Operator '{{ sis_package_name }}' were removed and push to catalog '{{ sis_index_image_output }}' : [OK]"
       when:
@@ -90,7 +90,7 @@
     - not sis_index_rm_skip|bool
 
 
-- name: "Add operator from idnex"
+- name: "Add operator to idnex"
   block:
     - name: "Add '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
       shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_sha_images }} --tag {{ sis_index_image_output }} --mode {{ opm_index_add_mode }} {{ sis_opm_extra_args }}"
