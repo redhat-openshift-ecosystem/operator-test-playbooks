@@ -68,6 +68,8 @@ class RunMidstreamCVPTests():
             exit_code = 103
             return exit_code
         result = self.run_extract_operator_bundle()
+        print(result)
+        print(result.stdout)
         if (result.returncode != 0):
             print("Ansible playbook extract-operator-bundle.yml failed with result code: %s , see the file .errormessage for more info." % result.returncode)
             with open(".errormessage", "w") as error_msg:
@@ -75,6 +77,8 @@ class RunMidstreamCVPTests():
             exit_code = 50
             return exit_code
         result = self.run_validate_operator_bundle()
+        print(result)
+        print(result.stdout)
         assert (path.exists("/project/output/validation-rc.txt"))
         assert (path.exists("/project/output/validation-output.txt"))
         assert (path.exists("/project/output/validation-version.txt"))
