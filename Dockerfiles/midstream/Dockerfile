@@ -14,7 +14,8 @@ RUN export ARCH=$(case $(arch) in x86_64) echo -n amd64 ;; aarch64) echo -n arm6
     mkdir /project/output && \
     chmod g+w /etc/passwd && \
     dnf install --setopt=install_weak_deps=False -y git-core ansible skopeo && \
-    dnf clean all
+    dnf clean all && \
+    git clone --branch $OPERATOR_TEST_PLAYBOOKS_TAG https://github.com/redhat-operator-ecosystem/operator-test-playbooks.git /project/operator-test-playbooks
 ADD ./run_tests.py /run_tests.py
 ADD ./unit_tests.py /unit_tests.py
 CMD ["/run_tests.py"]
