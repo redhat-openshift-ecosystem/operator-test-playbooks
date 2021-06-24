@@ -21,27 +21,31 @@ class RunMidstreamCVPTests():
         self.image_to_test = os.getenv('IMAGE_TO_TEST')
         self.umoci_bin_path = os.getenv('UMOCI_BIN_PATH',
                                         '/usr/local/bin/umoci')
+        self.verbosity = int(os.getenv('VERBOSITY', '1'))*"v"
+
 
     def run_extract_operator_bundle(self):
-        exec_cmd = "ansible-playbook -i localhost, -c local -v operator-test-playbooks/extract-operator-bundle.yml \
+        exec_cmd = "ansible-playbook -i localhost, -c local -{verbosity} operator-test-playbooks/extract-operator-bundle.yml \
                     -e 'bundle_image={bundle_image}' \
                     -e 'operator_work_dir={operator_work_dir}' \
                     -e 'umoci_bin_path={umoci_bin_path}'".format(
                                                     operator_dir=self.operator_dir,
                                                     operator_work_dir=self.operator_work_dir,
                                                     bundle_image=self.image_to_test,
-                                                    umoci_bin_path=self.umoci_bin_path)
+                                                    umoci_bin_path=self.umoci_bin_path,
+                                                    verbosity=self.verbosity)
         result = subprocess.run(exec_cmd, shell=True, capture_output=True)
         return result
 
     def run_validate_operator_bundle(self):
-        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+        exec_cmd = "ansible-playbook -{verbosity} -i localhost, --connection local \
                     operator-test-playbooks/validate-operator-bundle.yml \
                     -e 'operator_dir={operator_dir}' \
                     -e 'operator_work_dir={operator_work_dir}' \
                     -e 'work_dir={work_dir}'".format(operator_dir=self.operator_dir,
                                                      operator_work_dir=self.operator_work_dir,
-                                                     work_dir=self.work_dir)
+                                                     work_dir=self.work_dir,
+                                                     verbosity=self.verbosity)
         result = subprocess.run(exec_cmd, shell=True, capture_output=True)
         return result
 
@@ -68,6 +72,7 @@ class RunMidstreamCVPTests():
             exit_code = 103
             return exit_code
         result = self.run_extract_operator_bundle()
+        print(result.stdout)
         if (result.returncode != 0):
             print("Ansible playbook extract-operator-bundle.yml failed with result code: %s , see the file .errormessage for more info." % result.returncode)
             with open(".errormessage", "w") as error_msg:
@@ -75,6 +80,7 @@ class RunMidstreamCVPTests():
             exit_code = 50
             return exit_code
         result = self.run_validate_operator_bundle()
+        print(result.stdout)
         assert (path.exists("/project/output/validation-rc.txt"))
         assert (path.exists("/project/output/validation-output.txt"))
         assert (path.exists("/project/output/validation-version.txt"))
