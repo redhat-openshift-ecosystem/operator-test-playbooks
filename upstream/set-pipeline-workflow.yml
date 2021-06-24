@@ -1,0 +1,11 @@
+---
+- name: Set pipeline workflow
+  hosts: all
+  become: false
+  gather_facts: false
+
+  tasks:
+
+    - name: "Set pipeline workflow"
+      include_role:
+        name: set_pipeline_workflows
