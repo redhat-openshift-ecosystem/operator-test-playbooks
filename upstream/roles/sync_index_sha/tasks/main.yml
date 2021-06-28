@@ -22,6 +22,7 @@
 - name: "Setting list of package"
   set_fact:
     sis_missing_packages: "{{ input_packages | difference(output_packages) }}"
+    sis_redundant_packages: "{{ output_packages | difference(input_packages) }}"
 
 - name: "Prints input packages"
   debug:
@@ -36,7 +37,13 @@
     var: sis_missing_packages
 
 - name: "Loop over missing packages"
-  include_tasks: single_operator.yml
+  include_tasks: missing_operator.yml
   loop: "{{ sis_missing_packages }}"
+  loop_control:
+    loop_var: si_item
+
+- name: "Loop over redundant packages"
+  include_tasks: redundant_operator.yml
+  loop: "{{ sis_redundant_packages }}"
   loop_control:
     loop_var: si_item

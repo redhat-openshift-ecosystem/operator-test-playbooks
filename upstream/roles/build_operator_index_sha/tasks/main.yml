@@ -62,24 +62,28 @@
     - name: "Set 'result_rc' to false"
       set_fact:
         result_rc: false
+
     - name: "Set 'result_rc'"
       set_fact:
         result_rc: true
       when: ((sis_index_rm_rc.rc is defined and sis_index_rm_rc.rc == 0) and rc_last|bool)
-    - name: "Prints message that bundles were added to catalog"
+
+    - name: "Prints message that bundles were removed from catalog"
       debug:
         msg: "Operator '{{ sis_package_name }}' were removed and push to catalog '{{ sis_index_image_output }}' : [OK]"
       when:
         - result_rc|bool
-    - name: "Print failing msg that bundle was not added to catalog or not pushed"
+
+    - name: "Print failing msg that bundle was not removed to catalog or not pushed"
       debug:
-        msg: "Operator '{{ sis_package_name }}' were removed and push to catalog '{{ sis_index_image_output }}' : [FAIL]"
+        msg: "Operator '{{ sis_package_name }}' was not removed or there was problem to push to catalog '{{ sis_index_image_output }}' : [FAIL]"
       when:
         - not result_rc|bool
         - (strict_mode is undefined or not strict_mode|bool)
-    - name: "Failing when bundle was not added to catalog or not pushed"
+
+    - name: "Failing when bundle was not removed to catalog or not pushed"
       fail:
-        msg: "Operator '{{ sis_package_name }}' were removed and push to catalog '{{ sis_index_image_output }}' : : [FAIL]"
+        msg: "Operator '{{ sis_package_name }}' was not removed or there was problem to push to catalog '{{ sis_index_image_output }}' : : [FAIL]"
       when:
         - not result_rc|bool
         - strict_mode is defined
@@ -90,7 +94,7 @@
     - not sis_index_rm_skip|bool
 
 
-- name: "Remove operator from idnex"
+- name: "Add operator to idnex"
   block:
     - name: "Add '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
       shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_sha_images }} --tag {{ sis_index_image_output }} --mode {{ opm_index_add_mode }} {{ sis_opm_extra_args }}"
