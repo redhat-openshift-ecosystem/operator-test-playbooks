@@ -29,13 +29,9 @@ jobs:
       - name: "Build the midstream image inside Dockerfiles"
         run: |
           podman --version
-          podman build -t midstream_image:latest -f Dockerfiles/midstream/Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg --no-cache .
-
-          #cd Dockerfiles/midstream/
-          #podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0
+          podman build -t midstream_image:latest -f Dockerfiles/midstream/Dockerfile --no-cache .
 
       - name: "Run unit tests"
         continue-on-error: false
         run: |
           podman run -it midstream_image:latest python3 /tmp/operator-test-playbooks/Dockerfiles/midstream/unit_tests.py
-
