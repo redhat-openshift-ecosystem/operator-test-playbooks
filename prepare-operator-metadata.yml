@@ -21,19 +21,24 @@
     operator_work_dir: "/home/jenkins/agent/test-operator"
     operator_dir: "/tmp/test"
     work_dir: "{{ lookup('env', 'WORKSPACE') }}"
-    jq_bin_path : "/usr/bin/jq"
+    jq_bin_path: "/usr/bin/jq"
     yq_bin_path: "/usr/local/bin/yq"
     testing_bin_path: "/usr/local/bin"
-    current_channel: '' # Added to avoid a bug with undefined variables
+    current_channel: ''    # Added to avoid a bug with undefined variables
 
   tasks:
 
     - name: "Set variables for operator_work_dir and operator_dir"
       set_fact:
-        operator_work_dir: "{{ operator_work_dir | default('/home/jenkins/agent/test-operator')}}"
+        operator_work_dir: >
+          "{{ operator_work_dir |
+          default('/home/jenkins/agent/test-operator')}}"
         operator_dir: "{{ operator_dir | default('/tmp/test') }}"
 
-    - name: "Run operator-courier nest to copy the operator metadata in nested format to the work dir"
+    - name: >
+        "Run operator-courier nest to
+        copy the operator metadata in
+        nested format to the work dir"
       shell: "operator-courier nest {{ operator_dir }} {{ operator_work_dir }}"
 
     - name: "Parse operator metadata needed to run the tests"

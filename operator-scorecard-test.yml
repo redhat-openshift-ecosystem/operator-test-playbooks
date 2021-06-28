@@ -1,5 +1,8 @@
 ---
-- name: Run scorecard tests on the OLM deployed operator as part of the operator testing pipeline
+- name: >
+    Run scorecard tests on the OLM
+    deployed operator as part of
+    the operator testing pipeline
   hosts: all
   become: false
   gather_facts: false
@@ -31,8 +34,14 @@
           loop_control:
             loop_var: cr_path
       always:
-        - name: "Get the pod container logs of the operator after running scorecard tests"
-          shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
+        - name: >
+            "Get the pod container logs of the
+            operator after running scorecard tests"
+          shell: >
+            "{{ oc_bin_path }} get --output=name pods
+            | grep {{ operator_pod_name }} |
+            xargs -I{} {{ oc_bin_path }} logs {} -c
+            {{ operator_container_name }}"
           register: operator_container_result
           ignore_errors: true
           environment:

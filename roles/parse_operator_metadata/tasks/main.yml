@@ -16,7 +16,7 @@
     debug:
       msg: "{{ package_path_result }}"
 
-    # assuming only one file matches the file path
+  # assuming only one file matches the file path
   - name: "set variable for package_path from package_path_result"
     set_fact:
       package_path: "{{ package_path_result.files[0].path }}"
@@ -36,23 +36,23 @@
 
   - name: "Load variables from package path into variable package_vars (upstream only)"
     block:
-    - name: Check if package file exists
-      stat:
-        path: "{{ package_path }}"
-      register: package_file_st
+      - name: Check if package file exists
+        stat:
+          path: "{{ package_path }}"
+        register: package_file_st
 
-    - name: Fail if package file doesn't exists
-      fail:
-        msg: "{{ package_path }} does not exist"
-      when: not package_file_st.stat.exists
+      - name: Fail if package file doesn't exists
+        fail:
+          msg: "{{ package_path }} does not exist"
+        when: not package_file_st.stat.exists
 
-    - name: "Getting content of package file"
-      shell: "cat {{ package_path }}"
-      register: package_data
+      - name: "Getting content of package file"
+        shell: "cat {{ package_path }}"
+        register: package_data
 
-    - name: Set facts
-      set_fact:
-        package_vars: "{{ package_data.stdout | from_yaml }}"
+      - name: Set facts
+        set_fact:
+          package_vars: "{{ package_data.stdout | from_yaml }}"
     when: run_upstream|bool
 
   - name: "GET package_name variable from loaded package_vars"
@@ -216,7 +216,7 @@
 
     - name: "Set failure result"
       set_fact:
-        parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}" }
+        parse_operator_metadata_results: {'result': 'fail', 'msg': "{{ ansible_failed_result }}"}
 
     - name: "Fail the play with the results"
       debug:

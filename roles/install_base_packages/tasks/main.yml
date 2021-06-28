@@ -8,8 +8,8 @@
       - python3-pip
       - python3-setuptools
     state: latest
-    update_cache: yes
-  become: yes
+    update_cache: true
+  become: true
   tags:
     - install
     - host_build
@@ -23,12 +23,12 @@
           - software-properties-common
           - virtualenv
         state: latest
-        update_cache: yes
+        update_cache: true
     - name: Install python modules
       pip:
         name:
           - docker
-  become: yes
+  become: true
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   tags:
     - install
@@ -41,10 +41,10 @@
       - python3-virtualenv
       - python3-dockerpty
     state: latest
-    update_cache: yes
-  become: yes
+    update_cache: true
+  become: true
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
   tags:
-      - install
-      - host_build
-      - image_build
+    - install
+    - host_build
+    - image_build

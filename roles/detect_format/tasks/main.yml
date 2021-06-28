@@ -25,11 +25,11 @@
 
     - name: Operator version
       block:
-      - name: "Check operator version"
-        shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
-        register: operator_version_raw
-      - set_fact:
-          operator_version: "{{ operator_version_raw.stdout }}"
+        - name: "Check operator version"
+          shell: "cd {{ operator_dir }}; ls -d */| sort --version-sort | tail -n 1|sed s/.$//"
+          register: operator_version_raw
+        - set_fact:
+            operator_version: "{{ operator_version_raw.stdout }}"
       when: operator_version is undefined
 
     - name: "Export CSV variables"

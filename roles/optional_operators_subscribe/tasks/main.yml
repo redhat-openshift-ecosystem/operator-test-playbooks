@@ -1,5 +1,5 @@
 ---
-- name: "Run optional-operators-subscribe"
+- name: "Run optional_operators_subscribe"
   block:
   - name: "Set facts for the Operator groups"
     set_fact:
@@ -38,26 +38,25 @@
     set_fact:
       finished_json_contents: "{{ finished_json_contents | combine(new_item, recursive=true) }}"
     vars:
-      new_item: { 'passed':  true }
+      new_item: {'passed': true}
     with_dict: "{{ finished_json_contents }}"
     when: shell_script_output.rc == 0
 
   always:
-  - name: "Store the result of the shell script output to build-log.txt"
-    copy:
-      dest: "{{ ARTIFACT_DIR }}/build-log.txt"
-      content: "{{ shell_script_output.stdout }}"
-      mode: 0644
+    - name: "Store the result of the shell script output to build-log.txt"
+      copy:
+        dest: "{{ ARTIFACT_DIR }}/build-log.txt"
+        content: "{{ shell_script_output.stdout }}"
+        mode: 0644
 
-  - name: "Store the result in a JSON file"
-    copy:
-      dest: "{{ ARTIFACT_DIR }}/optional_operator_subscribe.json"
-      content: "{{ shell_script_output }}"
-      mode: 0644
+    - name: "Store the result in a JSON file"
+      copy:
+        dest: "{{ ARTIFACT_DIR }}/optional_operator_subscribe.json"
+        content: "{{ shell_script_output }}"
+        mode: 0644
 
-  - name: "Store the finished.json"
-    copy:
-      dest: "{{ ARTIFACT_DIR }}/finished.json"
-      content: "{{ finished_json_contents }}"
-      mode: 0644
-
+    - name: "Store the finished.json"
+      copy:
+        dest: "{{ ARTIFACT_DIR }}/finished.json"
+        content: "{{ finished_json_contents }}"
+        mode: 0644

@@ -5,5 +5,3 @@ bundle_index_image_namespace: test-operator
 bundle_index_registry: localhost:5000
 bundle_image_suffix: "index"
 bundle_index_image: "{{ bundle_index_registry }}/{{ bundle_index_image_namespace }}/{{ operator_name }}-{{ bundle_image_suffix }}:v{{ operator_version }}"
-
-

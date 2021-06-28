@@ -1,7 +1,7 @@
 ---
 - name: "Parsing the operator bundle data"
   block:
-    ## Must use this in conjunction with extract bundle
+  ## Must use this in conjunction with extract bundle
   - name: "Inspect the bundle image with skopeo"
     shell: "skopeo inspect oci:{{ operator_bundle_dir }}:latest"
     register: skopeo_inspect_result

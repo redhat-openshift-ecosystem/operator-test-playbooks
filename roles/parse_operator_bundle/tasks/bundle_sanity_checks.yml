@@ -26,20 +26,23 @@
 - name: "Check if the operators.operatorframework.io.bundle.channels.v1 from annotation.yaml matches the bundle image label"
   fail:
     msg: "The operators.operators.operatorframework.io.bundle.channels.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
-  when:
-    - annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channels.v1']
+  when: >
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1']
+    != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channels.v1']
 
 - name: "Check if the operators.operatorframework.io.bundle.manifests.v1 from annotation.yaml matches the bundle image label"
   fail:
     msg: "The operators.operators.operatorframework.io.bundle.manifests.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
-  when:
-    - annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.manifests.v1']
+  when: >
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.manifests.v1']
+    != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.manifests.v1']
 
 - name: "Check if the operators.operatorframework.io.bundle.mediatype.v1 from annotation.yaml matches the bundle image label"
   fail:
     msg: "The operators.operatorframework.io.bundle.mediatype.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
-  when:
-    - annotations_vars.annotations['operators.operatorframework.io.bundle.mediatype.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.mediatype.v1']
+  when: >
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.mediatype.v1']
+    != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.mediatype.v1']
 
 - name: "Check if the operators.operatorframework.io.bundle.mediatype.v1 is set to the expected value"
   fail:
@@ -50,11 +53,13 @@
 - name: "Check if the operators.operatorframework.io.bundle.metadata.v1 from annotation.yaml matches the bundle image label"
   fail:
     msg: "The operators.operatorframework.io.bundle.metadata.v1 value in the annotations yaml doesn't match the corresponding bundle image label!!"
-  when:
-    - annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.metadata.v1']
+  when: >
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.metadata.v1']
+    != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.metadata.v1']
 
 - name: "Check if the operators.operatorframework.io.bundle.package.v1 from annotation.yaml matches the bundle image label"
   fail:
     msg: "The operators.operatorframework.io.bundle.package.v1 value in the annotations yaml doesn't match the corresponding bundle image label!"
-  when:
-    - annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1'] != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1']
+  when: >
+    - annotations_vars.annotations['operators.operatorframework.io.bundle.package.v1']
+    != skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.package.v1']
