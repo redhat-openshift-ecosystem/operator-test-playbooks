@@ -15,7 +15,7 @@
 - name: "Copy operator test file"
   template:
     src: "{{ item.path }}"
-    dest: '{{ workflow_files_path }}/{{ item.path.split("/")[-1].split(".js2")[0] }}'
+    dest: '{{ workflow_output_path }}/{{ item.path.split("/")[-1].split(".js2")[0] }}'
   loop: "{{ template_files.files|flatten(levels=1) }}"
   loop_control:
     label: "{{ item.path }}"
