@@ -1,0 +1,11 @@
+---
+- name: Update pipeline
+  hosts: all
+  become: false
+  gather_facts: false
+
+  tasks:
+
+    - name: "Apply workflow files"
+      include_role:
+        name: apply_pipeline_workflows
