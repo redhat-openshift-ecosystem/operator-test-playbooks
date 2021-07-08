@@ -47,12 +47,22 @@
     - quay_api_token|length > 0
     - pu_prod_registry_versions.status != 200
 
+
+- name: "Setting all versions to 'versions_in_config' variable"
+  set_fact:
+    versions_in_config: default_config.production.index.tags
+
 - name: "Setting all versions to 'versions_in_registry' variable"
   set_fact:
     versions_in_registry: "{{ pu_prod_registry_versions.json.tags }}"
   when:
     - pu_prod_registry_versions.status is defined
     - pu_prod_registry_versions.status == 200
+
+- name: "Debug"
+  debug:
+    var: versions_in_config
+# empty_index
 
 - name: "Debug"
   debug:
