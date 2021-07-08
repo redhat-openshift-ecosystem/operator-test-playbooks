@@ -54,7 +54,7 @@
 
 - name: "Setting all versions to 'versions_in_registry' variable"
   set_fact:
-    versions_in_registry: "{{ pu_prod_registry_versions.json.tags | from_json }}"
+    versions_in_registry: "{{ pu_prod_registry_versions.json.tags }}"
   when:
     - pu_prod_registry_versions.status is defined
     - pu_prod_registry_versions.status == 200
