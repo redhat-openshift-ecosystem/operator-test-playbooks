@@ -50,19 +50,18 @@
 
 - name: "Setting all versions to 'versions_in_config' variable"
   set_fact:
-    versions_in_config: "{{ default_config.production.index.tags }}"
+    versions_in_config: "{{ default_config.production.index.tags | from_yaml }}"
 
 - name: "Setting all versions to 'versions_in_registry' variable"
   set_fact:
-    versions_in_registry: "{{ pu_prod_registry_versions.json.tags }}"
+    versions_in_registry: "{{ pu_prod_registry_versions.json.tags | from_json }}"
   when:
     - pu_prod_registry_versions.status is defined
     - pu_prod_registry_versions.status == 200
 
 - name: "Setting all versions to 'versions_in_config' variable"
   set_fact:
-    versions: "(versions_in_registry | difference(versions_in_config)) |"
-
+    versions: "{{ versions_in_config | difference(versions_in_registry) }}"
 
 - name: "Debug"
   debug:
