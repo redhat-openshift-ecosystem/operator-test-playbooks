@@ -290,7 +290,7 @@
           block:
 
             - name: "Setting Dockerfile argument"
-              set_facts:
+              set_fact:
                 bovb_dockerfile_arg: "--optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/Dockerfile"
               when:
                 - enable_bundle_validate_community_dockerfile is defined
@@ -384,7 +384,7 @@
                 remote_src: true
 
             - name: "Setting Dockerfile argument"
-              set_facts:
+              set_fact:
                 bovb_dockerfile_arg: "--optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/bundle.Dockerfile"
               when:
                 - enable_bundle_validate_community_dockerfile is defined
