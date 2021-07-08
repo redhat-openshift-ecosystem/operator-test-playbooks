@@ -115,8 +115,8 @@
 
     - name: "Set safety variables for production"
       set_fact:
-        min_operators_in_index_allowed: 30
-        max_missing_operators_allowed: 20
+        min_operators_in_index_allowed: 0
+        max_missing_operators_allowed: 1000
       when:
         - enable_production is defined
         - enable_production|bool
