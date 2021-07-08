@@ -50,7 +50,7 @@
 
 - name: "Setting all versions to 'versions_in_config' variable"
   set_fact:
-    versions_in_config: default_config.production.index.tags
+    versions_in_config: "{{ default_config.production.index.tags }}"
 
 - name: "Setting all versions to 'versions_in_registry' variable"
   set_fact:
