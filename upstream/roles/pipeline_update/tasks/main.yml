@@ -26,7 +26,7 @@
 
 - name: "Get list of versions in ''"
   uri:
-    url: "https//{{ default_config.production.index.registry }}/v2/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}/tags/list"
+    url: "https://{{ default_config.production.index.registry }}/v2/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}/tags/list"
   register: pu_prod_registry_versions
   failed_when: false
   changed_when: false

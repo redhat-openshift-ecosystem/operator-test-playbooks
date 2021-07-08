@@ -1,4 +1,5 @@
 workflow_templates_path: ""
 workflow_output_path: "/tmp"
 workflow_config_path: ""
+container_tool: docker
 versions_in_registry: []
