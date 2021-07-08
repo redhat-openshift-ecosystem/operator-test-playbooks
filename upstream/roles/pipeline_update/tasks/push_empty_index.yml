@@ -1,3 +1,7 @@
 ---
+
+- name: "Pull {{ empty_index }}:latest"
+  shell: "{{ container_tool }} pull {{ empty_index }}:latest"
+
 - name: "Tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}"
   shell: "{{ container_tool }} tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}"
