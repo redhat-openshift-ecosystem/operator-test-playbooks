@@ -49,7 +49,7 @@
 
 - name: "Setting all versions to 'versions_in_registry' variable"
   set_fact:
-    versions_in_registry: "{{ (bob_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+    versions_in_registry: "{{ (pu_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when:
     - pu_prod_registry_versions.status is defined
     - pu_prod_registry_versions.status == 200
