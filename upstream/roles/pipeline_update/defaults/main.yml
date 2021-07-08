@@ -1,3 +1,4 @@
 workflow_templates_path: ""
 workflow_output_path: "/tmp"
 workflow_config_path: ""
+versions_in_registry: []
