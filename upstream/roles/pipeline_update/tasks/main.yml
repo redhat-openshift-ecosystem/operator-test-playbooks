@@ -59,6 +59,11 @@
     - pu_prod_registry_versions.status is defined
     - pu_prod_registry_versions.status == 200
 
+- name: "Setting all versions to 'versions_in_config' variable"
+  set_fact:
+    versions: "(versions_in_registry | difference(versions_in_config)) |"
+
+
 - name: "Debug"
   debug:
     var: versions_in_config
@@ -67,3 +72,7 @@
 - name: "Debug"
   debug:
     var: versions_in_registry
+
+- name: "Debug"
+  debug:
+    var: versions
