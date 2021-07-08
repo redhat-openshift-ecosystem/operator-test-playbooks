@@ -75,3 +75,9 @@
 - name: "Debug"
   debug:
     var: versions
+
+- name: "Loop over all versions"
+  include_tasks: push_empty_index.yml
+  loop: "{{ versions }}"
+  loop_control:
+    loop_var: pu_item
