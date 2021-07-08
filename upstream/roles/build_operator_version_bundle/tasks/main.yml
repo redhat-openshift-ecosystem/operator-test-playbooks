@@ -288,9 +288,17 @@
 
         - name: "Validate bundle for openshift"
           block:
+
+            - name: "Setting Dockerfile argument"
+              set_fact:
+                bovb_dockerfile_arg: "--optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/Dockerfile"
+              when:
+                - enable_bundle_validate_community_dockerfile is defined
+                - enable_bundle_validate_community_dockerfile|bool
+
             - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
               shell:
-                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community --optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/Dockerfile"
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community {{ bovb_dockerfile_arg }}"
                 chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
           when:
             - stream_kind is defined
@@ -375,9 +383,16 @@
                 dest: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/manifests/"
                 remote_src: true
 
+            - name: "Setting Dockerfile argument"
+              set_fact:
+                bovb_dockerfile_arg: "--optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/bundle.Dockerfile"
+              when:
+                - enable_bundle_validate_community_dockerfile is defined
+                - enable_bundle_validate_community_dockerfile|bool
+
             - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
               shell:
-                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_dir_name }}/ --select-optional name=community --optional-values=index-path={{ operator_bundle_src_dir }}/{{ operator_dir_name }}/bundle.Dockerfile"
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_dir_name }}/ --select-optional name=community {{ bovb_dockerfile_arg }}"
                 chdir: "{{ operator_bundle_src_dir }}"
           when:
             - stream_kind is defined

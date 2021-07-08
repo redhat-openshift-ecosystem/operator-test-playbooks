@@ -126,14 +126,21 @@
         - bob_registry_versions.status is defined
         - bob_registry_versions.status == 200
 
-    - name: "Setting all versions to 'versions_in_prod_registry' variable"
+    - name: "Setting all versions to 'versions_in_prod_registry_full' variable"
       set_fact:
-        versions_in_prod_registry: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        versions_in_prod_registry_full: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
       when:
         - bob_prod_registry_versions.status is defined
         - bob_prod_registry_versions.status == 200
 
-    - name: "Filtering versions to add and remove"
+    - name: "Setting all versions to 'versions_in_prod_registry' variable without '_ignore'"
+      set_fact:
+        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', '_ignore') | list }}"
+      when:
+        - bob_prod_registry_versions.status is defined
+        - bob_prod_registry_versions.status == 200
+
+    - name: "Filtering versions to add and remove."
       set_fact:
         versions_add: "{{ versions_in_dir | difference(versions_in_registry) | difference(versions_in_prod_registry) }}"
         versions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
