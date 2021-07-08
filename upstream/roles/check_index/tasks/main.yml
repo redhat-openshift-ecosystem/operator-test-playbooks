@@ -57,9 +57,14 @@
         chi_missing_operators: "{{ chi_git_not_index_operators | union(chi_index_not_git_operators) }}"
       no_log: true
 
+    - name: "Removing empty items form 'chi_missing_operators' list"
+      set_fact:
+        chi_missing_operators: "{{ chi_missing_operators | select() | list }}"
+
     - name: "Setting list of incomplete packages"
       set_fact:
         chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
+
 
     - name: "Resetting incomplete packages"
       set_fact:
