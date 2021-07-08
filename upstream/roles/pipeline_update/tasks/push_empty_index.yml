@@ -8,3 +8,9 @@
 
 - name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}"
   shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}"
+
+- name: "Tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}{{ pu_postfix }}"
+  shell: "{{ container_tool }} tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}{{ pu_postfix }}"
+
+- name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}{{ pu_postfix }}"
+  shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pu_item }}{{ pu_postfix }}"
