@@ -8,7 +8,7 @@
     # an existing deployment is a prerequisite for the scorecard tests
     - name: "Run optional operators subscribe step"
       include_role:
-        name: optional-operators-subscribe
+        name: optional_operators_subscribe
 
     - name: "Run the operator scorecard tests step"
       include_role:

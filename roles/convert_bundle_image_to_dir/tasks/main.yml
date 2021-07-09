@@ -63,12 +63,12 @@
           with_items:
             - absent
             - directory
-        - name : Move bundle dir to {{ operator_dir }}
+        - name: Move bundle dir to {{ operator_dir }}
           copy:
             src: "{{ bundle_input_src_dir }}/{{ item }}"
             dest: "{{ operator_dir }}/"
-            remote_src: yes
-            directory_mode: yes
+            remote_src: true
+            directory_mode: true
           with_items:
             - manifests
             - metadata

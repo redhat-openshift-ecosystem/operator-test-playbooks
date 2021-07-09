@@ -1,29 +1,39 @@
 # Extra_vars for the running this playbook
 # 1. cluster_name: Name of the cluster to be provisioned
 # 2. aws_region: region on which the ocp_cluster needs to be deployed
-# 3. ocp_install_directory: Directory in which the cluster config files are generated
-#                           by default it is fetched from pipleline_repo_path
+# 3. ocp_install_directory:
+#                 Directory in which the cluster config files are generated
+#                 by default it is fetched from pipleline_repo_path
 # 4. ocp_install_config_template: ocp_config file template path
 # 5. pull_secret_file: path to file containing pull secret dictionary (required)
 # 6. ssh_key_file: path to file containing ssh_key_file (required)
+---
 - name: "Prepare OCP 4.x configuration for installation on AWS"
   hosts: localhost
   become: false
   gather_facts: false
   pre_tasks:
     # set the default variable using set_fact
-    - name: "Set default varibles such that they can be overridden by extra-vars and environment variables"
+    - name: >
+        "Set default varibles such that they can
+        be overridden by extra-vars and
+        environment variables"
       set_fact:
         cluster_name: "{{ cluster_name | default('test-cluster') }}"
         aws_region: "{{ aws_region | default('us-east-2') }}"
 
     - name: "Set OCP install directory"
-      # Note: all the set_fact variables are fetched from extra-vars passed to playbook
-      # if the variables are not found they would be assuming the default variables
+      # Note: all the set_fact variables are
+      # fetched from extra-vars passed to playbook
+      # if the variables are not found they
+      # would be assuming the default variables
       set_fact:
-        ocp_install_directory: "{{ ocp_install_directory | default(playbook_dir) }}"
-        ocp_install_config_template: "{{ ocp_install_config_template |
-                                         default(playbook_dir+'/install-config.yaml.j2') }}"
+        ocp_install_directory: >
+          "{{ ocp_install_directory |
+          default(playbook_dir) }}"
+        ocp_install_config_template: |
+          "{{ ocp_install_config_template |
+          default(playbook_dir+'/install-config.yaml.j2') }}"
   tasks:
     - name: "Ensure that the ocp install directory exists and is empty"
       file:
@@ -34,10 +44,15 @@
         - absent
         - directory
 
-    - name: "Inject cluster name: {{ cluster_name }} and region: {{ aws_region }} into the install config"
+    - name: >
+        "Inject cluster name: {{ cluster_name }}
+        and region: {{ aws_region }} into
+        the install config"
       template:
         src: "{{ ocp_install_config_template }}"
-        dest: "{{ ocp_install_directory }}/{{ cluster_name }}/install-config.yaml"
+        dest: >
+          "{{ ocp_install_directory }}/{{
+          cluster_name }}/install-config.yaml"
         mode: 0644
 
     - name: Read pull_secret_file
@@ -50,12 +65,16 @@
       when: pull_secret_file is defined and ssh_key_file is defined
     - name: "Prepare the dictionary"
       set_fact:
-        secret_dict: "pullSecret: '{{ pull_secret_contents.stdout }}'\nsshKey: '{{ ssh_key_file_contents.stdout }}'"
+        secret_dict: >
+          "pullSecret: '{{ pull_secret_contents.stdout
+          }}'\nsshKey: '{{ ssh_key_file_contents.stdout }}'"
       no_log: true
       when: pull_secret_file is defined and ssh_key_file is defined
     - name: "Inject secrets into the install-config"
       blockinfile:
-        path: "{{ ocp_install_directory }}/{{ cluster_name }}/install-config.yaml"
+        path: >
+          "{{ ocp_install_directory }}/{{
+          cluster_name }}/install-config.yaml"
         block: "{{ secret_dict }}"
         insertafter: EOF
         marker: ""

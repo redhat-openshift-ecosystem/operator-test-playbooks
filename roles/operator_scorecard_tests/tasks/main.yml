@@ -20,19 +20,23 @@
     mode: 0644
 
 - name: "Run operator-sdk scorecard tests on the deployed operator in json form"
-  shell: "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --config {{ work_dir }}/osdk-scorecard.yml > {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"
+  shell: >
+    "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --config {{ work_dir }}/osdk-scorecard.yml >
+    {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   ignore_errors: true
 
 - name: "Parse json operator scorecard results"
-  shell: "cat {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json | {{ jq_bin_path }} '.results[] | select(.labels.suite == \"basic\") | select(.state == \"pass\").name' | wc -l"
+  shell: >
+    "cat {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json | {{ jq_bin_path }} '.results[] |
+    select(.labels.suite == \"basic\") | select(.state == \"pass\").name' | wc -l"
   register: scorecard_results_passed_result
 
 - debug:
     msg: "Scorecard Basic Tests passed: {{ scorecard_results_passed_result.stdout }}"
 
-  # The scorecard test may have already deleted the CR, so ignore any errors
+# The scorecard test may have already deleted the CR, so ignore any errors
 - name: "Delete the operator CR"
   shell: "{{ oc_bin_path }} delete -f {{ cr_path }} --ignore-not-found=true --grace-period=60 --timeout=120s"
   environment:

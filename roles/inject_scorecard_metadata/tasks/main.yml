@@ -68,11 +68,13 @@
   set_fact:
     csv_vars_spec_crds_owned: "{{ csv_vars_spec_crds['owned'] | default([]) }}"
 
-  # RUNS the following block only when csv_vars_spec_crds_owned is not empty
+# RUNS the following block only when csv_vars_spec_crds_owned is not empty
 - name: "Extract CR only when the CRs defined"
   block:
     - name: "Extract only the first CR from alm-examples in the CSV"
-      shell: "{{ yq_bin_path }} r {{ csv_path }} \"metadata.annotations.alm-examples\" | {{ jq_bin_path }} -c .[0] | {{ yq_bin_path }} w - \"metadata.namespace\" \"{{ openshift_namespace }}\" > {{ scorecard_cr_dir }}/first.cr.yaml"
+      shell: >
+        "{{ yq_bin_path }} r {{ csv_path }} \"metadata.annotations.alm-examples\" | {{ jq_bin_path }} -c .[0] |
+        {{ yq_bin_path }} w - \"metadata.namespace\" \"{{ openshift_namespace }}\" > {{ scorecard_cr_dir }}/first.cr.yaml"
       when: scorecard_first_cr|bool
 
     - name: "Extract all CRs from alm-examples in the CSV"

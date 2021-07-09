@@ -19,7 +19,9 @@
     openshift_namespace: "test-operator"
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"
-    current_channel: '' # Added to avoid a potential bug with undefined variables
+    current_channel: >
+      ''    # Added to avoid a potential
+      bug with undefined variables
     olm_ver: 0.14.1
     events_file_path: "{{ work_dir }}/events.json"
 
@@ -39,7 +41,9 @@
         scorecard_cr_dir: "{{ work_dir }}/scorecard-cr-files"
         kube_objects_dir: "{{ work_dir }}/kube_objects"
         testing_bin_path: "{{ work_dir }}/bin"
-        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+        oc_bin_path: >
+          '{{ ''kubectl'' if run_upstream else
+          "{{ testing_bin_path }}/oc" }}'
         jq_bin_path: "{{ testing_bin_path }}/jq"
         yq_bin_path: "{{ testing_bin_path }}/yq"
         go_bin_path: "{{ testing_bin_path }}/go/bin/go"
@@ -82,10 +86,14 @@
         - name: "Install OLM"
           block:
             - name: "Installing OLM"
-              shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_ver }}"
+              shell: >
+                "{{ operator_sdk_bin_path }}
+                olm install --version {{ olm_ver }}"
 
             - name: "Delete catalogsource"
-              shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+              shell: >
+                "{{ oc_bin_path }} delete catalogsource
+                operatorhubio-catalog -n olm"
               ignore_errors: true
           when:
             - olm_needed.stdout != "operatorgroup"
@@ -96,7 +104,9 @@
         name: build_catalog_upstream
       when: run_upstream|bool
 
-    - name: "Run operator-courier nest to copy the operator metadata in nested format to the work dir"
+    - name: >
+        "Run operator-courier nest to copy the
+        operator metadata in nested format to the work dir"
       shell: "operator-courier nest {{ operator_dir }} {{ operator_work_dir }}"
       when: not run_upstream|bool
 
@@ -104,7 +114,7 @@
       copy:
         src: "{{ operator_dir }}/"
         dest: "{{ operator_work_dir }}"
-        remote_src: yes
+        remote_src: true
         mode: 0644
       when: run_upstream|bool
 
@@ -112,7 +122,9 @@
       include_role:
         name: parse_operator_metadata
 
-    - name: "Run linting tests with operator-courier verify on the deployed operator"
+    - name: >
+        "Run linting tests with operator-courier
+        verify on the deployed operator"
       include_role:
         name: operator_courier_verify
       when: run_lint|bool
@@ -133,16 +145,27 @@
             - run_scorecard|bool
             - not run_upstream|bool
 
-        - name: "Get all registry images on the OpenShift cluster before deploying the operator"
-          shell: "{{ oc_bin_path }} get is --all-namespaces -o json | jq '.items[].spec.tags[] | select(.from.kind == \"DockerImage\") | .from.name' --raw-output | sort -u"
+        - name: >
+            "Get all registry images on the OpenShift
+            cluster before deploying the operator"
+          shell: >
+            "{{ oc_bin_path }} get is --all-namespaces
+            -o json | jq '.items[].spec.tags[] |
+            select(.from.kind == \"DockerImage\") |
+            .from.name' --raw-output | sort -u"
           register: os_registry_is_result_before
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
           no_log: true
           when: not run_upstream|bool
 
-        - name: "Get all pod images on the OpenShift cluster before deploying the operator"
-          shell: "{{ oc_bin_path }} get pods --all-namespaces -o json | jq '.items[].spec.containers[].image' --raw-output | sort -u"
+        - name: >
+            "Get all pod images on the OpenShift
+            cluster before deploying the operator"
+          shell: >
+            "{{ oc_bin_path }} get pods --all-namespaces
+            -o json | jq '.items[].spec.containers[].image'
+            --raw-output | sort -u"
           register: os_pod_is_result_before
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
@@ -150,7 +173,9 @@
           when: not run_upstream|bool
 
         - set_fact:
-            openshift_images_before: " {{ os_registry_is_result_before.stdout_lines }} + {{ os_pod_is_result_before.stdout_lines }}"
+            openshift_images_before: >
+              " {{ os_registry_is_result_before.stdout_lines
+              }} + {{ os_pod_is_result_before.stdout_lines }}"
           when: not run_upstream|bool
 
         - name: "Set the deployment start time"
@@ -186,7 +211,11 @@
             - run_upstream|bool
 
         - name: "Get all openshift registry images"
-          shell: "{{ oc_bin_path }} get is --all-namespaces -o json | jq '.items[].spec.tags[] | select(.from.kind == \"DockerImage\") | .from.name' --raw-output | sort -u"
+          shell: >
+            "{{ oc_bin_path }} get is --all-namespaces
+            -o json | jq '.items[].spec.tags[] |
+            select(.from.kind == \"DockerImage\") |
+            .from.name' --raw-output | sort -u"
           register: os_registry_is_result_after
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
@@ -194,7 +223,10 @@
           when: not run_upstream|bool
 
         - name: "Get all OpenShift pod images"
-          shell: "{{ oc_bin_path }} get pods --all-namespaces -o json | jq '.items[].spec.containers[].image' --raw-output | sort -u"
+          shell: >
+            "{{ oc_bin_path }} get pods --all-namespaces
+            -o json | jq '.items[].spec.containers[].image'
+            --raw-output | sort -u"
           register: os_pod_is_result_after
           environment:
             KUBECONFIG: "{{ kubeconfig_path }}"
@@ -202,13 +234,17 @@
           when: not run_upstream|bool
 
         - set_fact:
-            openshift_images_after: "{{ os_registry_is_result_after.stdout_lines }} + {{ os_pod_is_result_after.stdout_lines }}"
+            openshift_images_after: >
+              "{{ os_registry_is_result_after.stdout_lines }}
+              + {{ os_pod_is_result_after.stdout_lines }}"
           when: not run_upstream|bool
 
         - name: "Scorecard test"
           block:
             - name: "Find all extracted CRs from alm-examples"
-              shell: "find \"{{ scorecard_cr_dir }}\" -name \"*.cr.yaml\" -print"
+              shell: >
+                "find \"{{ scorecard_cr_dir }}\"
+                -name \"*.cr.yaml\" -print"
               register: scorecard_cr_files_result
               when:
                 - run_scorecard|bool
@@ -224,8 +260,14 @@
                 - run_scorecard|bool
                 - run_deploy|bool
           always:
-            - name: "Get the pod container logs of the operator after running scorecard tests"
-              shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
+            - name: >
+                "Get the pod container logs of the
+                operator after running scorecard tests"
+              shell: >
+                "{{ oc_bin_path }} get --output=name pods
+                | grep {{ operator_pod_name }} | xargs -I{}
+                {{ oc_bin_path }} logs {} -c {{
+                operator_container_name }}"
               register: operator_container_result
               ignore_errors: true
               environment:
@@ -241,11 +283,15 @@
 
           when: not run_upstream|bool
 
-        - name: "Test image sources of containers introduced with the testing operator"
+        - name: >
+            "Test image sources of containers
+            introduced with the testing operator"
           include_role:
             name: operator_imagesource_test
           vars:
-            operator_images: "{{ openshift_images_after | difference(openshift_images_before) | list }}"
+            operator_images: >
+              "{{ openshift_images_after |
+              difference(openshift_images_before) | list }}"
           when:
             - run_imagesource|bool
             - run_deploy|bool
@@ -262,8 +308,14 @@
             - run_cleanup|bool
             - run_deploy|bool
 
-        - name: "Remove the quay release of the test operator in the testing namespace"
-          shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" -X DELETE https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test/{{ quay_release }}/helm"
+        - name: >
+            "Remove the quay release of the
+            test operator in the testing namespace"
+          shell: >
+            "curl -s -H \"Authorization: basic {{ quay_token }}\"
+            -X DELETE https://quay.io/cnr/api/v1/packages/{{
+            quay_namespace }}/{{ package_name }}-test/{{
+            quay_release }}/helm"
           when:
             - quay_release is defined
             - package_name is defined

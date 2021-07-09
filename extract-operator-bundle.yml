@@ -15,7 +15,9 @@
     umoci_bin_path: "/usr/local/bin/umoci"
 
   tasks:
-    - name: "Extract the operator bundle image into files needed to run the tests"
+    - name: >
+        "Extract the operator bundle
+        image into files needed to run the tests"
       include_role:
         name: extract_operator_bundle
 

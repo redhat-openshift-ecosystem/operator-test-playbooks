@@ -26,56 +26,57 @@
 
 - name: "Openshift only"
   block:
-  - name: "Check for the existence of earlier releases of the operator on the quay.io app repository"
-    shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
-    register: quay_release_result
-    no_log: true
+    - name: "Check for the existence of earlier releases of the operator on the quay.io app repository"
+      shell: >
+        "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{
+        quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
+      register: quay_release_result
+      no_log: true
 
-  - name: "Increment testing quay app release if exists"
-    shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
-    register: quay_increment_release_result
-    when:
-      - quay_release_result is defined
-      - quay_release_result.stdout is defined
-      - quay_release_result.stdout != ""
-      - quay_release_result.stdout != "null"
+    - name: "Increment testing quay app release if exists"
+      shell: >
+        "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF};
+        NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
+      register: quay_increment_release_result
+      when:
+        - quay_release_result is defined
+        - quay_release_result.stdout is defined
+        - quay_release_result.stdout != ""
+        - quay_release_result.stdout != "null"
 
-  - name: "Set quay release to the incremented one if exists"
-    set_fact:
-      quay_release: "{{ quay_increment_release_result.stdout }}"
-    when:
-      - quay_increment_release_result is defined
-      - quay_increment_release_result.stdout is defined
-      - quay_increment_release_result.stdout != ""
+    - name: "Set quay release to the incremented one if exists"
+      set_fact:
+        quay_release: "{{ quay_increment_release_result.stdout }}"
+      when:
+        - quay_increment_release_result is defined
+        - quay_increment_release_result.stdout is defined
+        - quay_increment_release_result.stdout != ""
 
-  - name: "Append the -test suffix to the packageName"
-    shell: "{{ yq_bin_path }} w -i {{ package_path }} 'packageName' '{{ package_name }}-test'"
+    - name: "Append the -test suffix to the packageName"
+      shell: "{{ yq_bin_path }} w -i {{ package_path }} 'packageName' '{{ package_name }}-test'"
 
-  - name: "Push the operator metadata to the private quay.io repository"
-    shell: "operator-courier push {{ operator_work_dir }} {{ quay_namespace }} {{ package_name }}-test {{ quay_release }} \"basic {{ quay_token }}\""
-    no_log: true
+    - name: "Push the operator metadata to the private quay.io repository"
+      shell: "operator-courier push {{ operator_work_dir }} {{ quay_namespace }} {{ package_name }}-test {{ quay_release }} \"basic {{ quay_token }}\""
+      no_log: true
 
-  - name: "Create {{ openshift_namespace }} project"
-    shell: "{{ oc_bin_path }} new-project {{ openshift_namespace }}"
-    register: openshift_namespace_result
-    environment:
-      KUBECONFIG: "{{ kubeconfig_path }}"
+    - name: "Create {{ openshift_namespace }} project"
+      shell: "{{ oc_bin_path }} new-project {{ openshift_namespace }}"
+      register: openshift_namespace_result
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
 
-  - name: "Inject kube_objects on OpenShift cluster for Operator certification"
-    block:
-      - name: "Inject openshift kube_objects"
-        include_role:
-          name: inject_openshift_kube_objects
-    environment:
-      KUBECONFIG: "{{ kubeconfig_path }}"
-    when:
-      - kube_objects is defined
-      - kube_objects != "N/A"
-      - kube_objects != "null"
-
+    - name: "Inject kube_objects on OpenShift cluster for Operator certification"
+      block:
+        - name: "Inject openshift kube_objects"
+          include_role:
+            name: inject_openshift_kube_objects
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when:
+        - kube_objects is defined
+        - kube_objects != "N/A"
+        - kube_objects != "null"
   when: not run_upstream|bool
-
-
 
 - name: "Create the olm operator files directory"
   file:
@@ -194,7 +195,9 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
-  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  shell: >
+    "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep
+    {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
   register: operator_uptime
   retries: 15
   delay: 5
@@ -219,7 +222,10 @@
   when: csv_describe_result.stdout != ""
 
 - name: "Get the pod status of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep
+    {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param
+    }} -o yaml | {{ yq_bin_path }} r - \"status\""
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -236,7 +242,10 @@
     - operator_pod_result.stdout != ""
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{
+      operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{
+        operator_container_name }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:
@@ -253,14 +262,18 @@
     - operator_container_result.stdout != ""
 
 - name: "Get the catalogsource pod log"
-  shell: "{{ oc_bin_path }} get --output=name pods -n openshift-marketplace | grep test-operators | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-marketplace"
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods -n openshift-marketplace | grep test-operators |
+    cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-marketplace"
   register: catalog_source_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: not run_upstream|bool
 
 - name: "Get the catalogsource pod log (upstream)"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs
+    | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
   register: catalog_source_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
@@ -274,7 +287,10 @@
   when: catalog_source_result.stdout is defined
 
 - name: "Get the catalog-operator pod log"
-  shell: "{{ oc_bin_path }} get --output=name pods -n openshift-operator-lifecycle-manager | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-operator-lifecycle-manager | tail -n 100"
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods -n openshift-operator-lifecycle-manager
+    | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n
+    openshift-operator-lifecycle-manager | tail -n 100"
   register: catalog_operator_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
@@ -324,4 +340,3 @@
   when:
     - run_upstream|bool
     - operator_uptime.rc != 0
-

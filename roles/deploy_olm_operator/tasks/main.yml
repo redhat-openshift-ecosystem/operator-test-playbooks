@@ -5,12 +5,17 @@
 - name: "Deploy olm operator"
   block:
     - name: "Check for the existence of earlier releases of the operator on the quay.io app repository"
-      shell: "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{ quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
+      shell: >
+        "curl -s -H \"Authorization: basic {{ quay_token }}\" https://quay.io/cnr/api/v1/packages/{{
+          quay_namespace }}/{{ package_name }}-test | {{ jq_bin_path }} '.[].release' | sort --version-sort | tail -n 1"
       register: quay_release_result
       no_log: true
 
     - name: "Increment testing quay app release if exists"
-      shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
+      shell: >
+        "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF};
+        NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF),
+        ($NF+1)%(10^length($NF))); print}'"
       register: quay_increment_release_result
       when:
         - quay_release_result is defined
@@ -139,7 +144,9 @@
       when: csv_describe_result.stdout != ""
 
     - name: "Get the pod status of the deployed operator"
-      shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} -o yaml | {{ yq_bin_path }} r - \"status\""
+      shell: >
+        "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -f1
+        | xargs -I{} {{ oc_bin_path }} get {} -o yaml | {{ yq_bin_path }} r - \"status\""
       register: operator_pod_result
       ignore_errors: true
       environment:
@@ -156,7 +163,9 @@
         - operator_pod_result.stdout != ""
 
     - name: "Get the pod container logs of the deployed operator"
-      shell: "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
+      shell: >
+        "{{ oc_bin_path }} get --output=name pods | grep {{ operator_pod_name }}
+        | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }}"
       register: operator_container_result
       ignore_errors: true
       environment:
@@ -173,7 +182,10 @@
         - operator_container_result.stdout != ""
 
     - name: "Get the catalogsource pod log"
-      shell: "{{ oc_bin_path }} get --output=name pods -n openshift-marketplace | grep test-operators | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-marketplace"
+      shell: >
+        "{{ oc_bin_path }} get --output=name pods -n openshift-marketplace
+        | grep test-operators | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }}
+        logs {} -n openshift-marketplace"
       register: catalog_source_result
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
@@ -186,7 +198,10 @@
       when: catalog_source_result.stdout is defined
 
     - name: "Get the catalog-operator pod log"
-      shell: "{{ oc_bin_path }} get --output=name pods -n openshift-operator-lifecycle-manager | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -n openshift-operator-lifecycle-manager | tail -n 100"
+      shell: >
+        "{{ oc_bin_path }} get --output=name pods -n openshift-operator-lifecycle-manager
+        | grep catalog-operator | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {}
+        -n openshift-operator-lifecycle-manager | tail -n 100"
       register: catalog_operator_result
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
@@ -216,7 +231,10 @@
         deploy_olm_operator_results: {'result': 'pass', 'msg': ''}
 
     - name: "Get replicaset logs for operators that failed olm-deployment output"
-      shell: "{{ oc_bin_path }} get replicasets -o go-template={%raw%}'{{range .items}}{{.status.conditions}}{{\"\\n\"}}{{end}}'{%endraw%} -n {{ openshift_namespace }}"
+      shell: >
+        "{{ oc_bin_path }} get replicasets -o
+        go-template={%raw%}'{{range .items}}{{.status.conditions}}{{\"\\n\"}}{{end}}'{%endraw%}
+        -n {{ openshift_namespace }}"
       register: olm_replicaset_output
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
@@ -260,7 +278,7 @@
 
     - name: "Set failure result"
       set_fact:
-        deploy_olm_operator_results: {'result': 'fail', 'name': "{{ ansible_failed_task.name }}", 'msg': "{{ ansible_failed_result }}" }
+        deploy_olm_operator_results: {'result': 'fail', 'name': "{{ ansible_failed_task.name }}", 'msg': "{{ ansible_failed_result }}"}
 
     - name: "Failed on deploy_olm_operator_results"
       fail:

@@ -88,9 +88,9 @@
   vars:
     run_upstream: true
 
-#- name: "Set upstream false"
-#  set_fact:
-#    run_upstream: false
+# - name: "Set upstream false"
+#   set_fact:
+#     run_upstream: false
 
 - name: "Check suggested_namespace"
   include_tasks: get_namespace.yml

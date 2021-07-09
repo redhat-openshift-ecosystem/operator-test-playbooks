@@ -16,7 +16,7 @@
       when:
         - ocp_version_annotation_stdout is defined
         - ocp_version_annotation_stdout != "NotFound"
-        - ocp_version_annotation_stdout.find("v4.5,v4.6") != -1 #found
+        - ocp_version_annotation_stdout.find("v4.5,v4.6") != -1  # found
       set_fact:
         ocp_range_start_old: "4.5"
         ovol_appreg_supported: true
@@ -69,7 +69,7 @@
       when:
         - ocp_version_annotation_stdout is defined
         - ocp_version_annotation_stdout != "NotFound"
-        - ocp_version_annotation_stdout.find("-") == -1 # '-' not found
+        - ocp_version_annotation_stdout.find("-") == -1  # '-' not found
         - ocp_version_annotation_stdout.find("=") == -1
         - ocp_version_annotation_stdout.find("v4.5,v4.6") == -1
 
@@ -79,7 +79,7 @@
       when:
         - ocp_version_annotation_stdout is defined
         - ocp_version_annotation_stdout != "NotFound"
-        - ocp_version_annotation_stdout.find("-") == -1 # '-' not found
+        - ocp_version_annotation_stdout.find("-") == -1  # '-' not found
         - ocp_version_annotation_stdout.find("=") == -1
     #    - ocp_version_annotation_stdout.find("v4.5,v4.6") != -1
 
@@ -90,7 +90,7 @@
         - ocp_version_annotation_stdout is defined
         - ocp_version_annotation_stdout != "NotFound"
         - ocp_version_annotation_stdout.find("=") == -1
-        - ocp_version_annotation_stdout.find("-") == -1 # '-' not found
+        - ocp_version_annotation_stdout.find("-") == -1  # '-' not found
         - dov_cluster_ver is version(ocp_range_start, '>=')
 
   when: (ocp_version_annotation_stdout is defined) and (ocp_version_annotation_stdout != "NotFound")

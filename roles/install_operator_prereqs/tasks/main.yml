@@ -23,7 +23,7 @@
   unarchive:
     src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
     dest: "{{ testing_bin_path }}"
-    remote_src: yes
+    remote_src: true
   when: not run_upstream|bool
   tags:
     - install
@@ -33,7 +33,7 @@
   unarchive:
     src: "https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
     dest: "{{ testing_bin_path }}"
-    remote_src: yes
+    remote_src: true
   tags:
     - install
     - image_build

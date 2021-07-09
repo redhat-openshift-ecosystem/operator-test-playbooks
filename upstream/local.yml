@@ -18,10 +18,10 @@
     run_bundle_test: true
     run_prepare_catalog_repo_upstream: true
     work_dir: "/tmp/operator-test"
-    operator_dir: "dummy" # so operator-courier will be installed
+    operator_dir: "dummy"  # so operator-courier will be installed
     operator_input_image: ""
     image_protocol: "docker://"
-    bundle_image: "dummy" # so skopeo and umoci will be installed
+    bundle_image: "dummy"  # so skopeo and umoci will be installed
     operator_work_dir: "{{ work_dir }}/operator-files"
     operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
     testing_bin_path: "{{ work_dir }}/bin"

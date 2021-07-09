@@ -21,8 +21,8 @@
       msg: "{{ shell_script_output.stdout_lines }}"
 
   always:
-  - name: "Store the result in a text file"
-    copy:
-      dest: "{{ ARTIFACT_DIR }}/operator_bundle_scorecard_tests.txt"
-      content: "{{ shell_script_output }}"
-      mode: 0644
+    - name: "Store the result in a text file"
+      copy:
+        dest: "{{ ARTIFACT_DIR }}/operator_bundle_scorecard_tests.txt"
+        content: "{{ shell_script_output }}"
+        mode: 0644

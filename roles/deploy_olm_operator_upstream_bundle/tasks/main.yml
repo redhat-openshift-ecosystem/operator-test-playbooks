@@ -89,7 +89,9 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
-  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  shell: >
+    "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} |
+    grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
   register: operator_uptime
   retries: 15
   delay: 5
@@ -113,7 +115,9 @@
   when: csv_describe_result.stdout != ""
 
 - name: "Get the pod status of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} |
+    cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -130,7 +134,9 @@
     - operator_pod_result.stdout != ""
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} |
+    cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:
@@ -147,7 +153,9 @@
     - operator_container_result.stdout != ""
 
 - name: "Get the catalogsource pod log (upstream)"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
+  shell: >
+    "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }} | grep test-operators-ocs
+    | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} {{ upstream_namespace_param }}"
   register: catalog_source_result
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"

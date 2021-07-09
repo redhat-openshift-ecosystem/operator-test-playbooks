@@ -15,7 +15,7 @@
 
     - name: "Update apt and install docker-ce"
       apt: update_cache=yes name=docker-ce state=latest
-  become: yes
+  become: true
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   tags:
     - install
@@ -32,7 +32,7 @@
       yum:
         name: docker-ce
         state: latest
-  become: yes
+  become: true
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
   tags:
     - install
@@ -42,7 +42,7 @@
   group:
     name: "{{ docker_group }}"
     state: present
-  become: yes
+  become: true
   tags:
     - install
     - host_build
@@ -51,8 +51,8 @@
   user:
     name: "{{ docker_user }}"
     groups: docker
-    append: yes
-  become: yes
+    append: true
+  become: true
   tags:
     - install
     - host_build
@@ -67,10 +67,7 @@
   service:
     name: docker
     state: started
-  become: yes
+  become: true
   tags:
     - install
     - host_build
-
-
-
