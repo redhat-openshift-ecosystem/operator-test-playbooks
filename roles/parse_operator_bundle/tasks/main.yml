@@ -149,9 +149,8 @@
       mode: 0644
 
   - name: "Sanity check the operator bundle's information"
-    include_tasks: "bundle_sanity_checks.yml"
-    when:
-      bundle_sanity_checks|bool
+    include_tasks: bundle_sanity_checks.yml
+    when: bundle_sanity_checks|bool
 
   rescue:
 
