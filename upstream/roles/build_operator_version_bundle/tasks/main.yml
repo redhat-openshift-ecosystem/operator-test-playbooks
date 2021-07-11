@@ -267,17 +267,10 @@
                     path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
                   register: bovb_testing_config
 
-                - name: "Create a directory if it does not exist"
-                  file:
-                    path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
-                    state: directory
-                    mode: '0755'
+                - name: "Fail if directory doesn't exists"
+                  fail:
+                    msg: "Directory '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
                   when: not bovb_testing_config.stat.exists
-
-                  # - name: "Fail if directory doesn't exists"
-                  #   fail:
-                  #     msg: "Directory '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
-                  #   when: not bovb_testing_config.stat.exists
               when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] is defined
 
             - name: "Generating Dockerfile using info from metadata directory."
