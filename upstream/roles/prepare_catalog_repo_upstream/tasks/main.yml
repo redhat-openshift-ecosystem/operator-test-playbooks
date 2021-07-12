@@ -5,6 +5,7 @@
       file:
         path: "{{ catalog_repo_dir }}"
         state: absent
+      ignore_errors: true
       when: run_remove_catalog_repo|bool
 
     - name: "Check if community operators directory exists"
