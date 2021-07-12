@@ -10,7 +10,7 @@
       OO_BUNDLE: "{{ OO_BUNDLE }}"
       SHARED_DIR: "{{ ARTIFACT_DIR }}"
       ARTIFACT_DIR: "{{ ARTIFACT_DIR }}"
-      SCORECARD_CONFIG: "{{ SCORECARD_CONFIG | default(lookup('first_found', ['scorecard-basic-config.yml']))}}"
+      SCORECARD_CONFIG: "{{ SCORECARD_CONFIG | default(lookup('first_found', ['scorecard-basic-config.yml'])) }}"
       OPENSHIFT_AUTH: "{{ OPENSHIFT_AUTH }}"
       KUBECONFIG: "{{ kubeconfig_path }}"
     ignore_errors: true

@@ -80,7 +80,7 @@
   - name: "If default_channel fetched is an empty string"
     set_fact:
       current_channel: "{{ package_vars['channels'][0]['name'] }}"
-    when: current_channel == ""
+    when: current_channel|length == 0
 
   - name: "Determine the current clustersourceversion for the operator channel"
     set_fact:

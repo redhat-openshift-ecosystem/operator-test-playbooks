@@ -7,7 +7,8 @@
 
 - name: "Read the variables from annotations.yaml"
   block:
-    - shell: cat "{{ operator_work_dir }}/metadata/annotations.yaml"
+    - name: "Load bundle annotaions"
+      shell: cat "{{ operator_work_dir }}/metadata/annotations.yaml"
       register: annotation_data
     - name: Debug
       debug:
@@ -17,10 +18,12 @@
         annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
   when: run_upstream|bool
 
-- debug:
+- name: "Debug"
+  debug:
     var: skopeo_inspect_json.Labels
 
-- debug:
+- name: "Debug"
+  debug:
     var: annotations_vars.annotations
 
 - name: "Check if the operators.operatorframework.io.bundle.channels.v1 from annotation.yaml matches the bundle image label"

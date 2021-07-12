@@ -1,5 +1,6 @@
 ---
-- set_fact:
+- name: "Set initial data"
+  set_fact:
     quay_release: "0.0.1"
     upstream_namespace_param: "{{ '-n test-operators' if run_upstream else '' }}"
     olm_operator_files_path: /tmp/operator-test/olm-operator-files
@@ -112,7 +113,7 @@
     content: "{{ csv_describe_result.stdout }}"
     dest: "{{ work_dir }}/olm-operator-csv-debug.txt"
     mode: 0644
-  when: csv_describe_result.stdout != ""
+  when: csv_describe_result.stdout|length > 0
 
 - name: "Get the pod status of the deployed operator"
   shell: >
@@ -122,7 +123,7 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  when: csv_describe_result.stdout != ""
+  when: csv_describe_result.stdout|length > 0
 
 - name: "Output the operator pod log to a debug file"
   copy:
@@ -130,8 +131,8 @@
     dest: "{{ work_dir }}/olm-operator-pod-debug.txt"
     mode: 0644
   when:
-    - csv_describe_result.stdout != ""
-    - operator_pod_result.stdout != ""
+    - csv_describe_result.stdout|length > 0
+    - operator_pod_result.stdout|length > 0
 
 - name: "Get the pod container logs of the deployed operator"
   shell: >
@@ -141,7 +142,7 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  when: csv_describe_result.stdout != ""
+  when: csv_describe_result.stdout|length > 0
 
 - name: "Output the operator container log to a debug file"
   copy:
@@ -149,8 +150,8 @@
     dest: "{{ work_dir }}/olm-operator-container-debug.txt"
     mode: 0644
   when:
-    - csv_describe_result.stdout != ""
-    - operator_container_result.stdout != ""
+    - csv_describe_result.stdout|length > 0
+    - operator_container_result.stdout|length > 0
 
 - name: "Get the catalogsource pod log (upstream)"
   shell: >

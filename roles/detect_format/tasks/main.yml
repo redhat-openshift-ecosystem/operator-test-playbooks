@@ -1,7 +1,8 @@
 ---
 - name: Handle operator input image conversion
   block:
-    - set_fact:
+    - name: "Set image protocol"
+      set_fact:
         image_protocol: "docker-daemon:"
     - name: Handle operator image input
       include_role:

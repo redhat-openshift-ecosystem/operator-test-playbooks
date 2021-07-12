@@ -28,10 +28,12 @@
         file_type: file
         patterns: '*.clusterserviceversion.yaml'
       register: csv_find_manifest
-    - fail:
+    - name: "Fail if there are no csv files"
+      fail:
         msg: "Could not find csv file in '{{ op_csv_dir }}'"
       when: csv_find_manifest.files|length == 0
-    - set_fact:
+    - name: "Set file path"
+      set_fact:
         csv_file_path: "{{ csv_find_manifest.files[0].path }}"
   when: operator_format == "manifest"
 

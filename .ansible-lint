@@ -16,14 +16,3 @@ skip_list:
   - command-instead-of-shell  # Use shell only when shell functionality is required
   # - yaml  # Violations reported by yamllint
   - line-length
-  - '102'   # No Jinja2
-  - '206'   # Variables should have spaces before and after: {{ var_name}}
-  - '301'   # All tasks should be named
-  - '302'   # Include should has tags
-  - '303'   # Use ":" YAML syntax when arguments are over 4
-  - '305'   # Variable should has space "{{ foo }}"
-  - '306'   # Shells that use pipes should set the pipefail option
-  - '403'   # Package installs should not use latest
-  - '502'   # Use chown module
-  - '601'   # trailing whitespace
-  - '602'   # line too long
