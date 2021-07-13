@@ -1,8 +1,5 @@
 ---
 # used by index check, deploy bundles, deploy bundles (push to quay)
-- name: "Detect stream"
-  set_fact:
-    cic_stream: "{{ operator_base_dir.split('/')[-1] }}"
 
 - name: "Starting index check cleanup process to ignore operators from git missing in the index intentionally due to bundle label cluster specification."
   block:
@@ -45,5 +42,6 @@
         - playbook_repo_test_want_operator_filtered_out is defined
         - playbook_repo_test_want_operator_filtered_out|length > 0
         - playbook_repo_test_want_operator_filtered_out is not in chi_git_not_index_operators_not_needed
-
-  when: cic_stream is match("community-operators")
+  when:
+    - stream_kind is defined
+    - stream_kind == "openshift_upstream"
