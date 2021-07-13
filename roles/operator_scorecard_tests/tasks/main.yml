@@ -3,14 +3,16 @@
   shell: "{{ yq_bin_path }} r {{ cr_path }} --tojson | {{ jq_bin_path }} --raw-output '.kind' | sed 's/ /_/g'"
   register: cr_kind_result
 
-- set_fact:
+- name: "Set fact cr kind"
+  set_fact:
     cr_kind: "{{ cr_kind_result.stdout }}"
 
 - name: "Get the CR name"
   shell: "{{ yq_bin_path }} r {{ cr_path }} --tojson | {{ jq_bin_path }} --raw-output '.metadata.name' | sed 's/ /_/g'"
   register: cr_name_result
 
-- set_fact:
+- name: "Set fact cr name"
+  set_fact:
     cr_name: "{{ cr_name_result.stdout }}"
 
 - name: "Process the osdk-scorecard template"
@@ -22,7 +24,7 @@
 - name: "Run operator-sdk scorecard tests on the deployed operator in json form"
   shell: >
     "{{ operator_sdk_bin_path }} scorecard --version=v1alpha2 --verbose --config {{ work_dir }}/osdk-scorecard.yml >
-    {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir}}/{{ cr_name }}-scorecard-errors.txt"
+    {{ work_dir }}/{{ cr_kind }}-{{ cr_name }}-scorecard-results.json 2> {{ work_dir }}/{{ cr_name }}-scorecard-errors.txt"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   ignore_errors: true
@@ -33,7 +35,8 @@
     select(.labels.suite == \"basic\") | select(.state == \"pass\").name' | wc -l"
   register: scorecard_results_passed_result
 
-- debug:
+- name: "Debug scorecard basic tests"
+  debug:
     msg: "Scorecard Basic Tests passed: {{ scorecard_results_passed_result.stdout }}"
 
 # The scorecard test may have already deleted the CR, so ignore any errors

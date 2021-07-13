@@ -1,6 +1,7 @@
 ---
 
-- fail:
+- name: "Fail when bundle format is not supported"
+  fail:
     msg: "Bundle format is not supported in manifest test yet !!!"
   when: operator_format == "bundle"
 

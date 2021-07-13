@@ -47,7 +47,7 @@
         dest: "{{ kind_bin_path }}"
         mode: '0755'
       become: true
-      when: rc_kind.stat.exists == false
+      when: not rc_kind.stat.exists
   tags:
     - install
     - host_build

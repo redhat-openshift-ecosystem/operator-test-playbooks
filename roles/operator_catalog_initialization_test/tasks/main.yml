@@ -19,7 +19,8 @@
   until: catalog_manifests_dir_result.rc == 0
   no_log: true
 
-- set_fact:
+- name: "Set catalog manifests directory"
+  set_fact:
     catalog_manifests_dir: "{{ catalog_manifests_dir_result.stderr_lines[0].split('dir=', 1)[-1].split(' ')[0] }}"
   when:
     - catalog_manifests_dir_result.stderr_lines is defined
@@ -52,7 +53,7 @@
     dest: "{{ work_dir }}/catalog-init-debug-{{ operator_registry_branch }}.txt"
     mode: o+rwx
   when:
-    - catalog_initializer_result.stdout != ""
+    - catalog_initializer_result.stdout|length > 0
 
 - name: "Output the catalog initialization return code to a debug file"
   copy:

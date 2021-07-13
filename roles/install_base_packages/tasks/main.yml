@@ -7,7 +7,7 @@
       - ca-certificates
       - python3-pip
       - python3-setuptools
-    state: latest
+    state: present
     update_cache: true
   become: true
   tags:
@@ -22,7 +22,7 @@
         name:
           - software-properties-common
           - virtualenv
-        state: latest
+        state: present
         update_cache: true
     - name: Install python modules
       pip:
@@ -40,7 +40,7 @@
     name:
       - python3-virtualenv
       - python3-dockerpty
-    state: latest
+    state: present
     update_cache: true
   become: true
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'

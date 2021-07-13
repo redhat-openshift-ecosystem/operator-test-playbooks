@@ -21,4 +21,4 @@
 - name: "parse and return image name when timestamp is after start_time"
   set_fact:
     pulled_images: "{{ pulled_images + [image] }}"
-  when: "{{ timestamp > deployment_start_time }}"
+  when: timestamp > deployment_start_time

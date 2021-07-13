@@ -27,7 +27,8 @@
   set_fact:
     image_manifest: "{{ skopeo_dir_inspect_result.stdout | from_json }}"
 
-- debug:
+- name: "Debug"
+  debug:
     var: image_manifest
 
 - name: "Unpack the image layers using the umoci tool"

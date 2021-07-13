@@ -20,7 +20,7 @@
       when:
         - quay_release_result is defined
         - quay_release_result.stdout is defined
-        - quay_release_result.stdout != ""
+        - quay_release_result.stdout|length > 0
         - quay_release_result.stdout != "null"
 
     - name: "Set quay release to the incremented one if exists"
@@ -29,7 +29,7 @@
       when:
         - quay_increment_release_result is defined
         - quay_increment_release_result.stdout is defined
-        - quay_increment_release_result.stdout != ""
+        - quay_increment_release_result.stdout|length > 0
 
     - name: "Append the -test suffix to the packageName"
       shell: "{{ yq_bin_path }} w -i {{ package_path }} 'packageName' '{{ package_name }}-test'"
@@ -112,7 +112,7 @@
       shell: "{{ oc_bin_path }} create -f {{ operator_work_dir }}/../scorecard.secret.yaml"
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-      when: scorecard_secret_result.stat.exists == True
+      when: scorecard_secret_result.stat.exists
 
     - name: "Create the subscription"
       shell: "{{ oc_bin_path }} create -f {{ olm_operator_files_path }}/subscription.yml"
@@ -141,7 +141,7 @@
         content: "{{ csv_describe_result.stdout }}"
         dest: "{{ work_dir }}/olm-operator-csv-debug.txt"
         mode: 0644
-      when: csv_describe_result.stdout != ""
+      when: csv_describe_result.stdout|length > 0
 
     - name: "Get the pod status of the deployed operator"
       shell: >
@@ -151,7 +151,7 @@
       ignore_errors: true
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-      when: csv_describe_result.stdout != ""
+      when: csv_describe_result.stdout|length > 0
 
     - name: "Output the operator pod log to a debug file"
       copy:
@@ -159,8 +159,8 @@
         dest: "{{ work_dir }}/olm-operator-pod-debug.txt"
         mode: 0644
       when:
-        - csv_describe_result.stdout != ""
-        - operator_pod_result.stdout != ""
+        - csv_describe_result.stdout|length > 0
+        - operator_pod_result.stdout|length > 0
 
     - name: "Get the pod container logs of the deployed operator"
       shell: >
@@ -170,7 +170,7 @@
       ignore_errors: true
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
-      when: csv_describe_result.stdout != ""
+      when: csv_describe_result.stdout|length > 0
 
     - name: "Output the operator container log to a debug file"
       copy:
@@ -178,8 +178,8 @@
         dest: "{{ work_dir }}/olm-operator-container-debug.txt"
         mode: 0644
       when:
-        - csv_describe_result.stdout != ""
-        - operator_container_result.stdout != ""
+        - csv_describe_result.stdout|length > 0
+        - operator_container_result.stdout|length > 0
 
     - name: "Get the catalogsource pod log"
       shell: >
@@ -233,7 +233,7 @@
     - name: "Get replicaset logs for operators that failed olm-deployment output"
       shell: >
         "{{ oc_bin_path }} get replicasets -o
-        go-template={%raw%}'{{range .items}}{{.status.conditions}}{{\"\\n\"}}{{end}}'{%endraw%}
+        go-template={%raw%}'{{ range .items }}{{ .status.conditions }}{{ \"\\n\" }}{{ end }}'{%endraw%}
         -n {{ openshift_namespace }}"
       register: olm_replicaset_output
       environment:

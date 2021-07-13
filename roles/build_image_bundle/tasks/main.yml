@@ -29,10 +29,9 @@
         mode: 0644
         remote_src: true
 
-    - set_fact:
+    - name: "Store operator directory name"
+      set_fact:
         operator_name: "{{ operator_dir | basename }}"
-
-    - set_fact:
         bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_name }}:v{{ operator_version }}"
         clusterserviceversion_bundle_file_path: >
            "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{
@@ -40,7 +39,8 @@
             operator_version }}.clusterserviceversion.yaml"
         annotation_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/metadata/annotations.yaml"
 
-    - set_fact:
+    - name: "Set csv file path"
+      set_fact:
         clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_name }}/{{ operator_version }}/{{ csv_file_path | basename }}"
       when: operator_format == "manifest"
 
