@@ -290,6 +290,7 @@ function ExecParameters() {
     [[ $1 == kiwi* ]] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR -e operator_version=$OP_TEST_VERSION --tags pure_test -e operator_channel_force=optest"
     [[ $1 == kiwi* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_FORCE_DEPLOY_ON_K8S -eq 0 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e test_skip_deploy=true"
     [[ $1 == kiwi* ]] && [[ $OP_TEST_DEPLOY_LONGER -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e pod_start_retries=$POD_START_RETRIES_LONG_DEPLOYMENT_WAIT_RETRIES"
+    [[ $1 == kiwi* ]] && [[ $OP_TEST_PROD -eq 0 ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e enable_bundle_validate_community=true"
     [[ $1 == lemon* ]] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR --tags deploy_bundles"
     [[ $1 == orange* ]] && [ "$OP_TEST_VERSION" != "sync" ] && OP_TEST_EXEC_USER="-e operator_dir=$OP_TEST_BASE_DIR/$OP_TEST_STREAM/$OP_TEST_OPERATOR --tags deploy_bundles"
     [[ $1 == orange* ]] &&  [ "$OP_TEST_VERSION" = "sync" ] && OP_TEST_EXEC_USER="--tags deploy_bundles"
@@ -366,7 +367,8 @@ function ExecParameters() {
     # Handling when kiwi and lemon case for production mode
     [[ $OP_TEST_PROD -ge 1 ]] && [[ $1 == kiwi* ]] && { echo "Warning: No support for 'kiwi' test when 'OP_TEST_PROD=$OP_TEST_PROD' !!! Skipping ..."; OP_TEST_SKIP=1; }
     [[ $OP_TEST_PROD -ge 1 ]] && [[ $1 == lemon* ]] && { echo "Warning: No support for 'lemon' test when 'OP_TEST_PROD=$OP_TEST_PROD' !!! Skipping ..."; OP_TEST_SKIP=1; }
-    [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e enable_bundle_validate_community=false"
+    # [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e enable_bundle_validate_community=false"
+
 
     [[ $1 == push_to_quay* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_RESET=1 && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER --tags deploy_bundles -e operator_dir=/tmp/community-operators-for-catalog/$OP_TEST_STREAM/$OP_TEST_OPERATOR -e quay_appregistry_api_token=$QUAY_APPREG_TOKEN -e quay_appregistry_courier_token=$QUAY_COURIER_TOKEN -e production_registry_namespace=quay.io/openshift-community-operators -e index_force_update=true -e bundle_index_image_name=catalog -e op_test_operator_version=$OP_TEST_VERSION -e stream_kind=openshift_upstream"
     [[ $1 == push_to_quay* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_RESET=1 && [[ DELETE_APPREG -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e delete_appreg='true'"
