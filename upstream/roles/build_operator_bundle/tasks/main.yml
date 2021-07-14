@@ -81,7 +81,7 @@
         force_basic_auth: true
         headers:
           Authorization: "Bearer {{ quay_api_token }}"
-        status_code: 201
+        status_code: [201, 400]
         return_content: true
       when:
         - quay_api_token is defined
