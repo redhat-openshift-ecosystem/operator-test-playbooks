@@ -4,7 +4,8 @@ set +o pipefail
 [[ ! $# -eq 2 ]] && { echo "$0 <index_tag> <operators comma separated>"; exit 1; }
 
 OPM="/tmp/opm"
-NAMESPACE=community-operators-pipeline
+#NAMESPACE=community-operators-pipeline
+NAMESPACE=openshift-community-operators
 TOKEN=${TOKEN-""}
 INDEX="quay.io/$NAMESPACE/catalog"
 CONTAINER_TOOL=${CONTAINER_TOOL-podman}
