@@ -16,17 +16,17 @@ First thing you reckon is that you are running this command directly from upstre
 ```
 git clone https://github.com/redhat-operator-ecosystem/operator-test-playbooks.git
 cd operator-test-playbooks
-### podman build -t <image_name>:<tagname> -f <filepath> --build-arg OPERATOR_SDK_VERSION=<operator_sdk_version> --build-arg
+### podman build -t <image_name>:<tagname> -f <filepath> 
 ### example:
-podman build -t midstream_image:latest -f Dockerfile . --build-arg OPERATOR_SDK_VERSION=v1.4.0 
+podman build -t midstream_image:latest -f Dockerfiles/midstream/Dockerfile .  
 ```
 
 ## Running image with operator bundle
 
 ```
-podman run -it -v <operator_bundle_dir>:/project/operator-bundle -v <output_log>:/project/output --security-opt label=disable <imagename>:<tagname> -e IMAGE_TO_TEST=<image_url_to_test> -e VERBOSITY=<number in range of 1 to 4>
+podman run -it -v <output_log>:/project/output --security-opt label=disable <imagename>:<tagname> -e IMAGE_TO_TEST=<image_url_to_test> -e VERBOSITY=<number in range of 1 to 4>
 mkdir output_logs
-podman run -it -v ./example-bundle:/project/operator-bundle -v ./output_logs:/project/output --security-opt label=disable midstream_image:latest -e IMAGE_TO_TEST='quay.io://image_url_to_test' VERBOSITY=3
+podman run -it -v ./output_logs:/project/output --security-opt label=disable midstream_image:latest -e IMAGE_TO_TEST='quay.io://image_url_to_test' VERBOSITY=3
 ```
 
 ### Note:

@@ -29,9 +29,9 @@ jobs:
       - name: "Build the midstream image inside Dockerfiles"
         run: |
           podman --version
-          podman build -t midstream_image:latest -f Dockerfiles/midstream/Dockerfile --no-cache .
+          podman build -t midstream_image:latest -f Dockerfiles/midstream/Dockerfile .
 
       - name: "Run unit tests"
         continue-on-error: false
         run: |
-          podman run -t --entrypoint /operator-test-playbooks/Dockerfiles/midstream/unit_tests.py midstream_image:latest
+          podman run -t --entrypoint /usr/bin/unit_tests.py midstream_image:latest

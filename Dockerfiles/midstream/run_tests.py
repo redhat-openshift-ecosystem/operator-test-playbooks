@@ -9,11 +9,11 @@ from os import path
 
 
 TEST_WORKING_DIR= os.getcwd()
-# global variables set
-OPERATOR_DIR=TEST_WORKING_DIR+"/operator_dir/"
-OPERATOR_WORK_DIR=TEST_WORKING_DIR+"/test_operator_work_dir/"
-WORK_DIR=TEST_WORKING_DIR+"/output/"
-PLAYBOOKS_DIR="/operator-test-playbooks/"
+OUTPUT_DIRECTORY = "/tmp/"# global variables set
+OPERATOR_DIR=OUTPUT_DIRECTORY+"/operator_dir/"
+OPERATOR_WORK_DIR=OUTPUT_DIRECTORY+"/test_operator_work_dir/"
+WORK_DIR=OUTPUT_DIRECTORY+"/output/"
+PLAYBOOKS_DIR="/project/operator-test-playbooks/"
 ERROR_MESSAGE_PATH=TEST_WORKING_DIR+"/.errormessage"
 logging.basicConfig(filename=ERROR_MESSAGE_PATH)
 
@@ -27,9 +27,10 @@ class RunMidstreamCVPTests():
         self.verbosity = int(os.getenv('VERBOSITY', '1'))*"v"
 
     def run_subprocess_command(self, exec_cmd):
+        print("[INFO] Running the subprocess ansible command ")
         print(exec_cmd)
         env = os.environ.copy()
-        env["ANSIBLE_CONFIG"] = "/operator-test-playbook/Dockerfiles/midstream/"
+        env["ANSIBLE_CONFIG"] = "/project/operator-test-playbook/Dockerfiles/midstream/"
         env["ANSIBLE_LOCAL_TEMP"] = "/tmp/"
 
         result = {}
@@ -83,7 +84,6 @@ class RunMidstreamCVPTests():
             exit_code = 102
             return exit_code
         result = self.run_extract_operator_bundle()
-        logging.info(result["stdout"])
         if (result["return_code"] != 0):
             logging.error("Ansible playbook extract-operator-bundle.yml failed with result code: %s , see the file .errormessage for more info." % result["return_code"])
             logging.error("Result code: " + str(result["return_code"]))
@@ -92,18 +92,13 @@ class RunMidstreamCVPTests():
             exit_code = 50
             return exit_code
         result = self.run_validate_operator_bundle()
-        logging.info(result["stdout"])
-        # make sure the validation-rc , validation-output, validation-version 
-        # files have been created due to the playbook run
-        assert (path.exists(WORK_DIR+"/validation-rc.txt"))
-        assert (path.exists(WORK_DIR+"/validation-output.txt"))
-        assert (path.exists(WORK_DIR+"/validation-version.txt"))
         with open(WORK_DIR+"/validation-rc.txt", 'r') as reader:
             rc = reader.read()
             if (int(rc) != 0):
                 logging.error("Image bundle validation failed with result code: %s , see /project/output/validation-output.txt file for more info." % int(rc))
                 exit_code = 70
                 return exit_code
+        print("[INFO] {image_to_test} has passed operator bundle image validation test".format(image_to_test=self.image_to_test))
         return 0
 
 if __name__ == '__main__':
