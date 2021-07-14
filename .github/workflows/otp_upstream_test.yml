@@ -29,7 +29,7 @@ jobs:
       - name: Operator test
         run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -vv
   otpu_bundle_format_community:
-    name: Bundle format
+    name: Bundle format community
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
