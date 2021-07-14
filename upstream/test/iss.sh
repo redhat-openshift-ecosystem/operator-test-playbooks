@@ -62,7 +62,7 @@ elif [ "$1" == "openshift" ];then
   OP_TEST_EXEC_USER_SECRETS="-e quay_api_token=$QUAY_API_TOKEN_OPENSHIFT_COMMUNITY_OP"
   [ "$OP_TEST_MIRROR_LATEST_TAG" == "${OP_TEST_INDEX_IMAGE_TAG}" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${OP_TEST_INDEX_IMAGE_TAG}|redhat+iib_community|$QUAY_RH_INDEX_PW|$OP_TEST_MIRROR_IMAGE_POSTFIX|quay.io/redhat/redhat----community-operator-index:latest\""
   [ "$OP_TEST_MIRROR_LATEST_TAG" != "${OP_TEST_INDEX_IMAGE_TAG}" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${OP_TEST_INDEX_IMAGE_TAG}|redhat+iib_community|$QUAY_RH_INDEX_PW|$OP_TEST_MIRROR_IMAGE_POSTFIX\""
-  OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA,mirror_index"
+  # OP_TEST_EXEC_EXTRA="$OP_TEST_EXEC_EXTRA,mirror_index"
 else
   echo "Only supported input is 'kubernetes' or 'openshift'"
   exit 1
