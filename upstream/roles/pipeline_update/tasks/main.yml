@@ -10,10 +10,10 @@
     msg: "Config file '{{ workflow_config_path }}/{{ pipeline_config_name }}' doesn't exist !!!"
   when: not pu_config_file.stat.exists|bool
   
-- name: "Recreate workflow directory '{{ workflow_directory }}' "
+- name: "Recreate workflow directory '{{ workflow_output_path }}' "
   file:
     state: "{{ item }}"
-    path: "{{ workflow_directory }}"
+    path: "{{ workflow_output_path }}"
   with_items:
     - absent
     - directory

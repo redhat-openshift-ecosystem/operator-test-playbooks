@@ -1,7 +1,6 @@
 workflow_templates_path: ""
 workflow_output_path: "/tmp"
 workflow_config_path: ""
-workflow_directory: ".github/workflow"
 pipeline_config_name: pipeline-config.yaml
 container_tool: docker
 versions_in_registry: []
