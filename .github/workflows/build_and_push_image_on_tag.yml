@@ -36,4 +36,4 @@ jobs:
           cd Dockerfiles/midstream/
           podman build -t midstream_image:$latestTag -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=$latestTag
           podman login -u="$QUAY_USERNAME" -p="$QUAY_PASSWORD" quay.io
-          podman push midstream_image:$latestTag quay.io/samvarankashyap/cvp-midstream-image:$latestTag
+          podman push midstream_image:$latestTag quay.io/cvpops/cvp-midstream-image:$latestTag
