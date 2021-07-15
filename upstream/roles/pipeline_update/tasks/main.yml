@@ -1,4 +1,23 @@
 ---
+
+- name: "Check if file '{{ workflow_config_path }}/{{ pipeline_config_name }}' exists"
+  stat:
+    path: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
+  register: pu_config_file
+
+- name: "Fail if config file '{{ workflow_config_path }}/{{ pipeline_config_name }}' is not found"
+  fail:
+    msg: "Config file '{{ workflow_config_path }}/{{ pipeline_config_name }}' doesn't exist !!!"
+  when: not pu_config_file.stat.exists|bool
+  
+- name: "Recreate workflow directory '{{ workflow_directory }}' "
+  file:
+    state: "{{ item }}"
+    path: "{{ workflow_directory }}"
+  with_items:
+    - absent
+    - directory
+
 - name: "Load the pipeline config"
   include_vars:
     file: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
