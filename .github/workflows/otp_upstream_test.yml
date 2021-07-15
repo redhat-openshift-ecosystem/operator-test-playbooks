@@ -28,6 +28,22 @@ jobs:
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
         run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -vv
+  otpu_bundle_format_community:
+    name: Bundle format community
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
+      - name: Preparing operator test environment
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
+      - name: Operator test
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/community-operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -e enable_bundle_validate_community=true -e stream_kind=openshift_upstream -vv
   otpu_manifest_to_bundle_format:
     name: Manifest to bundle format
     runs-on: ubuntu-latest

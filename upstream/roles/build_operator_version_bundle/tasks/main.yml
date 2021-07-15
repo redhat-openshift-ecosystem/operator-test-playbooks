@@ -289,6 +289,9 @@
 
         - name: "Validate bundle for openshift"
           block:
+            - name: "Reset Dockerfile argument"
+              set_fact:
+                bovb_dockerfile_arg: ""
 
             - name: "Setting Dockerfile argument"
               set_fact:
@@ -383,6 +386,10 @@
                 src: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/"
                 dest: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/manifests/"
                 remote_src: true
+
+            - name: "Reset Dockerfile argument"
+              set_fact:
+                bovb_dockerfile_arg: ""
 
             - name: "Setting Dockerfile argument"
               set_fact:
