@@ -1,7 +1,7 @@
 ---
 - name: "Load the pipeline config"
   include_vars:
-    file: "{{ workflow_config_path }}/pipeline-config-default.yaml"
+    file: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
     name: default_config
 
 - name: "Find template files"
