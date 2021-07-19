@@ -30,9 +30,6 @@ class RunMidstreamCVPTests():
         print("[INFO] Running the subprocess ansible command ")
         print(exec_cmd)
         env = os.environ.copy()
-        env["ANSIBLE_CONFIG"] = "/project/operator-test-playbook/Dockerfiles/midstream/"
-        env["ANSIBLE_LOCAL_TEMP"] = "/tmp/"
-
         result = {}
         process = subprocess.run(exec_cmd,
                               stdout=subprocess.PIPE,
