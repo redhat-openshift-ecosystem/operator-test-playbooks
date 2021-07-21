@@ -34,5 +34,4 @@ jobs:
       - name: "Run unit tests"
         continue-on-error: false
         run: |
-          podman run --entrypoint fix_etc_passwd_k8s.sh --user=3159:0 -e HOME=/var/tmp --workdir=/tmp/ -e IMAGE_TO_TEST=quay.io/cvpops/test-operator:v1.0-16 midstream_image:latest
-          podman run -t --entrypoint /usr/bin/unit_tests.py midstream_image:latest
+          podman run --rm -ti --user=3149:0 midstream_image:latest unit_tests.py -vvv

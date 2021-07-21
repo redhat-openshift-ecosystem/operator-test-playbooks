@@ -1,42 +1,33 @@
 #!/usr/bin/bash -e
-# WARNING: Please do not modify;
-# current behaviour of this script
-# Directly impacts Midstream effort.
 
 main() {
     local username="${SSH_AUTH_USER:-default}"
     local home
     home=$(mk_home "$username")
     setup_passwd "$username" "$home"
-    if [ "$#" -eq 0 ]; then
-      echo "Running inside a openshift environment \n
-            No arguments to script detected.\n
-            sleeping indefintely."
-      exec sleep inf
-    fi
 }
 
 mk_home() {
     local username="${1:?}"
-    [[ -d /workDir ]] && [[ -w /workDir ]] && \
-        mkdir -p "/workDir/home/$username" && \
-        echo "/workDir/home/$username" && \
-        return 0
+    mkdir -p "/tmp/home/$username" && \
+    echo "/tmp/home/$username" && \
+    return 0
     mktemp --tmpdir -d "${username}.XXXXXX"
 }
 
 setup_passwd() {
     local username="${1:?}"
     local home="${2:?}"
-    local uid="$3"
-    local gid="${4:-0}"
+    local uid="$(id -u)"
+    local gid="${3:-0}"
     local passwd=/etc/passwd
-    ! whoami 2>/dev/null || return 0
+    
+    # do not change anything if user exists
+    getent passwd $uid 2>/dev/null >/dev/null && return 0
     if ! [[ -w "$passwd" ]]; then
         echo "There is no permission to add user $username to $passwd"
-        return 0
+        return 1
     fi
-    [[ "$uid" ]] || uid="$(id -u)"
     echo \
         "${username}:x:${uid}:${gid}:Default Application User:${home}:/sbin/nologin" \
         >> /etc/passwd
