@@ -32,7 +32,6 @@ jobs:
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
           podman --version
-          cd Dockerfiles/midstream/
-          podman build -t midstream_image:latest -f Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0 --build-arg OPERATOR_TEST_PLAYBOOKS_TAG=master
+          podman build -t midstream_image:latest -f Dockerfiles/midstream/Dockerfile .
           podman login -u="$QUAY_USERNAME" -p="$QUAY_PASSWORD" quay.io
           podman push midstream_image:latest quay.io/cvpops/cvp-midstream-image:latest
