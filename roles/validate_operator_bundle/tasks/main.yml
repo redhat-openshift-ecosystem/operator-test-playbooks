@@ -1,4 +1,9 @@
 ---
+- name: "Ensure the work_dir exists"
+  file:
+    path: "{{ work_dir }}"
+    state: directory
+
 - name: "Remove any previous validation results"
   shell: "rm -f {{ work_dir }}/validation-*"
 

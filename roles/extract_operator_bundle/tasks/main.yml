@@ -1,3 +1,8 @@
+- name: "Ensure the work_dir exists"
+  file:
+    path: "{{ work_dir }}"
+    state: directory
+
 - name: "Ensure that the operator bundle directory is empty"
   file:
     state: "absent"

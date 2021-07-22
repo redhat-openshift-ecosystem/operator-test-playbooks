@@ -1,99 +1,108 @@
 #!/usr/bin/env python3
 import os
 import sys
-import json
-import unittest
 import subprocess
-from os import path
+import logging
+
+
+TEST_WORKING_DIR= os.getcwd()
+OUTPUT_DIRECTORY = "/tmp/"# global variables set
+OPERATOR_DIR=OUTPUT_DIRECTORY+"/operator_dir/"
+OPERATOR_WORK_DIR=OUTPUT_DIRECTORY+"/test_operator_work_dir/"
+WORK_DIR=OUTPUT_DIRECTORY+"/output/"
+PLAYBOOKS_DIR="/project/operator-test-playbooks/"
+ERROR_MESSAGE_PATH=TEST_WORKING_DIR+"/.errormessage"
+
+logging.basicConfig(handlers=[logging.StreamHandler()],
+                    level=logging.INFO)
+VALIDATION_LOGGER = logging.getLogger('.errormessage')
+# by default will be logged logs to stderr but also add the same messages
+# to the file which midstream expects
+VALIDATION_LOGGER.addHandler(logging.FileHandler(ERROR_MESSAGE_PATH))
 
 
 class RunMidstreamCVPTests():
 
-    def setUp(self):
-        self.operator_dir = os.getenv('OPERATOR_DIR',
-                                      "/project/operator_dir/")
-        self.operator_work_dir = os.getenv('OPERATOR_WORK_DIR',
-                                           "/project/test_operator_work_dir/")
-        self.work_dir = os.getenv('WORK_DIR',
-                                  "/project/output/")
-        self.playbooks_dir = os.getenv('PLAYBOOKS_DIR',
-                                       "/project/operator-test-playbooks/")
+    def __init__(self):
+        # IMAGE_TO_TESTis an environment variable that takes 
+        # operator-bundle-image 
         self.image_to_test = os.getenv('IMAGE_TO_TEST')
-        self.umoci_bin_path = os.getenv('UMOCI_BIN_PATH',
-                                        '/usr/local/bin/umoci')
+        # VERBOSITY is verbosity of output log range varying from 1 to 4
+        self.verbosity = int(os.getenv('VERBOSITY', '1'))*"v"
+
+    @staticmethod
+    def run_subprocess_command(exec_cmd):
+        logging.info("Running the subprocess ansible command ")
+        logging.info(exec_cmd)
+        env = os.environ.copy()
+        process = subprocess.run(exec_cmd,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 shell=True,
+                                 universal_newlines=True,
+                                 env=env)
+        return {
+            "stdout": process.stdout,
+            "stderr": process.stderr,
+            "return_code": process.returncode,
+        }
 
     def run_extract_operator_bundle(self):
-        exec_cmd = "ansible-playbook -i localhost, -c local -v operator-test-playbooks/extract-operator-bundle.yml \
+        exec_cmd = "/usr/bin/ansible-playbook -i localhost, -c local -{verbosity} {playbook_dir}/extract-operator-bundle.yml \
                     -e 'bundle_image={bundle_image}' \
                     -e 'operator_work_dir={operator_work_dir}' \
-                    -e 'umoci_bin_path={umoci_bin_path}'".format(
-                                                    operator_dir=self.operator_dir,
-                                                    operator_work_dir=self.operator_work_dir,
-                                                    bundle_image=self.image_to_test,
-                                                    umoci_bin_path=self.umoci_bin_path)
-        result = subprocess.run(exec_cmd, shell=True, capture_output=True)
-        return result
+                    -e 'work_dir={work_dir}'".format(verbosity=self.verbosity,
+                                                     playbook_dir=PLAYBOOKS_DIR,
+                                                     bundle_image=self.image_to_test,
+                                                     operator_work_dir=OPERATOR_WORK_DIR,
+                                                     work_dir=WORK_DIR)
+        return RunMidstreamCVPTests.run_subprocess_command(exec_cmd)
 
     def run_validate_operator_bundle(self):
-        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
-                    operator-test-playbooks/validate-operator-bundle.yml \
-                    -e 'operator_dir={operator_dir}' \
-                    -e 'operator_work_dir={operator_work_dir}' \
-                    -e 'work_dir={work_dir}'".format(operator_dir=self.operator_dir,
-                                                     operator_work_dir=self.operator_work_dir,
-                                                     work_dir=self.work_dir)
-        result = subprocess.run(exec_cmd, shell=True, capture_output=True)
-        return result
+        exec_cmd = "/usr/bin/ansible-playbook -i localhost, -c local -{verbosity} \
+                    {playbook_dir}/validate-operator-bundle.yml \
+                         -e 'operator_dir={operator_dir}' \
+                         -e 'operator_work_dir={operator_work_dir}' \
+                         -e 'work_dir={work_dir}'".format(verbosity=self.verbosity,
+                                                          playbook_dir=PLAYBOOKS_DIR,
+                                                          operator_work_dir=OPERATOR_WORK_DIR,
+                                                          operator_dir=OPERATOR_DIR,
+                                                          work_dir=WORK_DIR)
+        return RunMidstreamCVPTests.run_subprocess_command(exec_cmd)
 
     def test_for_extract_and_validate_bundle_image(self):
 
-        self.setUp()
-        global exit_code
-        exit_code = 0
         # check if IMAGE_TO_TEST is defined, return exit_code 102 in case it's not
-        if (self.image_to_test is None):
-            print("Environment variable IMAGE_TO_TEST not set! Stopping the tests.")
-            with open(".errormessage", 'w') as error_msg:
-                print("Result code: 102 Error message: Environment variable IMAGE_TO_TEST not set!", file=error_msg)
-            exit_code = 102
-            return exit_code
-        if (self.operator_dir != '/project/operator_dir/' or
-           self.operator_work_dir != '/project/test_operator_work_dir/' or
-           self.playbooks_dir != '/project/operator-test-playbooks/' or
-           self.umoci_bin_path != '/usr/local/bin/umoci' or
-           self.work_dir != '/project/output/'):
-            print("Environment variable misconfigured!")
-            with open(".errormessage", 'w') as error_msg:
-                print("Result code: 103 Error message: Environment variable was not set correctly!", file=error_msg)
-            exit_code = 103
-            return exit_code
+        if not self.image_to_test:
+            VALIDATION_LOGGER.error("Environment variable IMAGE_TO_TEST not set! Stopping the tests.")
+            VALIDATION_LOGGER.error("Result code: 102 Error message: Environment variable IMAGE_TO_TEST not set!")
+            return 102
+
         result = self.run_extract_operator_bundle()
-        if (result.returncode != 0):
-            print("Ansible playbook extract-operator-bundle.yml failed with result code: %s , see the file .errormessage for more info." % result.returncode)
-            with open(".errormessage", "w") as error_msg:
-                print("Result code: " + str(result.returncode), "Error message: " + str(result.stderr), file=error_msg)
-            exit_code = 50
-            return exit_code
+        if result["return_code"] != 0:
+            VALIDATION_LOGGER.error("Ansible playbook extract-operator-bundle.yml failed with result code: %s , see the file .errormessage for more info.", result["return_code"])
+            VALIDATION_LOGGER.error("Result code: %d", result["return_code"])
+            VALIDATION_LOGGER.error("Error message: %s", result["stderr"])
+            VALIDATION_LOGGER.error("Result stdout: %s", result["stdout"])
+            return 50
         result = self.run_validate_operator_bundle()
-        assert (path.exists("/project/output/validation-rc.txt"))
-        assert (path.exists("/project/output/validation-output.txt"))
-        assert (path.exists("/project/output/validation-version.txt"))
-        with open('/project/output/validation-rc.txt', 'r') as reader:
-            rc = reader.read()
-            if (int(rc) != 0):
-                print("Image bundle validation failed with result code: %s , see /project/output/validation-output.txt file for more info." % int(rc))
-                exit_code = 70
-                return exit_code
+        with open(WORK_DIR + "/validation-rc.txt", 'r') as reader:
+            validation_rc = reader.read()
+            if int(validation_rc) != 0:
+                with open(WORK_DIR + "/validation-output.txt", 'r') as validate_reader:
+                    validation_output = validate_reader.read()
+                VALIDATION_LOGGER.error("Image bundle validation failed with result code: %s and error:\n%s", validation_rc, validation_output)
+                return 70
+
+        logging.info("Image: %s has passed operator bundle image validation test", self.image_to_test)
         return 0
 
 if __name__ == '__main__':
-    resultcodes = [0, 50, 70, 102, 103]
-    # run fix_etc_passwd.sh to setup random user generated in openshift
-    subprocess.call(['sh', "/usr/bin/fix_etc_passwd.sh"])
-    runTest = RunMidstreamCVPTests()
-    with open("tests_result.log", 'w') as f:
-        if (runTest.test_for_extract_and_validate_bundle_image() not in resultcodes):
-            exit_code = 1
-            print("Error occured during unit tests, please see .errormessage file for more info.")
-            os.rename(r'tests_result.log', r'.errormessage')
-    sys.exit(exit_code)
+    subprocess.run(['fix_etc_passwd.sh'], check=True)
+    resultcodes = [0, 50, 70, 102]
+    test_runner = RunMidstreamCVPTests()
+    return_code = test_runner.test_for_extract_and_validate_bundle_image()
+    if return_code not in resultcodes:
+        VALIDATION_LOGGER.error("Unexpected error (%d) occured during unit tests, please see .errormessage file for more info.", return_code)
+        return_code = 1
+    sys.exit(return_code)
