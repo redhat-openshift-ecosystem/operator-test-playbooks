@@ -45,7 +45,7 @@ jobs:
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
         run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/community-operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -e enable_bundle_validate_community=true -e stream_kind=openshift_upstream -vv
-  
+
   otpu_manifest_to_bundle_format:
     name: Manifest to bundle format
     runs-on: ubuntu-latest
