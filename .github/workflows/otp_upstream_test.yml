@@ -183,7 +183,7 @@ jobs:
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 -e min_operators_in_index_allowed=30 -vv && false || true
 
   otpu_index_from_scratch_multiarch_iib:
-    name: Index from scratch (multiple versions) and produce multiarch via iib
+    name: Test iib installation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
