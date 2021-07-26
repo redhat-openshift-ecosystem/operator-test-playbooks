@@ -81,7 +81,7 @@
             method: GET
             validate_certs: false
             return_content: true
-          no_log: true
+          # no_log: true
           register: mi_ms_multiarch_response
           until: "'complete' in mi_ms_multiarch_response.content"
           retries: 50
