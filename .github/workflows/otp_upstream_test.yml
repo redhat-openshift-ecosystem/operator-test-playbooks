@@ -196,7 +196,7 @@ jobs:
         run: python -m pip install --upgrade pip ansible==$ANSIBLE_VERSION jmespath
       - name: Preparing operator test environment
         run: |
-          sed -i 's/^127.0.0.1.*/127.0.0.1 localhost kind-registry/g' /etc/hosts
+          sudo sh -c "sed -i 's/^127.0.0.1.*/127.0.0.1 localhost kind-registry/g' /etc/hosts"
           ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build,iib
       - name: Operator test
         env:
