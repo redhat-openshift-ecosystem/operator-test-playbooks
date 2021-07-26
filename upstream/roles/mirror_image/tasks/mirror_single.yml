@@ -92,12 +92,24 @@
             mi_ms_iib_image: "localhost:8443/iib-build:{{ mi_ms_iib_id }}"
           when: iib_converted_image_base == "registry:8443/iib-build"
 
-        - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}'"
-          shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }} --src-tls-verify=false"
+        - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
+          shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} --src-tls-verify=false"
 
-        - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[4] }}'"
-          shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[4] }} --src-tls-verify=false"
-          no_log: true
+        - name: "Retag '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[0] }}'"
+          shell: "{{ container_tool }} tag {{ ms_info[0] }}{{ mi_tmp_postfix }} {{ ms_info[0] }}"
+
+        - name: "Push '{{ ms_info[0] }}'"
+          shell: "{{ container_tool }} push {{ ms_info[0] }}"
+
+        - name: "Transfer extra tag"
+          block:
+            - name: "Retag '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[4] }}'"
+              shell: "{{ container_tool }} tag {{ ms_info[0] }}{{ mi_tmp_postfix }} {{ ms_info[4] }}"
+              no_log: true
+
+            - name: "Push '{{ ms_info[4] }}'"
+              shell: "{{ container_tool }} push {{ ms_info[4] }}"
+              no_log: true
           when:
             - ms_info.4 is defined
 

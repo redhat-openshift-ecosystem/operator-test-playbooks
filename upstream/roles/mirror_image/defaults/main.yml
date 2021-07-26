@@ -6,3 +6,4 @@ mirror_index_images: "kind-registry:5000/test-operator/catalog_mirror_auth|user|
 iib_base_url: http://localhost:8080
 iib_url_options: ""
 iib_converted_image_base: registry:8443/iib-build
+mi_tmp_postfix: "_processing"
