@@ -5,5 +5,7 @@ mirror_input_image: "kind-registry:5000/test-operator/catalog"
 mirror_index_images: "kind-registry:5000/test-operator/catalog_mirror_auth|user|password,kind-registry:5000/test-operator/catalog_mirror_no_auth"
 iib_base_url: http://localhost:8080
 iib_url_options: ""
+iib_input_local_host_image_base: kind-registry:8443/iib-input
+iib_input_local_worker_image_base: registry:8443/iib-input
 iib_converted_image_base: registry:8443/iib-build
 mi_tmp_postfix: "_processing"
