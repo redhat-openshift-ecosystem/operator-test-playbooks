@@ -8,4 +8,4 @@ iib_url_options: ""
 iib_input_local_host_image_base: kind-registry:8443/test-operator/catalog:latest
 iib_input_local_worker_image_base: registry:8443/test-operator/catalog:latest
 iib_converted_image_base: registry:8443/iib-build
-mi_tmp_postfix: "_tmp"
+mi_tmp_postfix: "" # "_tmp"
