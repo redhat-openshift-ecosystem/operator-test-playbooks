@@ -110,16 +110,20 @@
           when: iib_converted_image_base == "registry:8443/iib-build"
 
         - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
-          shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} --src-tls-verify=false"
+          shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} --src-tls-verify=false -f v2s2"
+          register: ms_skopeo_result
+          until: ms_skopeo_result.rc == 0
+          retries: 6
+          delay: 10
 
         - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[0] }}'"
-          shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false"
+          shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false -f v2s2"
           when:
             - mi_tmp_postfix is defined
             - mi_tmp_postfix|length > 0
 
         - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[4] }}'"
-          shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[4] }} --src-tls-verify=false"
+          shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[4] }} --src-tls-verify=false -f v2s2"
           when:
             - ms_info.4 is defined
 
