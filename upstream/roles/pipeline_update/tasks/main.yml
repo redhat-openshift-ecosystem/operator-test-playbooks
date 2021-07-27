@@ -9,7 +9,7 @@
   fail:
     msg: "Config file '{{ workflow_config_path }}/{{ pipeline_config_name }}' doesn't exist !!!"
   when: not pu_config_file.stat.exists|bool
-  
+
 - name: "Recreate workflow directory '{{ workflow_output_path }}' "
   file:
     state: "{{ item }}"
