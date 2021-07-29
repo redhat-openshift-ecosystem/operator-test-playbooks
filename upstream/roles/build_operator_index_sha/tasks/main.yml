@@ -157,6 +157,5 @@
       loop_control:
         loop_var: image_item
   when:
-    - sis_opm_extra_args is defined
-    - sis_opm_extra_args|length > 0
+    - ((sis_opm_extra_args is defined and sis_opm_extra_args|length > 0) or (sis_allow_empty_index is defined and sis_allow_empty_index|bool))
     - not sis_index_add_skip|bool
