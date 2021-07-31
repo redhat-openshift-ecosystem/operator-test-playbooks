@@ -209,7 +209,6 @@ ansible-playbook -i localhost, -e ansible_connection=local local.yml \
 --tags mirror_index \
 -e mirror_index_images="quay.io/redhat/redhat----community-operator-index:latest|redhat+iib_community|<token>" \
 -e mirror_multiarch_image="registry.redhat.io/openshift4/ose-operator-registry:v4.5" \
--e mirror_apply=true \
 -e bundle_index_image="quay.io/openshift-community-operators/catalog:latest"
 -e container_tool=podman
 ```

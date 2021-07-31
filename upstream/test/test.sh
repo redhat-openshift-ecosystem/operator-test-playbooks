@@ -327,7 +327,7 @@ function ExecParameters() {
     [[ $1 == lemon_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e stream_kind=openshift_upstream -e supported_cluster_versions=${1/lemon_/} -e bundle_index_image_version=${1/lemon_/}"
 
     if [[ $OP_TEST_INDEX_MIRROR -eq 1 ]];then
-        [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e mirror_multiarch_image=registry.redhat.io/openshift4/ose-operator-registry:v4.5 -e mirror_apply=true"
+        [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e mirror_multiarch_image=registry.redhat.io/openshift4/ose-operator-registry:v4.5"
         [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" != "${1/orange_/}" ]&& OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW|$OP_TEST_MIRROR_IMAGE_POSTFIX\""
         [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "community-operators" ] && [[ $OP_TEST_PROD -eq 1 ]] && [ "$OP_TEST_MIRROR_LATEST_TAG" = "${1/orange_/}" ] && OP_TEST_EXEC_USER_SECRETS="$OP_TEST_EXEC_USER_SECRETS -e mirror_index_images=\"quay.io/redhat/redhat----community-operator-index:${1/orange_/}|redhat+iib_community|$QUAY_RH_INDEX_PW|$OP_TEST_MIRROR_IMAGE_POSTFIX|quay.io/redhat/redhat----community-operator-index:latest\""
     else
