@@ -40,7 +40,7 @@
         opm_bin_path: "{{ testing_bin_path }}/opm"
         operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
         oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
-        mirror_apply: true
+        # mirror_apply: true
         doic_skip_file_check: false
 
     - name: "Parsing 'openshift_robot_hash' variable"
@@ -172,13 +172,13 @@
         - run_upstream|bool
         - not operator_removed|bool
 
-    - name: "Handling that mirror will not occur when 'operators_for_index' is empty when 'deploy_bundles' is defined"
-      set_fact:
-        mirror_apply: false
-      tags:
-        - deploy_bundles
-      when:
-        - operators_for_index.0 is undefined
+    # - name: "Handling that mirror will not occur when 'operators_for_index' is empty when 'deploy_bundles' is defined"
+    #   set_fact:
+    #     mirror_apply: false
+    #   tags:
+    #     - deploy_bundles
+    #   when:
+    #     - operators_for_index.0 is undefined
 
     - name: "Index sanity check"
       include_role:
@@ -209,7 +209,8 @@
         - bundle_index_image|length > 0
         - mirror_index_images is defined
         - mirror_index_images|length > 0
-        - mirror_apply|bool
+        # - mirror_apply|bool
+        - operators_for_index.0 is defined
         - (openshift_robot_hash is undefined or openshift_robot_hash|length == 0)
 
     - name: "Handle failed operators"
