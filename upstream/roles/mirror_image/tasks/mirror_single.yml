@@ -72,7 +72,7 @@
               when:
                 - container_tool is defined
                 - container_tool == 'podman'
-                
+
             - name: "Set iib local input image"
               set_fact:
                 mirror_input_image_final: "{{ iib_input_local_worker_image_base }}"
