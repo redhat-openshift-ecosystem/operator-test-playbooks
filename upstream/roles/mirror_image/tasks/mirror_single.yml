@@ -62,8 +62,17 @@
               shell: "{{ container_tool }} tag {{ mirror_input_image_final }} {{ iib_input_local_host_image_base }}"
 
             - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
-              shell: "{{ container_tool }} push --tls-verify=false {{ iib_input_local_host_image_base }}"
+              shell: "{{ container_tool }} push {{ iib_input_local_host_image_base }}"
+              when:
+                - container_tool is defined
+                - container_tool != 'podman'
 
+            - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
+              shell: "{{ container_tool }} push --tls-verify=false {{ iib_input_local_host_image_base }}"
+              when:
+                - container_tool is defined
+                - container_tool == 'podman'
+                
             - name: "Set iib local input image"
               set_fact:
                 mirror_input_image_final: "{{ iib_input_local_worker_image_base }}"
