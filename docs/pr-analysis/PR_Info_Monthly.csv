@@ -1,0 +1,205 @@
+Merged_YM,node.title,node.url
+2020-02,Initial commit of playbooks,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/1
+2020-03,Update playbooks to latest vresion ,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/4
+2020-03,Create LICENSE,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/6
+2020-03,Add new cleanup operator resources playbook,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/7
+2020-04,support image pull secrets for operator certification,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/8
+2020-04,Add operator bundle image extraction and parsing roles,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/10
+,Update prepare-ocp4-aws-config.yml to run independently,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/11
+2020-05,Remove unnecessary code related to pipeline vault from prepare-ocp4-aws-config.yml,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/12
+2020-05,Add the operator bundle data validation role using operator-sdk,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/13
+2020-04,Remove namespace from pull secret,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/14
+,This is a test,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/15
+2020-05,Add test to verify OCP version is set correctly.,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/16
+,Extend playbooks for upstream,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/17
+2020-05,Add operator bundle basic sanity tests to the parsing role,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/18
+2020-05,"Modify base64 decode command to fix the ""bad magic number"" error",https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/19
+2020-05,[CVP-970] [CVP-1071] Improve output of prepare-metadata step for users,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/20
+2020-05,Bugfix: Skip extraction of alm examples,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/21
+2020-05,allow null backport value,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/22
+,Integrate upstream to Ansible pipelines,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/23
+2020-05,Fix the issue with parsing operator namespace support,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/24
+2020-06,Bugfix: Fix incorrect CSV in Operator metadata preparation test,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/25
+2020-06,Use first channel from the bundle image channels list as current_channel,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/26
+2020-07,Upstream changes on bundle and package tests,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/27
+,WIP: Release pipeline - sprint 6 phase 3 ,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/28
+2020-06,Change the repository for the umoci tool,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/29
+2020-08,Add ability to loop over the ocp versions verifying if acceptable,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/30
+2020-06,Remove obsolete ubi check,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/31
+2020-07,"Fix for the syntax error on ""operator-metadata-preparation-bundle-image test""",https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/32
+,Add check for presence of required labels,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/33
+,Release pipeline,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/34
+2020-07,"Always run bundle validation, add check for presence of required labels",https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/35
+2020-09,Use the oc adm catalog build command in place of offline-cataloger,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/36
+2020-07,Upstream latest version 28.7.2020 (#73),https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/38
+,Sprint 9,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/39
+2020-07,Upstream latest version 30.7.2020 (#76),https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/40
+2020-08,Return json instead of error code in parse_operator_metadata,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/41
+2020-08,[CVP-1226] operator metadata role update,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/42
+,fix yaml parsing of complex CSV files,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/43
+2020-08,"Revert ""[CVP-1226] operator metadata role update""",https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/44
+2020-08,[CVP-1226] operator metadata role update,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/45
+2020-08,[CVP-1214] imporve logging of deploy operator olm playbooks,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/46
+2020-09,Add a failure message to the parse operator metadata role,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/47
+,parse_operator_metadata - recurse to find pkg path,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/48
+2020-09,Bugfix: Fix the false postive runs for parse-operator-metadata role,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/49
+2020-10,Make required operator_dir slightly more explicit,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/50
+2020-09,Using the already extracted bundle for inspect to skip hitting 504,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/51
+2020-09,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/52
+2020-09,Doc improvments,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/53
+2020-10,Use gpg to decrypt kube_objects,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/54
+2020-10,[CVP-1320] Add check for mediatype.v1 label,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/55
+2020-10,Testing operaror version from dirname and in csv file,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/56
+2020-10,Ingore errors for bundle and index add,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/57
+2020-10,Improved oc install retry,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/58
+2020-10,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/59
+2020-10,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/60
+2020-10,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/61
+2020-10,Improved validation output to be printed,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/62
+2020-10,Converting bundlebuild to ingnore_errors,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/63
+2020-10,Fix bundle_index_image in push to quay,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/64
+2020-10,Fixing bundle image,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/65
+2020-10,Failing when running in strict mode,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/66
+2020-10,Fixing bundle dectection,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/67
+2020-10,Improvment with container tool variables,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/68
+2020-10,Doc ready for prod,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/69
+2020-10,Dont clone repo when installing docker or deps,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/70
+2020-10,Improved message for docker post install,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/71
+2020-10,OSR test implemented,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/72
+2020-10,Added osr run script,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/73
+2020-10,ci-operator,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/74
+2020-11,Add documentation on operator test playbooks CI,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/75
+2020-10,Deleting tags only in case there are versions to remov,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/76
+2020-10,Fix,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/77
+2020-10,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/78
+2020-10,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/79
+2020-10,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/80
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/81
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/82
+2020-11,Fix to check operators_for_index correctly,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/83
+2020-11,Fix operator_courier_version,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/84
+2020-11,Fix chceck verify,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/85
+,Generate parse_operator_metadata_results.json on failure of operator courier nest command,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/86
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/87
+2020-11,Fix tee,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/88
+2020-11,Removed tee,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/89
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/90
+2020-11,Add 5 retries when downloading the production bundle catalog manifests,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/91
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/92
+,Upstream latest version 05.11.2020,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/93
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/94
+2020-11,Cosmetics,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/95
+2020-11,Cosmetics,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/96
+2020-11,Improve error msgs (#104),https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/97
+2020-11,Add support for OCP version 4.7 for operator bundle images,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/98
+2020-11,Cosmetics,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/99
+2021-01,Update the operator-sdk version,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/100
+2020-11,[CVP-1452] Make CVP/operator-metadata-preparation should handle number in package file correctly,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/101
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/102
+,Versioned index,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/103
+2020-11,[DO NOT MERGE] Fix skip file,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/104
+2020-12,Add optional-operator-subscribe role into operator-test-playbooks,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/105
+2020-12,Modify bundle parsing role to not slice the ocp versions label,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/106
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/107
+2020-12,[CVP-1510] Bugfix: Detect error for CSV mismatch and also display the better error message for the same.,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/108
+2020-11,Upstream community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/109
+,Upstream community 30.11.2020,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/110
+,Ci/init,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/111
+2020-12,doic protocol fix,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/112
+,Fix/checkout in playbook workflow,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/113
+,Support/olm v0 17 0,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/114
+,Feature/iib role,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/115
+,Fix/kiwi channel,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/116
+2021-02,Collect the names of images that were pulled during the operator deployment tests,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/117
+2021-01,[CVP-1614] Disable running operatorhub tests for bundle validate,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/118
+2021-02,[CVP-1610] Fix Operator metadata parsing role which doesn't account for quotes in CSV name,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/119
+,Fix/osr docker,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/120
+,Support/actions fix x509,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/121
+,Support/x509ignore cn fix,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/122
+2021-02,Ignore CR deletion timeout,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/123
+2021-02,[CVP-1644] - get replicaset logs for operators that fail olm-deployment,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/124
+2021-03,[CVP-1604] Add Dockerfiles for CVP midstream container,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/125
+2021-03,[CVP-1604] Optimize existing layers in Dockerfile,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/126
+2021-03,[CVP-1713] Add a playbook for parsing collected image pull events,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/127
+2021-03,[CVP-1711] Add build workflows GitHub actions,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/128
+2021-03,[CVP-1683] Failed when CSV.metadata.annotations['alm-examples'] is set to empty,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/129
+2021-03,[CVP-1683]Add tests to empty annotations in metadata,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/130
+2021-03,Bugfix: fix failure with alm-examples when not specified in metadata,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/131
+2021-03,Re-organize the folder structure and make upstream tests run on checked out code,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/132
+,"Bugfix: Fix the build, push events of Github actions",https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/133
+2021-04,[CVP-1718]-add ansible/yaml lint,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/134
+2021-04,Sync the optional-operators-subscribe-commands.sh script,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/135
+,Dev/mvalarh,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/136
+,Dev/mvalarh,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/137
+2021-04,[CVP-1753] Remove support for encrypted kube objects with CVP ssh key,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/138
+2021-04,Fix spelling error in README,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/139
+,Update to midstream image CI and tests,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/140
+2021-04,[CVP-1752] Support operator bundles in CPaaS Midstream,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/141
+2021-04,Fix output dir for store the result in a JSON file,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/142
+2021-04,[CVP-1890] Add the overlayfs to storage options in github actions,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/143
+2021-05,[CVP-1923] Don't fail when alm-examples are not defined,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/144
+2021-05,[CVP-1870] Create a wrapper playbook role for the cvp-common-scorecard Prow step,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/145
+2021-06,[CVP-1899]-setting exit status code & error msg,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/146
+2021-05,[CVP-1976] Wait for the operator CSV to be in succeeded phase,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/148
+2021-06,[CVP-1980] Paramaeterize scorecard configuration file and authentication,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/149
+2021-06,[CVP-1897] Generate mock prow artifacts when running external Operator Bundle Tests,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/150
+,Upstream community operators update (10.06.2021),https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/151
+2021-06,[CVP-2052] Fix failures when running the midstream-cvp image within an OpenShift pod,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/152
+2021-06,[CVP-2054] Skip checking the bundle.channel.default.v1 operator bundle image label,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/153
+2021-06,Add unit test coverage for missing default channel case,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/154
+2021-06,Upstream community operators update (16.06.2021),https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/155
+2021-06,[CVP-2052] Fix setup_passwd function in fix_etc_passwd.sh,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/156
+2021-07,CVP-1871 Enable more checks for ansible linting in upstream playbooks,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/157
+2021-06,[CVP-2097] - Improve removing redundant operators when doing sync between index image and index sha image,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/158
+,Add print statement for the console debugging in run_tests.py,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/159
+2021-07,[CVP-2109] Add playbooks and update calls to multiple processes,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/160
+2021-06,Upstream community image is generated only on push to upstream-community branch,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/161
+,Cvp 2010 check api,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/162
+2021-07,Support/workflow template fix,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/163
+2021-07,Renamed role name apply_pipeline_workflows,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/164
+,Test change,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/165
+2021-07,Setting latest aqua for tests,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/166
+,Cvp 2010 check api,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/167
+2021-07,Support/test,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/168
+2021-07,Cvp 2010 check API,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/169
+,Handle pulling of empty index,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/170
+2021-07,Support/init index images,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/171
+2021-07,Removing empty items form 'chi_missing_operators' list,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/172
+2021-07,Test,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/173
+2021-07,Update opm to 1.17.4,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/174
+2021-07,Bugfix for extract-operator-bundle.yml bundle sanity checks causing syntax errors,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/175
+2021-07,Turn off dir check,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/176
+2021-07,Automarically create directory if not exists,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/177
+2021-07,Failing if scorecard dir doesn't exists,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/178
+2021-07,Downgrade opm,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/179
+2021-07,Fix test-operator-test-playbooks,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/180
+2021-07,Ingore errors on removal of dir,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/181
+2021-07,Failing when catalog canot be removed,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/182
+2021-07,Fixing version clean check,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/183
+2021-07,CVP-1871 subtasks: Remove numbered rules from skip_list,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/184
+2021-07,Fixed operator dir,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/185
+2021-07,Remove operator,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/186
+2021-07,FIx index check,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/187
+2021-07,Fix,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/188
+2021-07,Remove iib,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/189
+2021-07,opm 1.17.4,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/190
+2021-07,opm 1.17.5 and delete target,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/191
+2021-07,Improved fix for creation of repo,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/192
+2021-07,Support/test enable bundle validate community,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/193
+2021-07,Support/pipeline config name,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/194
+2021-07,Workflow dir,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/195
+2021-07,[CVP-2083] Updated upstream cvp-midstream-image endpoint,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/196
+2021-07,[CVP-1887] Use the v1.9.0 version of operator-sdk for operator bundle testing,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/197
+2021-07,IIB push support,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/198
+2021-07,Test,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/199
+2021-07,Test,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/200
+2021-07,skopeo copy enabled with _tmp,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/201
+2021-07,sis_allow_empty_index added,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/202
+2021-07,Added  --tls-verify=false when pushing local iib input,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/203
+2021-07,Better info printing,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/204
+2021-07,Fixing sha when : is in port,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/205
+2021-07,Fixing mirror_apply,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/206
+,CVP-2129 Visualize PRs merged in CVP's Operator Test Playbook project repo,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/207
+2021-08,force_skip_mirror,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/208
+2021-08,Support/bundles single job,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/209
+2021-08,Fix uri,https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/210
