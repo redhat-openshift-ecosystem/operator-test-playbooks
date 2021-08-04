@@ -239,7 +239,7 @@
         - mirror_index_images is defined
         - mirror_index_images|length > 0
         # - mirror_apply|bool
-        - (operators_for_index.0 is defined) or (mirror_apply is defind and mirror_apply|bool)
+        - (operators_for_index.0 is defined) or (mirror_apply is defined and mirror_apply|bool)
         - (openshift_robot_hash is undefined or openshift_robot_hash|length == 0)
 
     - name: "Handle failed operators"
