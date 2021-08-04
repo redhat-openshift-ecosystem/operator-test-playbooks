@@ -194,6 +194,30 @@
         - bundle_index_image|length > 0
         - (openshift_robot_hash is undefined or openshift_robot_hash|length == 0)
 
+    - name: "Debug"
+      debug:
+        var: run_upstream
+
+    - name: "Debug"
+      debug:
+        var: bundle_index_image
+
+    - name: "Debug"
+      debug:
+        var: mirror_index_images
+
+    - name: "Debug"
+      debug:
+        var: operators_for_index
+
+    - name: "Debug"
+      debug:
+        var: operators_for_index.0
+
+    - name: "Debug"
+      debug:
+        var: openshift_robot_hash
+
     - name: "Mirror index image"
       include_role:
         name:
