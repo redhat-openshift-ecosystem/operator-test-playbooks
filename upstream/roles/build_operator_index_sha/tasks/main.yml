@@ -104,6 +104,10 @@
 
     - name: "Debug"
       debug:
+        var: bundle_sha_images
+
+    - name: "Debug"
+      debug:
         var: sis_ia_rc
 
     - name: "Index safety check to avoid accidental overwrite"
