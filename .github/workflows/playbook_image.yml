@@ -24,9 +24,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Generate version for playbook image
         id: playbook-image-version
-        run: ./upstream/playbook_version.sh
+        run: ./upstream/playbook_version.sh ${{ github.ref }}
       - name: Print version
-        run: echo "Image version is ${{ steps.playbook-image-version.outputs.image_version }}"
+        run: echo "Image version is ${{ steps.playbook-image-version.outputs.image_version }} tag ${{ steps.playbook-image-version.outputs.image_tag }}"
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2

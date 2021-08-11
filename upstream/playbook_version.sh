@@ -1,10 +1,10 @@
 #!/bin/bash
 
 VERSION="v$(date +%Y%m%d)"
-if [ -n "$1" ];then
+if [ "$1" = "upstream-community-dev" ];then
     # VERSION="${VERSION}_${1}"
-    VERSION=$1
-    TAG=$1
+    VERSION=dev
+    TAG=dev
 else
     TAG="latest"
 fi
