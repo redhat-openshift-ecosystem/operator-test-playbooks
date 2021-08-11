@@ -140,9 +140,9 @@
         - bob_prod_registry_versions.status is defined
         - bob_prod_registry_versions.status == 200
 
-    - name: "Setting all versions to 'versions_in_prod_registry' variable without '_ignore'"
+    - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}'"
       set_fact:
-        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', '_ignore') | list }}"
+        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list }}"
       when:
         - bob_prod_registry_versions.status is defined
         - bob_prod_registry_versions.status == 200
