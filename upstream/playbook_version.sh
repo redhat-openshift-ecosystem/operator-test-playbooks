@@ -1,12 +1,16 @@
 #!/bin/bash
 
 VERSION="v$(date +%Y%m%d)"
-if [ "$1" = "upstream-community-dev" ];then
+if [ "$1" = "refs/heads/upstream-community" ];then
+    TAG="latest"
+elif [ "$1" = "refs/heads/upstream-community-dev" ];then
+    TAG="latest"
     # VERSION="${VERSION}_${1}"
     VERSION=dev
     TAG=dev
 else
-    TAG="latest"
+    echo "Not supported branch: '$1'"
+    exit 1
 fi
 
 echo "VERSION=${VERSION}"
