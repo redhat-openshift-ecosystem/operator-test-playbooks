@@ -35,6 +35,20 @@
         - quay_api_token is defined
         - quay_api_token|length > 0
 
+    - name: "Delete specifig tags from operrator {{ operator_package_name }}"
+      uri:
+        url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_package_name }}/tag/v{{ operator_version }}"
+        method: DELETE
+        force_basic_auth: true
+        headers:
+          Authorization: "Bearer {{ quay_api_token }}"
+        status_code: 204
+      when:
+        - quay_api_token is defined
+        - quay_api_token|length > 0
+        - operator_version is defined
+        - operator_version|length > 0
+
     - name: "Get list of tags for index image from bundle registry"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
