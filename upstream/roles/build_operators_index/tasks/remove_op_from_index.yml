@@ -1,0 +1,7 @@
+- name: "Print op to remove"
+  debug:
+    var: boi_operators_for_index
+
+- name: "Fail"
+  fail:
+    msg: "Removing op '{{ boi_operators_for_index }}'"
