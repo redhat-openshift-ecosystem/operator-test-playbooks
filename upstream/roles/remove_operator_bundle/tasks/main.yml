@@ -34,6 +34,7 @@
       when:
         - quay_api_token is defined
         - quay_api_token|length > 0
+        - operator_version is undefined or operator_version|length == 0
 
     - name: "Delete specifig tags from operrator {{ operator_package_name }}"
       uri:
