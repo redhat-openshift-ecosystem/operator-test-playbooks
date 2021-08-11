@@ -2,7 +2,7 @@ name: Build playbook image
 
 on:
   push:
-    branches: [ upstream-community ]
+    branches: [ upstream-community, upstream-community-dev ]
 
   workflow_dispatch:
 
@@ -32,6 +32,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: quay.io/operator_testing/operator-test-playbooks:${{ steps.playbook-image-version.outputs.image_version }},quay.io/operator_testing/operator-test-playbooks:latest
+          tags: quay.io/operator_testing/operator-test-playbooks:${{ steps.playbook-image-version.outputs.image_version }},quay.io/operator_testing/operator-test-playbooks:${{ steps.playbook-image-version.outputs.image_tag }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
