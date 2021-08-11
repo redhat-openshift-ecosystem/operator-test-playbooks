@@ -7,20 +7,17 @@
         - quay_api_token is defined
         - quay_api_token|length > 0
 
-    - name: "Setting"
+    - name: "Setting index version and operator dirname"
       set_fact:
         rob_index_version: "{{ bundle_index_image_version }}"
+        operator_dir_name: "{{ operator_dir | basename }}"
 
-    - name: "Setting"
+    - name: "Setting index version"
       set_fact:
         rob_index_version: "{{ bob_remove_loop }}"
       when:
         - bob_remove_loop is defined
         - bob_remove_loop|length > 0
-
-    - name: "Setting operator dir name"
-      set_fact:
-        operator_dir_name: "{{ operator_dir | basename }}"
 
     - name: "Remove repo '{{ bundle_image_namespace }}/{{ operator_dir_name }}' from 'quay'"
       uri:
