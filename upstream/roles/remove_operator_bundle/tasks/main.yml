@@ -36,9 +36,9 @@
         - quay_api_token|length > 0
         - operator_version is undefined or operator_version|length == 0
 
-    - name: "Delete specifig tags from operrator {{ operator_package_name }}"
+    - name: "Delete specifig tags from operrator {{ operator_dir_name }}"
       uri:
-        url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_package_name }}/tag/v{{ operator_version }}"
+        url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_dir_name }}/tag/v{{ operator_version }}"
         method: DELETE
         force_basic_auth: true
         headers:
