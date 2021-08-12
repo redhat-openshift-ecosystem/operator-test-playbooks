@@ -177,7 +177,7 @@
         - name: "Filtering versions to add and remove for only 'operator_version' : '{{ operator_version }}' specified by user"
           set_fact:
             versions_add: "{{ versions_in_dir | intersect(version_list) }}"
-            versions_remove: "{{ versions_in_registry | intersect(version_list) }}"
+            versions_remove: "{{ versions_in_registry | intersect(version_list)| reject('search', ignore_image_string) }}"
             versions_in_dir: "{{ versions_in_dir | intersect(version_list) }}"
           when:
             - (bundle_force_rebuild is undefined or not bundle_force_rebuild|bool)
