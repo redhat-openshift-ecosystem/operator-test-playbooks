@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Purpose - Operator Test Playbooks - PR History</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Operator Test Playbooks - PR History</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">PR History Statistics</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Purpose</a>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Upstream <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../upstream/" class="dropdown-item">Instruction for operator test via ansible</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Bundle</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../upstream/bundle/" class="dropdown-item">Bundle deploy and testing</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Manifest</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../upstream/manifest/" class="dropdown-item">Manifest deploy and testing</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Users</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../upstream/users/" class="dropdown-item">Operator tests</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href=".." class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../upstream/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#purpose" class="nav-link">Purpose</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#introduction" class="nav-link">Introduction</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#configuration" class="nav-link">Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#usage" class="nav-link">Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="purpose">Purpose</h1>
+<p>This document describes about the Upstream Operator Test Playbooks CI Pipeline and how it works.</p>
+<h1 id="introduction">Introduction</h1>
+<p>The Upstream Operator Test Playbooks CI Pipeline exists to automatically run tests against pull requests in the <a href="https://github.com/redhat-operator-ecosystem/operator-test-playbooks">redhat-operator-ecosystem/operator-test-playbooks GitHub repository</a>.</p>
+<h1 id="configuration">Configuration</h1>
+<p>A webhook is configured so that the repository sends events to the github2fedmsg web application.
+Any activity (ex: adding comments) in the repository is therefore sent to github2fedmsg, which then rebroadcasts on the Fedora Messaging bus (fedmsg).
+For more information on github2fedmsg and Fedora Messaging see <a href="https://github.com/fedora-infra/github2fedmsg">github2fedmsg</a></p>
+<h1 id="usage">Usage</h1>
+<ul>
+<li>
+<p>The test-operator-test-playbooks jenkins job runs on the CVP CI Jenkins server.</p>
+</li>
+<li>
+<p>The job is triggered by a message on the Fedora Messaging bus:</p>
+</li>
+<li>
+<p>Indicates that a pull request was opened, re-opened, or synchronized (“synchronized” meaning that code changes were pushed to an already-opened pull request)</p>
+<p>Ex: <a href="https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.github.pull_request.opened">PR-opened</a></p>
+</li>
+<li>
+<p>Indicates a comment was added that contains the text <code>/retest</code> or <code>/test CVP</code></p>
+<p>Ex: <a href="https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.github.issue.comment&amp;delta=3600">PR-comment-added</a></p>
+</li>
+<li>
+<p>The openshift project name for <code>test-operator-test-playbooks</code> is <code>cvp-ci-operatortestplaybooks</code></p>
+</li>
+<li>
+<p>The test-operator-test-playbooks job parses the fedmsg to determine what files have changed and what repository and branch needs to be tested.</p>
+</li>
+<li>
+<p>If the data can be successfully parsed, test-operator-test-playbooks uses <code>CVP bot account</code> on GitHub to create a check status, <code>CVP/pr-sanity-test</code>, for the pull request, this check can also be seen on the PR among other tests.</p>
+</li>
+<li>
+<p>Note: If the only file that has changed is README.md, test-operator-test-playbooks will then exit successfully. No further tests are required since no ansible playbooks have changed.</p>
+</li>
+<li>
+<p>The test-operator-test-playbooks jenkins job configures it’s own Product/Team Jenkins server to run the testing pipelines.</p>
+</li>
+<li>
+<p>When this is complete the test-operator-test-playbooks job currently triggers three test pipelines on it’s Team Jenkins server:</p>
+</li>
+<li>
+<p>cvp-redhat-operator-bundle-image-validation-test</p>
+</li>
+<li>cvp-redhat-operator-metadata-validation-test</li>
+<li>
+<p>cvp-isv-operator-metadata-validation-test</p>
+</li>
+<li>
+<p>These are the same pipelines that runs in production. The sample operators used for testing in these pipelines are the same used in CVP-CI setup tests.</p>
+</li>
+<li>
+<p>The pipelines are running in parallel, although they are started one minute apart from each other. </p>
+</li>
+<li>
+<p>When a testing pipeline is started, the test-operator-test-playbooks job adds a new check status to the pull request on GitHub indicating the name of the test pipeline and it sets the status to “pending”, so that end-users are informed that a test is in progress.</p>
+</li>
+<li>
+<p>When a testing pipeline completes, the check status is updated with either <code>success</code> or <code>failure</code>.</p>
+</li>
+<li>
+<p>Each pipeline’s artifacts are uploaded to Amazon S3, the same artifacts as are uploaded in production, and can be viewed externally to determine which stages in the testing pipeline failed.</p>
+</li>
+<li>
+<p>The artifacts also contain a generalized link at the bottom of each test logs, so that the CVP team can access all the artifacts for the test pipeline that are not available externally.</p>
+</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

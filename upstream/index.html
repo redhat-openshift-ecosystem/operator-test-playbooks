@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Instruction for operator test via ansible - Operator Test Playbooks - PR History</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Operator Test Playbooks - PR History</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">PR History Statistics</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../operatorTestPlaybooksCI/" class="nav-link">Purpose</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Upstream <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Instruction for operator test via ansible</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Bundle</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="bundle/" class="dropdown-item">Bundle deploy and testing</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Manifest</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="manifest/" class="dropdown-item">Manifest deploy and testing</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Users</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="users/" class="dropdown-item">Operator tests</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../operatorTestPlaybooksCI/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="bundle/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#instruction-for-operator-test-via-ansible" class="nav-link">Instruction for operator test via ansible</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#standard-test-on-clean-machine" class="nav-link">Standard test on clean machine</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#standard-test-with-operator-prerequisites-e-run_prereqstrue" class="nav-link">Standard test with operator prerequisites (-e run_prereqs=true)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#standard-test-without-operator-prerequisites-e-run_prereqsfalse" class="nav-link">Standard test without operator prerequisites (-e run_prereqs=false)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#super-full-test-on-clean-machine" class="nav-link">Super full test on clean machine</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#super-full-test-quick-without-installation" class="nav-link">Super full test quick (without installation)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#install-host-only" class="nav-link">Install host only</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#reset-host-eg-kind-registry" class="nav-link">Reset host (eg. kind, registry)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#install-dependency-in-playbook-docker-image-when-building" class="nav-link">Install dependency in playbook docker image when building</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#input-source-image-not-supported-now" class="nav-link">Input source image (not supported now)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#deploy-operators-to-index" class="nav-link">Deploy operators to index</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#recreate-catalog-operatorhubio" class="nav-link">Recreate catalog (operatorhubio)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#mirror-exiting-index-image-to-different-location" class="nav-link">Mirror exiting index image to different location</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#mirror-exiting-index-image-to-different-location-and-converting-to-multi-arch" class="nav-link">Mirror exiting index image to different location and converting to multi arch</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#test-all-operators" class="nav-link">Test all operators</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#generate-app-registry-list-of-operators-from-index-image" class="nav-link">Generate app registry (List of operators from index image)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#generate-app-registry-in-parallel-list-of-operators-from-index-image-and-then-push-it" class="nav-link">Generate app registry in parallel (List of operators from index image) and then push it</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#generate-app-registry-list-of-operators-from-git" class="nav-link">Generate app registry (List of operators from git)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#generate-app-registry-in-parallel-list-of-operators-from-git" class="nav-link">Generate app registry in parallel (List of operators from git)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#sync-index-and-index-sha" class="nav-link">Sync index and index sha</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#misc-options-to-use" class="nav-link">Misc options to use</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#tags-to-use" class="nav-link">Tags to use</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#scripts" class="nav-link">Scripts</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#recreate" class="nav-link">Recreate</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#test-all" class="nav-link">Test all</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#check-index" class="nav-link">Check index</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#check-index-with-addition-of-packages-are-in-index-but-not-in-bundles_namespace-operatorhubio-in-quayio" class="nav-link">Check index with addition of packages are in index but not in bundles_namespace (operatorhubio) in quay.io</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#prepare-bundle-and-index-for-openshift-robot" class="nav-link">Prepare bundle and index for Openshift robot</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#travis-configuration" class="nav-link">Travis configuration</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#operator-test-playbooks" class="nav-link">operator-test-playbooks</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#community-operators" class="nav-link">community-operators</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#community-operator-catalog" class="nav-link">community-operator-catalog</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#operatorhubio" class="nav-link">operatorhubio</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="instruction-for-operator-test-via-ansible">Instruction for operator test via ansible</h1>
+<h2 id="standard-test-on-clean-machine">Standard test on clean machine</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua
+</code></pre>
+<h2 id="standard-test-with-operator-prerequisites-e-run_prereqstrue">Standard test with operator prerequisites (-e run_prereqs=true)</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+--tags test
+</code></pre>
+<h2 id="standard-test-without-operator-prerequisites-e-run_prereqsfalse">Standard test without operator prerequisites (-e run_prereqs=false)</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+--tags pure_test
+</code></pre>
+<p>or</p>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+--tags test \
+-e run_prereqs=false
+</code></pre>
+<h2 id="super-full-test-on-clean-machine">Super full test on clean machine</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+-e run_manifest_test=true \
+-e run_bundle_test=true
+</code></pre>
+<h2 id="super-full-test-quick-without-installation">Super full test quick (without installation)</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+-e run_manifest_test=true \
+-e run_bundle_test=true \
+--tags pure_test
+</code></pre>
+<h2 id="install-host-only">Install host only</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags install
+</code></pre>
+<h2 id="reset-host-eg-kind-registry">Reset host (eg. kind, registry)</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags reset
+</code></pre>
+<h2 id="install-dependency-in-playbook-docker-image-when-building">Install dependency in playbook docker image when building</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags image_build
+</code></pre>
+<h2 id="input-source-image-not-supported-now">Input source image (not supported now)</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_input_image=quay.io/cvpops/test-bundle:tigera-131 \
+--tags pure_test
+</code></pre>
+<h2 id="deploy-operators-to-index">Deploy operators to index</h2>
+<p>Config file:</p>
+<pre><code>$ cat test/operators_config.yaml
+operator_base_dir: /tmp/community-operators-for-catalog/upstream-community-operators
+operators:
+- aqua
+- prometheus
+</code></pre>
+<h3 id="deploy-starting-index-image">Deploy starting index image</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags deploy_bundles \
+-e operators_config=test/operators_config.yaml
+</code></pre>
+<h3 id="deploy-starting-index-image_1">Deploy starting index image</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags deploy_bundles \
+-e operators_config=test/operators_config.yaml
+-e bundle_registry=quay.io \
+-e bundle_image_namespace=operator_testing \
+-e bundle_index_image_namespace=operator_testing \
+-e bundle_index_image_name=upstream-community-operators-index \
+-e quay_api_token=&lt;quay-api-token&gt;
+</code></pre>
+<h3 id="deploy-starting-index-image-and-mirror-index">Deploy starting index image and mirror index</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags deploy_bundles \
+-e operators_config=test/operators_config.yaml
+-e bundle_registry=quay.io \
+-e bundle_image_namespace=operator_testing \
+-e bundle_index_image_namespace=operator_testing \
+-e bundle_index_image_name=upstream-community-operators-index \
+-e mirror_index_images=&quot;quay.io/operator_testing/upstream-community-operators-index-mirror|&lt;user&gt;|&lt;password&gt;&quot; \
+-e quay_api_token=&lt;quay-api-token&gt;
+</code></pre>
+<h3 id="deploy-index-image-and-force-channels-to-be-autodetected-by-playbook">Deploy index image and force channels to be autodetected by playbook</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags deploy_bundles \
+-e operators_config=test/operators_config.yaml
+-e operator_channel_force=&quot;&quot;
+</code></pre>
+<h3 id="deploy-index-image-and-force-channels-to-stable">Deploy index image and force channels to stable</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags deploy_bundles \
+-e operators_config=test/operators_config.yaml
+-e operator_channel_force=stable
+</code></pre>
+<h3 id="remove-operator-from-quay">Remove operator from quay</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua -e operator_version=1.0.2 \
+--tags deploy_bundles \
+-e bundle_registry=quay.io -e bundle_image_namespace=operator_testing -e bundle_index_image_namespace=operator_testing \
+-e bundle_index_image_name=upstream-community-operators-index \
+-e quay_api_token=&lt;token&gt;
+</code></pre>
+<h3 id="remove-operator-from-quay-force-to-remove-it-from-git-just-after-git-clone">Remove operator from quay (force to remove it from git just after git clone )</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+--tags deploy_bundles -e remove_operators_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+-e bundle_registry=quay.io -e bundle_image_namespace=operator_testing -e bundle_index_image_namespace=operator_testing \
+-e bundle_index_image_name=upstream-community-operators-index \
+-e quay_api_token=&lt;token&gt;
+</code></pre>
+<h3 id="remove-operator-from-quay-force-to-remove-it-from-git-just-after-git-clone_1">Remove operator from quay (force to remove it from git just after git clone )</h3>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+--tags deploy_bundles -e quay_api_token=&lt;token&gt; \
+-e bundle_registry=quay.io -e bundle_image_namespace=operator_testing \
+-e bundle_index_image_namespace=operator_testing -e bundle_index_image_name=upstream-community-operators-index  \
+-e remove_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators -e remove_operator_dirs=&quot;aqua/1.0.2,aqua/1.0.1&quot;
+</code></pre>
+<h2 id="recreate-catalog-operatorhubio">Recreate catalog (operatorhubio)</h2>
+<pre><code>TOKEN=&quot;&lt;token&gt;&quot;
+
+ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-community -vv -i localhost, local.yml \
+-e run_upstream=true --tags deploy_bundles \
+-e regenerate_operators_path=/tmp/community-operators-for-catalog/upstream-community-operators \
+-e bundle_registry=quay.io \
+-e bundle_image_namespace=operatorhubio \
+-e bundle_index_image_namespace=operatorhubio \
+-e bundle_index_image_name=catalog \
+-e quay_api_token=$TOKEN \
+-e opm_index_add_mode=semver -e operator_channel_force=&quot;&quot; \
+| tee -a $HOME/recreate_operatorhubio-$(date +%F_%H%M).log 1&gt;&amp;2
+</code></pre>
+<h2 id="mirror-exiting-index-image-to-different-location">Mirror exiting index image to different location</h2>
+<pre><code>ansible-playbook -vv -i myhost, local.yml \
+-e run_upstream=true \
+--tags mirror_index \
+-e bundle_registry=quay.io \
+-e bundle_index_image_namespace=operator_testing \
+-e bundle_index_image_name=upstream-community-operators-index \
+-e mirror_index_images=&quot;quay.io/operator_testing/upstream-community-operators-index-mirror|&lt;user&gt;|&lt;password&gt;,quay.io/operator_testing/upstream-community-operators-index-mirror-second|&lt;user2&gt;|&lt;password2&gt;&quot; \
+-e quay_api_token=&lt;quay-api-token&gt;
+</code></pre>
+<h2 id="mirror-exiting-index-image-to-different-location-and-converting-to-multi-arch">Mirror exiting index image to different location and converting to multi arch</h2>
+<pre><code>ansible-playbook -i localhost, -e ansible_connection=local local.yml \
+-e run_upstream=true -e run_prepare_catalog_repo_upstream=false \
+--tags mirror_index \
+-e mirror_index_images=&quot;quay.io/redhat/redhat----community-operator-index:latest|redhat+iib_community|&lt;token&gt;&quot; \
+-e mirror_multiarch_image=&quot;registry.redhat.io/openshift4/ose-operator-registry:v4.5&quot; \
+-e mirror_apply=true \
+-e bundle_index_image=&quot;quay.io/openshift-community-operators/catalog:latest&quot;
+-e container_tool=podman
+</code></pre>
+<h2 id="test-all-operators">Test all operators</h2>
+<pre><code>export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-community -vv -i localhost, local.yml \
+-e run_upstream=true --tags pure_test_all -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators  \
+-e permisive=true -e pod_start_retries=30 -e pod_start_delay=5 \
+-e opm_index_add_mode=semver -e operator_channel_force=&quot;&quot; \
+-e all_operator_find_excludes=&quot;planetscale&quot;| tee -a $HOME/test_all_upstream-$(date +%F_%H%M).log 1&gt;&amp;2
+</code></pre>
+<h2 id="generate-app-registry-list-of-operators-from-index-image">Generate app registry (List of operators from index image)</h2>
+<pre><code>export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest
+</code></pre>
+<h2 id="generate-app-registry-in-parallel-list-of-operators-from-index-image-and-then-push-it">Generate app registry in parallel (List of operators from index image) and then push it</h2>
+<pre><code>export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest \
+-e index_export_parallel=true \
+-e app_registry_image=&quot;kind-registry:5000/test-operator/app-registry&quot;
+</code></pre>
+<h2 id="generate-app-registry-list-of-operators-from-git">Generate app registry (List of operators from git)</h2>
+<pre><code>export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest
+</code></pre>
+<h2 id="generate-app-registry-in-parallel-list-of-operators-from-git">Generate app registry in parallel (List of operators from git)</h2>
+<pre><code>export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-playbook -vv -i localhost, local.yml \
+-e run_upstream=true --tags app_registry \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators \
+-e bundle_index_image=quay.io/operatorhubio/catalog:latest \
+-e index_export_parallel=true
+</code></pre>
+<h2 id="sync-index-and-index-sha">Sync index and index sha</h2>
+<pre><code>ansible-playbook -i localhost, upstream/local.yml -e run_upstream=true \
+-e sis_index_image_input=quay.io/operatorhubio/catalog:latest \
+-e sis_index_image_output=quay.io/operatorhubio/catalog:latests \
+-e op_base_name=&quot;upstream-community-operators&quot; \
+--tags sync_index_sha \
+-e quay_api_token=xxx
+</code></pre>
+<h2 id="misc-options-to-use">Misc options to use</h2>
+<p>Usage:</p>
+<pre><code>-e &lt;option&gt;=&lt;value&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default value</th>
+<th>Prod default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>run_upstream</td>
+<td>Flag when running upstream part of playbooks. [bool]</td>
+<td>false</td>
+<td>true</td>
+</tr>
+<tr>
+<td>run_prepare_catalog_repo_upstream</td>
+<td>Prepare git repo for community-operators. [bool]</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>run_remove_catalog_repo</td>
+<td>Removes existing git repo for community-operators. [bool]</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>catalog_repo</td>
+<td>Community operators repo url. [string]</td>
+<td>https://github.com/operator-framework/community-operators.git</td>
+<td>as default</td>
+</tr>
+<tr>
+<td>catalog_repo_branch</td>
+<td>Community operators branch in repo. [string]</td>
+<td>master</td>
+<td>as default</td>
+</tr>
+<tr>
+<td>operators_config</td>
+<td>Path to operators config file using when deploying multiple operators. Examle in test/operators_config.yaml. [string]</td>
+<td>undefined</td>
+<td>operators_config.yaml</td>
+</tr>
+<tr>
+<td>quay_user</td>
+<td>Username in quay registry login. [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>quay_password</td>
+<td>Password in quay registry login. [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>quay_api_token</td>
+<td>Quay api token to create project, delete tag. If 'quay_user' or 'quay_password' is undefined. This token is used to push images to quay as '$oauthtoken' user. More info about creating token is <a href="https://docs.quay.io/api/">here</a>.  [string]</td>
+<td>undefined</td>
+<td>hidden</td>
+</tr>
+<tr>
+<td>bundle_registry</td>
+<td>Quay bundle and index registry url. [string]</td>
+<td>kind-registry:5000</td>
+<td>quay.io</td>
+</tr>
+<tr>
+<td>bundle_image_namespace</td>
+<td>Quay registry url. [string]</td>
+<td>test-operator</td>
+<td>operator_testing</td>
+</tr>
+<tr>
+<td>bundle_index_image_namespace</td>
+<td>Quay registry url. [string]</td>
+<td>test-operator</td>
+<td>operator_testing</td>
+</tr>
+<tr>
+<td>bundle_index_image_name</td>
+<td>Quay registry url. [string]</td>
+<td>index</td>
+<td>upstream-community-operators-index</td>
+</tr>
+<tr>
+<td>bundle_index_sha_posfix</td>
+<td>Index name postfix used for index build from bundle shas instead of tags. (example : "s)[string]</td>
+<td>""</td>
+<td>""</td>
+</tr>
+<tr>
+<td>container_tool</td>
+<td>Container tool to use. [string]</td>
+<td>docker</td>
+<td>as default</td>
+</tr>
+<tr>
+<td>opm_container_tool</td>
+<td>Container tool to use when using opm tool. [string]</td>
+<td>docker</td>
+<td>as default</td>
+</tr>
+<tr>
+<td>opm_container_tool_index</td>
+<td>Container tool to use when using opm tool. [string]</td>
+<td>docker</td>
+<td>as default</td>
+</tr>
+<tr>
+<td>operator_channel_force</td>
+<td>Forcing to adde channel and default channed to current string value. When empty string it is autodetected by playbook. [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>index_force_update</td>
+<td>Force to rebuild currently running operators in index. [bool]</td>
+<td>false</td>
+<td>false</td>
+</tr>
+<tr>
+<td>fail_on_no_index_change</td>
+<td>Force to fail when no update in index is needed. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>bundle_force_rebuild</td>
+<td>Force to rebuild bundle of currently running operator and version. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>index_skip</td>
+<td>Skip building index (it will build bundle only). [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>test_skip_deploy</td>
+<td>Skip deploy operator on kind cluster when testing. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>package_name_strict</td>
+<td>Test if package name is same as operator directory name. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>remove_replaces</td>
+<td>Remove replaces from csv. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>run_bundle_scorecard_test</td>
+<td>Runs bundle scorecard test. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>bundle_scorecard_test_config</td>
+<td>Config file where scorecard tests are defined. [string]</td>
+<td>generated</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>bundle_scorecard_test_select</td>
+<td>Runs specific scorecard tests. [string]</td>
+<td>basic-check-spec-test,olm-bundle-validation-test,olm-status-descriptors-test</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>recreate_skip_repo_clean</td>
+<td>Skip removing all repos in namespace from registry. (Applied only when is defined and value is true). [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>remove_base_dir</td>
+<td>Specify base directory right after cloning community-operators project. Needs to specify <code>remove_operator_dirs</code>. See bellow. [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>remove_operator_dirs</td>
+<td>List directory right after cloning community-operators project relative to <code>remove_base_dir</code>. [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>all_operator_find_filter</td>
+<td>Filter pattern to find list of operators when running all tests (tags: test_all, pure_test_all). [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>all_operator_find_excludes</td>
+<td>Comma separated list of operators that should be excluded (tags: test_all, pure_test_all). [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>permisive</td>
+<td>Olm deploy will not fail when this flag is true. [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>test_all_reset_kind</td>
+<td>Force to reset kind cluster before every test (undefined means true). [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>production_registry_namespace</td>
+<td>Check if bundle exists in production registry. Used in local <code>deploy_bundle</code> test. (e.g. "quay.io/operatorhubio") [string]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>mirror_index_images</td>
+<td>List of mirror images for index. (e.g. "kind-registry:5000/test-operator/catalog_mirror_auth</td>
+<td><user></td>
+<td><password>,kind-registry:5000/test-operator/catalog_mirror_no_auth") [string]</td>
+</tr>
+<tr>
+<td>index_mode_from_ci</td>
+<td>Enable autodetect index add mode from <operator>/ci.yaml file [bool]</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>openshift_robot_hash</td>
+<td>e.g. "quay.io/operator_testing</td>
+<td><push-token></td>
+<td><git-hash>" [string]</td>
+</tr>
+<tr>
+<td>bundles_namespace</td>
+<td>Quay namespace where to find list of packages and compare it with packages in index (eg. "openshift-community-operators" or "operatorhubio" )[string]</td>
+<td>undefined</td>
+<td></td>
+</tr>
+<tr>
+<td>use_cluster_filter</td>
+<td>Enable multiple index images [bool]</td>
+<td>false</td>
+<td>true</td>
+</tr>
+<tr>
+<td>supported_cluster_versions</td>
+<td>Cluster (e.g. OCP) versions, indexes will be generated [string coma delimited]</td>
+<td>latest</td>
+<td><code>v4.6,v4.7</code> for Openshift; <code>latest</code> for kubernetes</td>
+</tr>
+<tr>
+<td>supported_cluster_version_latest</td>
+<td>Copy and tag specific index as <code>latest</code></td>
+<td>v4.6</td>
+<td><code>v4.6</code> for Openshift; not defined for kubernetes</td>
+</tr>
+<tr>
+<td>save_operator_tools_info</td>
+<td>Save operator tools info [bool]</td>
+<td>false</td>
+<td>false</td>
+</tr>
+<tr>
+<td>stream_kind</td>
+<td>Setup variables for specific stream kind (e.g. openshift_upstream) More info in local.yaml</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>enable_production</td>
+<td>set safety limits for index push <code>min_operators_in_index_allowed</code>, <code>max_missing_operators_allowed</code> and other prod defaults [bool]</td>
+<td>N/A</td>
+<td>true</td>
+</tr>
+<tr>
+<td>min_operators_in_index_allowed</td>
+<td>minimal amount of operators in index before index push [int]</td>
+<td>N/A</td>
+<td>30</td>
+</tr>
+<tr>
+<td>max_missing_operators_allowed</td>
+<td>maximal amount of operators to be added to an index at once, safety index overwrite feature [int]</td>
+<td>N/A</td>
+<td>20</td>
+</tr>
+<tr>
+<td>delete_appreg</td>
+<td>Activate appregistry delete during release <code>push to quay</code> operation [bool]</td>
+<td>N/A</td>
+<td><code>true</code> in case of operator delete</td>
+</tr>
+<tr>
+<td>allow_big_changes_to_existing</td>
+<td>Do not stop pipeline if change to a CSV is outside of <code>dc_changes_allowed</code> [bool]</td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tags-to-use">Tags to use</h2>
+<p>Usage:</p>
+<pre><code>--tags &lt;tag1&gt;,&lt;tag2&gt;...&lt;tagN&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>host_build</td>
+<td>Installs base packages needed to run on host (docker,kind,registry, ...)</td>
+</tr>
+<tr>
+<td>install</td>
+<td>Installs all packages incluing operator testing tools (--tags host_build + testing tools).</td>
+</tr>
+<tr>
+<td>uninstall</td>
+<td>Uninstall packages that were installed by <code>install</code> tag</td>
+</tr>
+<tr>
+<td>reset</td>
+<td>Resets kind cluster and recreate kind registry</td>
+</tr>
+<tr>
+<td>reset_tools</td>
+<td>Reinstall testing tools (operator-sdk,olm,opm,umoci,yq,jq). Used when updating versions of these tools.</td>
+</tr>
+<tr>
+<td>test</td>
+<td>Runs test including installing operator prerequisites</td>
+</tr>
+<tr>
+<td>pure_test</td>
+<td>Runs test excluding installing operator prerequisites (Faster then <code>test</code> once operator tools are installed. )</td>
+</tr>
+<tr>
+<td>test_lite</td>
+<td>Runs test if operator bundle exists on production registry. The variable <code>production_registry_namespace</code> needs to be set.</td>
+</tr>
+<tr>
+<td>pure_test_lite</td>
+<td>Runs test if operator bundle exists on production registry. The variable <code>production_registry_namespace</code> needs to be set. (Installation of the operator prerequisites is excluded)</td>
+</tr>
+<tr>
+<td>deploy_bundles</td>
+<td>Deploy all bundles defined by <code>operator_dir</code> or <code>operator_config</code></td>
+</tr>
+<tr>
+<td>remove_operator</td>
+<td>Removes operator from quay full bundle and index</td>
+</tr>
+</tbody>
+</table>
+<h1 id="scripts">Scripts</h1>
+<h2 id="recreate">Recreate</h2>
+<pre><code>#!/bin/bash
+export ANSIBLE_STDOUT_CALLBACK=yaml
+export MY_OPT=&quot;&quot;
+#export MY_OPT=&quot;-e opm_index_add_mode=semver -e operator_channel_force=\&quot;\&quot; $*&quot;
+
+# operatorhubio
+TOKEN=&quot;&lt;token&gt;&quot;
+time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C sprint-8 -vv -i localhost, local.yml \
+-e run_upstream=true --tags deploy_bundles \
+-e regenerate_operators_path=/tmp/community-operators-for-catalog/upstream-community-operators \
+-e bundle_registry=quay.io \
+-e bundle_image_namespace=operatorhubio \
+-e bundle_index_image_namespace=operatorhubio \
+-e bundle_index_image_name=catalog \
+-e quay_api_token=$TOKEN \
+$MY_OPT \
+| tee -a $HOME/recreate_operatorhubio-$(date +%F_%H%M).log 1&gt;&amp;2
+
+date +%F_%H%M
+</code></pre>
+<h1 id="test-all">Test all</h1>
+<pre><code>#!/bin/bash
+export MY_OPT=&quot;-e permisive=true&quot;
+#export MY_OPT=&quot;$MY_OPT -e pod_start_retries=30 -e pod_start_delay=5&quot;
+#export MY_OPT=&quot;$MY_OPT -e all_operator_find_excludes=\&quot;planetscale\&quot;&quot;
+export ANSIBLE_STDOUT_CALLBACK=yaml
+time ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C sprint-8 -vv -i localhost, local.yml \
+-e run_upstream=true --tags pure_test_all -e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators  \
+-e opm_index_add_mode=semver -e operator_channel_force=&quot;&quot; \
+$MY_OPT | tee -a $HOME/test_all_upstream-$(date +%F_%H%M).log 1&gt;&amp;2
+</code></pre>
+<h1 id="check-index">Check index</h1>
+<pre><code>ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-community -vv -i localhost, local.yml \
+-e run_upstream=true --tags index_check \
+-e bundle_index_image=quay.io/operatorhubio/catalog \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
+</code></pre>
+<h1 id="check-index-with-addition-of-packages-are-in-index-but-not-in-bundles_namespace-operatorhubio-in-quayio">Check index with addition of packages are in index but not in bundles_namespace (operatorhubio) in quay.io</h1>
+<pre><code>ansible-pull -U https://github.com/J0zi/operator-test-playbooks -C upstream-community -vv -i localhost, local.yml \
+-e run_upstream=true --tags index_check \
+-e bundle_index_image=quay.io/operatorhubio/catalog \
+-e operator_base_dir=/tmp/community-operators-for-catalog/upstream-community-operators
+-e bundles_namespace=operatorhubio -e quay_api_token=&lt;token&gt;
+</code></pre>
+<h1 id="prepare-bundle-and-index-for-openshift-robot">Prepare bundle and index for Openshift robot</h1>
+<pre><code>ansible-playbook -i host, local.yml \
+-e run_upstream=true \
+-e operator_dir=/tmp/community-operators-for-catalog/upstream-community-operators/aqua \
+-e operator_version=1.0.2 --tags deploy_bundles \
+-e remove_replaces=true \
+-e openshift_robot_hash=&quot;quay.io/operator_testing|&lt;push-token&gt;|1234&quot;
+</code></pre>
+<h1 id="travis-configuration">Travis configuration</h1>
+<h2 id="operator-test-playbooks">operator-test-playbooks</h2>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANSIBLE_CONFIG</td>
+<td>"$PWD/ansible.cfg"</td>
+</tr>
+<tr>
+<td>ANSIBLE_BASE_ARGS</td>
+<td>"-i localhost, local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"</td>
+</tr>
+</tbody>
+</table>
+<h2 id="community-operators">community-operators</h2>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANSIBLE_CONFIG</td>
+<td>"$PWD/ansible.cfg"</td>
+</tr>
+<tr>
+<td>ANSIBLE_BASE_ARGS</td>
+<td>"-i localhost, local.yml -e ansible_connection=local -e run_remove_catalog_repo=false"</td>
+</tr>
+<tr>
+<td>ANSIBLE_EXTRA_ARGS</td>
+<td>""</td>
+</tr>
+<tr>
+<td>ANSIBLE_PULL_REPO</td>
+<td>"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"</td>
+</tr>
+<tr>
+<td>ANSIBLE_PULL_BRANCH</td>
+<td>"upstream-community"</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_OPERATOR_TESTING</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_RELEASE_COMMUNITY</td>
+<td>on release-pipeline-running</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_RELEASE_UPSTREAM</td>
+<td>on release-pipeline-running</td>
+</tr>
+<tr>
+<td>CI_OHIO_TRIGGER_TOKEN</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>FRAMEWORK_AUTOMATION_ON_TRAVIS</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>QUAY_APPREG_TOKEN</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>QUAY_COURIER_TOKEN</td>
+<td>on master</td>
+</tr>
+</tbody>
+</table>
+<h2 id="community-operator-catalog">community-operator-catalog</h2>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANSIBLE_CONFIG</td>
+<td>"$PWD/ansible.cfg"</td>
+</tr>
+<tr>
+<td>ANSIBLE_BASE_ARGS</td>
+<td>"-i localhost, local.yml -e ansible_connection=local -e run_remove_catalog_repo=false"</td>
+</tr>
+<tr>
+<td>ANSIBLE_EXTRA_ARGS</td>
+<td>""</td>
+</tr>
+<tr>
+<td>ANSIBLE_PULL_REPO</td>
+<td>"https://github.com/redhat-operator-ecosystem/operator-test-playbooks"</td>
+</tr>
+<tr>
+<td>ANSIBLE_PULL_BRANCH</td>
+<td>"upstream-community"</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_RELEASE_COMMUNITY</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_RELEASE_COMMUNITY_TEST</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_RELEASE_UPSTREAM</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>AUTOMATION_TOKEN_RELEASE_UPSTREAM_TEST</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>QUAY_RH_INDEX_PW</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>QUAY_RH_INDEX_PW</td>
+<td>on job/update-community-index-manually</td>
+</tr>
+<tr>
+<td>INPUT_CATALOG_IMAGE</td>
+<td>"quay.io/operatorhubio/catalog:latest" (default, when nothing is set)</td>
+</tr>
+<tr>
+<td>APP_REGISTRY_IMAGE</td>
+<td>"quay.io/operator-framework/upstream-community-operators:latest" (default, when nothing is set)</td>
+</tr>
+<tr>
+<td>APP_REGISTRY_TOKEN</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>CI_OHIO_BRANCH</td>
+<td>"dev"</td>
+</tr>
+<tr>
+<td>CI_OHIO_TRIGGER_TOKEN</td>
+<td>on master</td>
+</tr>
+</tbody>
+</table>
+<h2 id="operatorhubio">operatorhubio</h2>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKAMAI_APPCODES</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>AKAMAI_SECRETS</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>DOCKER_REGISTRY</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>DOCKER_IMAGE</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>DOCKER_USERNAME</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>DOCKER_PASSWORD</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>OPENSHIFT_SERVER</td>
+<td>all branches</td>
+</tr>
+<tr>
+<td>OPENSHIFT_TOKEN</td>
+<td>on dev</td>
+</tr>
+<tr>
+<td>OPENSHIFT_TOKEN</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>OPENSHIFT_TOKEN</td>
+<td>on master2</td>
+</tr>
+<tr>
+<td>OPENSHIFT_TOKEN_PREPROD</td>
+<td>on master</td>
+</tr>
+<tr>
+<td>APP_REGISTRY_IMAGE</td>
+<td>"quay.io/operator-framework/upstream-community-operators:latest"</td>
+</tr>
+</tbody>
+</table></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
