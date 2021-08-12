@@ -1,0 +1,14 @@
+jsonpatch==1.32
+jsonpointer==2.1
+jsonschema==3.2.0
+matplotlib==3.4.2
+numpy==1.21.1
+pandas==1.3.0
+python-dateutil==2.8.0
+requests==2.25.1
+requests-file==1.4.3
+requests-ftp==0.3.1
+requests-ntlm==1.1.0
+requestsexceptions==1.4.0
+simplejson==3.17.2
+ujson==4.0.2
