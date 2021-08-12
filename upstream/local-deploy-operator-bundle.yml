@@ -28,6 +28,7 @@
     bundle_index_image_namespace: test-operator
     bundle_index_image_name: "catalog"
     app_registry_push: false
+    ignore_image_string: "_ignore_"
 
   tasks:
     - name: "Setting basic variables for deploy tasks"
