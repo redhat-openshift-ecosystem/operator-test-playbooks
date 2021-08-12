@@ -1,2 +1,2 @@
-- name: "Copy '{{ fqp_image_dir }}' to final destination '{{ fqp_image }}{{ opi_timestamp }}'"
-  shell: "skopeo copy dir:{{ fqp_image_dir }} {{ image_protocol }}{{ fqp_image }}{{ bovb_timestamp }}"
+- name: "Copy '{{ opi_source_dir }}' to final destination '{{ opi_operator_image }}{{ bovb_timestamp }}'"
+  shell: "skopeo copy dir:{{ opi_source_dir }} {{ image_protocol }}{{ opi_operator_image }}{{ bovb_timestamp }}"
