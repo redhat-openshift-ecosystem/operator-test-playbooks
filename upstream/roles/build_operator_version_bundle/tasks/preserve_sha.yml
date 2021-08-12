@@ -1,2 +1,3 @@
 - name: "Copy '{{ opi_source_dir }}' to final destination '{{ opi_operator_image }}{{ bovb_timestamp }}'"
   shell: "skopeo copy dir:{{ opi_source_dir }} {{ image_protocol }}{{ opi_operator_image }}{{ bovb_timestamp }}"
+  when: not opi_operator_image.startswith('kind-registry')
