@@ -148,7 +148,7 @@
       debug:
         var: ignore_image_string
 
-    - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}'"
+    - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
       set_fact:
         versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list }}"
       when:
@@ -159,10 +159,10 @@
       debug:
         var: versions_in_prod_registry
 
-    - name: "Filtering versions to add and remove."
+    - name: "Filtering versions to add and remove without timestamps to avoid deletions"
       set_fact:
         versions_add: "{{ versions_in_dir | difference(versions_in_registry) | difference(versions_in_prod_registry) }}"
-        versions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
+        versions_remove: "{{ versions_in_registry | difference(versions_in_dir) | reject('search', ignore_image_string) | list }}"
 
     - name: "Handling bundle versions when 'operator_version' is defined"
       block:
