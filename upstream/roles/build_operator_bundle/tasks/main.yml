@@ -162,7 +162,16 @@
     - name: "Filtering versions to add and remove without timestamps to avoid deletions"
       set_fact:
         versions_add: "{{ versions_in_dir | difference(versions_in_registry) | difference(versions_in_prod_registry) }}"
+        versions_remove_orig: "{{ versions_in_registry | difference(versions_in_dir) }}"
         versions_remove: "{{ versions_in_registry | difference(versions_in_dir) | reject('search', ignore_image_string) | list }}"
+
+    - name: "Debug"
+      debug:
+        var: versions_remove_orig
+
+    - name: "Debug"
+      debug:
+        var: versions_remove
 
     - name: "Handling bundle versions when 'operator_version' is defined"
       block:
