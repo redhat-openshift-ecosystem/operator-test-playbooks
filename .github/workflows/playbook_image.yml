@@ -2,7 +2,7 @@ name: Build playbook image
 
 on:
   push:
-    branches: [ upstream-community, upstream-community-dev ]
+    branches: [ upstream-community ]
 
   workflow_dispatch:
 
