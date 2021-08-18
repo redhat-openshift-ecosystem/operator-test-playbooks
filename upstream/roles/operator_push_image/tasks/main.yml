@@ -32,6 +32,11 @@
           ignore_errors: true
           register: opi_push_quay_skopeo_copy_rc
 
+        - name: "Export variables"
+          set_fact:
+            opi_source_dir: "{{ fqp_image_dir }}"
+            opi_operator_image: "{{ fqp_image }}"
+
         - name: "Set 'rc_last' to tasks rc"
           set_fact:
             rc_last: true

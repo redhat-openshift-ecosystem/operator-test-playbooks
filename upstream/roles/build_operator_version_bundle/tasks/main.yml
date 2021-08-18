@@ -1,3 +1,7 @@
+- name: "Set timestamp"
+  set_fact:
+    bovb_timestamp: "{{ ignore_image_string }}{{ ansible_date_time.iso8601_basic_short }}"
+
 - name: "Handle bundle image from source image"
   block:
     - name: "Setting operator parameters from input image"
@@ -316,6 +320,10 @@
             fqp_image: "{{ bundle_image }}"
           when: bb_rc.rc == 0
 
+        - name: "Push bundle image with the timestamp"
+          include_tasks: preserve_sha.yml
+          when: bb_rc.rc == 0
+
         - name: "Set 'result_rc' to false"
           set_fact:
             result_rc: false
@@ -412,6 +420,10 @@
             name: operator_push_image
           vars:
             fqp_image: "{{ bundle_image }}"
+          when: mb_rc.rc == 0
+
+        - name: "Push bundle image with the timestamp"
+          include_tasks: preserve_sha.yml
           when: mb_rc.rc == 0
 
         - name: "Set 'result_rc' to false"

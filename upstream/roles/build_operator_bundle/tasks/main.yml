@@ -140,17 +140,18 @@
         - bob_prod_registry_versions.status is defined
         - bob_prod_registry_versions.status == 200
 
-    - name: "Setting all versions to 'versions_in_prod_registry' variable without '_ignore'"
+    - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
       set_fact:
-        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', '_ignore') | list }}"
+        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list }}"
       when:
         - bob_prod_registry_versions.status is defined
         - bob_prod_registry_versions.status == 200
 
-    - name: "Filtering versions to add and remove."
+    - name: "Filtering versions to add and remove without timestamps to avoid deletions"
       set_fact:
         versions_add: "{{ versions_in_dir | difference(versions_in_registry) | difference(versions_in_prod_registry) }}"
-        versions_remove: "{{ versions_in_registry | difference(versions_in_dir) }}"
+        versions_remove_orig: "{{ versions_in_registry | difference(versions_in_dir) }}"
+        versions_remove: "{{ versions_in_registry | difference(versions_in_dir) | reject('search', ignore_image_string) | list }}"
 
     - name: "Handling bundle versions when 'operator_version' is defined"
       block:
@@ -177,7 +178,7 @@
         - name: "Filtering versions to add and remove for only 'operator_version' : '{{ operator_version }}' specified by user"
           set_fact:
             versions_add: "{{ versions_in_dir | intersect(version_list) }}"
-            versions_remove: "{{ versions_in_registry | intersect(version_list) }}"
+            versions_remove: "{{ versions_in_registry | intersect(version_list)| reject('search', ignore_image_string) }}"
             versions_in_dir: "{{ versions_in_dir | intersect(version_list) }}"
           when:
             - (bundle_force_rebuild is undefined or not bundle_force_rebuild|bool)
@@ -193,7 +194,7 @@
 
       when: operator_version is defined
 
-    - name: "Delete all tags from operrator {{ operator_package_name }}. Tags: '{{ versions_remove | join(',') }}'"
+    - name: "Delete all tags from operator {{ operator_package_name }}. Tags: '{{ versions_remove | join(',') }}'"
       uri:
         url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_package_name }}/tag/v{{ item }}"
         method: DELETE
@@ -201,6 +202,7 @@
         headers:
           Authorization: "Bearer {{ quay_api_token }}"
         status_code: 204
+      ignore_errors: true
       with_items: "{{ versions_remove }}"
       when:
         - quay_api_token is defined
