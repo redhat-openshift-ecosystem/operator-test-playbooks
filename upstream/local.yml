@@ -43,6 +43,7 @@
     jq_version: 1.6
     yq_version: 2.2.1
     umoci_version: v0.4.5
+    ignore_image_string: "--"
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
