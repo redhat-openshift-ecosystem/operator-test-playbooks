@@ -12,8 +12,6 @@ services:
     volumes:
       - ./iib_data/registry:/var/lib/registry:z
       - ./docker/registry/certs:/certs:z
-#      - ./docker/registry/auth:/auth:z
-
   db:
     image: postgres:9.6
     environment:
