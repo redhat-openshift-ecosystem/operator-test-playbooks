@@ -41,10 +41,10 @@ services:
       - 8081:15672
 
   iib-api:
-#    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile-api
+    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
+    # build:
+    #   context: .
+    #   dockerfile: ./docker/Dockerfile-api
     command:
       - /bin/sh
       - -c
@@ -75,6 +75,17 @@ services:
 
   iib-worker:
     image: quay.io/operator_testing/iib_iib-worker:{{ iib_version }}
+    command:
+      - /bin/bash
+      - -c
+      - >-
+        cp /host-ca-bundle.crt /etc/pki/tls/certs/ca-bundle.crt &&
+        cat /registry-certs/root_ca.crt >> /etc/pki/tls/certs/ca-bundle.crt &&
+        podman login --authfile ~/.docker/config.json.template -u iib \
+          -p iibpassword registry:8443 &&
+        pip3 install watchdog[watchmedo] &&
+        watchmedo auto-restart -d ./iib/workers -p '*.py' --recursive \
+          -- celery -A iib.workers.tasks worker --loglevel=info
     environment:
       IIB_DEV: 'true'
       REQUESTS_CA_BUNDLE: /etc/pki/tls/certs/ca-bundle.crt
