@@ -8,7 +8,7 @@
         state: absent
       when: run_remove_iib_repo|bool
 
-    - name: "Check if  iib project directory '{{ iib_project_dir }}' directory exists"
+    - name: "Check if iib project directory '{{ iib_project_dir }}' directory exists"
       stat:
         path: "{{ iib_project_dir }}"
       register: iib_project_dir_st

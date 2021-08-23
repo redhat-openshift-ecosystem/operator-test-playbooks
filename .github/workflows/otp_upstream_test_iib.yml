@@ -35,7 +35,11 @@ jobs:
           [ -d $HOME/.docker ] || mkdir -p $HOME/.docker
           echo $IIB_PULL_AUTHFILE > $HOME/.docker/config.json
           ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build,iib
+          cd /tmp/iib && docker-compose ps
+          docker logs iib_iib-api_1
+          docker exec iib_iib-worker_1 mkdir -p /root/.docker/
           docker cp $HOME/.docker/config.json iib_iib-worker_1:/root/.docker/config.json.template || exit 1
+          curl http://localhost:8080/api/v1/builds
       - name: Operator test
         env:
           OPP_MIRROR_INDEX_MULTIARCH: "registry.redhat.io/openshift4/ose-operator-registry:v4.5"
