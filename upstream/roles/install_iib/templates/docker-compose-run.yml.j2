@@ -41,7 +41,23 @@ services:
       - 8081:15672
 
   iib-api:
-    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
+#    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile-api
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        mkdir -p /etc/iib &&
+        cp /broker-certs/client.crt /etc/iib/messaging.crt &&
+        cp /broker-certs/client.key /etc/iib/messaging.key &&
+        cp /broker-certs/ca.crt /etc/iib/messaging-ca.crt &&
+        pip3 uninstall -y iib &&
+        python3 setup.py develop --no-deps &&
+        iib wait-for-db &&
+        iib db upgrade &&
+        flask run --reload --host 0.0.0.0 --port 8080
     environment:
       FLASK_ENV: development
       FLASK_APP: iib/web/wsgi.py
