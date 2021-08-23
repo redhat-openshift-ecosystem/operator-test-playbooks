@@ -1,0 +1,98 @@
+---
+version: '3'
+services:
+  registry:
+    image: registry:2
+    ports:
+      - 8443:8443
+    environment:
+      REGISTRY_HTTP_ADDR: 0.0.0.0:8443
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/registry.key
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    volumes:
+      - ./iib_data/registry:/var/lib/registry:z
+      - ./docker/registry/certs:/certs:z
+      - ./docker/registry/auth:/auth:z
+
+  db:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: iib
+      POSTGRES_PASSWORD: iib
+      POSTGRES_DB: iib
+      POSTGRES_INITDB_ARGS: "--auth='ident' --auth='trust'"
+
+  memcached:
+    image: memcached
+    ports:
+      - 11211:11211
+
+  rabbitmq:
+    image: rabbitmq:3.7-management
+    environment:
+      RABBITMQ_DEFAULT_USER: iib
+      RABBITMQ_DEFAULT_PASS: iib
+      # Avoid port conflict with ActiveMQ broker when using podman-compose.
+      # Even though the port is not exposed, podman-compose's use of a pod
+      # requires the ports to be unique across all containers within the pod.
+      RABBITMQ_NODE_PORT: 5673
+    ports:
+      # The RabbitMQ management console
+      - 8081:15672
+
+  iib-api:
+    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
+    environment:
+      FLASK_ENV: development
+      FLASK_APP: iib/web/wsgi.py
+      IIB_DEV: 'true'
+    volumes:
+      - ./:/src:z
+      - ./docker/message_broker/certs:/broker-certs:ro,z
+      - request-logs-volume:/var/log/iib/requests:z
+      - request-related-bundles-volume:/var/lib/requests/related_bundles:z
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+      - message-broker
+
+  iib-worker:
+    image: quay.io/operator_testing/iib_iib-worker:{{ iib_version }}
+    environment:
+      IIB_DEV: 'true'
+      REQUESTS_CA_BUNDLE: /etc/pki/tls/certs/ca-bundle.crt
+      GODEBUG: x509ignoreCN=0
+    # Make this privileged to be able to build container images
+    privileged: true
+    volumes:
+      - ./:/src:z
+      - worker_container_storage:/var/lib/containers:z
+      - ./docker/registry/certs:/registry-certs:ro,z
+      - ./ca-bundle.crt:/host-ca-bundle.crt:ro
+      - request-logs-volume:/var/log/iib/requests:z
+      - request-related-bundles-volume:/var/lib/requests/related_bundles:z
+    depends_on:
+      - rabbitmq
+      - registry
+      - memcached
+
+  # This is an external message broker used to publish messages about state changes
+  message-broker:
+    image: quay.io/operator_testing/iib_message-broker:{{ iib_version }}
+    volumes:
+      - message-broker-volume:/opt/activemq/data:z
+      - ./docker/message_broker/certs:/broker-certs:ro,z
+    ports:
+      - 5671:5671   # amqp+ssl
+      - 5672:5672   # amqp
+      - 8161:8161   # web console
+
+volumes:
+  message-broker-volume:
+  request-logs-volume:
+  request-related-bundles-volume:
+  worker_container_storage:

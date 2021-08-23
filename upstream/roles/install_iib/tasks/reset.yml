@@ -13,21 +13,27 @@
         backup: true
       when:
         - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-        - iib_apply_fix|bool
 
     - name: "Overwrite 'Dockerfile-workers' to fix PowerTools"
       template:
         src: Dockerfile-workers.j2
         dest: "{{ iib_project_dir }}/docker/Dockerfile-workers"
       when:
-        - iib_apply_fix|bool
+        - not iib_run|bool
 
     - name: "Overwrite docker_compose.yaml to support registry without auth"
       template:
         src: docker-compose.yml.j2
         dest: "{{ iib_project_dir }}/docker-compose.yml"
       when:
-        - iib_apply_fix|bool
+        - not iib_run|bool
+
+    - name: "Overwrite docker_compose.yaml to support registry without auth"
+      template:
+        src: docker-compose-run.yml.j2
+        dest: "{{ iib_project_dir }}/docker-compose.yml"
+      when:
+        - iib_run|bool
 
     - name: "Replace 'iib_registry' for to push to quay directly"
       replace:
