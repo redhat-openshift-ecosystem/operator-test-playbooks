@@ -36,6 +36,7 @@ jobs:
           echo $IIB_PULL_AUTHFILE > $HOME/.docker/config.json
           ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build,iib
           cd /tmp/iib && docker-compose ps
+          docker exec iib_iib-worker_1 mkdir -p /root/.docker/
           docker cp $HOME/.docker/config.json iib_iib-worker_1:/root/.docker/config.json.template || exit 1
       - name: Operator test
         env:
