@@ -34,6 +34,7 @@ run_bundle_test: false
 operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
 operator_dir_name: "{{ operator_dir | basename }}"
 test_quay_namespace: operator_testing
-oc_version_test: "4.6"
 operator_suggested_namespace_default: test-operators
 pod_start_retries: 90
+current_openshift_run: "4.7"
+oc_version_max: "4.8"
