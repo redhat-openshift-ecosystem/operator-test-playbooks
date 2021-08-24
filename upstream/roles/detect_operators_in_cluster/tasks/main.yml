@@ -16,3 +16,9 @@
 - name: "Get full list for index setup"
   debug:
     var: doic_full_list
+
+- name: "Convert allowed input versions to list"
+  set_fact:
+    index_skip: true
+  when:
+    - doic_full_list.0 is undefined
