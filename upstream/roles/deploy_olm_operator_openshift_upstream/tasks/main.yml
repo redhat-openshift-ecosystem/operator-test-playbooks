@@ -305,7 +305,7 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  when: run_upstream|bool
+#  when: run_upstream|bool
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
   shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running"
@@ -626,5 +626,5 @@
   fail:
     msg: 'Operator was not capable to stay healthy for a specific time'
   when:
-    - run_upstream|bool
+#    - run_upstream|bool
     - operator_uptime.rc != 0
