@@ -1,0 +1,60 @@
+---
+- name: "Print operator name"
+  debug:
+    msg: "Running '{{ oi_operator_name }} {{ oi_operator_ver }}'"
+
+- name: "Export CSV variables"
+  include_role:
+    name: export_csv
+  vars:
+    op_csv_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}"
+    operator_format: "{{ oi_operator_format }}"
+
+- name: "Print 'operator_vars.spec.version'"
+  debug:
+    var: operator_vars.spec.version
+
+- name: "Print 'operator_vars.spec.replaces'"
+  debug:
+    var: operator_vars.spec.replaces
+
+- name: "Setting replaces version to empty string"
+  set_fact:
+    ovi_replaces_ver: ""
+
+- name: "Extracting replaces version from 'operator_vars.spec.replaces'"
+  set_fact:
+    ovi_replaces_ver: "{{ operator_vars.spec.replaces.split('.v')[-1] }}"
+  when: operator_vars.spec.replaces is defined
+
+- name: "Print 'ovi_replaces_ver'"
+  debug:
+    var: ovi_replaces_ver
+
+- name: "Adding current versuon to the 'io_versions_replaces'"
+  set_fact:
+    # io_versions_replaces: "{{ io_versions_replaces | default([]) | union( [{'version': operator_vars.spec.version, 'replaces': ovi_replaces_ver }]) }}"
+    io_versions_replaces: "{{ io_versions_replaces | default() | combine({ operator_vars.spec.version : ovi_replaces_ver }) }}"
+
+- name: "Print 'ovi_replaces_ver'"
+  debug:
+    var: io_versions_replaces
+
+- name: "Print 'ovi_replaces_ver'"
+  debug:
+    var: io_versions_replaces[operator_vars.spec.version]
+
+- name: "Export annotations variables"
+  include_role:
+    name: export_annotations
+  vars:
+    annotation_file_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}/metadata/annotations.yaml"
+    operator_format: "{{ oi_operator_format }}"
+  when: oi_operator_format == "bundle"
+
+- name: "Print 'annotations_vars'"
+  debug:
+    var: annotations_vars
+
+# - name: "Pause"
+#   pause:

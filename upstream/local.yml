@@ -48,7 +48,8 @@
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
 
   pre_tasks:
-    - setup:
+    - name: "Setup"
+      setup:
       tags:
         - always
       when: run_upstream|bool
@@ -145,7 +146,8 @@
     - {role: loop_all_tests, tags: [never, "test_all", "pure_test_all"], when: run_upstream|bool}
     - {role: check_prod_bundle, tags: [never, "test_lite", "pure_test_lite"], when: run_upstream|bool}
     - {role: build_app_registry, tags: [never, "app_registry"], when: run_upstream|bool}
-    - {role: sync_index_sha, tags: ["sync_index_sha"]}
+    - {role: sync_index_sha, tags: ["sync_index_sha"], when: run_upstream|bool}
+    - {role: operator_info, tags: ["never","operator_info"]}
 
   tasks:
     - name: "Setting input variables for testing"
