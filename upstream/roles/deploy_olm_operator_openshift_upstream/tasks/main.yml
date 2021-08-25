@@ -15,8 +15,17 @@
     state: directory
     mode: '0755'
 
-- name: "Download oc"
-  shell: "curl https://mirror.openshift.com/pub/openshift-v4/clients/oc/{{ oc_version_test }}/linux/oc.tar.gz | tar xvzf - -C /tmp/oc-{{ dir_suffix_part }}/bin oc --skip-old-files"
+- name: "Set oc version"
+  set_fact:
+    oc_version: "{{ current_openshift_run }}"
+
+- name: "Override oc version"
+  set_fact:
+    oc_version: "{{ oc_version_max }}"
+  when: current_openshift_run is version(oc_version_max, '>')
+
+- name: "Download oc {{ current_openshift_run }}"
+  shell: "curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-{{ oc_version }}/openshift-client-linux.tar.gz | tar xvzf - -C /tmp/oc-{{ dir_suffix_part }}/bin oc --skip-old-files"
   when:
     - dir_suffix_part is defined
     - dir_suffix_part|length > 0
