@@ -1,0 +1,100 @@
+---
+- name: "Print operator name"
+  debug:
+    msg: "Running '{{ oi_operator_name }} {{ oi_operator_ver }}'"
+
+- name: "Export CSV variables"
+  include_role:
+    name: export_csv
+  vars:
+    op_csv_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}"
+    operator_format: "{{ oi_operator_format }}"
+
+- name: "Print 'operator_vars.spec.version'"
+  debug:
+    var: operator_vars.spec.version
+
+- name: "Print 'operator_vars.spec.replaces'"
+  debug:
+    var: operator_vars.spec.replaces
+
+- name: "Setting replaces version to empty string"
+  set_fact:
+    ovi_replaces_ver: ""
+
+- name: "Extracting replaces version from 'operator_vars.spec.replaces'"
+  set_fact:
+    ovi_replaces_ver: "{{ operator_vars.spec.replaces.split('.v')[-1] }}"
+  when: operator_vars.spec.replaces is defined
+
+- name: "Print 'ovi_replaces_ver'"
+  debug:
+    var: ovi_replaces_ver
+
+- name: "Export annotations variables"
+  include_role:
+    name: export_annotations
+  vars:
+    annotation_file_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}/metadata/annotations.yaml"
+    operator_format: "{{ oi_operator_format }}"
+  when: oi_operator_format == "bundle"
+
+- name: "Print 'annotations_vars'"
+  debug:
+    var: annotations_vars
+
+- name: "Version manifest info"
+  set_fact:
+    oi_operator_manifest_info:
+      replaces: "{{ ovi_replaces_ver }}"
+
+- name: "Channel info"
+  set_fact:
+    oi_operator_version_channels: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'].split(',') }}"
+  when:
+    - annotations_vars is defined
+    - annotations_vars|length > 0
+
+- name: "Print 'oi_operator_version_channels'"
+  debug:
+    var: oi_operator_version_channels
+
+
+- name: "Version manifest info"
+  set_fact:
+    oi_operator_manifest_info:
+      replaces: "{{ ovi_replaces_ver }}"
+
+- name: "Update channels"
+  include_tasks: op_info_ver_channel.yml
+  loop: "{{ oi_operator_version_channels }}"
+  loop_control:
+    loop_var: oi_channel_item
+  when: oi_operator_version_channels is defined
+
+
+- name: "Print 'io_channels'"
+  debug:
+    var: io_channels
+# - pause:
+
+
+- name: "Print 'oi_operator_manifest_info'"
+  debug:
+    var: oi_operator_manifest_info
+
+- name: "Adding current versuon to the 'io_versions_replaces'"
+  set_fact:
+    io_versions_manifests: "{{ io_versions_manifests | default({}) | combine({ operator_vars.spec.version : oi_operator_manifest_info }) }}"
+
+- name: "Print 'ovi_replaces_ver'"
+  debug:
+    var: io_versions_manifests
+
+- name: "Print 'ovi_replaces_ver'"
+  debug:
+    var: io_versions_manifests[operator_vars.spec.version]
+
+
+# - name: "Pause"
+#   pause:

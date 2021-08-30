@@ -22,18 +22,18 @@
 - name: "Generate operators info config file"
   copy: content="operators:\n{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
 
-- name: "Parsing config file '{{ operator_info_output_file }}'"
-  include_vars:
-    file: "{{ operator_info_output_file }}"
-    name: operator_info_vars
+# - name: "Parsing config file '{{ operator_info_output_file }}'"
+#   include_vars:
+#     file: "{{ operator_info_output_file }}"
+#     name: operator_info_vars
 
-- name: "Resetting 'op_info' object"
-  set_fact:
-    test: '0.0.2'
+# - name: "Resetting 'op_info' object"
+#   set_fact:
+#     test: '0.0.2'
 
-- name: "Print 'operator_info_vars'"
-  debug:
-    var: operator_info_vars.operators[0].replaces[test]
+# - name: "Print 'operator_info_vars'"
+#   debug:
+#     var: operator_info_vars.operators[0].replaces[test]
 
-- name: "Pause"
-  pause:
+# - name: "Pause"
+#   pause:
