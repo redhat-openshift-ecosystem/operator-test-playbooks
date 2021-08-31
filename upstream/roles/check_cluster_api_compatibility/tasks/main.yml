@@ -1,0 +1,14 @@
+---
+#TODO: loop, testable, min/max,kube2ocp conversion
+- name: "Fail if 'cluster_type' is not defined"
+  fail:
+    msg: "Variable 'cluster_type' is mandatory."
+  when: cluster_type is undefined or cluster_type|length == 0
+
+- name: "Loop cluster versions {{ k8s_versions }} for API validation"
+  include_tasks: validate_api.yml
+  loop: "{{ k8s_versions }}"
+  loop_control:
+    loop_var: k8s_version
+
+
