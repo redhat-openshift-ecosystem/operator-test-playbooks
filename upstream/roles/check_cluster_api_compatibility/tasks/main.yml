@@ -1,5 +1,4 @@
 ---
-#TODO: testable, min/max,
 - name: "Fail if 'cluster_type' is not defined"
   fail:
     msg: "Variable 'cluster_type' is mandatory."
