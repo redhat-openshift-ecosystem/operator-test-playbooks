@@ -14,6 +14,9 @@
   loop: "{{ k8s_versions }}"
   loop_control:
     loop_var: validate_api_k8s_version
+  when:
+    - validate_api_k8s_version is version(api_check_cluster_min,'>=')
+    - validate_api_k8s_version is version(api_check_cluster_max,'<=')
 
 - name: debug
   debug:
