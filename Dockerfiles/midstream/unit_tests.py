@@ -31,7 +31,7 @@ class Testing(unittest.TestCase):
 
     # Running the container with correctly set environment variables, default channel missing, all tasks should pass
     def test_positive_missing_default_channel(self):
-        self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:missing-default-channel-v1"
+        self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:missing-default-channel-v2"
         result = subprocess.run(self.exec_cmd,
                                 shell=True,
                                 env=self.env,
@@ -80,10 +80,27 @@ class Testing(unittest.TestCase):
                       "Result code not found in %s" % message)
         self.assertEqual(102, result.returncode)
         self.assertTrue(os.path.exists(OUTPUT_DIR+".errormessage"))
-    
+
+    # Run with a test-operator which fails the deprecated image check in the
+    # bundle image validation job
+    def test_default_negative(self):
+        self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:test-default-negative-v1"
+        result = subprocess.run(self.exec_cmd,
+                                shell=True,
+                                env=self.env,
+                                cwd=OUTPUT_DIR)
+        self.assertEqual(70, result.returncode)
+        # check if the .errormessage file generated is empty
+        self.assertTrue(os.stat("/tmp/.errormessage").st_size != 0)
+        # check if the .errormessage exists since its a logger file
+        self.assertTrue(os.path.exists(OUTPUT_DIR+".errormessage"))
+        message = self.get_error_message_content()
+        self.assertIn("this bundle is using APIs which were deprecated and removed in v1.22", message,
+                      "Deprecated APIs error not found in '%s'" % message)
+
     # Run with a test-operator which passes the bundle image validation job
     def test_default_positive(self):
-        self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:v1.0-16"
+        self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:test-default-positive-v1"
         result = subprocess.run(self.exec_cmd,
                                 shell=True,
                                 env=self.env,

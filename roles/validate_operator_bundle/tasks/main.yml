@@ -28,10 +28,69 @@
     bundle_validate: "{{ operator_work_dir }}"
   when: not run_upstream|bool
 
-- name: "Set the operatorhub checks if enabled"
+- name: "list work_dir"
+  shell: "ls {{ work_dir }}"
+
+- name: "Check whether bundle supports v4.9 or higher"
+  block:
+    - name: Get skopeo inspect json
+      shell: "cat {{ work_dir }}/bundle-skopeo-inspect.json"
+      register: bundle_skopeo_inspect_json
+
+    - name: Convert json to map
+      set_fact:
+        bundle_skopeo_inspect_map: "{{ bundle_skopeo_inspect_json.stdout | from_json }}"
+
+    - name: Determine ocp version annotation
+      set_fact:
+        ocp_version_annotation: "{{ bundle_skopeo_inspect_map['Labels']['com.redhat.openshift.versions'] }}"
+
+    - name: "Determine OCP version range"
+      uri:
+        url: "https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.ocp_version&ocp_versions_range={{ ocp_version_annotation }}&organization=redhat-operators"
+        method: GET
+        headers:
+          Accept: "application/json"
+        status_code: 200
+        return_content: true
+      register: supported_indices_json
+      retries: 10
+      ignore_errors: true
+
+    - name: "Fail if Pyxis response is not 200"
+      fail:
+        msg: "Error collecting OCP version range from Pyxis.  Error message: {{ supported_indices_json.content }}"
+      when: supported_indices_json.status != 200
+
+    - name: "Convert output to map"
+      set_fact:
+        supported_indices: "{{ supported_indices_json.content | from_json }}"
+
+    - name: debug
+      debug:
+        msg: "Indices: {{ supported_indices['data'] }}"
+
+    - name: "Set support_v4_9 to false if there are no supported versions"
+      set_fact:
+        support_v4_9: false
+      when: supported_indices['data']|length==0
+
+    - name: "Parse values returned from Pyxis"
+      set_fact:
+        highest_index: "{{ supported_indices['data'] | last }}"
+      when: supported_indices['data']|length>0
+
+    - name: "Determine if v4.9 is supported"
+      set_fact:
+        support_v4_9: "{{ highest_index['ocp_version'] is version('4.9', '>=') }}"
+      when:
+        - highest_index is defined
+        - highest_index['ocp_version']|length>0
+
+- name: "Set the operatorhub checks if bundle supports v4.9 or greater"
   set_fact:
-    select_optional_tests: "--select-optional name=operatorhub"
-  when: run_operatorhub_checks|bool
+    select_optional_tests: "--select-optional name=operatorhub --optional-values=k8s-version=1.22"
+  when: support_v4_9
 
 - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
   shell: "{{ operator_sdk_bin_path }} bundle validate {{ select_optional_tests }} --verbose {{ bundle_validate }} 2>&1"
