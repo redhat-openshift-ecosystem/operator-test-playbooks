@@ -42,16 +42,12 @@
   loop_control:
     loop_var: oi_operator_ver
 
-- name: "Print 'op_manifest_pkg_vars'"
-  debug:
-    var: op_manifest_pkg_vars
-
 - name: "Handle package file for packagemanifest format"
   block:
     - name: "Set operator_format to package manifest or bundle"
       set_fact:
         io_pkg_channels: []
-  
+
     - name: "Loop over all versions"
       include_tasks: op_info_pkg_channels.yml
       loop: "{{ op_manifest_pkg_vars.channels }}"
@@ -72,6 +68,3 @@
     op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels}]) }}"
     # op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'versions': oi_versions_in_dir, 'versions_prod': oi_versions_in_dir, 'bundles': oi_versions_in_dir }]) }}"
   when: oi_versions_in_dir.0 is defined
-
-# - name: "Pause"
-#   pause:
