@@ -2,3 +2,6 @@ operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 k8s_versions:
   - 1.21
   - 1.22
+k8s2ocp:
+  1.21: v4.8
+  1.22: v4.9

@@ -1,16 +1,25 @@
 ---
-- name: "Validate {{ bundle_to_validate }} against {{ k8s_version }}"
-  shell: "{{ operator_sdk_bin_path }} bundle validate ./{{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ k8s_version }} | grep 'using APIs which were deprecated and removed in v1.22'"
+- name: "Validate {{ bundle_to_validate }} against {{ validate_api_k8s_version }}"
+  shell: "{{ operator_sdk_bin_path }} bundle validate ./{{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_k8s_version }} | grep 'using APIs which were deprecated and removed in v1.22'"
   register: chcac_validate_result
   ignore_errors: true
 
 - name: debug
   debug:
-    var: chcac_validate_result.rc
-
-- name: debug
-  debug:
     var: chcac_validate_result
 
+- name: "Convert between ocp versions and k8s"
+  set_fact:
+    api_cluster_converted: "{{ k8s2ocp[validate_api_k8s_version] }}"
 
+- name: "Fill the result in a line"
+  set_fact:
+    api_cluster_result_line: "{{ validate_api_k8s_version }}:{{ api_cluster_converted }}"
 
+#- name: "Fill supported clusters - {{ validate_api_k8s_version }}"
+#  set_fact:
+#    api_supported_clusters: "{{ api_supported_clusters | default([]) | union( [{validate_api_k8s_version: validate_api_k8s_version}]) }}"
+
+- name: "Fill supported clusters - {{ validate_api_k8s_version }}"
+  set_fact:
+    api_supported_clusters: "{{ api_supported_clusters | default([]) + [api_cluster_result_line] }}"
