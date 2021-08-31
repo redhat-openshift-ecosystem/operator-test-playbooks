@@ -48,6 +48,10 @@
 
 - name: "Handle package file for packagemanifest format"
   block:
+    - name: "Set operator_format to package manifest or bundle"
+      set_fact:
+        io_pkg_channels: []
+  
     - name: "Loop over all versions"
       include_tasks: op_info_pkg_channels.yml
       loop: "{{ op_manifest_pkg_vars.channels }}"
