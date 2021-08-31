@@ -1,12 +1,26 @@
 ---
-- name: "Validate {{ bundle_to_validate }} against {{ validate_api_k8s_version }}"
-  shell: "{{ operator_sdk_bin_path }} bundle validate ./{{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_k8s_version }} | grep 'using APIs which were deprecated and removed in v1.22'"
-  register: chcac_validate_result
-  ignore_errors: true
+- name: ""
+  block:
+  - name: "Validate {{ bundle_to_validate }} against {{ validate_api_k8s_version }}"
+    shell: "{{ operator_sdk_bin_path }} bundle validate ./{{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_k8s_version }} | grep 'using APIs which were deprecated and removed in v1.22'"
+    register: chcac_validate_result
+    ignore_errors: true
 
-- name: debug
-  debug:
-    var: chcac_validate_result
+  - name: debug
+    debug:
+      var: chcac_validate_result
+
+  - name: "Operator {{ bundle_to_validate }} is valid for {{ validate_api_k8s_version }}"
+    set_fact:
+      chcac_cluster_valid: true
+    when: chcac_validate_result.rc != 0
+
+  - name: "Operator {{ bundle_to_validate }} is not valid for {{ validate_api_k8s_version }}"
+    set_fact:
+      chcac_cluster_valid: false
+    when: chcac_validate_result.rc == 0
+
+  when: validate_api_k8s_version in testable_k8s_clusters
 
 - name: "Convert between ocp versions and k8s"
   set_fact:
@@ -16,6 +30,7 @@
   set_fact:
     api_cluster_result_line: "{{ validate_api_k8s_version }}:{{ api_cluster_converted }}"
 
+
 #- name: "Fill supported clusters - {{ validate_api_k8s_version }}"
 #  set_fact:
 #    api_supported_clusters: "{{ api_supported_clusters | default([]) | union( [{validate_api_k8s_version: validate_api_k8s_version}]) }}"
@@ -23,3 +38,4 @@
 - name: "Fill supported clusters - {{ validate_api_k8s_version }}"
   set_fact:
     api_supported_clusters: "{{ api_supported_clusters | default([]) + [api_cluster_result_line] }}"
+  when: chcac_cluster_valid|bool # or not validate_api_k8s_version in testable_k8s_clusters
