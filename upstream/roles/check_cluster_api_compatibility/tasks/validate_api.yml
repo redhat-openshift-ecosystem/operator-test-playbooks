@@ -36,11 +36,6 @@
   set_fact:
     api_cluster_result_line: "{{ validate_api_k8s_version }}:{{ api_cluster_converted }}"
 
-
-#- name: "Fill supported clusters - {{ validate_api_k8s_version }}"
-#  set_fact:
-#    api_supported_clusters: "{{ api_supported_clusters | default([]) | union( [{validate_api_k8s_version: validate_api_k8s_version}]) }}"
-
 - name: "Fill supported clusters - {{ validate_api_k8s_version }}"
   set_fact:
     api_supported_clusters: "{{ api_supported_clusters | default([]) + [api_cluster_result_line] }}"
