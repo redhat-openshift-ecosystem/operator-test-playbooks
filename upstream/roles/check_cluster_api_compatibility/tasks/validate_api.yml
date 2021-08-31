@@ -25,6 +25,12 @@
 - name: "Convert between ocp versions and k8s"
   set_fact:
     api_cluster_converted: "{{ k8s2ocp[validate_api_k8s_version] }}"
+  when: cluster_type == "ocp"
+
+- name: "Retain k8s value"
+  set_fact:
+    api_cluster_converted: "{{ validate_api_k8s_version }}"
+  when: cluster_type == "k8s"
 
 - name: "Fill the result in a line"
   set_fact:

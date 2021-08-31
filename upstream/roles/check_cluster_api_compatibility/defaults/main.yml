@@ -9,5 +9,5 @@ k8s2ocp:
   "1.20": v4.7
   "1.21": v4.8
   "1.22": v4.9
- testable_k8s_clusters:
+testable_k8s_clusters:
   - "1.22"
