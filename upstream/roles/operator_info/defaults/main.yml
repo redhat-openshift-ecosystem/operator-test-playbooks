@@ -1,1 +1,4 @@
 operator_info_output_file: "/tmp/op_info.yaml"
+ocp2k8s:
+  4.8: 1.21
+  4.9: 1.22

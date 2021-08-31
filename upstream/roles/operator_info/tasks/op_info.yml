@@ -4,6 +4,7 @@
     oi_operator_format: ""
     annotations_vars: ""
     op_manifest_pkg_vars: ""
+    io_versions_manifests: []
     io_versions_replaces: {}
     io_channels: []
 
@@ -45,16 +46,17 @@
   debug:
     var: op_manifest_pkg_vars
 
-- name: "Loop over all versions"
-  include_tasks: op_info_pkg_channels.yml
-  loop: "{{ op_manifest_pkg_vars.channels }}"
-  loop_control:
-    loop_var: oi_pkg_channel
-  when: oi_operator_format == "manifest"
+- name: "Handle package file for packagemanifest format"
+  block:
+    - name: "Loop over all versions"
+      include_tasks: op_info_pkg_channels.yml
+      loop: "{{ op_manifest_pkg_vars.channels }}"
+      loop_control:
+        loop_var: oi_pkg_channel
 
-- name: "Set operator_format to package manifest or bundle"
-  set_fact:
-    io_channels: "{{ io_pkg_channels }}"
+    - name: "Set operator_format to package manifest or bundle"
+      set_fact:
+        io_channels: "{{ io_pkg_channels }}"
   when: oi_operator_format == "manifest"
 
 - name: "Print 'io_versions_manifests'"

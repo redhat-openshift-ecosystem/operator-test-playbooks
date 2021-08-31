@@ -21,6 +21,7 @@
 - name: "Setting replaces version to empty string"
   set_fact:
     ovi_replaces_ver: ""
+    olm_maxOpenShiftVersion: ""
 
 - name: "Extracting replaces version from 'operator_vars.spec.replaces'"
   set_fact:
@@ -60,10 +61,35 @@
     var: oi_operator_version_channels
 
 
+- name: "Check olm.maxOpenShiftVersion"
+  block:
+    - name: "Olm properties"
+      set_fact:
+        olm_maxOpenShiftVersion_obj: "{{ operator_vars.metadata.annotations['olm.properties'] | from_yaml | selectattr('type', 'equalto', 'olm.maxOpenShiftVersion') | join() }}"
+
+    - name: "Olm properties"
+      set_fact:
+        olm_maxOpenShiftVersion: "{{ olm_maxOpenShiftVersion_obj.value }}"
+
+    - name: "Olm properties"
+      set_fact:
+        ocp_max: "{{ olm_maxOpenShiftVersion }}"
+        ocp_k8s_max: "{{ ocp2k8s[olm_maxOpenShiftVersion|float] }}"
+
+    - name: "Print 'oi_operator_version_channels'"
+      debug:
+        var: olm_maxOpenShiftVersion
+  when: operator_vars.metadata.annotations['olm.properties'] is defined
+  
+# - pause:
+
 - name: "Version manifest info"
   set_fact:
     oi_operator_manifest_info:
       replaces: "{{ ovi_replaces_ver }}"
+      k8s_min: "{{ operator_vars.spec.miniKubeVersion | default('') }}"
+      k8s_max: "{{ ocp_k8s_max | default('') }}"
+      ocp_max: "{{ ocp_max | default('') }}"
 
 - name: "Update channels"
   include_tasks: op_info_ver_channel.yml
