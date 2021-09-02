@@ -4,11 +4,24 @@
     msg: "Variable 'idx_versions' is undefined. Please run bundle_validate_filter with 'validate_api=true'"
   when: idx_versions is undefined
 
+- name: "Reset"
+  set_fact:
+    label_set: false
+
 - name: ""
   block:
+
+# convert .split('.')
+# fill to dictionry 47:4.7
+# find max and min
+
     - name: ""
       set_fact:
         idx_label: "v{{ idx_versions[0] }}-v{{ idx_versions[-1] }}"
+      when: cluster_type|count >= 2
+    - name: ""
+      set_fact:
+        label_set: true
       when: cluster_type|count >= 2
 
   when: cluster_type|length != 0
