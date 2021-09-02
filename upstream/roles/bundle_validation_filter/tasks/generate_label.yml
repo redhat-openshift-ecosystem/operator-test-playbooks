@@ -14,6 +14,19 @@
 # convert .split('.')
 # fill to dictionry 47:4.7
 # find max and min
+    - name: ""
+      include_tasks: parse_cluster_versions.yml
+      loop: "{{ k8s2ocp.keys() }}"
+      loop_control:
+        loop_var: pcv_cluster
+      when: cluster_type == "k8s"
+
+    - name: ""
+      include_tasks: parse_cluster_versions.yml
+      loop: "{{ ocp2k8s.keys() }}"
+      loop_control:
+        loop_var: pcv_cluster
+      when: cluster_type == "ocp"
 
     - name: ""
       set_fact:
