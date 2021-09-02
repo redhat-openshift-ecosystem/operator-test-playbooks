@@ -7,6 +7,7 @@
 - name: "Reset variables - old clusters have valid APIs"
   set_fact:
     chcac_cluster_valid: true
+    idx_versions: []
 
 - name: "Loop cluster versions {{ k8s_versions }} for API validation"
   include_tasks: validate_api.yml
@@ -14,9 +15,12 @@
   loop_control:
     loop_var: validate_api_k8s_version
   when:
-    - validate_api_k8s_version is version(api_check_cluster_min,'>=')
-    - validate_api_k8s_version is version(api_check_cluster_max,'<=')
+    - validate_api_k8s_version is version(bvf_min,'>=')
+    - validate_api_k8s_version is version(bvf_max,'<=')
+    - validate_api|bool
 
 - name: debug
   debug:
-    var: api_supported_clusters
+    var: idx_versions
+  when:
+    - validate_api|bool

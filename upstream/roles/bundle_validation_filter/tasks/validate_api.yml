@@ -34,9 +34,9 @@
 
 - name: "Fill the result in a line"
   set_fact:
-    api_cluster_result_line: "{{ validate_api_k8s_version }}:{{ api_cluster_converted }}"
+    api_cluster_result_line: "{{ api_cluster_converted }}"
 
 - name: "Fill supported clusters - {{ validate_api_k8s_version }}"
   set_fact:
-    api_supported_clusters: "{{ api_supported_clusters | default([]) + [api_cluster_result_line] }}"
-  when: chcac_cluster_valid|bool # or not validate_api_k8s_version in testable_k8s_clusters
+    idx_versions: "{{ idx_versions | default([]) + [api_cluster_result_line] }}"
+  when: chcac_cluster_valid|bool
