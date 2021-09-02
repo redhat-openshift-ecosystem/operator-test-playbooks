@@ -24,3 +24,8 @@
     var: idx_versions
   when:
     - validate_api|bool
+
+- name: ""
+  include_tasks: generate_label.yml
+  when:
+    - generate_label|bool

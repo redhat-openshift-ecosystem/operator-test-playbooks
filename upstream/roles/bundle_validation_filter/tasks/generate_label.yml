@@ -1,0 +1,23 @@
+---
+- name: "Fail if 'idx_versions' is not defined"
+  fail:
+    msg: "Variable 'idx_versions' is undefined. Please run bundle_validate_filter with 'validate_api=true'"
+  when: idx_versions is undefined
+
+- name: ""
+  block:
+    - name: ""
+      set_fact:
+        idx_label: "v{{ idx_versions[0] }}-v{{ idx_versions[-1] }}"
+      when: cluster_type|count >= 2
+
+  when: cluster_type|length != 0
+
+- name: ""
+  debug:
+    msg: "Operator version not valid for any cluster, not generating any cluster version label"
+  when: cluster_type|length == 0
+
+- debug:
+    var:
+      idx_label
