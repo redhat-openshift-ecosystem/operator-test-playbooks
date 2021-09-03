@@ -74,7 +74,7 @@
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
-    idx_versions: "{{ opi_cluster_versions }}"
+    idx_versions: "{{ supported_cluster_versions }}"
     idx_label: ''
   when: ocp_k8s_max|length == 0
 
