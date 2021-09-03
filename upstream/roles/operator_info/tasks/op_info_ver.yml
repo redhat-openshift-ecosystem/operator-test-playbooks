@@ -65,6 +65,18 @@
   when: operator_vars.metadata.annotations['olm.properties'] is defined
 
 
+
+
+
+# - name: "Bundle validation filter"
+#   include_role:
+#     name: bundle_validation_filter
+#   vars:
+#     bvf_min: ""
+#     bvf_max: ""
+#     generate_label: true
+#     bundle_to_validate: "{{ path_to_bundle }}"
+
 # TODO: LABEL handle
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
@@ -74,7 +86,7 @@
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
-    idx_versions: "{{ supported_cluster_versions }}"
+    idx_versions: "{{ oi_supported_cluster_versions }}"
     idx_label: ''
   when: ocp_k8s_max|length == 0
 

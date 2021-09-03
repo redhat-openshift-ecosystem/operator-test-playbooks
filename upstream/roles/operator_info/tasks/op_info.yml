@@ -36,6 +36,16 @@
     op_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
   when: oi_operator_format == "manifest"
 
+- name: "Export ci.yaml info"
+  include_role:
+    name: export_ci_yaml
+  vars:
+    ecy_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+
+- name: "Index mode"
+  set_fact:
+    oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
+
 - name: "Loop over all versions"
   include_tasks: op_info_ver.yml
   loop: "{{ oi_versions_in_dir }}"
@@ -69,11 +79,11 @@
 
 - name: "Loop over all supported index versions"
   include_tasks: op_info_index.yml
-  loop: "{{ opi_cluster_versions }}"
+  loop: "{{ oi_supported_cluster_versions }}"
   loop_control:
     loop_var: oii_index_version
 
 - name: "Adding current operator to the 'op_info'"
   set_fact:
-    op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index_dt': io_index_dt}]) }}"
+    op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index_dt': io_index_dt}]) }}"
   when: oi_versions_in_dir.0 is defined

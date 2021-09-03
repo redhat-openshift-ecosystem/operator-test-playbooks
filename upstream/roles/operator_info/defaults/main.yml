@@ -5,7 +5,7 @@ ocp2k8s:
   '4.8': '1.21'
   '4.9': '1.22'
   '4.10': '1.23'
-supported_cluster_versions:
+oi_supported_cluster_versions:
 - '4.6'
 - '4.7'
 - '4.8'
