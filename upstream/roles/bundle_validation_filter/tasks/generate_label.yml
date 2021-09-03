@@ -18,7 +18,7 @@
       when:
         - cluster_type|count == 1
 
-    - name: "Count occurences"
+    - name: "Count occurrences"
       set_fact:
         supported_cluster_versions_count: "{{ supported_cluster_versions|count }}"
         bvf_versions_count: "{{ bvf_versions|count }}"
