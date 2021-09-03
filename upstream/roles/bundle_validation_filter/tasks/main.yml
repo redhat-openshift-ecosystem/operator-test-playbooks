@@ -6,7 +6,7 @@
 
 - name: "Reset variables - old clusters have valid APIs"
   set_fact:
-    chcac_cluster_valid: true
+    bvf_cluster_valid: true
     bvf_versions: []
 
 - name: "Loop cluster versions {{ k8s_versions }} for API validation"

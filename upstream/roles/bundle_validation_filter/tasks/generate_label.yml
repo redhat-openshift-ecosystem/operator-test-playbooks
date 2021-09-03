@@ -1,4 +1,5 @@
 ---
+#TODO: backward compatibility
 - name: "Fail if 'bvf_versions' is not defined"
   fail:
     msg: "Variable 'bvf_versions' is undefined. Please run bundle_validate_filter with 'validate_api=true'"
@@ -11,31 +12,39 @@
 - name: ""
   block:
 
-# convert .split('.')
-# fill to dictionry 47:4.7
-# find max and min
-    - name: ""
-      include_tasks: parse_cluster_versions.yml
-      loop: "{{ k8s2ocp.keys() }}"
-      loop_control:
-        loop_var: pcv_cluster
-      when: cluster_type == "k8s"
+    - name: "Only single cluster supported"
+      set_fact:
+        bvf_label: "=v{{ bvf_versions[0] }} }}"
+      when:
+        - cluster_type|count == 1
 
-    - name: ""
-      include_tasks: parse_cluster_versions.yml
-      loop: "{{ ocp2k8s.keys() }}"
-      loop_control:
-        loop_var: pcv_cluster
-      when: cluster_type == "ocp"
+    - name: "Count occurences"
+      set_fact:
+        supported_cluster_versions_count: "{{ supported_cluster_versions|count }}"
+        bvf_versions_count: "{{ bvf_versions|count }}"
+      when:
+        - cluster_type|count >= 2
 
-    - name: ""
+    - name: "Empty label when all clusters supported"
+      set_fact:
+        bvf_label: ""
+      when:
+        - cluster_type|count >= 2
+        - supported_cluster_versions_count == bvf_versions_count
+
+    - debug:
+        var:
+          supported_cluster_versions_count
+    - debug:
+        var:
+          bvf_versions_count
+
+    - name: "Label cluster range when some cluster unsupported"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
-      when: cluster_type|count >= 2
-    - name: ""
-      set_fact:
-        label_set: true
-      when: cluster_type|count >= 2
+      when:
+        - cluster_type|count >= 2
+        - supported_cluster_versions_count != bvf_versions_count
 
   when: cluster_type|length != 0
 

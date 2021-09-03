@@ -3,22 +3,22 @@
   block:
   - name: "Validate {{ bundle_to_validate }} against {{ validate_api_cluster_version }}"
     shell: "{{ operator_sdk_bin_path }} bundle validate ./{{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_cluster_version }} | grep 'using APIs which were deprecated and removed in v1.22'"
-    register: chcac_validate_result
+    register: bvf_validate_result
     ignore_errors: true
 
   - name: debug
     debug:
-      var: chcac_validate_result
+      var: bvf_validate_result
 
   - name: "Operator {{ bundle_to_validate }} is valid for {{ validate_api_cluster_version }}"
     set_fact:
-      chcac_cluster_valid: true
-    when: chcac_validate_result.rc != 0
+      bvf_cluster_valid: true
+    when: bvf_validate_result.rc != 0
 
   - name: "Operator {{ bundle_to_validate }} is not valid for {{ validate_api_cluster_version }}"
     set_fact:
-      chcac_cluster_valid: false
-    when: chcac_validate_result.rc == 0
+      bvf_cluster_valid: false
+    when: bvf_validate_result.rc == 0
 
   when: validate_api_cluster_version in testable_k8s_clusters
 
@@ -39,4 +39,4 @@
 - name: "Fill supported clusters - {{ validate_api_cluster_version }}"
   set_fact:
     bvf_versions: "{{ bvf_versions | default([]) + [api_cluster_result_line] }}"
-  when: chcac_cluster_valid|bool
+  when: bvf_cluster_valid|bool
