@@ -1,0 +1,9 @@
+---
+- name: ""
+  set_fact:
+    pcv_cluster_parsed: pcv_cluster.split('.')
+
+- name: ""
+  debug:
+    var:
+      pcv_cluster_parsed
