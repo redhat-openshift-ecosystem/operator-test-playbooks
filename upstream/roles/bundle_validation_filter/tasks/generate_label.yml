@@ -1,0 +1,58 @@
+---
+#TODO: backward compatibility
+- name: "Fail if 'bvf_versions' is not defined"
+  fail:
+    msg: "Variable 'bvf_versions' is undefined. Please run bundle_validate_filter with 'validate_api=true'"
+  when: bvf_versions is undefined
+
+- name: "Reset"
+  set_fact:
+    label_set: false
+
+- name: ""
+  block:
+
+    - name: "Only single cluster supported"
+      set_fact:
+        bvf_label: "=v{{ bvf_versions[0] }} }}"
+      when:
+        - cluster_type|count == 1
+
+    - name: "Count occurrences"
+      set_fact:
+        supported_cluster_versions_count: "{{ supported_cluster_versions|count }}"
+        bvf_versions_count: "{{ bvf_versions|count }}"
+      when:
+        - cluster_type|count >= 2
+
+    - name: "Empty label when all clusters supported"
+      set_fact:
+        bvf_label: ""
+      when:
+        - cluster_type|count >= 2
+        - supported_cluster_versions_count == bvf_versions_count
+
+    - debug:
+        var:
+          supported_cluster_versions_count
+    - debug:
+        var:
+          bvf_versions_count
+
+    - name: "Label cluster range when some cluster unsupported"
+      set_fact:
+        bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
+      when:
+        - cluster_type|count >= 2
+        - supported_cluster_versions_count != bvf_versions_count
+
+  when: cluster_type|length != 0
+
+- name: ""
+  debug:
+    msg: "Operator version not valid for any cluster, not generating any cluster version label"
+  when: cluster_type|length == 0
+
+- debug:
+    var:
+      bvf_label

@@ -1,14 +1,19 @@
+supported_cluster_versions:
+  - '4.6'
+  - '4.7'
+  - '4.8'
+  - '4.9'
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 validate_api: true
-k8s_versions:
-  - "1.19"
-  - "1.20"
-  - "1.21"
+testable_k8s_clusters:
   - "1.22"
 k8s2ocp:
   "1.19": "4.6"
   "1.20": "4.7"
   "1.21": "4.8"
   "1.22": "4.9"
-testable_k8s_clusters:
-  - "1.22"
+ocp2k8s:
+  "4.6": "1.19"
+  "4.7": "1.20"
+  "4.8": "1.21"
+  "4.9": "1.22"
