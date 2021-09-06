@@ -338,7 +338,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Get subscription"
-  shell: "{{ oc_bin_path }} get sub -n {{ openshift_namespace }} | grep test-operators-ocs | cut -f1 -d' '| xargs -I{} oc describe sub {} -n {{ openshift_namespace }}"
+  shell: "{{ oc_bin_path }} get sub -n {{ openshift_namespace }} | grep test-operators-ocs | cut -f1 -d' '| xargs -I{} {{ oc_bin_path }} describe sub {} -n {{ openshift_namespace }}"
   register: dooou_get_sub_result
   ignore_errors: true
   environment:
@@ -358,8 +358,14 @@
       {{ dooou_get_sub_result.stderr }}
   ignore_errors: true
 
+- name: "Get OperatorGroup(s) in {{ openshift_namespace }}"
+  shell: "{{ oc_bin_path }} get OperatorGroup -n {{ openshift_namespace }}"
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
 - name: "Get OperatorGroup"
-  shell: "{{ oc_bin_path }} get OperatorGroup -n {{ openshift_namespace }} | grep test-operators | cut -f1 -d' '| xargs -I{} oc describe OperatorGroup {} -n {{ openshift_namespace }}"
+  shell: "{{ oc_bin_path }} get OperatorGroup -n {{ openshift_namespace }} | grep test-operators | cut -f1 -d' '| xargs -I{} {{ oc_bin_path }} describe OperatorGroup {} -n {{ openshift_namespace }}"
   register: dooou_get_operatorgroup_result
   ignore_errors: true
   environment:
