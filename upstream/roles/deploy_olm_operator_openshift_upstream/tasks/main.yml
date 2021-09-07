@@ -293,6 +293,8 @@
   shell: '{{ oc_bin_path }} get operatorgroup test-operators -n {{ openshift_namespace }} -o=yaml'
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when:
+    - dooou_operatorgroup_wc.stdout|int<2
 
 - name: "Apply subscription"
   shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/subscription.yml -n {{ openshift_namespace }}'
