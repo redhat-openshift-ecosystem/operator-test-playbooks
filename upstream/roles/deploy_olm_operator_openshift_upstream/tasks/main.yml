@@ -287,7 +287,7 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   when:
-    - dooou_operatorgroup_wc|int<2
+    - dooou_operatorgroup_wc == "1"
 
 - name: "Show operatorgroup"
   shell: '{{ oc_bin_path }} get operatorgroup test-operators -n {{ openshift_namespace }} -o=yaml'
