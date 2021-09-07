@@ -271,10 +271,22 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+- name: "Get OperatorGroup(s) in {{ openshift_namespace }}"
+  shell: "{{ oc_bin_path }} get OperatorGroup -n {{ openshift_namespace }}|wc -l"
+  ignore_errors: true
+  register: dooou_operatorgroup_wc
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Debug operatorgroup lines"
+  var: dooou_operatorgroup_wc
+
 - name: "Apply operatorgroup"
   shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/operatorgroup.processed.yml -n {{ openshift_namespace }}'
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when:
+    - dooou_operatorgroup_wc|int<2
 
 - name: "Show operatorgroup"
   shell: '{{ oc_bin_path }} get operatorgroup test-operators -n {{ openshift_namespace }} -o=yaml'
