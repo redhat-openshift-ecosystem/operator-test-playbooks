@@ -1,0 +1,7 @@
+---
+#input: cl_package_name, cl_operator_ver
+#output: cl_operator_label
+#condition: works only for bundle
+- name: ""
+  set_fact:
+    cl_label_file: "{{ operator_bundle_src_dir }}/{{ cl_package_name }}/{{ cl_operator_ver }}/metadata/annotations.yaml"

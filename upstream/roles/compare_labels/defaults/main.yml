@@ -1,3 +1,4 @@
+operator_bundle_src_dir: "/tmp/operator-test/operator-bundle/src"
 operators:
 -   channels:
         alpha:
