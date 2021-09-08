@@ -1,0 +1,3 @@
+p_version: "ocp_version"
+p_version_range: "ocp_versions_range"
+p_organization: "community-operators"
