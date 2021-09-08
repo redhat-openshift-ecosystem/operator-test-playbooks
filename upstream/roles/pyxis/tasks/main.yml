@@ -11,7 +11,7 @@
 - name: "Set variable to prevent duplicated Pyxis run"
   set_fact:
     p_pyxis_needed: false
-    p_indexes_by_pyxis:  "{{ p_pyxis_cache[p_range] }}"
+    p_indexes_by_pyxis: "{{ p_pyxis_cache[p_range] }}"
 
   when:
     - p_pyxis_cache is defined
@@ -19,50 +19,42 @@
 
 - name: "Get cluster info from Pyxis"
   block:
-  # curl -v -H "Accept: application/json" 'https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.ocp_version&ocp_versions_range=v4.5&organization=community-operators'
-  - name: "Pyxis"
-    uri:
-      url: "https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.{{ p_version }}&{{ p_version_range }}={{ p_range }}&organization={{ p_organization }}"
-      method: GET
-      headers:
-        Accept: "application/json"
-      status_code: 200
-      return_content: true
-    register: p_pyxis_respond
+    # curl -v -H "Accept: application/json" 'https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.ocp_version&ocp_versions_range=v4.5&organization=community-operators'
+    - name: "Pyxis"
+      uri:
+        url: "https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.{{ p_version }}&{{ p_version_range }}={{ p_range }}&organization={{ p_organization }}"
+        method: GET
+        headers:
+          Accept: "application/json"
+        status_code: 200
+        return_content: true
+      register: p_pyxis_respond
 
-  - name: "Convert output to json"
-    set_fact:
-      doic_supported_indexes_json: "{{ p_pyxis_respond.content | from_json }}"
+    - name: "Convert output to json"
+      set_fact:
+        doic_supported_indexes_json: "{{ p_pyxis_respond.content | from_json }}"
 
-  - name: "Data has some content"
-    block:
-      - name: "Loop over returned pyxis data"
-        set_fact:
-          p_index_paths: "{{ p_index_paths | default([]) + [p_supported_index_json_data_loop.ocp_version] }}"
-        loop: "{{ doic_supported_indexes_json.data }}"
-        loop_control:
-          loop_var: p_supported_index_json_data_loop
+    - name: "Data has some content"
+      block:
+        - name: "Loop over returned pyxis data"
+          set_fact:
+            p_index_paths: "{{ p_index_paths | default([]) + [p_supported_index_json_data_loop.ocp_version] }}"
+          loop: "{{ doic_supported_indexes_json.data }}"
+          loop_control:
+            loop_var: p_supported_index_json_data_loop
 
-      - name: "Loop over index paths"
-        set_fact:
-          p_indexes_by_pyxis: "{{ p_indexes_by_pyxis | default([]) + [p_supported_index_paths_loop] }}"
-        loop: "{{ p_index_paths }}"
-        loop_control:
-          loop_var: p_supported_index_paths_loop
+        - name: "Loop over index paths"
+          set_fact:
+            p_indexes_by_pyxis: "{{ p_indexes_by_pyxis | default([]) + [p_supported_index_paths_loop] }}"
+          loop: "{{ p_index_paths }}"
+          loop_control:
+            loop_var: p_supported_index_paths_loop
 
-    when:
-      - doic_supported_indexes_json.data|length>0
+      when:
+        - doic_supported_indexes_json.data|length>0
 
-  - name: ""
-    set_fact:
-      p_pyxis_cache: "{{ p_pyxis_cache | default([]) | combine ({ p_range: p_indexes_by_pyxis }) }}"
+    - name: "Set cache"
+      set_fact:
+        p_pyxis_cache: "{{ p_pyxis_cache | default([]) | combine ({ p_range: p_indexes_by_pyxis }) }}"
 
   when: p_pyxis_needed|bool
-
-- debug:
-    var:
-      p_pyxis_cache
-
-- debug:
-    var:
-      p_indexes_by_pyxis
