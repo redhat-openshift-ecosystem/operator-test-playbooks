@@ -34,7 +34,7 @@
         dest: "{{ operator_bundle_src_dir }}"
         remote_src: true
 
-    - name: detect format
+    - name: "Detect format"
       include_role:
         name: detect_format
 

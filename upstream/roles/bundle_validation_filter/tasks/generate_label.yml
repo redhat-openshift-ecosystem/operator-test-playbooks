@@ -32,13 +32,6 @@
         - cluster_type|count >= 2
         - supported_cluster_versions_count == bvf_versions_count
 
-    - debug:
-        var:
-          supported_cluster_versions_count
-    - debug:
-        var:
-          bvf_versions_count
-
     - name: "Label cluster range when some cluster unsupported"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
@@ -48,11 +41,7 @@
 
   when: cluster_type|length != 0
 
-- name: ""
+- name: "Report status"
   debug:
     msg: "Operator version not valid for any cluster, not generating any cluster version label"
   when: cluster_type|length == 0
-
-- debug:
-    var:
-      bvf_label
