@@ -1,0 +1,4 @@
+---
+- name: "Set OLM namespace to check"
+  set_fact:
+    olm_namespace_check: "openshift-operator-lifecycle-manager"

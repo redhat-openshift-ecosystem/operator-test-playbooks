@@ -1,0 +1,51 @@
+operators:
+-   channels:
+        alpha:
+        - 0.1.0
+    format: manifest
+    index_dt:
+        '4.6': []
+        '4.7': []
+        '4.8': []
+        '4.9':
+        - 0.1.0
+    manifests:
+        0.1.0:
+            idx_label: v4.6-v4.8
+            idx_versions:
+            - '4.6'
+            - '4.7'
+            - '4.8'
+            k8s_max: '1.21'
+            k8s_min: ''
+            ocp_max: '4.8'
+            replaces: ''
+    mode: replaces
+    name: apicurito
+    versions:
+    - 0.1.0
+-   channels:
+        alpha:
+        - 0.0.1
+    format: bundle
+    index_dt:
+        '4.6': []
+        '4.7': []
+        '4.8': []
+        '4.9': []
+    manifests:
+        0.0.1:
+            idx_label: ''
+            idx_versions:
+            - '4.6'
+            - '4.7'
+            - '4.8'
+            - '4.9'
+            k8s_max: ''
+            k8s_min: ''
+            ocp_max: ''
+            replaces: ''
+    mode: semver
+    name: apimatic-kubernetes-operator
+    versions:
+    - 0.0.1
