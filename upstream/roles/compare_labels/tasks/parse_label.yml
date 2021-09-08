@@ -5,3 +5,15 @@
 - name: ""
   set_fact:
     cl_label_file: "{{ operator_bundle_src_dir }}/{{ cl_package_name }}/{{ cl_operator_ver }}/metadata/annotations.yaml"
+
+- name: "Getting content of annotation.yaml file"
+  shell: "cat {{ cl_label_file }}"
+  register: cl_annotation_data
+
+- name: "Sets `annotations_vars` from yaml file"
+  set_fact:
+    annotations_vars: "{{ cl_annotation_data.stdout | from_yaml }}"
+
+- name: "Parse the label from annotation file"
+  set_fact:
+   cl_operator_label: "{{ annotations_vars.annotations['com.redhat.openshift.versions'] }}"

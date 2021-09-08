@@ -1,2 +1,42 @@
 ---
+#input: cl_package_name, cl_operator_ver
+#output: cl_label_valid
+#condition: works only for bundle
+# TODO: corner cases
+- name: ""
+  set_fact:
+    cl_label_valid: true
 
+- name: ""
+  include_tasks: parse_label.yml
+
+- name: ""
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "{{ cl_operator_label }}"
+
+- name: ""
+  set_fact:
+    cl_git_label_list: "{{ p_indexes_by_pyxis }}"
+    cl_artificial_label: "{{ (operators | selectattr('name','equalto','community-kubevirt-hyperconverged') | first).manifests[cl_operator_ver].idx.label }}"
+
+- name: ""
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "{{ cl_artificial_label }}"
+
+- name: ""
+  set_fact:
+    cl_artificial_label_list: "{{ p_indexes_by_pyxis }}"
+
+- name: ""
+      include_tasks: validity.yml
+      loop: "{{ cl_git_label_list }}"
+      loop_control:
+        loop_var: cl_git_label_version
+
+- name: ""
+  debug:
+    var: cl_label_valid
