@@ -1,13 +1,18 @@
 ---
+#input: p_range
+#output: p_indexes_by_pyxis
+
 - name: "Reset and defaults"
   set_fact:
     p_indexes_by_pyxis: []
+    p_index_paths: []
     p_pyxis_needed: true
 
 - name: "Set variable to prevent duplicated Pyxis run"
   set_fact:
     p_pyxis_needed: false
-    p_indexes_by_pyxis: "{{ p_pyxis_cache.p_range }}" #TODO
+    p_indexes_by_pyxis:  "{{ p_pyxis_cache[p_range] }}"
+
   when:
     - p_pyxis_cache is defined
     - p_range in p_pyxis_cache.keys()
@@ -48,17 +53,16 @@
     when:
       - doic_supported_indexes_json.data|length>0
 
-  - debug:
-      var:
-        p_indexes_by_pyxis
-
   - name: ""
     set_fact:
       p_pyxis_cache: "{{ p_pyxis_cache | default([]) | combine ({ p_range: p_indexes_by_pyxis }) }}"
-#      p_pyxis_cache: "{{ p_pyxis_cache | default([]) | union([{ p_range: p_indexes_by_pyxis }]) }}"
 
   when: p_pyxis_needed|bool
 
 - debug:
     var:
       p_pyxis_cache
+
+- debug:
+    var:
+      p_indexes_by_pyxis

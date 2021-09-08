@@ -2,8 +2,29 @@
 - name: ""
   include_role:
     name: pyxis
+  vars:
+    p_range: "=v4.7"
 
 - name: ""
   include_role:
     name: pyxis
-#  when: p_range not in p_pyxis_cache.keys()
+  vars:
+    p_range: "v4.2"
+
+- name: ""
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "v4.6-v4.8"
+
+- name: ""
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "v4.2"
+
+- name: ""
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "=v4.7"
