@@ -20,7 +20,7 @@
 
     - name: "Count occurrences"
       set_fact:
-        supported_cluster_versions_count: "{{ supported_cluster_versions|count }}"
+        bvf_supported_cluster_versions_count: "{{ bvf_supported_cluster_versions|count }}"
         bvf_versions_count: "{{ bvf_versions|count }}"
       when:
         - cluster_type|count >= 2
@@ -30,14 +30,14 @@
         bvf_label: ""
       when:
         - cluster_type|count >= 2
-        - supported_cluster_versions_count == bvf_versions_count
+        - bvf_supported_cluster_versions_count == bvf_versions_count
 
     - name: "Label cluster range when some cluster unsupported"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
       when:
         - cluster_type|count >= 2
-        - supported_cluster_versions_count != bvf_versions_count
+        - bvf_supported_cluster_versions_count != bvf_versions_count
 
   when: cluster_type|length != 0
 

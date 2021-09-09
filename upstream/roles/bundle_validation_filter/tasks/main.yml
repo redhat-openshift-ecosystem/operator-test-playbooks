@@ -9,18 +9,18 @@
     bvf_cluster_valid: true
     bvf_versions: []
 
-- name: "Loop cluster versions {{ k8s_versions }} for API validation"
+- name: "Loop cluster versions '{{ k8s_versions }}' for API validation"
   include_tasks: validate_api.yml
-  loop: "{{ k8s2ocp.keys() }}"
+  loop: "{{ k8s2ocp.keys() | list }}"
   loop_control:
     loop_var: validate_api_cluster_version
   when:
-    - validate_api_cluster_version is version(bvf_min,'>=')
-    - validate_api_cluster_version is version(bvf_max,'<=')
+    - validate_api_cluster_version is version(bvf_min | default(ocp2k8s[bvf_supported_cluster_versions[0]], true),'>=')
+    - validate_api_cluster_version is version(bvf_max | default(ocp2k8s[bvf_supported_cluster_versions[-1]], true),'<=')
     - validate_api|bool
 
 
-- name: ""
+- name: "Generate label"
   include_tasks: generate_label.yml
   when:
     - generate_label|bool

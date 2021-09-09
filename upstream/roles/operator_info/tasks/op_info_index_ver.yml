@@ -1,7 +1,7 @@
 ---
-- name: "Print"
-  debug:
-    msg: "Running  '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
+# - name: "Print"
+#   debug:
+#     msg: "Running  '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
 
 - name: "Filtering deprecate truncate versions"
   set_fact:

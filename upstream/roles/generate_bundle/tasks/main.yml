@@ -1,0 +1,76 @@
+---
+- name: "Fail when 'mtb_base_dir' is missing"
+  fail:
+    msg: "Value for 'mtb_base_dir' is missing"
+  when:
+    - mtb_base_dir is undefined
+    - mtb_base_dir|length == 0
+
+- name: "Fail when 'mtb_operator' is missing"
+  fail:
+    msg: "Value for 'mtb_operator' is missing"
+  when:
+    - mtb_operator is undefined
+    - mtb_operator|length == 0
+
+- name: "Fail when 'mtb_version' is missing"
+  fail:
+    msg: "Value for 'mtb_version' is missing"
+  when:
+    - mtb_version is undefined
+    - mtb_version|length == 0
+
+- name: "Print 'mtb_manifest_dir'"
+  debug:
+    var: mtb_manifest_dir
+- name: "Print 'mtb_output_dir'"
+  debug:
+    var: mtb_output_dir
+
+- name: "Print 'mtb_manifest_dir'"
+  debug:
+    msg: "From '{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}' to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+
+- name: "Bundle image for manifest format"
+  block:
+    - name: "Generate bundle format '{{ mtb_operator }}/{{ mtb_version }}' from packafgemanifest"
+      shell:
+        # cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }} -t {{ mtb_bundle_image }} -b {{ opm_container_tool }}"
+        cmd: "{{ opm_bin_path }} alpha bundle generate --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }}"
+        chdir: "{{ mtb_base_dir }}/{{ mtb_operator }}"
+      # ignore_errors: true
+      # register: mtb_gbi_rc
+
+    - name: "Copy generated bundle files to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+      copy:
+        src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ item }}"
+        dest: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+      with_items:
+        - manifests
+        - metadata
+        - bundle.Dockerfile
+
+    - name: "Ensure that the operator temporary bundle files are removed from '{{ mtb_base_dir }}/{{ mtb_operator }}'"
+      file:
+        state: absent
+        path: "{{ item }}"
+        # mode: 0644
+      with_items:
+        - "{{ mtb_base_dir }}/{{ mtb_operator }}/manifests"
+        - "{{ mtb_base_dir }}/{{ mtb_operator }}/metadata"
+        - "{{ mtb_base_dir }}/{{ mtb_operator }}/bundle.Dockerfile"
+
+  when: oi_operator_format == "manifest"
+
+- name: "Bundle image for bundle format"
+  block:
+    - name: "Copy bundle format to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+      copy:
+        src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        dest: "{{ mtb_output_dir }}/{{ mtb_operator }}"
+
+  when: oi_operator_format == "bundle"
+
+- name: "Sets 'current_bundle_path'"
+  set_fact:
+    current_bundle_path: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"

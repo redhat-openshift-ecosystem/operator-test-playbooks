@@ -3,6 +3,10 @@
 #   debug:
 #     msg: "Running '{{ oi_operator_name }} {{ oi_operator_ver }}'"
 
+- name: "Print operator name"
+  debug:
+    msg: "'{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}'"
+
 - name: "Export CSV variables"
   include_role:
     name: export_csv
@@ -42,6 +46,7 @@
 
 - name: "Reset 'ocp_max' and 'ocp_k8s_max'"
   set_fact:
+    k8s_min: "{{ operator_vars.spec.miniKubeVersion | default('') }}"
     ocp_max: ""
     ocp_k8s_max: ""
     idx_versions: []
@@ -64,37 +69,49 @@
 
   when: operator_vars.metadata.annotations['olm.properties'] is defined
 
+- name: "Generate bundle '{{ oi_operator_name }}/{{ oi_operator_ver }}'"
+  include_role:
+    name: generate_bundle
+  vars:
+    mtb_base_dir: "{{ operator_base_dir }}"
+    mtb_operator: "{{ oi_operator_name }}"
+    mtb_version: "{{ oi_operator_ver }}"
 
 
+- name: "Bundle validation filter"
+  include_role:
+    name: bundle_validation_filter
+  vars:
+    bvf_min: "{{ k8s_min }}"
+    bvf_max: "{{ ocp_k8s_max }}"
+    validate_api: true
+    generate_label: true
+    bundle_to_validate: "{{ current_bundle_path }}"
 
+- name: "Setting 'idx_versions' and 'idx_label'"
+  set_fact:
+    idx_versions: "{{ bvf_versions }}"
+    idx_label: "{{ bvf_label }}"
 
-# - name: "Bundle validation filter"
-#   include_role:
-#     name: bundle_validation_filter
-#   vars:
-#     bvf_min: ""
-#     bvf_max: ""
-#     generate_label: true
-#     bundle_to_validate: "{{ path_to_bundle }}"
-
+# - pause:
 # TODO: LABEL handle
-- name: "Setting 'idx_versions' and 'idx_label'"
-  set_fact:
-    idx_versions: ["4.6", "4.7", "4.8"]
-    idx_label: "4.6-4.8"
-  when: ocp_k8s_max|length > 0
+# - name: "Setting 'idx_versions' and 'idx_label'"
+#   set_fact:
+#     idx_versions: ["4.6", "4.7", "4.8"]
+#     idx_label: "4.6-4.8"
+#   when: ocp_k8s_max|length > 0
 
-- name: "Setting 'idx_versions' and 'idx_label'"
-  set_fact:
-    idx_versions: "{{ oi_supported_cluster_versions }}"
-    idx_label: ''
-  when: ocp_k8s_max|length == 0
+# - name: "Setting 'idx_versions' and 'idx_label'"
+#   set_fact:
+#     idx_versions: "{{ oi_supported_cluster_versions }}"
+#     idx_label: ''
+#   when: ocp_k8s_max|length == 0
 
 - name: "Version manifest info"
   set_fact:
     oi_operator_manifest_info:
       replaces: "{{ ovi_replaces_ver }}"
-      k8s_min: "{{ operator_vars.spec.miniKubeVersion | default('') }}"
+      k8s_min: "{{ k8s_min }}"
       k8s_max: "{{ ocp_k8s_max | default('') }}"
       ocp_max: "{{ ocp_max | default('') }}"
       idx_versions: "{{ idx_versions | default('') }}"
