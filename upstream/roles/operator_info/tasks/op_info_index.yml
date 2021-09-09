@@ -1,0 +1,18 @@
+---
+# - name: "Print Index"
+#   debug:
+#     msg: "Running index '{{ oii_index_version }}'"
+
+- name: "Reset 'oii_index_dt'"
+  set_fact:
+    oii_index_dt: []
+
+- name: "Checking all versions"
+  include_tasks: op_info_index_ver.yml
+  loop: "{{ oi_versions_in_dir }}"
+  loop_control:
+    loop_var: oiiv_version_item
+
+- name: "Adding current versuon to the 'io_versions_replaces'"
+  set_fact:
+    io_index_dt: "{{ io_index_dt | default({}) | combine({ oii_index_version : oii_index_dt }) }}"

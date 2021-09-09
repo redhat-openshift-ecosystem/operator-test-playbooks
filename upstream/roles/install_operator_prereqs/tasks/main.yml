@@ -123,13 +123,23 @@
     - reset_tools
     - cosmetics_install
 
+- name: "Create directory '{{ ansible_env.HOME }}'"
+  file:
+    path: "{{ testing_bin_path }}"
+    state: directory
+  tags:
+    - install
+    - reset_tools
+    - cosmetics_install
+
 - name: "Download dyff"
   shell: "curl --silent --location https://tinyurl.com/y4qvdl4d | bash"
   register: dyff_install_result
   failed_when: dyff_install_result is failure
   environment:
-    PATH: "/tmp/operator-test/bin:{{ ansible_env.PATH }}"
-  become: true
+    HOME: "{{ work_dir }}"
+    PATH: "{{ testing_bin_path }}:{{ ansible_env.PATH }}"
+  # become: true
   tags:
     - install
     - reset_tools
@@ -137,7 +147,6 @@
 
 - name: "Install prerequisites specific to legacy operator manifest testing"
   block:
-
     - name: "Check if operator-courier is installed"
       shell: "operator-courier -v"
       register: operator_courier_version_result
@@ -220,7 +229,6 @@
 
     - name: "Handling umoci binary"
       block:
-
         - name: "Check if umoci is installed"
           shell: "{{ umoci_bin_path }} -h"
           register: umoci_help_result

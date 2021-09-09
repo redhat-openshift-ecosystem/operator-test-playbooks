@@ -1,0 +1,43 @@
+---
+- name: "Operator info"
+  block:
+    - name: "Print operator dir"
+      debug:
+        var: operator_base_dir
+
+- name: "Resetting 'op_info' object"
+  set_fact:
+    op_info: []
+
+- name: "Loop over operators"
+  include_tasks: op_info.yml
+  loop: "{{ operators.split(',') }}"
+  loop_control:
+    loop_var: oi_operator_name
+
+- name: "Print 'op_info'"
+  debug:
+    var: op_info
+
+- name: "Generate operators info config file"
+  copy: content="operators:\n{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
+
+
+- name: "Build index"
+  include_role:
+    name: operator_index
+# - name: "Parsing config file '{{ operator_info_output_file }}'"
+#   include_vars:
+#     file: "{{ operator_info_output_file }}"
+#     name: operator_info_vars
+
+# - name: "Resetting 'op_info' object"
+#   set_fact:
+#     test: '0.0.2'
+
+# - name: "Print 'operator_info_vars'"
+#   debug:
+#     var: operator_info_vars.operators[0].replaces[test]
+
+# - name: "Pause"
+#   pause:

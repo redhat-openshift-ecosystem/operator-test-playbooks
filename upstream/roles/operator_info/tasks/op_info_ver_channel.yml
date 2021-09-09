@@ -1,0 +1,16 @@
+---
+- name: "Set tpm current versions in channel"
+  set_fact:
+    oivc_current_channel: "{{ io_channels[oi_channel_item] | default([]) }}"
+
+- name: "Sets 'oivc_current_channel'"
+  set_fact:
+    oivc_current_channel: "{{ oivc_current_channel + [ operator_vars.spec.version ] }}"
+
+- name: "Update 'io_channels'"
+  set_fact:
+    io_channels: "{{ io_channels | default({}) | combine({ oi_channel_item : oivc_current_channel }) }}"
+
+- name: "Print 'io_channels'"
+  debug:
+    var: io_channels
