@@ -1,0 +1,1 @@
+mtb_output_dir: "{{ work_dir }}/m2b"

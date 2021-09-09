@@ -1,0 +1,13 @@
+operator_info_output_file: "/tmp/op_info.yaml"
+operator_bundles_dir: "{{ work_dir }}/m2b"
+ocp2k8s:
+  '4.6': '1.19'
+  '4.7': '1.20'
+  '4.8': '1.21'
+  '4.9': '1.22'
+  '4.10': '1.23'
+oi_supported_cluster_versions:
+- '4.6'
+- '4.7'
+- '4.8'
+- '4.9'

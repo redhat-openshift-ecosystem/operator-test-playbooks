@@ -1,0 +1,6 @@
+operator_info_output_file: "/tmp/op_info.yaml"
+bundle_registry: kind-registry:5000
+bundle_image_namespace: test-operator
+bundle_index_image_namespace: test-operator
+bundle_index_image_name: "catalog"
+bundle_index_image_version: "latest"
