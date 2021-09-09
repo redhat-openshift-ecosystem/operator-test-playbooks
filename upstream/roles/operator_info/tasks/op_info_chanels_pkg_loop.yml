@@ -5,10 +5,20 @@
       set_fact:
         oicpl_current_channel: "{{ (oicpl_current_channel| default([])) + [ oi_pkg_channel_ver_current ] }}"
 
+    # - name: "Setting 'oi_pkg_channel_ver_current'"
+    #   set_fact:
+    #     oi_pkg_channel_ver_current: ''
+
     - name: "Setting 'oi_pkg_channel_ver_current'"
       set_fact:
         oi_pkg_channel_ver_current: "{{ io_versions_manifests[oi_pkg_channel_ver_current].replaces }}"
+      when:
+        - io_versions_manifests[oi_pkg_channel_ver_current] is defined
 
   always:
     - include_tasks: op_info_chanels_pkg_loop.yml
-      when: oi_pkg_channel_ver_current|length > 0
+      when:
+        - oi_pkg_channel_ver_current is defined
+        - oi_pkg_channel_ver_current|length > 0
+        - io_versions_manifests[oi_pkg_channel_ver_current] is defined
+
