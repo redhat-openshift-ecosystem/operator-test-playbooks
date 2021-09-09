@@ -2,7 +2,7 @@
 #input: cl_package_name, cl_operator_ver
 #output: cl_label_valid
 #condition: works only for bundle
-# TODO: corner cases
+
 - name: "Set defaults"
   set_fact:
     cl_label_valid: true
@@ -47,7 +47,7 @@
           loop_control:
             loop_var: cl_git_label_version
 
-      when: cl_operator_label id defined and cl_operator_label|length>0
+      when: cl_operator_label is defined and cl_operator_label|length>0
 
     - name: "Output"
       debug:
