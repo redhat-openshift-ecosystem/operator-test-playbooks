@@ -14,6 +14,9 @@
     - name: "Parse label"
       include_tasks: parse_label.yml
 
+    - debug:
+        var: cl_operator_label
+
     - name: "Label found in git"
       block:
 
