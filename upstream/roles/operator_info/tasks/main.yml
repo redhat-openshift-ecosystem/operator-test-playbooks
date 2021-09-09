@@ -22,6 +22,10 @@
 - name: "Generate operators info config file"
   copy: content="operators:\n{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
 
+
+- name: "Build index"
+  include_role:
+    name: operator_index
 # - name: "Parsing config file '{{ operator_info_output_file }}'"
 #   include_vars:
 #     file: "{{ operator_info_output_file }}"

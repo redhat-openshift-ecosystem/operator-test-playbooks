@@ -1,4 +1,5 @@
 operator_info_output_file: "/tmp/op_info.yaml"
+operator_bundles_dir: "{{ work_dir }}/m2b"
 ocp2k8s:
   '4.6': '1.19'
   '4.7': '1.20'

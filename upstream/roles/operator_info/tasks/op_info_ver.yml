@@ -73,10 +73,10 @@
   include_role:
     name: generate_bundle
   vars:
+    mtb_output_dir: "{{ operator_bundles_dir }}"
     mtb_base_dir: "{{ operator_base_dir }}"
     mtb_operator: "{{ oi_operator_name }}"
     mtb_version: "{{ oi_operator_ver }}"
-
 
 - name: "Bundle validation filter"
   include_role:
