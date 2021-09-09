@@ -19,7 +19,7 @@
 - name: ""
   set_fact:
     cl_git_label_list: "{{ p_indexes_by_pyxis }}"
-    cl_artificial_label: "{{ (operators | selectattr('name','equalto','community-kubevirt-hyperconverged') | first).manifests[cl_operator_ver].idx.label }}"
+    cl_artificial_label: "{{ (operators | selectattr('name','equalto','community-kubevirt-hyperconverged') | first).manifests[cl_operator_ver].idx_label }}"
 
 - name: ""
   include_role:
@@ -32,10 +32,10 @@
     cl_artificial_label_list: "{{ p_indexes_by_pyxis }}"
 
 - name: ""
-      include_tasks: validity.yml
-      loop: "{{ cl_git_label_list }}"
-      loop_control:
-        loop_var: cl_git_label_version
+  include_tasks: validity.yml
+  loop: "{{ cl_git_label_list }}"
+  loop_control:
+    loop_var: cl_git_label_version
 
 - name: ""
   debug:
