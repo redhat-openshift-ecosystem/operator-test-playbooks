@@ -5,6 +5,14 @@
       debug:
         var: operator_base_dir
 
+- name: "Handle situation when 'operator_dir' is defined"
+  set_fact:
+    operators: "{{ operator_dir | basename }}"
+    operator_base_dir: "{{ operator_dir | dirname }}"
+  when:
+    - operator_dir is defined
+    - operator_dir|length > 0
+
 - name: "Resetting 'op_info' object"
   set_fact:
     op_info: []
@@ -22,10 +30,10 @@
 - name: "Generate operators info config file"
   copy: content="operators:\n{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
 
+# - name: "Build index"
+#   include_role:
+#     name: operator_index
 
-- name: "Build index"
-  include_role:
-    name: operator_index
 # - name: "Parsing config file '{{ operator_info_output_file }}'"
 #   include_vars:
 #     file: "{{ operator_info_output_file }}"
@@ -33,7 +41,7 @@
 
 # - name: "Resetting 'op_info' object"
 #   set_fact:
-#     test: '0.0.2'
+#     op_info: operator_info_vars.operators
 
 # - name: "Print 'operator_info_vars'"
 #   debug:
