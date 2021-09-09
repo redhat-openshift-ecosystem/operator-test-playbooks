@@ -1,5 +1,5 @@
 operator_bundle_src_dir: "/tmp/operator-test/operator-bundle/src"
-operators:
+op_info:
 -   channels:
         threescale-2.10:
         - 0.7.0
