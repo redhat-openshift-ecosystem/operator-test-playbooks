@@ -25,8 +25,19 @@
   when:
     - generate_label|bool
 
-- name: debug
+- name: "Output bvf_versions"
   debug:
     var: bvf_versions
   when:
     - validate_api|bool
+
+- name: "Validate git label"
+  block:
+  - name: "Compare labels"
+    include_role:
+      name: compare_labels
+    vars:
+      cl_package_name: "{{bundle_to_validate.split('/')[-2]}}"
+      cl_operator_ver: "{{bundle_to_validate.split('/')[-1]}}"
+  when:
+    - validate_label|bool
