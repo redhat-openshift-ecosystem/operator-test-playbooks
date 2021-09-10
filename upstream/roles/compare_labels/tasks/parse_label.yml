@@ -18,5 +18,5 @@
 - name: "Parse the label from annotation file"
   set_fact:
     cl_operator_label: "{{ cl_annotations_vars.annotations['com.redhat.openshift.versions'] }}"
-  ignore_errors: true
-#  when: annotations_vars.annotations['com.redhat.openshift.versions'] is defined and annotations_vars.annotations['com.redhat.openshift.versions']|length>0
+#  ignore_errors: true
+  when: annotations_vars.annotations['com.redhat.openshift.versions'] is defined and annotations_vars.annotations['com.redhat.openshift.versions']|length>0
