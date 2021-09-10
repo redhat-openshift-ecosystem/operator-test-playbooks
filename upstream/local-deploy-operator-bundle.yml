@@ -144,7 +144,7 @@
 
     - name: "Set operator name to list from operator name"
       set_fact:
-        operators: '["{{ operator_dir | basename }}"]'
+        operators: "{{ operator_dir | basename }}"
       when:
         - operator_dir is defined
         - operators is undefined
@@ -160,7 +160,7 @@
         name: build_operator_bundle
       vars:
         operator_dir: "{{ operator_base_dir }}/{{ op_item }}"
-      loop: "{{ operators }}"
+      loop: "{{ operators.split(',') }}"
       loop_control:
         loop_var: op_item
       when:
