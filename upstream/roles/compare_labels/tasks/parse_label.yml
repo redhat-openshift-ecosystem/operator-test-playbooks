@@ -1,0 +1,22 @@
+---
+#input: cl_package_name, cl_operator_ver
+#output: cl_operator_label
+#condition: works only for bundle
+- name: "Set path to the label file"
+  set_fact:
+    cl_label_file: "{{ operator_bundle_src_dir }}/{{ cl_package_name }}/{{ cl_operator_ver }}/metadata/annotations.yaml"
+    cl_operator_label: ""
+
+- name: "Getting content of annotation.yaml file"
+  shell: "cat {{ cl_label_file }}"
+  register: cl_annotation_data
+
+- name: "Sets `annotations_vars` from yaml file"
+  set_fact:
+    cl_annotations_vars: "{{ cl_annotation_data.stdout | from_yaml }}"
+
+- name: "Parse the label from annotation file"
+  set_fact:
+    cl_operator_label: "{{ cl_annotations_vars.annotations['com.redhat.openshift.versions'] }}"
+#  ignore_errors: true
+  when: annotations_vars.annotations['com.redhat.openshift.versions'] is defined and annotations_vars.annotations['com.redhat.openshift.versions']|length>0
