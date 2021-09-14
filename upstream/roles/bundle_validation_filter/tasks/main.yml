@@ -31,6 +31,19 @@
   when:
     - validate_api|bool
 
+- name: "Debug oi_operator_name"
+    debug:
+      var: oi_operator_name
+
+- name: "Debug oi_operator_ver"
+    debug:
+      var: oi_operator_ver
+
+- name: "Debug oi_operator_format"
+    debug:
+      var: oi_operator_format
+      oi_operator_format
+
 - name: "Validate git label"
   block:
     - name: "Compare labels"
