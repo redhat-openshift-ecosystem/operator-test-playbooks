@@ -13,6 +13,15 @@
     - operator_dir is defined
     - operator_dir|length > 0
 
+
+- name: "Ensure that the 'operator_bundle_src_dir' directory exists and is empty"
+  file:
+    state: "{{ item }}"
+    path: "{{ operator_bundle_src_dir }}"
+  with_items:
+    - absent
+    - directory
+
 - name: "Resetting 'op_info' object"
   set_fact:
     op_info: []

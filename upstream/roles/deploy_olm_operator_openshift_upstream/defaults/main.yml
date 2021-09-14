@@ -1,6 +1,5 @@
 work_subdir_name: "operator-test"
 work_dir: "/tmp/{{ work_subdir_name }}"
-operator_input_image: ""
 image_protocol: "docker://"
 operator_work_dir: "{{ work_dir }}/operator-files"
 testing_bin_path: "{{ work_dir }}/bin"
@@ -31,7 +30,7 @@ quay_release: 0.0.1
 kubeconfig_path: "{{ ansible_env.HOME }}/.kube/config"
 olm_operator_files_path: "/tmp/oper-to-deploy-{{ dir_suffix_part }}"
 run_bundle_test: false
-operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
+operator_bundle_src_dir: "{{ work_dir }}/operators"
 operator_dir_name: "{{ operator_dir | basename }}"
 test_quay_namespace: operator_testing
 operator_suggested_namespace_default: test-operators

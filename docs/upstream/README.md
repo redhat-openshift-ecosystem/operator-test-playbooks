@@ -71,14 +71,6 @@ ansible-playbook -vv -i myhost, local.yml \
 --tags image_build
 ```
 
-## Input source image (not supported now)
-```
-ansible-playbook -vv -i myhost, local.yml \
--e run_upstream=true \
--e operator_input_image=quay.io/cvpops/test-bundle:tigera-131 \
---tags pure_test
-```
-
 ## Deploy operators to index
 Config file:
 ```
