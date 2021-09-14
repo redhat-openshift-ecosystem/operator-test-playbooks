@@ -109,7 +109,6 @@
       debug:
         var: operator_base_dir
 
-    
     - name: "Set operator name to list from operator name"
       set_fact:
         operators: "{{ operator_dir | basename }}"
