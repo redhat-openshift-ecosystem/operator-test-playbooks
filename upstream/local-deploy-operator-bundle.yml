@@ -109,39 +109,7 @@
       debug:
         var: operator_base_dir
 
-    - name: "Handle operators input file"
-      block:
-        - name: "Parsing config file '{{ operators_config }}'"
-          include_vars:
-            file: "{{ operators_config }}"
-            name: operators_config_vars
-
-        - name: "Set facts from config variables"
-          set_fact:
-            operators: "{{ (operators_config_vars.operators | join(',')) | default('') }}"
-            operator_base_dir: "{{ operators_config_vars.operator_base_dir | default('') }}"
-
-        - name: "Failing when 'operator base dir' is not found in '{{ operators_config }}'"
-          fail:
-            msg: "'operator_base_dir' was not found in config file '{{ operators_config }}' !!!"
-          when: operator_base_dir|length == 0
-
-        - name: "Checking if operator base dir exists"
-          stat:
-            path: "{{ operator_base_dir }}"
-          register: operator_base_dir_st
-
-        - name: "Failing when operator base dir doesn't exists"
-          fail:
-            msg: "Operator base dir '{{ operator_base_dir }}' was not found !!!"
-          when: not operator_base_dir_st.stat.exists
-
-        - name: "Failing when 'operator_base_dir' is not defined or is empty"
-          fail:
-            msg: "The 'operator_base_dir' is not defined or is empty"
-          when: operator_base_dir|length == 0
-      when: operators_config is defined
-
+    
     - name: "Set operator name to list from operator name"
       set_fact:
         operators: "{{ operator_dir | basename }}"
