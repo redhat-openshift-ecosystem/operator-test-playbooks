@@ -19,6 +19,7 @@
         operator_name: "{{ df_operator_dir | basename }}"
         operator_dir_name: "{{ df_operator_dir | basename }}"
         operator_base_dir: "{{ df_operator_dir | dirname }}"
+        operator_package_name: "{{ df_operator_dir | basename }}"
 
     - name: "Export CSV variables"
       include_role:

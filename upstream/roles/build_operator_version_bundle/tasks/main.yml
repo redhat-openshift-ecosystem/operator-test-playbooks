@@ -4,6 +4,15 @@
 
 - name: "Handle bundle image from source dir"
   block:
+    - name: "Handle Operator when 'op_info' is not defined"
+      block:
+        - name: "Detect format"
+          include_role:
+            name: detect_format
+          vars:
+            df_operator_dir: "{{ operator_dir }}"
+      when: op_info is undefined
+
     - name: "Handle Operator from 'op_info'"
       block:
         - name: "Detect format"
