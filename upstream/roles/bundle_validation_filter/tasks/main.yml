@@ -40,8 +40,12 @@
         cl_package_name: "{{ bundle_to_validate.split('/')[-2] }}"
         cl_operator_ver: "{{ bundle_to_validate.split('/')[-1] }}"
 
+    - name: "Debug"
+      debug:
+        var: cl_label_valid
+
     - name: "Fail on a wrong label"
-        fail:
+      fail:
           msg: "Correct label for {{ bundle_to_validate }} is {{ cl_artificial_label }} and we found {{ cl_operator_label  }}. Please fix"
       when: not cl_label_valid|bool
 
