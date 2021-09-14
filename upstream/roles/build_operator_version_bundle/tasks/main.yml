@@ -2,41 +2,17 @@
   set_fact:
     bovb_timestamp: "{{ ignore_image_string }}{{ ansible_date_time.iso8601_basic_short }}"
 
-- name: "Handle bundle image from source image"
-  block:
-    - name: "Setting operator parameters from input image"
-      set_fact:
-        bundle_image: "{{ operator_input_image }}"
-        operator_name: "{{ operator_input_image.split(':')[0] | basename }}"
-        op_version: "{{ operator_input_image.split(':')[1] }}"
-        operator_format: "bundle"
-
-    - name: "Remove bundle image {{ bundle_image }}"
-      shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
-      failed_when: false
-  when:
-    - operator_input_image is defined
-    - operator_input_image|length > 0
-
 - name: "Handle bundle image from source dir"
   block:
-    - name: "Ensure that the operator manifest to bundle directory exists and is empty"
-      file:
-        state: "{{ item }}"
-        path: "{{ operator_bundle_src_dir }}"
-      with_items:
-        - absent
-        - directory
-
-    - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
-      copy:
-        src: "{{ operator_dir }}"
-        dest: "{{ operator_bundle_src_dir }}"
-        remote_src: true
-
-    - name: "Detect format"
-      include_role:
-        name: detect_format
+    - name: "Handle Operator from 'op_info'"
+      block:
+        - name: "Detect format"
+          include_role:
+            name: detect_format
+          vars:
+            df_operator_dir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+            # op_version: "{{ op_version }}"
+      when: op_info is defined
 
     - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of manifest format"
       set_fact:
@@ -189,7 +165,6 @@
       when:
         - openshift_robot_hash_array.2 is defined
         - openshift_robot_hash_array.2|length > 0
-
 
     - name: "Handle situation when bundle force rebuild"
       block:
@@ -474,6 +449,3 @@
         bundle_add_failed: "{{ bundle_add_failed | default([]) }} + [ '{{ operator_package_name }}' ]"
         bundle_add_failed_name_version: "{{ bundle_add_failed_name_version | default([]) }} + [ '{{ bundle_image }}' ]"
       when: (bb_rc.rc is defined and bb_rc.rc != 0) or (mb_rc.rc is defined and mb_rc.rc != 0)
-
-  when:
-    - operator_input_image|length == 0

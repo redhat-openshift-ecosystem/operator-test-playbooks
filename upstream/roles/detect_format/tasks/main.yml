@@ -1,17 +1,4 @@
 ---
-- name: "Handle operator input image"
-  block:
-    - name: "Seting image protocol"
-      set_fact:
-        image_protocol: "docker-daemon:"
-
-    - name: "Handle operator image input"
-      include_role:
-        name: convert_bundle_image_to_dir
-  when:
-    - operator_input_image is defined
-    - operator_input_image|length > 0
-
 - name: "Detect operator format"
   block:
     - name: "Failing when operator version is not defined"
@@ -22,28 +9,28 @@
 
     - name: "Search for annotations.yml"
       find:
-        paths: "{{ operator_dir }}/{{ op_version }}/metadata"
+        paths: "{{ df_operator_dir }}/{{ op_version }}/metadata"
         patterns: "annotations.yaml"
       register: annotations_presence
 
     - name: "Set operator_format to package manifest or bundle"
       set_fact:
         operator_format: '{{ ''bundle'' if annotations_presence.files else ''manifest'' }}'
-        operator_name: "{{ operator_dir | basename }}"
-        operator_dir_name: "{{ operator_dir | basename }}"
-        operator_base_dir: "{{ operator_dir | dirname }}"
+        operator_name: "{{ df_operator_dir | basename }}"
+        operator_dir_name: "{{ df_operator_dir | basename }}"
+        operator_base_dir: "{{ df_operator_dir | dirname }}"
 
     - name: "Export CSV variables"
       include_role:
         name: export_csv
       vars:
-        op_csv_dir: "{{ operator_dir }}/{{ op_version }}"
+        op_csv_dir: "{{ df_operator_dir }}/{{ op_version }}"
 
     - name: "Export Package variables"
       include_role:
         name: export_manifest_package_info
       vars:
-        op_dir: "{{ operator_dir }}"
+        op_dir: "{{ df_operator_dir }}"
       when: operator_format == "manifest"
 
     - name: "Set operator name variable from csv"
@@ -57,7 +44,7 @@
       block:
         - name: "Setting path names for csv and annotation"
           set_fact:
-            annotation_file_path: "{{ operator_dir }}/{{ op_version }}/metadata/annotations.yaml"
+            annotation_file_path: "{{ df_operator_dir }}/{{ op_version }}/metadata/annotations.yaml"
 
         - name: "Check if annotation file exists"
           stat:
