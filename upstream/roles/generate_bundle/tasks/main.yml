@@ -47,10 +47,19 @@
           # ignore_errors: true
           # register: mtb_gbi_rc
 
+        - name: "Create directory '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+          file:
+            state: directory
+            path: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}/{{ item }}"
+          with_items:
+            - manifests
+            - metadata
+
         - name: "Copy generated bundle files to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
           copy:
             src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ item }}"
             dest: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+            remote_src: true
           with_items:
             - manifests
             - metadata
@@ -59,12 +68,11 @@
         - name: "Ensure that the operator temporary bundle files are removed from '{{ mtb_base_dir }}/{{ mtb_operator }}'"
           file:
             state: absent
-            path: "{{ item }}"
-            # mode: 0644
+            path: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ item }}"
           with_items:
-            - "{{ mtb_base_dir }}/{{ mtb_operator }}/manifests"
-            - "{{ mtb_base_dir }}/{{ mtb_operator }}/metadata"
-            - "{{ mtb_base_dir }}/{{ mtb_operator }}/bundle.Dockerfile"
+            - "manifests"
+            - "metadata"
+            - "bundle.Dockerfile"
 
       when: oi_operator_format == "manifest"
 
