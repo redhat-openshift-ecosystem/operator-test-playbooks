@@ -241,9 +241,6 @@
 
 - name: "Deploy operator bundle for each"
   import_playbook: local-deploy-operator-bundle.yml
-  vars:
-    operator_base_dir: "{{ operator_base_dir }}"
-    operators: "{{ operators }}"
   when:
     - run_upstream|bool
   tags:
