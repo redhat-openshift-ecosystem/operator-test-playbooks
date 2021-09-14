@@ -46,7 +46,7 @@
 
     - name: "Fail on a wrong label"
       fail:
-          msg: "Correct label for {{ bundle_to_validate }} is {{ cl_artificial_label }} and we found {{ cl_operator_label  }}. Please fix"
+        msg: "Correct label for {{ bundle_to_validate }} is {{ cl_artificial_label }} and we found {{ cl_operator_label  }}. Please fix"
       when: not cl_label_valid|bool
 
   when:
