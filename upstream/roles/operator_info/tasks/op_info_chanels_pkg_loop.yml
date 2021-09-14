@@ -21,4 +21,3 @@
         - oi_pkg_channel_ver_current is defined
         - oi_pkg_channel_ver_current|length > 0
         - io_versions_manifests[oi_pkg_channel_ver_current] is defined
-
