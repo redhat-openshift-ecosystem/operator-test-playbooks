@@ -52,7 +52,6 @@
       include_role:
         name: detect_format
       vars:
-        operator_input_image: ""
         op_version: "{{ versions_in_dir[0] }}"
 
     - name: "Get list of versions_in_dir from bundle registry"

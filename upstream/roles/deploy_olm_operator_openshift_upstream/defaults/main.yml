@@ -1,6 +1,5 @@
 work_subdir_name: "operator-test"
 work_dir: "/tmp/{{ work_subdir_name }}"
-operator_input_image: ""
 image_protocol: "docker://"
 operator_work_dir: "{{ work_dir }}/operator-files"
 testing_bin_path: "{{ work_dir }}/bin"

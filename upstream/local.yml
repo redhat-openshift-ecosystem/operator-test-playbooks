@@ -19,7 +19,6 @@
     run_prepare_catalog_repo_upstream: true
     work_dir: "/tmp/operator-test"
     operator_dir: "dummy" # so operator-courier will be installed
-    operator_input_image: ""
     image_protocol: "docker://"
     bundle_image: "dummy" # so skopeo and umoci will be installed
     operator_work_dir: "{{ work_dir }}/operator-files"
@@ -67,7 +66,6 @@
         use_cluster_filter: false
         work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
         operator_dir: "{{ operator_dir | default('dummy') }}"
-        operator_input_image: "{{ operator_input_image | default('') }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
         bundle_image: "{{ bundle_image | default('dummy') }}"
         run_host_init: "{{ run_host_init | default(true) }}"
@@ -171,17 +169,6 @@
         - pure_test_lite
         - pure_test_all
         - pure_test_all
-
-    - name: "Failing when input image is specified"
-      fail:
-        msg: "Input image is not supported for now"
-      when:
-        - operator_input_image is defined
-        - operator_input_image|length > 0
-      tags:
-        - always
-        - test
-        - pure_test
 
     - name: "Check operator format consistency"
       include_role:

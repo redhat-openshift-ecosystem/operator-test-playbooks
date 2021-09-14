@@ -1,17 +1,4 @@
 ---
-- name: "Handle operator input image"
-  block:
-    - name: "Seting image protocol"
-      set_fact:
-        image_protocol: "docker-daemon:"
-
-    - name: "Handle operator image input"
-      include_role:
-        name: convert_bundle_image_to_dir
-  when:
-    - operator_input_image is defined
-    - operator_input_image|length > 0
-
 - name: "Detect operator format"
   block:
     - name: "Failing when operator version is not defined"

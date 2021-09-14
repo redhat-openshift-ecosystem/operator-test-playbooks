@@ -2,21 +2,11 @@
   set_fact:
     bovb_timestamp: "{{ ignore_image_string }}{{ ansible_date_time.iso8601_basic_short }}"
 
-- name: "Handle bundle image from source image"
-  block:
-    - name: "Setting operator parameters from input image"
-      set_fact:
-        bundle_image: "{{ operator_input_image }}"
-        operator_name: "{{ operator_input_image.split(':')[0] | basename }}"
-        op_version: "{{ operator_input_image.split(':')[1] }}"
-        operator_format: "bundle"
+- debug:
+    var: op_info
 
-    - name: "Remove bundle image {{ bundle_image }}"
-      shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
-      failed_when: false
-  when:
-    - operator_input_image is defined
-    - operator_input_image|length > 0
+- pause:
+
 
 - name: "Handle bundle image from source dir"
   block:
@@ -475,5 +465,4 @@
         bundle_add_failed_name_version: "{{ bundle_add_failed_name_version | default([]) }} + [ '{{ bundle_image }}' ]"
       when: (bb_rc.rc is defined and bb_rc.rc != 0) or (mb_rc.rc is defined and mb_rc.rc != 0)
 
-  when:
-    - operator_input_image|length == 0
+

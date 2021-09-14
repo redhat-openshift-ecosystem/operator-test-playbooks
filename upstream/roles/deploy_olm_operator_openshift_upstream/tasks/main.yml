@@ -81,7 +81,6 @@
   include_role:
     name: detect_format
   vars:
-    operator_input_image: ""
     op_version: "{{ operator_version }}"
     run_upstream: true
 
