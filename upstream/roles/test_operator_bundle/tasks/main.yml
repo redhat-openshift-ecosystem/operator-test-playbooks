@@ -47,6 +47,8 @@
 - name: "Check package unification"
   include_role:
     name: check_package_bundle
+  vars:
+    cpb_operator_dir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
   when: run_upstream|bool
 
 - name: "Extract the operator bundle image into files needed to run the tests"

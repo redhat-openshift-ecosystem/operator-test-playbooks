@@ -81,6 +81,7 @@
   include_role:
     name: detect_format
   vars:
+    df_operator_dir: "{{ operator_dir }}"
     op_version: "{{ operator_version }}"
     run_upstream: true
 

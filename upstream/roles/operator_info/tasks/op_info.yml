@@ -15,11 +15,6 @@
     file_type: directory
   register: oi_versions_find
 
-- name: "debug"
-  debug:
-    var: oi_versions_find
-
-
 - name: "Setting list of versions from directory structre"
   set_fact:
     oi_versions_in_dir: "{{ oi_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
@@ -60,6 +55,12 @@
   loop: "{{ oi_versions_in_dir }}"
   loop_control:
     loop_var: oi_operator_ver
+
+- name: "Copy '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' to '{{ operator_bundle_src_dir }}/{{ oi_operator_name }}'"
+  copy:
+    src: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+    dest: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}"
+    remote_src: true
 
 - name: "Handle package file for packagemanifest format"
   block:
@@ -103,7 +104,6 @@
 #     op_stat_bundles: "{{ 0 if op_stat_bundles is undefined else op_stat_bundles|int + 1 }}"
 #     op_stat_operators: "{{ 0 if op_stat_operators is undefined else op_stat_operators|int + 1 }}"
 #   when: oi_operator_format == "manifest"
-
 
 # - name: "Count manifests"
 #   set_stats:

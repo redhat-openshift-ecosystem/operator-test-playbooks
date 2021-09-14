@@ -2,31 +2,26 @@
   set_fact:
     bovb_timestamp: "{{ ignore_image_string }}{{ ansible_date_time.iso8601_basic_short }}"
 
-- debug:
-    var: op_info
-
-- pause:
-
-
 - name: "Handle bundle image from source dir"
   block:
-    - name: "Ensure that the operator manifest to bundle directory exists and is empty"
-      file:
-        state: "{{ item }}"
-        path: "{{ operator_bundle_src_dir }}"
-      with_items:
-        - absent
-        - directory
 
-    - name: "Copy operator directory files from '{{ operator_dir }}' to {{ operator_bundle_src_dir }}"
-      copy:
-        src: "{{ operator_dir }}"
-        dest: "{{ operator_bundle_src_dir }}"
-        remote_src: true
+    - name: "Handle Operator from 'op_info'"
+      block:
+        # - name: "op_info"
+        #   debug:
+        #     var: op_info
+        - name: "Detect format"
+          include_role:
+            name: detect_format
+          vars:
+            df_operator_dir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+            # op_version: "{{ op_version }}"
+          
+        # - name: "operator_format"
+        #   debug:
+        #     var: operator_format
+      when: op_info is defined
 
-    - name: "Detect format"
-      include_role:
-        name: detect_format
 
     - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of manifest format"
       set_fact:
@@ -465,4 +460,4 @@
         bundle_add_failed_name_version: "{{ bundle_add_failed_name_version | default([]) }} + [ '{{ bundle_image }}' ]"
       when: (bb_rc.rc is defined and bb_rc.rc != 0) or (mb_rc.rc is defined and mb_rc.rc != 0)
 
-
+  # when: op_info is undefined
