@@ -39,10 +39,28 @@
   block:
     - name: "Bundle image for manifest format"
       block:
+
+        - name: "Reset 'opm_bundle_alpha_add_args'"
+          set_fact:
+            opm_bundle_alpha_add_args: ''
+
+        - name: "Forcing to set 'operator_channels' and 'operator_channel_default' when 'operator_channel_force' is defined and empty"
+          set_fact:
+            operator_channels: "{{ operator_channel_force }}"
+            operator_channel_default: "{{ operator_channel_force }}"
+          when:
+            - operator_channel_force is defined
+            - operator_channel_force|length > 0
+
+        - name: "Adding operator channels and default channel as arguments"
+          set_fact:
+            opm_bundle_alpha_add_args: "-c {{ operator_channels }} -e {{ operator_channel_default }}"
+          when: operator_channel_force is defined
+
         - name: "Generate bundle format '{{ mtb_operator }}/{{ mtb_version }}' from packafgemanifest"
           shell:
             # cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }} -t {{ mtb_bundle_image }} -b {{ opm_container_tool }}"
-            cmd: "{{ opm_bin_path }} alpha bundle generate --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }}"
+            cmd: "{{ opm_bin_path }} alpha bundle generate --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }} {{ opm_bundle_alpha_add_args }}"
             chdir: "{{ mtb_base_dir }}/{{ mtb_operator }}"
           # ignore_errors: true
           # register: mtb_gbi_rc
