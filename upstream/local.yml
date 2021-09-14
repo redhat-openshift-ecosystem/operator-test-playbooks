@@ -145,8 +145,8 @@
     - {role: check_prod_bundle, tags: [never, "test_lite", "pure_test_lite"], when: run_upstream|bool}
     - {role: build_app_registry, tags: [never, "app_registry"], when: run_upstream|bool}
     - {role: sync_index_sha, tags: ["sync_index_sha"], when: run_upstream|bool}
-    - {role: operator_info, tags: ["never","operator_info"]}
-    - {role: operator_index, tags: ["never","operator_index"]}
+    - {role: operator_info, tags: ["never", "operator_info"]}
+    - {role: operator_index, tags: ["never", "operator_index"]}
 
   tasks:
     - name: "Setting input variables for testing"
