@@ -37,8 +37,8 @@
       include_role:
         name: compare_labels
       vars:
-        cl_package_name: "{{ bundle_to_validate.split('/')[-2] }}"
-        cl_operator_ver: "{{ bundle_to_validate.split('/')[-1] }}"
+        cl_package_name: "{{ oi_operator_name }}"
+        cl_operator_ver: "{{ oi_operator_ver }}"
 
     - name: "Debug"
       debug:
