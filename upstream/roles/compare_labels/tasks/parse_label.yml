@@ -4,7 +4,7 @@
 #condition: works only for bundle
 - name: "Set path to the label file"
   set_fact:
-    cl_label_file: "{{ operator_bundle_src_dir }}/{{ cl_package_name }}/{{ cl_operator_ver }}/metadata/annotations.yaml"
+    cl_label_file: "{{ operator_base_dir }}/{{ cl_package_name }}/{{ cl_operator_ver }}/metadata/annotations.yaml"
     cl_operator_label: ""
 
 - name: "Getting content of annotation.yaml file"
