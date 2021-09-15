@@ -22,7 +22,9 @@
   when:
     - run_upstream|bool
     - (operator_version is undefined or operator_version|length == 0)
-
+- name: "Setting operator_package_name"
+  set_fact:
+    operator_package_name: "{{ operator_dir | basename }}"
 - name: "Build bundle image"
   include_role:
     name: build_operator_version_bundle
