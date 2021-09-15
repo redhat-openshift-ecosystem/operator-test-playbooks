@@ -131,33 +131,7 @@
       tags:
         - always
 
-    - name: "Handle operators input file"
-      block:
-        - name: "Parsing config file '{{ operators_config }}'"
-          include_vars:
-            file: "{{ operators_config }}"
-            name: operators_config_vars
-        - name: "Set facts from config variables"
-          set_fact:
-            operators: "{{ (operators_config_vars.operators | join(',')) | default('') }}"
-            operator_base_dir: "{{ operators_config_vars.operator_base_dir | default('') }}"
-        - name: "Failing when 'operator base dir' is not found in '{{ operators_config }}'"
-          fail:
-            msg: "'operator_base_dir' was not found in config file '{{ operators_config }}' !!!"
-          when: operator_base_dir|length == 0
-        - name: "Checking if operator base dir exists"
-          stat:
-            path: "{{ operator_base_dir }}"
-          register: operator_base_dir_st
-        - name: "Failing when operator base dir doesn't exists"
-          fail:
-            msg: "Operator base dir '{{ operator_base_dir }}' was not found !!!"
-          when: not operator_base_dir_st.stat.exists
-        - name: "Failing when 'operator_base_dir' is not defined or is empty"
-          fail:
-            msg: "The 'operator_base_dir' is not defined or is empty"
-          when: operator_base_dir|length == 0
-      when: operators_config is defined
+
 
   roles:
     - {role: install_base_packages, tags: ["base"], when: run_host_init|bool}
@@ -173,7 +147,7 @@
     - {role: check_prod_bundle, tags: [never, "test_lite", "pure_test_lite"], when: run_upstream|bool}
     - {role: build_app_registry, tags: [never, "app_registry"], when: run_upstream|bool}
     - {role: sync_index_sha, tags: ["sync_index_sha"], when: run_upstream|bool}
-    - {role: operator_info, tags: ["always", "operator_info"], when: (operator_dir is defined and operator_dir|length > 0 and operator_dir != "dummy") or (operators is defined and operators|length > 0)}
+    - {role: operator_info, tags: ["always", "operator_info"], when: (operator_dir is defined and operator_dir|length > 0 and operator_dir != "dummy") or (operators_config is defined and operators_config|length > 0)}
     - {role: operator_index, tags: ["never", "operator_index"]}
 
   tasks:
