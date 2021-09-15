@@ -96,21 +96,22 @@
 
     - name: "Bundle image for bundle format"
       block:
-        # - name: "Copy bundle format to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
-        #   copy:
-        #     src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
-        #     dest: "{{ mtb_output_dir }}/{{ mtb_operator }}"
-
-        - name: "Create directory '{{ mtb_output_dir }}/{{ mtb_operator }}'"
-          file:
-            path: "{{ mtb_output_dir }}/{{ mtb_operator }}"
-            state: directory
-
-        - name: "Link operator version to {{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
-          file:
+        - name: "Copy bundle format to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+          copy:
             src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
-            dest: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
-            state: link
+            dest: "{{ mtb_output_dir }}/{{ mtb_operator }}"
+            remote_src: true
+
+        # - name: "Create directory '{{ mtb_output_dir }}/{{ mtb_operator }}'"
+        #   file:
+        #     path: "{{ mtb_output_dir }}/{{ mtb_operator }}"
+        #     state: directory
+
+        # - name: "Link operator version to {{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        #   file:
+        #     src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        #     dest: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        #     state: link
 
       when: oi_operator_format == "bundle"
 
