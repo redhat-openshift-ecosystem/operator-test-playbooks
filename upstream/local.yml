@@ -131,8 +131,6 @@
       tags:
         - always
 
-
-
   roles:
     - {role: install_base_packages, tags: ["base"], when: run_host_init|bool}
     - {role: install_docker, tags: ["docker"], when: run_host_init|bool}
