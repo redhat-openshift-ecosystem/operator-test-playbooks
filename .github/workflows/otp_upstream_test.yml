@@ -97,7 +97,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e cluster_type=k8s -vv
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e cluster_type=k8s
 
   otpu_index_from_production:
     name: Index from production
@@ -114,7 +114,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e cluster_type=k8s -e index_force_update=true -vv
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e production_registry_namespace="quay.io/operatorhubio" -e cluster_type=k8s -e index_force_update=true
 
   otpu_index_from_scratch_mv:
     name: Index from scratch (multiple versions)
@@ -131,7 +131,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true -e cluster_type=ocp -e supported_cluster_versions=v4.6 -vv && docker image ls|grep catalog|grep -v none|grep kind|grep '4\.6'
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true -e cluster_type=ocp -e supported_cluster_versions=v4.6 && docker image ls|grep catalog|grep -v none|grep kind|grep '4\.6'
 
   otpu_index_check_bundles_with_matching_ocp_version:
     name: Index check bundles with matching OCP version
@@ -148,7 +148,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_missing_operator=community-kubevirt-hyperconverged:v1.4.0 -vv
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_missing_operator=community-kubevirt-hyperconverged:v1.4.0
 
   otpu_index_check_bundles_without_matching_ocp_version:
     name: Index check bundles without matching OCP version
@@ -165,7 +165,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-no-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_operator_filtered_out=community-windows-machine-config-operator:v1.0.0 -vv
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-no-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_operator_filtered_out=community-windows-machine-config-operator:v1.0.0
 
   otpu_index_check_bundles_without_any_ocp_version_defined:
     name: Index check bundles without any OCP version defined
@@ -182,7 +182,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-no-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_missing_operator=oadp-operator:v0.2.3 -vv
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags index_check -e catalog_repo=https://github.com/operator-framework/community-operators -e catalog_repo_branch=test-playbooks/index-check-ocp-no-match -e run_prepare_catalog_repo_upstream=true -e bundle_index_image=quay.io/operator_testing/test-playbooks-index-sample:v4.7 -e operator_base_dir=/tmp/community-operators-for-catalog/community-operators -e run_remove_catalog_repo=true -e playbook_repo_test_want_missing_operator=oadp-operator:v0.2.3
 
   otpu_index_check_bundles_test_minimum_numbers:
     name: Index check bundles test minumum number of packages in index
@@ -199,4 +199,4 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 -e min_operators_in_index_allowed=30 -vv && false || true
+        run: ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e use_cluster_filter=true  -e supported_cluster_versions=v4.6 -e min_operators_in_index_allowed=30 && false || true
