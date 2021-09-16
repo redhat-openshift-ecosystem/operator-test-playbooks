@@ -91,7 +91,7 @@ class Testing(unittest.TestCase):
                                 cwd=OUTPUT_DIR)
         self.assertEqual(70, result.returncode)
         # check if the .errormessage file generated is empty
-        self.assertTrue(os.stat("/tmp/.errormessage").st_size != 0)
+        self.assertTrue(os.stat(OUTPUT_DIR+".errormessage").st_size != 0)
         # check if the .errormessage exists since its a logger file
         self.assertTrue(os.path.exists(OUTPUT_DIR+".errormessage"))
         message = self.get_error_message_content()
@@ -107,9 +107,26 @@ class Testing(unittest.TestCase):
                                 cwd=OUTPUT_DIR)
         self.assertEqual(0, result.returncode)
         # check if the .errormessage file generated is empty
-        self.assertTrue(os.stat("/tmp/.errormessage").st_size == 0)
+        self.assertTrue(os.stat(OUTPUT_DIR+".errormessage").st_size == 0)
         # check if the .errormessage exists since its a logger file
         self.assertTrue(os.path.exists(OUTPUT_DIR+".errormessage"))
+
+    # Run with a test-operator that does not support v4.9 or above which passes the
+    # bundle image validation job
+    def test_default_positive_below_4_9(self):
+        self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:test-default-positive-below-4.9-v1"
+        result = subprocess.run(self.exec_cmd,
+                                shell=True,
+                                env=self.env,
+                                cwd=OUTPUT_DIR,
+                                stdout=subprocess.PIPE,
+                                text=True)
+        self.assertEqual(0, result.returncode)
+        # check if the .errormessage file generated is empty
+        self.assertTrue(os.stat(OUTPUT_DIR+".errormessage").st_size == 0)
+        # check if the .errormessage exists since its a logger file
+        self.assertTrue(os.path.exists(OUTPUT_DIR+".errormessage"))
+        self.assertIn(result.stdout, '"support_v4_9": false', "Could not verify that support_v4_9 was set to false")
 
 
 if __name__ == '__main__':
