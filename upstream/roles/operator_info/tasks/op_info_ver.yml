@@ -90,8 +90,8 @@
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
-    idx_versions: "{{ bvf_versions_validated }}"
-    idx_label: "{{ bvf_label_validated }}"
+    idx_versions: "{{ bvf_versions }}"
+    idx_label: "{{ bvf_label }}"
 
 # - pause:
 # TODO: LABEL handle
