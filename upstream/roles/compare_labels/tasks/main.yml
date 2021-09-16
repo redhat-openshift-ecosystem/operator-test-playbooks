@@ -17,38 +17,37 @@
     - debug:
         var: cl_operator_label
 
-    - name: "Label found in git"
-      block:
+    - name: "Label not found in git, setting all range label"
+      set_fact:
+        cl_operator_label: "v4.5"
+      when: cl_operator_label is not defined or not cl_operator_label|length>0
 
-        - name: "Convert label to cluster versions"
-          include_role:
-            name: pyxis
-          vars:
-            p_range: "{{ cl_operator_label }}"
+    - name: "Convert label to cluster versions"
+      include_role:
+        name: pyxis
+      vars:
+        p_range: "{{ cl_operator_label }}"
 
-        - name: "Collect variables"
-          set_fact:
-            cl_git_label_list: "{{ p_indexes_by_pyxis }}"
-#            cl_artificial_label: "{{ (op_info | selectattr('name','equalto',cl_package_name) | first).manifests[cl_operator_ver].idx_label }}"
-            cl_artificial_label: "{{ bvf_label }}"
+    - name: "Collect variables"
+      set_fact:
+        cl_git_label_list: "{{ p_indexes_by_pyxis }}"
+        cl_artificial_label: "{{ bvf_label }}"
 
-        - name: "Convert artificial label to versions"
-          include_role:
-            name: pyxis
-          vars:
-            p_range: "{{ cl_artificial_label }}"
+    - name: "Convert artificial label to versions"
+      include_role:
+        name: pyxis
+      vars:
+        p_range: "{{ cl_artificial_label }}"
 
-        - name: "Set variable from the task to the role"
-          set_fact:
-            cl_artificial_label_list: "{{ p_indexes_by_pyxis }}"
+    - name: "Set variable from the task to the role"
+      set_fact:
+        cl_artificial_label_list: "{{ p_indexes_by_pyxis }}"
 
-        - name: "Check validity"
-          include_tasks: validity.yml
-          loop: "{{ cl_git_label_list }}"
-          loop_control:
-            loop_var: cl_git_label_version
-
-      when: cl_operator_label is defined and cl_operator_label|length>0
+    - name: "Check validity"
+      include_tasks: validity.yml
+      loop: "{{ cl_git_label_list }}"
+      loop_control:
+        loop_var: cl_git_label_version
 
     - name: "Output"
       debug:
