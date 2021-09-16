@@ -121,7 +121,9 @@
   lineinfile:
     path: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}/metadata/annotations.yaml"
     line: "  com.redhat.openshift.versions: {{ idx_label }}"
-  when: oi_operator_format == "manifest"
+  when:
+    - oi_operator_format == "manifest"
+    - idx_label|length > 0
 
 - name: "Update channels"
   include_tasks: op_info_ver_channel.yml
