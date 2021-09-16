@@ -36,7 +36,26 @@
   set_fact:
     api_cluster_result_line: "{{ api_cluster_converted }}"
 
+- name: "Debug api_cluster_result_line"
+  debug:
+    var: api_cluster_result_line
+
+- name: "Debug cl_git_label_list"
+  debug:
+    var: cl_git_label_list
+
 - name: "Fill supported clusters - {{ validate_api_cluster_version }}"
   set_fact:
     bvf_versions: "{{ bvf_versions | default([]) + [api_cluster_result_line] }}"
-  when: bvf_cluster_valid|bool
+  when:
+    - bvf_cluster_valid|bool
+    - api_cluster_result_line in cl_git_label_list
+# TODO check if both parts contains "v" here ^
+
+- name: "Fail on a wrong label - found invalid cluster in label range"
+  fail:
+    msg: "Cluster {{ api_cluster_result_line }} resulted as invalid by operator-sdk tool despite bundle has {{ cl_git_operator_label }} label defined. Please fix"
+  when:
+    - api_cluster_result_line == bundle_index_image_version
+    - not bvf_cluster_valid|bool
+    - api_cluster_result_line in cl_git_label_list
