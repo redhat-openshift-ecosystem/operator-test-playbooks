@@ -1,7 +1,7 @@
 name: Operator test playbook upstream (otpu) iib tests
 env:
   ANSIBLE_CONFIG: "$PWD/upstream/ansible.cfg"
-  ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false -e cluster_type=ocp"
+  ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false -e cluster_type=ocp -e automatic_cluster_version_label=true"
   ANSIBLE_VERSION: "2.9.21"
 
 on:
