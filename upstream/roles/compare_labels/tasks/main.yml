@@ -20,7 +20,7 @@
     - name: "Label not found in git, setting all range label"
       set_fact:
         cl_operator_label: "v4.5"
-      when: cl_operator_label is not defined or not cl_operator_label|length>0
+      when: cl_operator_label is not defined or cl_operator_label|length == 0
 
     - name: "Convert label to cluster versions"
       include_role:
