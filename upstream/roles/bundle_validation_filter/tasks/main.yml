@@ -53,7 +53,9 @@
   debug:
     var: oi_operator_format
 
-
+- name: "Debug cl_label_valid"
+  debug:
+    var: cl_label_valid
 
 #  - name: "Final validity status"
 #    debug:
