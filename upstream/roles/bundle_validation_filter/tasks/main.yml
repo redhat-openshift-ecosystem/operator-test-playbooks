@@ -8,6 +8,16 @@
   set_fact:
     bvf_cluster_valid: true
     bvf_versions: []
+    cl_git_operator_label: ""
+    cl_git_label_list: []
+
+- name: "Load label"
+  include_role:
+    name: compare_labels
+  vars:
+    cl_package_name: "{{ oi_operator_name }}"
+    cl_operator_ver: "{{ oi_operator_ver }}"
+  when: oi_operator_format == "bundle"
 
 - name: "Loop cluster versions '{{ k8s_versions }}' for API validation"
   include_tasks: validate_api.yml
@@ -43,23 +53,15 @@
   debug:
     var: oi_operator_format
 
-- name: "Validate git label"
-  block:
-    - name: "Compare labels"
-      include_role:
-        name: compare_labels
-      vars:
-        cl_package_name: "{{ oi_operator_name }}"
-        cl_operator_ver: "{{ oi_operator_ver }}"
 
-    - name: "Debug"
-      debug:
-        var: cl_label_valid
 
-    - name: "Fail on a wrong label"
-      fail:
-        msg: "Correct label for {{ bundle_to_validate }} is {{ cl_artificial_label }} and we found {{ cl_operator_label  }}. Please fix"
-      when: not cl_label_valid|bool
-
-  when:
-    - validate_label|bool
+#  - name: "Final validity status"
+#    debug:
+#      var: cl_label_valid
+#
+#  - name: "Fail on a wrong label"
+#    fail:
+#      msg: "Correct label for {{ bundle_to_validate }} is {{ cl_artificial_label }} and we found {{ cl_operator_label  }}. Please fix"
+#    when:
+#      - not cl_label_valid|bool
+#      - validate_label|bool
