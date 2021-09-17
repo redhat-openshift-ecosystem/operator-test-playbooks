@@ -127,6 +127,15 @@
     - oi_operator_format == "manifest"
     - idx_label|length > 0
 
+- name: "Adding operator version label to 'oi_auto_labels'"
+  set_fact:
+    oi_auto_labels: "{{ oi_auto_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+idx_label ] }}"
+  when:
+    - not automatic_cluster_version_label|bool
+    - cluster_type == "ocp"
+    - oi_operator_format == "manifest"
+    - idx_label|length > 0
+
 - name: "Update channels"
   include_tasks: op_info_ver_channel.yml
   loop: "{{ oi_operator_version_channels }}"

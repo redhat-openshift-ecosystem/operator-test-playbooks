@@ -22,14 +22,7 @@
 
 - name: "Print 'mtb_manifest_dir'"
   debug:
-    var: mtb_manifest_dir
-- name: "Print 'mtb_output_dir'"
-  debug:
-    var: mtb_output_dir
-
-- name: "Print 'mtb_manifest_dir'"
-  debug:
-    msg: "From '{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}' to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+    msg: "Manifest/Bundle from '{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}' to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
 
 - name: "Check if bundle for '{{ oi_operator_name }}/{{ oi_operator_ver }}' exists"
   stat:

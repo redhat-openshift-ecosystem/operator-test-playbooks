@@ -41,21 +41,17 @@
   when:
     - validate_api|bool
 
-- name: "Debug oi_operator_name"
-  debug:
-    var: oi_operator_name
+# - name: "Debug oi_operator_name"
+#   debug:
+#     var: oi_operator_name
 
-- name: "Debug oi_operator_ver"
-  debug:
-    var: oi_operator_ver
+# - name: "Debug oi_operator_ver"
+#   debug:
+#     var: oi_operator_ver
 
-- name: "Debug oi_operator_format"
-  debug:
-    var: oi_operator_format
-
-- name: "Debug cl_label_valid"
-  debug:
-    var: cl_label_valid
+# - name: "Debug oi_operator_format"
+#   debug:
+#     var: oi_operator_format
 
 #  - name: "Final validity status"
 #    debug:
