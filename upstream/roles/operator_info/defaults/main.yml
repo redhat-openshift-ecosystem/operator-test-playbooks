@@ -11,3 +11,4 @@ oi_supported_cluster_versions:
   - "4.7"
   - "4.8"
   - "4.9"
+automatic_cluster_version_label: false
