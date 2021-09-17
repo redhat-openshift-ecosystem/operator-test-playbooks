@@ -122,6 +122,8 @@
     path: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}/metadata/annotations.yaml"
     line: "  com.redhat.openshift.versions: {{ idx_label }}"
   when:
+    - automatic_cluster_version_label|bool
+    - cluster_type == "ocp"
     - oi_operator_format == "manifest"
     - idx_label|length > 0
 
