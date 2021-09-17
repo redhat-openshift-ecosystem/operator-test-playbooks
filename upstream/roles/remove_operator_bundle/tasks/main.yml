@@ -20,14 +20,52 @@
         - bob_remove_loop|length > 0
 
     - name: "Remove repo '{{ bundle_image_namespace }}/{{ operator_dir_name }}' from 'quay'"
-      uri:
-        url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_dir_name }}"
-        method: DELETE
-        force_basic_auth: true
-        headers:
-          Authorization: "Bearer {{ quay_api_token }}"
-        status_code: 204
-      failed_when: false
+      block:
+        - name: "Get list of tags for index image from bundle registry"
+          uri:
+            url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_dir_name }}/tags/list"
+          register: rob_registry_versions_rm_repo
+          failed_when: false
+
+        - name: "Reset 'rob_versions_rm_repo' variable"
+          set_fact:
+            rob_versions_rm_repo: []
+
+        - name: "Setting all versions to 'rob_versions_rm_repo' variable"
+          set_fact:
+            rob_versions_rm_repo: "{{ (rob_registry_versions_rm_repo.json.tags | reject('search', ignore_image_string) | list) }}"
+          when:
+            - rob_registry_versions_rm_repo.status is defined
+            - rob_registry_versions_rm_repo.status == 200
+
+        - name: "Print versions to be removed from '{{ bundle_image_namespace }}/{{ operator_dir_name }}'"
+          debug:
+            var: rob_versions_rm_repo
+
+        - name: "Delete specifig tags from repo '{{ bundle_image_namespace }}/{{ operator_dir_name }}'"
+          uri:
+            url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_dir_name }}/tag/{{ op_ver_rm_item }}"
+            method: DELETE
+            force_basic_auth: true
+            headers:
+              Authorization: "Bearer {{ quay_api_token }}"
+            status_code: 204
+          # failed_when: false
+          loop: "{{ rob_versions_rm_repo }}"
+          loop_control:
+            loop_var: op_ver_rm_item
+          when: rob_versions_rm_repo.0 is defined
+
+        # - name: "Remove repo '{{ bundle_image_namespace }}/{{ operator_dir_name }}' from 'quay'"
+        #   uri:
+        #     url: "https://quay.io/api/v1/repository/{{ bundle_image_namespace }}/{{ operator_dir_name }}"
+        #     method: DELETE
+        #     force_basic_auth: true
+        #     headers:
+        #       Authorization: "Bearer {{ quay_api_token }}"
+        #     status_code: 204
+        #   failed_when: false
+
       when:
         - quay_api_token is defined
         - quay_api_token|length > 0
