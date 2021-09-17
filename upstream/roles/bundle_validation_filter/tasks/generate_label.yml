@@ -1,5 +1,4 @@
 ---
-#TODO: backward compatibility
 - name: "Fail if 'bvf_versions' is not defined"
   fail:
     msg: "Variable 'bvf_versions' is undefined. Please run bundle_validate_filter with 'validate_api=true'"
@@ -9,7 +8,7 @@
   set_fact:
     label_set: false
 
-- name: ""
+- name: "Set label"
   block:
 
     - name: "Only single cluster supported"
@@ -45,3 +44,7 @@
   debug:
     msg: "Operator version not valid for any cluster, not generating any cluster version label"
   when: cluster_type|length == 0
+
+- name: "Set fact"
+  set_fact:
+    cl_artificial_label: "{{ bvf_label }}"
