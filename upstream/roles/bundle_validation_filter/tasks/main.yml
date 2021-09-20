@@ -12,17 +12,13 @@
     cl_git_label_list: []
     bvf_clusters_base_to_loop: "{{ k8s2ocp.keys() | list }}"
 
-- name: "Debug bvf_clusters_base_to_loop"
-  debug:
-    var: bvf_clusters_base_to_loop
-
 - name: "Load label"
   include_role:
     name: compare_labels
   vars:
     cl_package_name: "{{ oi_operator_name }}"
     cl_operator_ver: "{{ oi_operator_ver }}"
-  when: oi_operator_format == "bundle"
+#  when: oi_operator_format == "bundle"
 
 - name: "Loop cluster versions '{{ k8s_versions }}' for API validation"
   include_tasks: validate_api.yml
