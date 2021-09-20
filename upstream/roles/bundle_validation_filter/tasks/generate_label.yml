@@ -31,6 +31,22 @@
         - cluster_type|count >= 2
         - bvf_supported_cluster_versions_count == bvf_versions_count
 
+    - name: "Debug bvf_versions"
+      debug:
+        var: bvf_versions
+
+    - name: "Debug cluster_type"
+      debug:
+        var: cluster_type
+
+    - name: "Debug bvf_supported_cluster_versions_count"
+      debug:
+        var: bvf_supported_cluster_versions_count
+
+    - name: "Debug bvf_versions_count"
+      debug:
+        var: bvf_versions_count
+
     - name: "Label cluster range when some cluster unsupported"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
