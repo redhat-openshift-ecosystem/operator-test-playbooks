@@ -8,13 +8,13 @@
     cl_label_valid: true
     cl_operator_format: "{{ oi_operator_format }}"
 
-- name: "Compare labels"
-  block:
+# - name: "Compare labels"
+#   block:
 
-    - name: "Parse label"
-      include_tasks: parse_label.yml
+#     - name: "Parse label"
+#       include_tasks: parse_label.yml
 
-  when: cl_operator_format == "bundle"
+#   when: cl_operator_format == "bundle"
 
 # - debug:
 #     var: cl_operator_label
@@ -22,7 +22,12 @@
 - name: "Label not found in git, setting all range label"
   set_fact:
     cl_operator_label: "v4.5"
-  when: cl_operator_label is not defined or cl_operator_label|length == 0
+
+- name: "Label not found in git, setting all range label"
+  set_fact:
+    cl_operator_label: "{{ annotations_vars.annotations['com.redhat.openshift.versions'] | default('v4.5') }}"
+  when: annotations_vars.annotations['com.redhat.openshift.versions'] is defined and annotations_vars.annotations['com.redhat.openshift.versions']|length>0
+  # when: cl_operator_label is not defined or cl_operator_label|length == 0
 
 - name: "Convert label to cluster versions"
   include_role:
