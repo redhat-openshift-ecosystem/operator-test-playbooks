@@ -1,0 +1,21 @@
+kind: Configuration
+apiversion: scorecard.operatorframework.io/v1alpha3
+metadata:
+  name: config
+stages:
+- tests:
+  - image: quay.io/cvpops/demo-scorecard-image:stable
+    entrypoint:
+    - demo-scorecard-tests
+    - customtest1
+    labels:
+      suite: demo
+      test: customtest1
+  - image: quay.io/cvpops/demo-scorecard-image:stable
+    entrypoint:
+    - demo-scorecard-tests
+    - customtest2
+    labels:
+      suite: demo
+      test: customtest2
+

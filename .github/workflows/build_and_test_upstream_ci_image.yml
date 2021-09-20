@@ -25,10 +25,14 @@ jobs:
       - name: "Build the upstream_ci_image inside Dockerfiles"
         run: |
           podman --version
-          podman build -t upstream_ci_image:latest -f Dockerfiles/ci/Dockerfile --build-arg OPERATOR_SDK_VERSION=v1.4.0
+          podman build -t upstream_ci_image:latest -f Dockerfiles/ci/Dockerfile
 
-      - name: "Run example operator-metadata with missing alm-examples through upstream_ci_image --> positive test"
+      - name: "Run example default positive operator bundle --> positive test"
         continue-on-error: false
         run: |
-          mkdir test_operator_work_dir output_logs
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-metadata-without-alm-annotations:/project/operator_dir -v ./output_logs:/project/output -v ./test_operator_work_dir:/project/test_operator_work_dir -e TEST_NAME=test_for_report_success_empty_alm_examples -e OPERATOR_DIR=/project/operator_dir -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-default-positive:/project/output -v ./Dockerfiles/ci/example-bundle-default-positive:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_success -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+
+      - name: "Run example default negative operator bundle --> negative test"
+        continue-on-error: false
+        run: |
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-default-positive:/project/output -v ./Dockerfiles/ci/example-bundle-default-negative:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_failure -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest

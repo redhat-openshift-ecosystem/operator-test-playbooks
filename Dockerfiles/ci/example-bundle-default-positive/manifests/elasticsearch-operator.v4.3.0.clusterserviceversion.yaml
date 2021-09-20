@@ -1,0 +1,292 @@
+#! validate-crd: deploy/chart/templates/0000_30_02-clusterserviceversion.crd.yaml
+#! parse-kind: ClusterServiceVersion
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: e2e-test-operator.4.3.1-202002032140
+  namespace: placeholder
+  annotations:
+    categories: "OpenShift Optional,Logging & Tracing"
+    capabilities: "Seamless Upgrades"
+    certified: "false"
+    description: |-
+      The Elasticsearch Operator for OKD provides a means for configuring and managing an Elasticsearch cluster for tracing and cluster logging.
+      ## Prerequisites and Requirements
+      ### Elasticsearch Operator Namespace
+      The Elasticsearch Operator must be deployed to the global operator group namespace
+      ### Memory Considerations
+      Elasticsearch is a memory intensive application.  The initial
+      set of OKD nodes may not be large enough to support the Elasticsearch cluster.  Additional OKD nodes must be added
+      to the OKD cluster if you desire to run with the recommended (or better) memory. Each ES node can operate with a
+      lower memory setting though this is not recommended for production deployments.
+    containerImage: registry.redhat.io/openshift4/ose-elasticsearch-operator@sha256:b604641f95c9762ff9b1c9d550cec908d9caab3cc333120e7cf60a55539b8149
+    createdAt: 2019-02-20T08:00:00Z
+    support: AOS Cluster Logging, Jaeger
+    olm.skipRange: ">=4.2.0 <4.3.0"
+    alm-examples: |-
+        [
+            {
+                "apiVersion": "logging.openshift.io/v1",
+                "kind": "Elasticsearch",
+                "metadata": {
+                  "name": "elasticsearch"
+                },
+                "spec": {
+                  "managementState": "Managed",
+                  "nodeSpec": {
+                    "image": "registry.redhat.io/openshift4/ose-logging-elasticsearch6@sha256:855f8a9f2ff395f3ffa423dc13aedddf49f2ea73af67ae7ca746cad127462e93",
+                    "resources": {
+                      "limits": {
+                        "memory": "1Gi"
+                      },
+                      "requests": {
+                        "memory": "512Mi"
+                      }
+                    }
+                  },
+                  "redundancyPolicy": "SingleRedundancy",
+                  "nodes": [
+                    {
+                        "nodeCount": 1,
+                        "roles": ["client","data","master"]
+                    }
+                  ]
+                }
+            }
+        ]
+spec:
+  relatedImages:
+    - name: ose-elasticsearch-operator
+      image: registry.redhat.io/openshift4/ose-elasticsearch-operator@sha256:b604641f95c9762ff9b1c9d550cec908d9caab3cc333120e7cf60a55539b8149
+    - name: ose-logging-elasticsearch6
+      image: registry.redhat.io/openshift4/ose-logging-elasticsearch6@sha256:855f8a9f2ff395f3ffa423dc13aedddf49f2ea73af67ae7ca746cad127462e93
+    - name: ose-oauth-proxy
+      image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:054f5239263bc8fed67bb6bba28b6566beca0a39e3f1a556df95b4fa612c8fb4
+    - name: elasticsearch-operator-metadata-container
+      image: registry.redhat.io/openshift-logging/elasticsearch-operator-bundle@sha256:3e58677fd713effdb440c24ff3d16f5cee4628882c8369bea718ff527e997023
+  version: 4.3.1-202002032140
+  displayName: Elasticsearch Operator
+  minKubeVersion: 1.14.0
+  icon:
+    - base64data: PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMS4wICg0MDM1YTRmYjQ5LCAyMDIwLTA1LTAxKSIKICAgaGVpZ2h0PSI2NCIKICAgd2lkdGg9IjY0IgogICBzb2RpcG9kaTpkb2NuYW1lPSJjbHVzdGVyLWNvbG9yLTY0eDY0LnN2ZyIKICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIKICAgdmlld0JveD0iMCAwIDY0IDY0IgogICB5PSIwcHgiCiAgIHg9IjBweCIKICAgaWQ9IkxheWVyXzEiCiAgIHZlcnNpb249IjEuMSI+PG1ldGFkYXRhCiAgIGlkPSJtZXRhZGF0YTExOCI+PHJkZjpSREY+PGNjOldvcmsKICAgICAgIHJkZjphYm91dD0iIj48ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD48ZGM6dHlwZQogICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPjxkYzp0aXRsZT48L2RjOnRpdGxlPjwvY2M6V29yaz48L3JkZjpSREY+PC9tZXRhZGF0YT48ZGVmcwogICBpZD0iZGVmczExNiIgLz48c29kaXBvZGk6bmFtZWR2aWV3CiAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9IkxheWVyXzEiCiAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiCiAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICBpbmtzY2FwZTp3aW5kb3cteD0iMCIKICAgaW5rc2NhcGU6Y3k9IjUwLjkwMzQ1NiIKICAgaW5rc2NhcGU6Y3g9IjEyIgogICBpbmtzY2FwZTp6b29tPSIzNC45NTgzMzMiCiAgIGZpdC1tYXJnaW4tYm90dG9tPSIwIgogICBmaXQtbWFyZ2luLXJpZ2h0PSIwIgogICBmaXQtbWFyZ2luLWxlZnQ9IjAiCiAgIGZpdC1tYXJnaW4tdG9wPSIwIgogICBzaG93Z3JpZD0iZmFsc2UiCiAgIGlkPSJuYW1lZHZpZXcxMTQiCiAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9IjEzODgiCiAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMjU2MCIKICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiCiAgIGd1aWRldG9sZXJhbmNlPSIxMCIKICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgIG9iamVjdHRvbGVyYW5jZT0iMTAiCiAgIGJvcmRlcm9wYWNpdHk9IjEiCiAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICBwYWdlY29sb3I9IiNmZmZmZmYiIC8+CjxzdHlsZQogICBpZD0ic3R5bGU5MSIKICAgdHlwZT0idGV4dC9jc3MiPgoJLnN0MHtmaWxsOiNGRkQxMDY7fQoJLnN0MXtmaWxsOiMyMUJBQjA7fQoJLnN0MntmaWxsOiNFRTRGOTc7fQoJLnN0M3tmaWxsOiMxNEE3REY7fQoJLnN0NHtmaWxsOiM5MUM3M0U7fQoJLnN0NXtmaWxsOiMwMjc5QTA7fQoJLnN0NntmaWxsOm5vbmU7fQo8L3N0eWxlPgo8ZwogICB0cmFuc2Zvcm09InNjYWxlKDIuNjU1NjAxNywyLjY2NjY2NjcpIgogICBpZD0iZzEwOSI+Cgk8ZwogICBpZD0iZzEwNyI+CgkJPGcKICAgaWQ9ImcxMDUiPgoJCQk8cGF0aAogICBpZD0icGF0aDkzIgogICBkPSJtIDkuMiwxMC4yIDUuNywyLjYgNS43LC01IEMgMjAuNyw3LjQgMjAuNyw3IDIwLjcsNi41IDIwLjcsMyAxNy44LDAuMSAxNC4zLDAuMSAxMi4yLDAuMSAxMC4yLDEuMSA5LDIuOSBsIC0xLDUgeiIKICAgY2xhc3M9InN0MCIgLz4KCQkJPHBhdGgKICAgaWQ9InBhdGg5NSIKICAgZD0ibSAzLjMsMTYuMiBjIC0wLjEsMC40IC0wLjEsMC44IC0wLjEsMS4zIDAsMy41IDIuOSw2LjQgNi40LDYuNCAyLjEsMCA0LjEsLTEuMSA1LjMsLTIuOCBsIDAuOSwtNC45IC0xLjMsLTIuNCAtNS43LC0yLjYgeiIKICAgY2xhc3M9InN0MSIgLz4KCQkJPHBhdGgKICAgaWQ9InBhdGg5NyIKICAgZD0iTSAzLjMsNi40IDcuMiw3LjMgOCwyLjkgQyA3LjUsMi40IDYuOSwyLjIgNi4yLDIuMiA0LjUsMi4yIDMuMSwzLjYgMy4xLDUuMyAzLjEsNS43IDMuMiw2IDMuMyw2LjQiCiAgIGNsYXNzPSJzdDIiIC8+CgkJCTxwYXRoCiAgIGlkPSJwYXRoOTkiCiAgIGQ9Im0gMyw3LjMgYyAtMS43LDAuNiAtMywyLjIgLTMsNC4xIDAsMS44IDEuMSwzLjQgMi44LDQgbCA1LjUsLTQuOSAtMSwtMi4xIHoiCiAgIGNsYXNzPSJzdDMiIC8+CgkJCTxwYXRoCiAgIGlkPSJwYXRoMTAxIgogICBkPSJtIDE2LDIxLjEgYyAwLjUsMC40IDEuMiwwLjYgMS45LDAuNiAxLjcsMCAzLjEsLTEuNCAzLjEsLTMuMSAwLC0wLjQgLTAuMSwtMC43IC0wLjIsLTEuMSBsIC0zLjksLTAuOSB6IgogICBjbGFzcz0ic3Q0IiAvPgoJCQk8cGF0aAogICBpZD0icGF0aDEwMyIKICAgZD0ibSAxNi44LDE1LjcgNC4zLDEgYyAxLjcsLTAuNiAzLC0yLjIgMywtNC4xIDAsLTEuOCAtMS4xLC0zLjQgLTIuOCwtNCBsIC01LjYsNC45IHoiCiAgIGNsYXNzPSJzdDUiIC8+CgkJPC9nPgoJPC9nPgo8L2c+CjxyZWN0CiAgIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi42NjExMyIKICAgeT0iMCIKICAgeD0iMCIKICAgaWQ9InJlY3QxMTEiCiAgIGhlaWdodD0iNjQiCiAgIHdpZHRoPSI2My43MzQ0NCIKICAgY2xhc3M9InN0NiIgLz4KPC9zdmc+Cg==
+      mediatype: image/svg+xml
+  description: |
+    The Elasticsearch Operator for OKD provides a means for configuring and managing an Elasticsearch cluster for use in tracing and cluster logging.
+    This operator only supports OKD Cluster Logging and Jaeger.  It is tightly coupled to each and is not currently capable of
+    being used as a general purpose manager of Elasticsearch clusters running on OKD.
+
+    It is recommended this operator be deployed to the **openshift-operators** namespace to properly support the Cluster Logging and Jaeger use cases.
+
+    Once installed, the operator provides the following features:
+    * **Create/Destroy**: Deploy an Elasticsearch cluster to the same namespace in which the Elasticsearch custom resource is created.
+
+  keywords: ['elasticsearch', 'jaeger']
+
+  maintainers:
+  - name: Red Hat, AOS Logging
+    email: aos-logging@redhat.com
+
+  provider:
+    name: Red Hat, Inc
+
+  links:
+  - name: Elastic
+    url: https://www.elastic.co/
+  - name: Elasticsearch Operator
+    url: https://github.com/openshift/elasticsearch-operator
+  installModes:
+  - type: OwnNamespace
+    supported: true
+  - type: SingleNamespace
+    supported: false
+  - type: MultiNamespace
+    supported: false
+  - type: AllNamespaces
+    supported: true
+  install:
+    strategy: deployment
+    spec:
+      clusterPermissions:
+      - serviceAccountName: elasticsearch-operator
+        rules:
+        - apiGroups:
+          - logging.openshift.io
+          resources:
+          - "*"
+          verbs:
+          - "*"
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - pods/exec
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          - serviceaccounts
+          verbs:
+          - "*"
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - "*"
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - prometheusrules
+          - servicemonitors
+          verbs:
+          - "*"
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          - clusterrolebindings
+          verbs:
+          - "*"
+        - nonResourceURLs:
+          - "/metrics"
+          verbs:
+          - get
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          - subjectaccessreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+      deployments:
+      - name: elasticsearch-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: elasticsearch-operator
+          template:
+            metadata:
+              labels:
+                name: elasticsearch-operator
+            spec:
+              serviceAccountName: elasticsearch-operator
+              containers:
+                - name: elasticsearch-operator
+                  image: registry.redhat.io/openshift4/ose-elasticsearch-operator@sha256:b604641f95c9762ff9b1c9d550cec908d9caab3cc333120e7cf60a55539b8149
+                  imagePullPolicy: IfNotPresent
+                  command:
+                  - elasticsearch-operator
+                  ports:
+                  - containerPort: 60000
+                    name: metrics
+                  env:
+                    - name: WATCH_NAMESPACE
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: metadata.annotations['olm.targetNamespaces']
+                    - name: POD_NAME
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: metadata.name
+                    - name: OPERATOR_NAME
+                      value: "elasticsearch-operator"
+                    - name: PROXY_IMAGE
+                      value: "registry.redhat.io/openshift4/ose-oauth-proxy@sha256:054f5239263bc8fed67bb6bba28b6566beca0a39e3f1a556df95b4fa612c8fb4"
+                    - name: ELASTICSEARCH_IMAGE
+                      value: "registry.redhat.io/openshift4/ose-logging-elasticsearch6@sha256:855f8a9f2ff395f3ffa423dc13aedddf49f2ea73af67ae7ca746cad127462e93"
+  customresourcedefinitions:
+    owned:
+    - name: elasticsearches.logging.openshift.io
+      version: v1
+      kind: Elasticsearch
+      displayName: Elasticsearch
+      description: An Elasticsearch cluster instance
+      resources:
+      - kind: Deployment
+        version: v1
+      - kind: StatefulSet
+        version: v1
+      - kind: ReplicaSet
+        version: v1
+      - kind: Pod
+        version: v1
+      - kind: ConfigMap
+        version: v1
+      - kind: Service
+        version: v1
+      - kind: Route
+        version: v1
+      specDescriptors:
+      - description: Limits describes the minimum/maximum amount of compute resources required/allowed
+        displayName: Resource Requirements
+        path: nodeSpec.resources
+        x-descriptors:
+          - 'urn:alm:descriptor:com.tectonic.ui:resourceRequirements'
+      statusDescriptors:
+      - description: The current Status of the Elasticsearch Cluster
+        displayName: Status
+        path: cluster.status
+        x-descriptors:
+          - 'urn:alm:descriptor:io.kubernetes.phase'
+      - description: The number of Active Primary Shards for the Elasticsearch Cluster
+        displayName: Active Primary Shards
+        path: cluster.activePrimShards
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The number of Active Shards for the Elasticsearch Cluster
+        displayName: Active Shards
+        path: cluster.activeShards
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The number of Initializing Shards for the Elasticsearch Cluster
+        displayName: Initializing Shards
+        path: cluster.initializingShards
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The number of Data Nodes for the Elasticsearch Cluster
+        displayName: Number of Data Nodes
+        path: cluster.numDataNodes
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The number of Nodes for the Elasticsearch Cluster
+        displayName: Number of Nodes
+        path: cluster.numNodes
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The number of Relocating Shards for the Elasticsearch Cluster
+        displayName: Relocating Shards
+        path: cluster.relocatingShards
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The number of Unassigned Shards for the Elasticsearch Cluster
+        displayName: Unassigned Shards
+        path: cluster.unassignedShards
+        x-descriptors:
+          - 'urn:alm:descriptor:text'
+      - description: The status for each of the Elasticsearch pods with the Client role
+        displayName: Elasticsearch Client Status
+        path: pods.client
+        x-descriptors:
+        - 'urn:alm:descriptor:com.tectonic.ui:podStatuses'
+      - description: The status for each of the Elasticsearch pods with the Data role
+        displayName: Elasticsearch Data Status
+        path: pods.data
+        x-descriptors:
+        - 'urn:alm:descriptor:com.tectonic.ui:podStatuses'
+      - description: The status for each of the Elasticsearch pods with the Master role
+        displayName: Elasticsearch Master Status
+        path: pods.master
+        x-descriptors:
+        - 'urn:alm:descriptor:com.tectonic.ui:podStatuses'
