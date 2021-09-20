@@ -40,7 +40,11 @@
 - name: "Override label for packagemanifest"
   set_fact:
     cl_git_label_list: "{{ api_cluster_result_line }}"
-  when: oi_operator_format == "packagemanifest"
+  when: oi_operator_format == "manifest"
+
+- name: "Debug oi_operator_format"
+  debug:
+    var: oi_operator_format
 
 - name: "Debug api_cluster_result_line"
   debug:
