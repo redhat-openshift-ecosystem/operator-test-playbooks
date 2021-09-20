@@ -52,6 +52,11 @@
     oi_auto_labels: []
     oi_invalid_labels: []
 
+- name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
+  file:
+    path: "{{ oi_auto_labels_output_file }}"
+    state: absent
+
 - name: "Loop over all versions"
   include_tasks: op_info_ver.yml
   loop: "{{ oi_versions_in_dir }}"
@@ -67,6 +72,10 @@
 
 - name: "Fail when automatic cluster version label is needed and 'automatic_cluster_version_label' is not set to True"
   block:
+
+    - name: "Generate error file"
+      copy: content="operators:\n{{ oi_auto_labels | to_nice_yaml }}" dest="{{ oi_auto_labels_output_file }}"
+
     - name: "Prints error message"
       set_fact:
         auto_label_error_msg: |
