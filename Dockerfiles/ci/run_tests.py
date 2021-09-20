@@ -35,5 +35,11 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
             print(result_output)
             self.assertEqual(result_output["result"], "pass")
 
+
 if __name__ == '__main__':
-    unittest.main()
+    test_name = os.getenv('TEST_NAME', "test_for_report_success_empty_alm_examples")
+    suite = unittest.TestSuite()
+    suite.addTest(RunOperatorTestPlaybookTests(test_name))
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+
