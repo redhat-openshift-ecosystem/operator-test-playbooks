@@ -10,6 +10,11 @@
     bvf_versions: []
     cl_git_operator_label: ""
     cl_git_label_list: []
+    bvf_clusters_base_to_loop: "{{ k8s2ocp.keys() | list }}"
+
+- name: "Debug bvf_clusters_base_to_loop"
+  debug:
+    var: bvf_clusters_base_to_loop
 
 - name: "Load label"
   include_role:
@@ -21,14 +26,13 @@
 
 - name: "Loop cluster versions '{{ k8s_versions }}' for API validation"
   include_tasks: validate_api.yml
-  loop: "{{ k8s2ocp.keys() | list }}"
+  loop: "{{ bvf_clusters_base_to_loop }}"
   loop_control:
     loop_var: validate_api_cluster_version
   when:
     - validate_api_cluster_version is version(bvf_min | default(ocp2k8s[bvf_supported_cluster_versions[0]], true),'>=')
     - validate_api_cluster_version is version(bvf_max | default(ocp2k8s[bvf_supported_cluster_versions[-1]], true),'<=')
     - validate_api|bool
-
 
 - name: "Generate label"
   include_tasks: generate_label.yml

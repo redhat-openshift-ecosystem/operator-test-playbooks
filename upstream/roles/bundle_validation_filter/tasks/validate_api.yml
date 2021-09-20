@@ -54,7 +54,6 @@
   when:
     - bvf_cluster_valid|bool
     - api_cluster_result_line in cl_git_label_list
-# TODO check if both parts contains "v" here ^
 
 - name: "Debug cl_git_label_list"
   debug:

@@ -25,5 +25,6 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e strict_mode=true \
 -e operator_channel_force=optest \
 -e cluster_type=ocp \
+-e automatic_cluster_version_label=true \
 -e image_protocol="docker://" \
 $OP_ANSIBLE_EXTRA
