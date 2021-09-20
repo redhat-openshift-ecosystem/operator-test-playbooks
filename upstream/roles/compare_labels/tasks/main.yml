@@ -16,8 +16,8 @@
 
   when: cl_operator_format == "bundle"
 
-- debug:
-    var: cl_operator_label
+# - debug:
+#     var: cl_operator_label
 
 - name: "Label not found in git, setting all range label"
   set_fact:
