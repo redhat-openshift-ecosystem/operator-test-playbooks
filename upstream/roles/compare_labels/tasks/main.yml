@@ -16,24 +16,24 @@
 
   when: cl_operator_format == "bundle"
 
-    - debug:
-        var: cl_operator_label
+- debug:
+    var: cl_operator_label
 
-    - name: "Label not found in git, setting all range label"
-      set_fact:
-        cl_operator_label: "v4.5"
-      when: cl_operator_label is not defined or cl_operator_label|length == 0
+- name: "Label not found in git, setting all range label"
+  set_fact:
+    cl_operator_label: "v4.5"
+  when: cl_operator_label is not defined or cl_operator_label|length == 0
 
-    - name: "Convert label to cluster versions"
-      include_role:
-        name: pyxis
-      vars:
-        p_range: "{{ cl_operator_label }}"
+- name: "Convert label to cluster versions"
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "{{ cl_operator_label }}"
 
-    - name: "Collect variables"
-      set_fact:
-        cl_git_label_list: "{{ p_indexes_by_pyxis }}"
-        cl_git_operator_label: "{{ cl_operator_label }}"
+- name: "Collect variables"
+  set_fact:
+    cl_git_label_list: "{{ p_indexes_by_pyxis }}"
+    cl_git_operator_label: "{{ cl_operator_label }}"
 #        cl_artificial_label: "{{ bvf_label }}"
 
 #    - name: "Convert artificial label to versions"

@@ -61,9 +61,9 @@
     - bvf_cluster_valid|bool
     - api_cluster_result_line in cl_git_label_list
 
-- name: "Fail on a wrong label - found invalid cluster in label range"
+- name: "Fail on a wrong label - found invalid cluster in label range for bundle"
   fail:
-    msg: "Cluster {{ api_cluster_result_line }} resulted as invalid by operator-sdk tool despite bundle has {{ cl_git_operator_label }} label or no label defined. Please fix"
+    msg: "Cluster {{ api_cluster_result_line }} resulted as invalid by operator-sdk tool despite bundle has {{ cl_git_operator_label }} label or no label defined. Please fix."
   when:
     - api_cluster_result_line_with_v == bundle_index_image_version
     - not bvf_cluster_valid|bool
