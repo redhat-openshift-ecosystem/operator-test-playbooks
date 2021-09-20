@@ -77,8 +77,8 @@
           fetch: src=/tmp/operators_uncomplete.yaml dest=/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml flat=yes
           when: ansible_connection != "local"
 
-        - name: "Fetch failed operators file to controller machine to path '/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml'"
-          copy: src=/tmp/operators_uncomplete.yaml dest=/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml
+        - name: "Generate operators config file from failed operators"
+          copy: content="{{ chi_uncomplete_packages_config | to_nice_yaml }}" dest="/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml"
           when: ansible_connection == "local"
 
         - name: "Printing of content config file of uncomplete operators"
