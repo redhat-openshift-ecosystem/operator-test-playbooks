@@ -15,20 +15,20 @@
       set_fact:
         bvf_label: "=v{{ bvf_versions[0] }} }}"
       when:
-        - cluster_type|count == 1
+        - bvf_versions|count == 1
 
     - name: "Count occurrences"
       set_fact:
         bvf_supported_cluster_versions_count: "{{ bvf_supported_cluster_versions|count }}"
         bvf_versions_count: "{{ bvf_versions|count }}"
       when:
-        - cluster_type|count >= 2
+        - bvf_versions|count >= 2
 
     - name: "Empty label when all clusters supported"
       set_fact:
         bvf_label: ""
       when:
-        - cluster_type|count >= 2
+        - bvf_versions|count >= 2
         - bvf_supported_cluster_versions_count == bvf_versions_count
 
     - name: "Debug bvf_versions"
@@ -54,12 +54,12 @@
         - bvf_versions_count|count >= 2
         - bvf_supported_cluster_versions_count != bvf_versions_count
 
-  when: cluster_type|length != 0
+  when: bvf_versions|length != 0
 
 - name: "Report status"
   debug:
     msg: "Operator version not valid for any cluster, not generating any cluster version label"
-  when: cluster_type|length == 0
+  when: bvf_versions|length == 0
 
 - name: "Set fact"
   set_fact:
