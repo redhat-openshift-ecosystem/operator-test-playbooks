@@ -14,6 +14,8 @@
     - name: "Parse label"
       include_tasks: parse_label.yml
 
+  when: cl_operator_format == "bundle"
+
     - debug:
         var: cl_operator_label
 
@@ -54,4 +56,4 @@
 #      debug:
 #        var: cl_label_valid
 
-  when: cl_operator_format == "bundle"
+
