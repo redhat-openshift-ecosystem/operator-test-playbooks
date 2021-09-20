@@ -30,9 +30,19 @@ jobs:
       - name: "Run example default positive operator bundle --> positive test"
         continue-on-error: false
         run: |
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-default-positive:/project/output -v ./Dockerfiles/ci/example-bundle-default-positive:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_success -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-v45-v49:/project/output -v ./Dockerfiles/ci/example-bundle-default-positive:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_success -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
 
       - name: "Run example default negative operator bundle --> negative test"
         continue-on-error: false
         run: |
-          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-default-positive:/project/output -v ./Dockerfiles/ci/example-bundle-default-negative:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_failure -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-v45-v49:/project/output -v ./Dockerfiles/ci/example-bundle-default-negative:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_failure -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+
+      - name: "Run example v48 operator bundle --> positive test"
+        continue-on-error: false
+        run: |
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-v45-v48:/project/output -v ./Dockerfiles/ci/example-bundle-default-negative:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_failure -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
+
+      - name: "Run example v43 operator bundle --> negative test"
+        continue-on-error: false
+        run: |
+          podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/example-workdir-v43-v44:/project/output -v ./Dockerfiles/ci/example-bundle-default-negative:/project/test_operator_work_dir -e TEST_NAME=test_validate_default_operator_bundle_failure -e WORK_DIR=/project/output -e OPERATOR_WORK_DIR=/project/test_operator_work_dir/ upstream_ci_image:latest
