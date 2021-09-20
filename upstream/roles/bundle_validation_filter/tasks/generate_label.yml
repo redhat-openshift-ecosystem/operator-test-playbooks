@@ -51,7 +51,7 @@
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
       when:
-        - cluster_type|count >= 2
+        - bvf_versions_count|count >= 2
         - bvf_supported_cluster_versions_count != bvf_versions_count
 
   when: cluster_type|length != 0
