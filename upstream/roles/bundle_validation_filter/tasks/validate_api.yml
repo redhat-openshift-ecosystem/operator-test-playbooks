@@ -39,6 +39,7 @@
 - name: "Override label for packagemanifest"
   set_fact:
     cl_git_label_list: "{{ api_cluster_result_line }}"
+  when: oi_operator_format == "packagemanifest"
 
 - name: "Debug api_cluster_result_line"
   debug:
@@ -63,7 +64,7 @@
   fail:
     msg: "Cluster {{ api_cluster_result_line }} resulted as invalid by operator-sdk tool despite bundle has {{ cl_git_operator_label }} label or no label defined. Please fix"
   when:
-    - api_cluster_result_line == bundle_index_image_version
+    - "v"api_cluster_result_line == bundle_index_image_version
     - not bvf_cluster_valid|bool
     - api_cluster_result_line in cl_git_label_list
     - oi_operator_format == "bundle"
