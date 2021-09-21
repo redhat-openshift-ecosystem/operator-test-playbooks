@@ -90,7 +90,7 @@
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
-    idx_versions: "{{ bvf_versions }}"
+    idx_versions: "{{ bvf_versions| default([]) }}"
     idx_label: "{{ bvf_label }}"
 
 # - pause:
