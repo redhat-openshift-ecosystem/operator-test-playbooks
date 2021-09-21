@@ -37,11 +37,11 @@
 
 - name: "Fail on label not supported"
   block:
-    - name: ""
+    - name: "Set conflicting cluster versions"
       set_fact:
         bvf_versions_filtered: "{{ cl_git_label_list_supported |difference(bvf_versions) }}"
 
-    - name: ""
+    - name: "Collect fsiled labels"
       set_fact:
         oi_failed_labels: "{{ oi_failed_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+bvf_versions_filtered|join(',') ] }}"
       when:
@@ -49,46 +49,8 @@
         - cluster_type == "ocp"
         - oi_operator_format == "bundle"
 
-    - name: ""
-      debug:
-        var: bvf_versions_filtered
-
-    - debug:
-        var: cl_git_label_list_supported
-
-    - debug:
-        var: cl_git_label_list
-
-    - debug:
-        var: oi_failed_labels
-
-#    - pause:
-
 - name: "Output bvf_versions"
   debug:
     var: bvf_versions
   when:
     - validate_api|bool
-
-# - name: "Debug oi_operator_name"
-#   debug:
-#     var: oi_operator_name
-
-# - name: "Debug oi_operator_ver"
-#   debug:
-#     var: oi_operator_ver
-
-# - name: "Debug oi_operator_format"
-#   debug:
-#     var: oi_operator_format
-
-#  - name: "Final validity status"
-#    debug:
-#      var: cl_label_valid
-#
-#  - name: "Fail on a wrong label"
-#    fail:
-#      msg: "Correct label for {{ bundle_to_validate }} is {{ cl_artificial_label }} and we found {{ cl_operator_label  }}. Please fix"
-#    when:
-#      - not cl_label_valid|bool
-#      - validate_label|bool

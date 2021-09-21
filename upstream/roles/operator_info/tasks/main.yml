@@ -104,12 +104,12 @@
     - not automatic_cluster_version_label|bool
     - oi_auto_labels.0 is defined
 
-- name: ""
+- name: "Print final error regarding deprecated API vs operator label"
   block:
-    - name: ""
+    - name: "Debug oi_failed_labels"
       debug:
         var: oi_failed_labels
-    - name: ""
+    - name: "Debug oi_auto_labels"
       debug:
         var: oi_auto_labels
 

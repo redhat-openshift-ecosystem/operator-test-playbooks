@@ -42,7 +42,7 @@
     cl_git_label_list_supported: []
 
 
-- name: ""
+- name: "Loop and pick supported cluster versions"
   set_fact:
     cl_git_label_list_supported: "{{ cl_git_label_list_supported + [cl_git_label_item] }}"
   loop: "{{ cl_git_label_list }}"
@@ -51,31 +51,3 @@
   when:
     - cl_git_label_item is version(bvf_supported_cluster_versions[0],'>=')
     - cl_git_label_item is version(bvf_supported_cluster_versions[-1],'<=')
-
-- debug:
-    var: cl_git_label_list_supported
-
-#- pause:
-
-
-#    - name: "Convert artificial label to versions"
-#      include_role:
-#        name: pyxis
-#      vars:
-#        p_range: "{{ cl_artificial_label }}"
-#
-#    - name: "Set variable from the task to the role"
-#      set_fact:
-#        cl_artificial_label_list: "{{ p_indexes_by_pyxis }}"
-
-#    - name: "Check validity"
-#      include_tasks: validity.yml
-#      loop: "{{ cl_git_label_list }}"
-#      loop_control:
-#        loop_var: cl_git_label_version
-#
-#    - name: "Output"
-#      debug:
-#        var: cl_label_valid
-
-
