@@ -55,6 +55,8 @@
     op_info: []
     oi_failed_labels: []
     oi_auto_labels: []
+    oi_auto_label_error_msg: ""
+    oi_failed_label_error_msg: ""
 
 - name: "Loop over operators"
   include_tasks: op_info.yml
@@ -77,7 +79,7 @@
 
     - name: "Prints error message"
       set_fact:
-        failed_label_error_msg: |
+        oi_failed_label_error_msg: |
           Found label which is not supported.
           {{ oi_failed_labels }}
 
@@ -93,7 +95,7 @@
 
     - name: "Prints error message"
       set_fact:
-        auto_label_error_msg: |
+        oi_auto_label_error_msg: |
           Automatic cluster versions lables are needed and 'automatic_cluster_version_label' is set to False.
           More info about list of versions is listed below.
           {{ oi_auto_labels }}
@@ -113,7 +115,7 @@
 
     - name: "Printing error message"
       fail:
-        msg: "{{ auto_label_error_msg.split('\n') }}{{ failed_label_error_msg.split('\n') }}"
+        msg: "{{ oi_auto_label_error_msg.split('\n') }}{{ oi_failed_label_error_msg.split('\n') }}"
   when: (oi_failed_labels.0 is defined and strict_cluster_version_labels|bool) or (not automatic_cluster_version_label|bool and oi_auto_labels.0 is defined)
 
 # - name: "Build index"
