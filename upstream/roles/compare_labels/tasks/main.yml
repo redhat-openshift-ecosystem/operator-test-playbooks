@@ -39,7 +39,24 @@
   set_fact:
     cl_git_label_list: "{{ p_indexes_by_pyxis }}"
     cl_git_operator_label: "{{ cl_operator_label }}"
-#        cl_artificial_label: "{{ bvf_label }}"
+    cl_git_label_list_supported: []
+
+
+- name: ""
+  set_fact:
+    cl_git_label_list_supported: "{{ cl_git_label_list_supported + [cl_git_label_item] }}"
+  loop: "{{ cl_git_label_list }}"
+  loop_control:
+    loop_var: cl_git_label_item
+  when:
+    - cl_git_label_item is version(bvf_supported_cluster_versions[0],'>=')
+    - cl_git_label_item is version(bvf_supported_cluster_versions[-1],'<=')
+
+- debug:
+    var: cl_git_label_list_supported
+
+#- pause:
+
 
 #    - name: "Convert artificial label to versions"
 #      include_role:

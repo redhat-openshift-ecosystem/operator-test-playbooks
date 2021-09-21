@@ -325,6 +325,7 @@ Usage:
 | delete_appreg | Activate appregistry delete during release `push to quay` operation [bool]|N/A|`true` in case of operator delete|
 | allow_big_changes_to_existing | Do not stop pipeline if change to a CSV is outside of `dc_changes_allowed` [bool]|N/A|N/A|
 | automatic_cluster_version_label | Flag if it is allowed to add cluster version label in case of package manifest format [bool]|false|N/A|
+| strict_cluster_version_labels | Flag if failing on wrong cluster version label in git regarding deprecated API [bool]|true|N/A|
 
 
 ## Tags to use

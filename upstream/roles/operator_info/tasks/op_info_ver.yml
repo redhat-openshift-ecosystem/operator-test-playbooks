@@ -143,6 +143,6 @@
     loop_var: oi_channel_item
   when: oi_operator_version_channels is defined
 
-- name: "Adding current versuon to the 'io_versions_replaces'"
+- name: "Adding current version to the 'io_versions_replaces'"
   set_fact:
     io_versions_manifests: "{{ io_versions_manifests | default({}) | combine({ operator_vars.spec.version : oi_operator_manifest_info }) }}"

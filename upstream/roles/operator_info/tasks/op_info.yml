@@ -51,7 +51,6 @@
     - name: "Index mode"
       set_fact:
         oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
-        oi_auto_labels: []
         oi_invalid_labels: []
 
     - name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
@@ -68,26 +67,6 @@
     - name: "Print auto labels"
       debug:
         var: oi_auto_labels
-      when:
-        - not automatic_cluster_version_label|bool
-        - oi_auto_labels.0 is defined
-
-    - name: "Fail when automatic cluster version label is needed and 'automatic_cluster_version_label' is not set to True"
-      block:
-
-        - name: "Generate error file"
-          copy: content="operators:\n{{ oi_auto_labels | to_nice_yaml }}" dest="{{ oi_auto_labels_output_file }}"
-
-        - name: "Prints error message"
-          set_fact:
-            auto_label_error_msg: |
-              Automatic cluster versions lables are needed and 'automatic_cluster_version_label' is set to False.
-              More info about list of versions is listed below.
-              {{ oi_auto_labels }}
-
-        - name: "Printing error message"
-          fail:
-            msg: "{{ auto_label_error_msg.split('\n') }}"
       when:
         - not automatic_cluster_version_label|bool
         - oi_auto_labels.0 is defined

@@ -35,6 +35,35 @@
   when:
     - generate_label|bool
 
+- name: "Fail on label not supported"
+  block:
+    - name: ""
+      set_fact:
+        bvf_versions_filtered: "{{ cl_git_label_list_supported |difference(bvf_versions) }}"
+
+    - name: ""
+      set_fact:
+        oi_failed_labels: "{{ oi_failed_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+bvf_versions_filtered|join(',') ] }}"
+      when:
+        - bvf_versions_filtered.0 is defined
+        - cluster_type == "ocp"
+        - oi_operator_format == "bundle"
+
+    - name: ""
+      debug:
+        var: bvf_versions_filtered
+
+    - debug:
+        var: cl_git_label_list_supported
+
+    - debug:
+        var: cl_git_label_list
+
+    - debug:
+        var: oi_failed_labels
+
+#    - pause:
+
 - name: "Output bvf_versions"
   debug:
     var: bvf_versions
