@@ -59,3 +59,8 @@
         - validate_api|bool
 
   when: cluster_type == "ocp"
+
+- name: "Defaults for non OCP"
+  set_fact:
+    bvf_versions: []
+    bvf_label: ""
