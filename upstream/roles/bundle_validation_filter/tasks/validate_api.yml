@@ -1,0 +1,71 @@
+---
+- name: "Validation"
+  block:
+  - name: "Validate {{ bundle_to_validate }} against {{ validate_api_cluster_version }}"
+    shell: "{{ operator_sdk_bin_path }} bundle validate {{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_cluster_version }} | grep 'using APIs which were deprecated and removed in v{{ validate_api_cluster_version }}'"
+    register: bvf_validate_result
+    ignore_errors: true
+
+  - name: debug
+    debug:
+      var: bvf_validate_result
+
+  - name: "Operator {{ bundle_to_validate }} is valid for {{ validate_api_cluster_version }}"
+    set_fact:
+      bvf_cluster_valid: true
+    when: bvf_validate_result.rc != 0
+
+  - name: "Operator {{ bundle_to_validate }} is not valid for {{ validate_api_cluster_version }}"
+    set_fact:
+      bvf_cluster_valid: false
+    when: bvf_validate_result.rc == 0
+
+  when: validate_api_cluster_version in testable_k8s_clusters
+
+- name: "Convert between ocp versions and k8s"
+  set_fact:
+    api_cluster_converted: "{{ k8s2ocp[validate_api_cluster_version] }}"
+  when: cluster_type == "ocp"
+
+- name: "Retain k8s value"
+  set_fact:
+    api_cluster_converted: "{{ validate_api_cluster_version }}"
+  when: cluster_type == "k8s"
+
+- name: "Fill the result in a line"
+  set_fact:
+    api_cluster_result_line: "{{ api_cluster_converted }}"
+    api_cluster_result_line_with_v: "v{{ api_cluster_converted }}"
+
+- name: "Override label for packagemanifest"
+  set_fact:
+    cl_git_label_list: "{{ api_cluster_result_line }}"
+  when: oi_operator_format == "manifest"
+
+- name: "Debug oi_operator_format"
+  debug:
+    var: oi_operator_format
+
+- name: "Debug api_cluster_result_line"
+  debug:
+    var: api_cluster_result_line
+
+- name: "Debug cl_git_label_list"
+  debug:
+    var: cl_git_label_list
+
+- name: "Fill supported clusters - {{ validate_api_cluster_version }}"
+  set_fact:
+    bvf_versions: "{{ bvf_versions | default([]) + [api_cluster_result_line] }}"
+  when:
+    - bvf_cluster_valid|bool
+    - api_cluster_result_line in cl_git_label_list
+
+- name: "Fail on a wrong label - found invalid cluster in label range for bundle"
+  fail:
+    msg: "Cluster {{ api_cluster_result_line }} resulted as invalid by operator-sdk tool despite bundle has {{ cl_git_operator_label }} label or no label defined. Please fix."
+  when:
+    - api_cluster_result_line_with_v == bundle_index_image_version
+    - not bvf_cluster_valid|bool
+    - api_cluster_result_line in cl_git_label_list
+    - oi_operator_format == "bundle"

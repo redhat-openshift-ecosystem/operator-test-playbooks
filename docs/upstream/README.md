@@ -71,14 +71,6 @@ ansible-playbook -vv -i myhost, local.yml \
 --tags image_build
 ```
 
-## Input source image (not supported now)
-```
-ansible-playbook -vv -i myhost, local.yml \
--e run_upstream=true \
--e operator_input_image=quay.io/cvpops/test-bundle:tigera-131 \
---tags pure_test
-```
-
 ## Deploy operators to index
 Config file:
 ```
@@ -332,6 +324,9 @@ Usage:
 | max_missing_operators_allowed | maximal amount of operators to be added to an index at once, safety index overwrite feature [int]|N/A|20|
 | delete_appreg | Activate appregistry delete during release `push to quay` operation [bool]|N/A|`true` in case of operator delete|
 | allow_big_changes_to_existing | Do not stop pipeline if change to a CSV is outside of `dc_changes_allowed` [bool]|N/A|N/A|
+| automatic_cluster_version_label | Flag if it is allowed to add cluster version label in case of package manifest format [bool]|false|N/A|
+| strict_cluster_version_labels | Flag if failing on wrong cluster version label in git regarding deprecated API [bool]|true|N/A|
+
 
 ## Tags to use
 

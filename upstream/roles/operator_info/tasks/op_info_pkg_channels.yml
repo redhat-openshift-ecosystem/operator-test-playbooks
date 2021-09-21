@@ -1,0 +1,21 @@
+---
+- name: "Handling channel from package"
+  block:
+    - name: "Extracting version from 'oi_pkg_channel'"
+      set_fact:
+        oi_pkg_channel_name: "{{ oi_pkg_channel.name }}"
+        oi_pkg_channel_ver: "{{ oi_pkg_channel.currentCSV.split('.v')[-1] }}"
+        oicpl_current_channel: []
+
+    - name: "Setting 'oi_pkg_channel_ver_current' for version {{ oi_pkg_channel_ver }}"
+      set_fact:
+        oi_pkg_channel_ver_current: "{{ oi_pkg_channel_ver }}"
+
+    - name: "Update channels"
+      include_tasks: op_info_chanels_pkg_loop.yml
+
+    - name: "Adding current versuon to the 'io_versions_replaces'"
+      set_fact:
+        io_pkg_channels: "{{ io_pkg_channels | default({}) | combine({ oi_pkg_channel_name : oicpl_current_channel }) }}"
+
+  when: oi_pkg_channel is defined

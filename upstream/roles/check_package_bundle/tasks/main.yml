@@ -1,6 +1,6 @@
 - name: "Determine the path in the operator metadata directory"
   find:
-    paths: "{{ operator_dir }}"
+    paths: "{{ cpb_operator_dir }}"
     recurse: true
     file_type: file
     patterns: "annotations.yaml"
@@ -20,22 +20,25 @@
       include_role:
         name: export_manifest_package_info
       vars:
-        op_dir: "{{ operator_dir }}"
+        op_dir: "{{ cpb_operator_dir }}"
+      when:
+        operator_format == "manifest"
 
     - name: "Sets previous package from package file with value '{{ operator_package_name }}'"
       set_fact:
         previous_package: "{{ operator_package_name }}"
       when: operator_package_name is defined
 
-  when: operator_dir is defined
+  when:
+    - cpb_operator_dir is defined
 
 - name: "Loop, load and compare package name"
   include_tasks: load_and_compare_package_name.yml
   loop: "{{ annotations_paths }}"
 
-- name: "Fail when no packaage name was found for '{{ operator_dir | basename }}' operator"
+- name: "Fail when no packaage name was found for '{{ cpb_operator_dir | basename }}' operator"
   fail:
-    msg: "No package name was found for operator '{{ operator_dir | basename }}'"
+    msg: "No package name was found for operator '{{ cpb_operator_dir | basename }}'"
   when: previous_package|length == 0
 
 - name: "Fail if package name is different then operator dir name"

@@ -19,11 +19,10 @@
     run_prepare_catalog_repo_upstream: true
     work_dir: "/tmp/operator-test"
     operator_dir: "dummy" # so operator-courier will be installed
-    operator_input_image: ""
     image_protocol: "docker://"
     bundle_image: "dummy" # so skopeo and umoci will be installed
     operator_work_dir: "{{ work_dir }}/operator-files"
-    operator_bundle_src_dir: "{{ work_dir }}/operator-bundle/src"
+    operator_bundle_src_dir: "{{ work_dir }}/operators"
     testing_bin_path: "{{ work_dir }}/bin"
     jq_bin_path: "{{ testing_bin_path }}/jq"
     yq_bin_path: "{{ testing_bin_path }}/yq"
@@ -37,7 +36,7 @@
     operator_sdk_version: v1.8.0
     operator_courier_version: 2.1.11
     olm_version: 0.17.0
-    opm_version: v1.17.5
+    opm_version: v1.18.0
     oc_version: 4.3.5
     go_version: 1.13.7
     jq_version: 1.6
@@ -48,7 +47,8 @@
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
 
   pre_tasks:
-    - setup:
+    - name: "Setup"
+      setup:
       tags:
         - always
       when: run_upstream|bool
@@ -66,7 +66,6 @@
         use_cluster_filter: false
         work_dir: "{{ work_dir | default('/tmp/operator-test') }}"
         operator_dir: "{{ operator_dir | default('dummy') }}"
-        operator_input_image: "{{ operator_input_image | default('') }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
         bundle_image: "{{ bundle_image | default('dummy') }}"
         run_host_init: "{{ run_host_init | default(true) }}"
@@ -145,7 +144,9 @@
     - {role: loop_all_tests, tags: [never, "test_all", "pure_test_all"], when: run_upstream|bool}
     - {role: check_prod_bundle, tags: [never, "test_lite", "pure_test_lite"], when: run_upstream|bool}
     - {role: build_app_registry, tags: [never, "app_registry"], when: run_upstream|bool}
-    - {role: sync_index_sha, tags: ["sync_index_sha"]}
+    - {role: sync_index_sha, tags: ["sync_index_sha"], when: run_upstream|bool}
+    - {role: operator_info, tags: ["always", "operator_info"], when: (operator_dir is defined and operator_dir|length > 0 and operator_dir != "dummy") or (operators_config is defined and operators_config|length > 0) or ( operator_base_dir is defined and operator_base_dir|length > 0 and operators is defined and operators|length > 0)}
+    - {role: operator_index, tags: ["never", "operator_index"]}
 
   tasks:
     - name: "Setting input variables for testing"
@@ -168,17 +169,6 @@
         - pure_test_lite
         - pure_test_all
         - pure_test_all
-
-    - name: "Failing when input image is specified"
-      fail:
-        msg: "Input image is not supported for now"
-      when:
-        - operator_input_image is defined
-        - operator_input_image|length > 0
-      tags:
-        - always
-        - test
-        - pure_test
 
     - name: "Check operator format consistency"
       include_role:

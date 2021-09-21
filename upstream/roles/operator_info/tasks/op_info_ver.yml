@@ -1,0 +1,148 @@
+---
+# - name: "Print operator name"
+#   debug:
+#     msg: "Running '{{ oi_operator_name }} {{ oi_operator_ver }}'"
+
+- name: "Print operator name"
+  debug:
+    msg: "'{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}'"
+
+- name: "Export CSV variables"
+  include_role:
+    name: export_csv
+  vars:
+    op_csv_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}"
+    operator_format: "{{ oi_operator_format }}"
+
+- name: "Setting replaces version to empty string"
+  set_fact:
+    ovi_replaces_ver: ""
+    olm_maxOpenShiftVersion: ""
+
+- name: "Extracting replaces version from 'operator_vars.spec.replaces'"
+  set_fact:
+    ovi_replaces_ver: "{{ operator_vars.spec.replaces.split('.v')[-1] }}"
+  when: operator_vars.spec.replaces is defined
+
+- name: "Export annotations variables"
+  include_role:
+    name: export_annotations
+  vars:
+    annotation_file_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}/metadata/annotations.yaml"
+    operator_format: "{{ oi_operator_format }}"
+  when: oi_operator_format == "bundle"
+
+- name: "Version manifest info"
+  set_fact:
+    oi_operator_manifest_info:
+      replaces: "{{ ovi_replaces_ver }}"
+
+- name: "Channel info"
+  set_fact:
+    oi_operator_version_channels: "{{ annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1'].split(',') }}"
+  when:
+    - annotations_vars is defined
+    - annotations_vars|length > 0
+
+- name: "Reset 'ocp_max' and 'ocp_k8s_max'"
+  set_fact:
+    k8s_min: "{{ operator_vars.spec.miniKubeVersion | default('') }}"
+    ocp_max: ""
+    ocp_k8s_max: ""
+    idx_versions: []
+    idx_label: ""
+
+- name: "Check olm.maxOpenShiftVersion"
+  block:
+    - name: "Parse 'olm.maxOpenShiftVersion' from 'olm.properties'"
+      set_fact:
+        olm_maxOpenShiftVersion_obj: "{{ operator_vars.metadata.annotations['olm.properties'] | from_yaml | selectattr('type', 'equalto', 'olm.maxOpenShiftVersion') | join() }}"
+
+    - name: "Setting value from 'olm.maxOpenShiftVersion'"
+      set_fact:
+        olm_maxOpenShiftVersion: "{{ olm_maxOpenShiftVersion_obj.value }}"
+
+    - name: "Setting 'ocp_max' and 'ocp_k8s_max'"
+      set_fact:
+        ocp_max: "{{ olm_maxOpenShiftVersion }}"
+        ocp_k8s_max: "{{ ocp2k8s[olm_maxOpenShiftVersion] }}"
+
+  when: operator_vars.metadata.annotations['olm.properties'] is defined
+
+- name: "Generate bundle '{{ oi_operator_name }}/{{ oi_operator_ver }}'"
+  include_role:
+    name: generate_bundle
+  vars:
+    mtb_output_dir: "{{ operator_bundle_src_dir }}"
+    mtb_base_dir: "{{ operator_base_dir }}"
+    mtb_operator: "{{ oi_operator_name }}"
+    mtb_version: "{{ oi_operator_ver }}"
+
+- name: "Bundle validation filter"
+  include_role:
+    name: bundle_validation_filter
+  vars:
+    bvf_min: "{{ k8s_min }}"
+    bvf_max: "{{ ocp_k8s_max }}"
+    validate_api: true
+    generate_label: true
+    bundle_to_validate: "{{ current_bundle_path }}"
+
+- name: "Setting 'idx_versions' and 'idx_label'"
+  set_fact:
+    idx_versions: "{{ bvf_versions| default([]) }}"
+    idx_label: "{{ bvf_label }}"
+
+# - pause:
+# TODO: LABEL handle
+# - name: "Setting 'idx_versions' and 'idx_label'"
+#   set_fact:
+#     idx_versions: ["4.6", "4.7", "4.8"]
+#     idx_label: "4.6-4.8"
+#   when: ocp_k8s_max|length > 0
+
+# - name: "Setting 'idx_versions' and 'idx_label'"
+#   set_fact:
+#     idx_versions: "{{ oi_supported_cluster_versions }}"
+#     idx_label: ''
+#   when: ocp_k8s_max|length == 0
+
+- name: "Version manifest info"
+  set_fact:
+    oi_operator_manifest_info:
+      replaces: "{{ ovi_replaces_ver }}"
+      k8s_min: "{{ k8s_min }}"
+      k8s_max: "{{ ocp_k8s_max | default('') }}"
+      ocp_max: "{{ ocp_max | default('') }}"
+      idx_versions: "{{ idx_versions | default('') }}"
+      idx_label: "{{ idx_label | default([]) }}"
+
+- name: "Add label when manifest format"
+  lineinfile:
+    path: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}/metadata/annotations.yaml"
+    line: "  com.redhat.openshift.versions: {{ idx_label }}"
+  when:
+    - automatic_cluster_version_label|bool
+    - cluster_type == "ocp"
+    - oi_operator_format == "manifest"
+    - idx_label|length > 0
+
+- name: "Adding operator version label to 'oi_auto_labels'"
+  set_fact:
+    oi_auto_labels: "{{ oi_auto_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+idx_label ] }}"
+  when:
+    - not automatic_cluster_version_label|bool
+    - cluster_type == "ocp"
+    - oi_operator_format == "manifest"
+    - idx_label|length > 0
+
+- name: "Update channels"
+  include_tasks: op_info_ver_channel.yml
+  loop: "{{ oi_operator_version_channels }}"
+  loop_control:
+    loop_var: oi_channel_item
+  when: oi_operator_version_channels is defined
+
+- name: "Adding current version to the 'io_versions_replaces'"
+  set_fact:
+    io_versions_manifests: "{{ io_versions_manifests | default({}) | combine({ operator_vars.spec.version : oi_operator_manifest_info }) }}"

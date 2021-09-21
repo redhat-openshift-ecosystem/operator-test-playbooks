@@ -101,9 +101,12 @@
         - regenerate_operators_path is defined
         - regenerate_operators_path|length > 0
 
-    - debug:
+    - name: "Print operators"
+      debug:
         var: operators
-    - debug:
+
+    - name: "Print operator base dir"
+      debug:
         var: operator_base_dir
 
     - name: "Handle operators input file"
@@ -115,7 +118,7 @@
 
         - name: "Set facts from config variables"
           set_fact:
-            operators: "{{ operators_config_vars.operators | default([]) }}"
+            operators: "{{ (operators_config_vars.operators | join(',')) | default('') }}"
             operator_base_dir: "{{ operators_config_vars.operator_base_dir | default('') }}"
 
         - name: "Failing when 'operator base dir' is not found in '{{ operators_config }}'"
@@ -141,7 +144,7 @@
 
     - name: "Set operator name to list from operator name"
       set_fact:
-        operators: '["{{ operator_dir | basename }}"]'
+        operators: "{{ operator_dir | basename }}"
       when:
         - operator_dir is defined
         - operators is undefined
@@ -154,11 +157,10 @@
 
     - name: "Deploy operators bundle images"
       include_role:
-        name:
-          build_operator_bundle
+        name: build_operator_bundle
       vars:
         operator_dir: "{{ operator_base_dir }}/{{ op_item }}"
-      loop: "{{ operators }}"
+      loop: "{{ operators.split(',') }}"
       loop_control:
         loop_var: op_item
       when:
@@ -168,8 +170,7 @@
       block:
         - name: "Deploy operators to index"
           include_role:
-            name:
-              build_operators_index
+            name: build_operators_index
           when:
             - run_upstream|bool
             - not operator_removed|bool
@@ -184,8 +185,7 @@
 
         - name: "Index sanity check"
           include_role:
-            name:
-              check_index
+            name: check_index
           tags:
             - mirror_index
             - deploy_bundles
@@ -227,8 +227,7 @@
 
         - name: "Mirror index image"
           include_role:
-            name:
-              mirror_image
+            name: mirror_image
           vars:
             mirror_input_image: "{{ bundle_index_image }}"
           tags:
@@ -248,8 +247,7 @@
 
         - name: "Handle failed operators"
           include_role:
-            name:
-              handle_failed_operators
+            name: handle_failed_operators
           tags:
             - mirror_index
             - deploy_bundles
@@ -262,8 +260,7 @@
 
     - name: "Push to Quay (old AppRegistry)"
       include_role:
-        name:
-          push_to_quay
+        name: push_to_quay
       when:
         - run_upstream|bool
         - quay_appregistry_courier_token is defined

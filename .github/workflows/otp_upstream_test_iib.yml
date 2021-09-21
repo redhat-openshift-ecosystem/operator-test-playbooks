@@ -1,7 +1,7 @@
 name: Operator test playbook upstream (otpu) iib tests
 env:
   ANSIBLE_CONFIG: "$PWD/upstream/ansible.cfg"
-  ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false"
+  ANSIBLE_BASE_ARGS: "-i localhost, upstream/local.yml -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false -e cluster_type=ocp -e automatic_cluster_version_label=true -e cluster_type=ocp"
   ANSIBLE_VERSION: "2.9.21"
 
 on:
@@ -34,7 +34,7 @@ jobs:
         run: |
           [ -d $HOME/.docker ] || mkdir -p $HOME/.docker
           echo $IIB_PULL_AUTHFILE > $HOME/.docker/config.json
-          ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build,iib
+          ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build,iib -e catalog_repo=https://github.com/redhat-openshift-ecosystem/community-operators-prod.git
           cd /tmp/iib && docker-compose ps
           docker logs iib_iib-api_1
           docker exec iib_iib-worker_1 mkdir -p /root/.docker/
@@ -46,4 +46,4 @@ jobs:
           OPP_MIRROR_INDEX_IMAGE: "localhost:5000/test-operator/catalog_mirror"
           OPP_MIRROR_INDEX_MULTIARCH_POSTFIX: ""
         run: |
-          ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e mirror_multiarch_image=$OPP_MIRROR_INDEX_MULTIARCH -e mirror_index_images="$OPP_MIRROR_INDEX_IMAGE:test|$OPP_REGISTRY_MIRROR_USER|$REGISTRY_MIRROR_PW|$OPP_MIRROR_INDEX_MULTIARCH_POSTFIX|$OPP_MIRROR_INDEX_IMAGE:latest" -vv
+          ansible-playbook $ANSIBLE_BASE_ARGS --tags deploy_bundles -e operators_config=test/operators_config.yaml -e mirror_multiarch_image=$OPP_MIRROR_INDEX_MULTIARCH -e mirror_index_images="$OPP_MIRROR_INDEX_IMAGE:test|$OPP_REGISTRY_MIRROR_USER|$REGISTRY_MIRROR_PW|$OPP_MIRROR_INDEX_MULTIARCH_POSTFIX|$OPP_MIRROR_INDEX_IMAGE:latest"

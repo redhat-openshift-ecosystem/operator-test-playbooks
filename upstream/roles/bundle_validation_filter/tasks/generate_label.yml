@@ -1,0 +1,66 @@
+---
+- name: "Fail if 'bvf_versions' is not defined"
+  fail:
+    msg: "Variable 'bvf_versions' is undefined. Please run bundle_validate_filter with 'validate_api=true'"
+  when: bvf_versions is undefined
+
+- name: "Reset"
+  set_fact:
+    label_set: false
+
+- name: "Set label"
+  block:
+
+    - name: "Only single cluster supported"
+      set_fact:
+        bvf_label: "=v{{ bvf_versions[0] }} }}"
+      when:
+        - bvf_versions|count == 1
+
+    - name: "Count occurrences"
+      set_fact:
+        bvf_supported_cluster_versions_count: "{{ bvf_supported_cluster_versions|count }}"
+        bvf_versions_count: "{{ bvf_versions|count }}"
+      when:
+        - bvf_versions|count >= 2
+
+    - name: "Empty label when all clusters supported"
+      set_fact:
+        bvf_label: ""
+      when:
+        - bvf_versions|count >= 2
+        - bvf_supported_cluster_versions_count == bvf_versions_count
+
+    - name: "Debug bvf_versions"
+      debug:
+        var: bvf_versions
+
+    - name: "Debug cluster_type"
+      debug:
+        var: cluster_type
+
+    - name: "Debug bvf_supported_cluster_versions_count"
+      debug:
+        var: bvf_supported_cluster_versions_count
+
+    - name: "Debug bvf_versions_count"
+      debug:
+        var: bvf_versions_count
+
+    - name: "Label cluster range when some cluster unsupported"
+      set_fact:
+        bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
+      when:
+        - bvf_versions_count|int >= 2
+        - bvf_supported_cluster_versions_count != bvf_versions_count
+
+  when: bvf_versions|length != 0
+
+- name: "Report status"
+  debug:
+    msg: "Operator version not valid for any cluster, not generating any cluster version label"
+  when: bvf_versions|length == 0
+
+- name: "Set fact"
+  set_fact:
+    cl_artificial_label: "{{ bvf_label }}"

@@ -1,0 +1,136 @@
+---
+- name: "Resetting 'operator' values"
+  set_fact:
+    oi_operator_format: ""
+    annotations_vars: ""
+    op_manifest_pkg_vars: ""
+    io_versions_manifests: []
+    io_versions_replaces: {}
+    io_channels: []
+
+- name: "Search for all versions for operator '{{ operator_base_dir | basename }}/{{ oi_operator_name }}'"
+  find:
+    paths: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+    recurse: false
+    file_type: directory
+  register: oi_versions_find
+
+- name: "Setting list of versions from directory structre"
+  set_fact:
+    oi_versions_in_dir: "{{ oi_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+
+- name: "Print versions found for '{{ oi_operator_name }}'"
+  debug:
+    var: oi_versions_in_dir
+
+- name: "Continue when some versions were found"
+  block:
+    - name: "Search for annotations.yml"
+      find:
+        paths: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_versions_in_dir[0] }}/metadata"
+        patterns: "annotations.yaml"
+      register: annotations_presence
+
+    - name: "Set operator_format to package manifest or bundle"
+      set_fact:
+        oi_operator_format: "{{ 'bundle' if annotations_presence.files else 'manifest' }}"
+
+    - name: "Export Package variables"
+      include_role:
+        name: export_manifest_package_info
+      vars:
+        op_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+      when: oi_operator_format == "manifest"
+
+    - name: "Export ci.yaml info"
+      include_role:
+        name: export_ci_yaml
+      vars:
+        ecy_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+
+    - name: "Index mode"
+      set_fact:
+        oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
+        oi_invalid_labels: []
+
+    - name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
+      file:
+        path: "{{ oi_auto_labels_output_file }}"
+        state: absent
+
+    - name: "Loop over all versions"
+      include_tasks: op_info_ver.yml
+      loop: "{{ oi_versions_in_dir }}"
+      loop_control:
+        loop_var: oi_operator_ver
+
+    - name: "Print auto labels"
+      debug:
+        var: oi_auto_labels
+      when:
+        - not automatic_cluster_version_label|bool
+        - oi_auto_labels.0 is defined
+
+    - name: "Copy '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' to '{{ operator_bundle_src_dir }}/{{ oi_operator_name }}'"
+      copy:
+        src: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+        dest: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}"
+        remote_src: true
+
+    - name: "Handle package file for packagemanifest format"
+      block:
+        - name: "Set operator_format to package manifest or bundle"
+          set_fact:
+            io_pkg_channels: []
+
+        - name: "Loop over all versions"
+          include_tasks: op_info_pkg_channels.yml
+          loop: "{{ op_manifest_pkg_vars.channels }}"
+          loop_control:
+            loop_var: oi_pkg_channel
+
+        - name: "Set operator_format to package manifest or bundle"
+          set_fact:
+            io_channels: "{{ io_pkg_channels }}"
+      when: oi_operator_format == "manifest"
+
+    - name: "Print 'io_versions_manifests'"
+      debug:
+        var: io_versions_manifests
+
+    - name: "Reset indexes"
+      set_fact:
+        io_index: []
+
+    - name: "Loop over all supported index versions"
+      include_tasks: op_info_index.yml
+      loop: "{{ oi_supported_cluster_versions }}"
+      loop_control:
+        loop_var: oii_index_version
+
+    # - name: "Count manifests"
+    #   set_fact:
+    #     op_stat_manifests: "{{ 0 if op_stat_manifests is undefined else op_stat_manifests|int + 1 }}"
+    #     op_stat_soperators: "{{ 0 if op_stat_operators is undefined else op_stat_operators|int + 1 }}"
+    #   when: oi_operator_format == "manifest"
+
+    # - name: "Count bundles"
+    #   set_fact:
+    #     op_stat_bundles: "{{ 0 if op_stat_bundles is undefined else op_stat_bundles|int + 1 }}"
+    #     op_stat_operators: "{{ 0 if op_stat_operators is undefined else op_stat_operators|int + 1 }}"
+    #   when: oi_operator_format == "manifest"
+
+    # - name: "Count manifests"
+    #   set_stats:
+    #     data:
+    #       bundles: "{{ bundles }}"
+    #       manifests: "{{ manifests }}"
+    #       operators: "{{ operators }}"
+    #     per_host: yes
+
+    - name: "Adding current operator to the 'op_info'"
+      set_fact:
+        op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index_dt': io_index_dt}]) }}"
+      when: oi_versions_in_dir.0 is defined
+
+  when: oi_versions_in_dir.0 is defined

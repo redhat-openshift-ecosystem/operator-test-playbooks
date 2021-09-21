@@ -2,15 +2,21 @@
   set_fact:
     operator_removed: false
     bob_opname: "{{ operator_dir | basename }}"
+    bob_opbasedir: "{{ operator_dir | dirname }}"
+
+- name: "Setting operator was removed to false"
+  set_fact:
+    bob_opbasedir: "{{ operator_bundle_src_dir }}"
+  when: op_info is defined
 
 - name: "Checkning if operator name is not name of catalog"
   fail:
-    msg: "Name of operator '{{ operator_dir | basename }}' is same as catalog name '{{ bundle_index_image_name }}'"
+    msg: "Name of operator '{{ bob_opname }}' is same as catalog name '{{ bundle_index_image_name }}'"
   when: bundle_index_image_name == bob_opname
 
 - name: "Checking if operator base dir exists"
   stat:
-    path: "{{ operator_dir }}"
+    path: "{{ bob_opbasedir }}/{{ bob_opname }}"
   register: bob_operator_dir_st
 
 - name: "Convert allowed input versions to list"
@@ -34,11 +40,11 @@
     - not bob_operator_dir_st.stat.exists
     - use_cluster_filter|bool
 
-- name: "Handling operator '{{ operator_dir | basename }}'"
+- name: "Handling operator '{{ bob_opname }}'"
   block:
-    - name: "Search for all versions for operator '{{ operator_dir | basename }}'"
+    - name: "Search for all versions for operator '{{ bob_opname }}'"
       find:
-        paths: "{{ operator_dir }}"
+        paths: "{{ bob_opbasedir }}/{{ bob_opname }}"
         recurse: false
         file_type: directory
       register: bob_versions_find
@@ -46,13 +52,13 @@
     - name: "Setting list of versions from directory structre"
       set_fact:
         versions_in_dir: "{{ bob_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
-        operator_dir_name: "{{ operator_dir | basename }}"
+        operator_dir_name: "{{ bob_opname }}"
 
     - name: "Detect format"
       include_role:
         name: detect_format
       vars:
-        operator_input_image: ""
+        df_operator_dir: "{{ bob_opbasedir }}/{{ bob_opname }}"
         op_version: "{{ versions_in_dir[0] }}"
 
     - name: "Get list of versions_in_dir from bundle registry"

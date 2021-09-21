@@ -22,7 +22,9 @@
   when:
     - run_upstream|bool
     - (operator_version is undefined or operator_version|length == 0)
-
+- name: "Setting operator_package_name"
+  set_fact:
+    operator_package_name: "{{ operator_dir | basename }}"
 - name: "Build bundle image"
   include_role:
     name: build_operator_version_bundle
@@ -47,6 +49,8 @@
 - name: "Check package unification"
   include_role:
     name: check_package_bundle
+  vars:
+    cpb_operator_dir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
   when: run_upstream|bool
 
 - name: "Extract the operator bundle image into files needed to run the tests"

@@ -1,0 +1,53 @@
+---
+#input: cl_package_name, cl_operator_ver
+#output: cl_label_valid
+#condition: works only for bundle
+
+- name: "Set defaults"
+  set_fact:
+    cl_label_valid: true
+    cl_operator_format: "{{ oi_operator_format }}"
+
+# - name: "Compare labels"
+#   block:
+
+#     - name: "Parse label"
+#       include_tasks: parse_label.yml
+
+#   when: cl_operator_format == "bundle"
+
+# - debug:
+#     var: cl_operator_label
+
+- name: "Label not found in git, setting all range label"
+  set_fact:
+    cl_operator_label: "v4.5"
+
+- name: "Label not found in git, setting all range label"
+  set_fact:
+    cl_operator_label: "{{ annotations_vars.annotations['com.redhat.openshift.versions'] | default('v4.5') }}"
+  when: annotations_vars.annotations['com.redhat.openshift.versions'] is defined and annotations_vars.annotations['com.redhat.openshift.versions']|length>0
+  # when: cl_operator_label is not defined or cl_operator_label|length == 0
+
+- name: "Convert label to cluster versions"
+  include_role:
+    name: pyxis
+  vars:
+    p_range: "{{ cl_operator_label }}"
+
+- name: "Collect variables"
+  set_fact:
+    cl_git_label_list: "{{ p_indexes_by_pyxis }}"
+    cl_git_operator_label: "{{ cl_operator_label }}"
+    cl_git_label_list_supported: []
+
+
+- name: "Loop and pick supported cluster versions"
+  set_fact:
+    cl_git_label_list_supported: "{{ cl_git_label_list_supported + [cl_git_label_item] }}"
+  loop: "{{ cl_git_label_list }}"
+  loop_control:
+    loop_var: cl_git_label_item
+  when:
+    - cl_git_label_item is version(bvf_supported_cluster_versions[0],'>=')
+    - cl_git_label_item is version(bvf_supported_cluster_versions[-1],'<=')

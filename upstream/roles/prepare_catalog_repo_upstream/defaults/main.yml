@@ -1,5 +1,4 @@
-catalog_repo: https://github.com/operator-framework/community-operators.git
-catalog_repo_branch: master
+catalog_repo: https://github.com/redhat-openshift-ecosystem/community-operators-pipeline.git
+catalog_repo_branch: main
 catalog_repo_dir: /tmp/community-operators-for-catalog
-operator_input_image: ""
 run_remove_catalog_repo: true

@@ -1,0 +1,115 @@
+---
+- name: "Fail when 'mtb_base_dir' is missing"
+  fail:
+    msg: "Value for 'mtb_base_dir' is missing"
+  when:
+    - mtb_base_dir is undefined
+    - mtb_base_dir|length == 0
+
+- name: "Fail when 'mtb_operator' is missing"
+  fail:
+    msg: "Value for 'mtb_operator' is missing"
+  when:
+    - mtb_operator is undefined
+    - mtb_operator|length == 0
+
+- name: "Fail when 'mtb_version' is missing"
+  fail:
+    msg: "Value for 'mtb_version' is missing"
+  when:
+    - mtb_version is undefined
+    - mtb_version|length == 0
+
+- name: "Print 'mtb_manifest_dir'"
+  debug:
+    msg: "Manifest/Bundle from '{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}' to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+
+- name: "Check if bundle for '{{ oi_operator_name }}/{{ oi_operator_ver }}' exists"
+  stat:
+    path: "{{ mtb_output_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}"
+  register: oiv_op_st
+- name: "Generate bunlde"
+  block:
+    - name: "Bundle image for manifest format"
+      block:
+
+        - name: "Reset 'opm_bundle_alpha_add_args'"
+          set_fact:
+            opm_bundle_alpha_add_args: ''
+
+        - name: "Forcing to set 'operator_channels' and 'operator_channel_default' when 'operator_channel_force' is defined and empty"
+          set_fact:
+            operator_channels: "{{ operator_channel_force }}"
+            operator_channel_default: "{{ operator_channel_force }}"
+          when:
+            - operator_channel_force is defined
+            - operator_channel_force|length > 0
+
+        - name: "Adding operator channels and default channel as arguments"
+          set_fact:
+            opm_bundle_alpha_add_args: "-c {{ operator_channels }} -e {{ operator_channel_default }}"
+          when: operator_channel_force is defined
+
+        - name: "Generate bundle format '{{ mtb_operator }}/{{ mtb_version }}' from packafgemanifest"
+          shell:
+            # cmd: "{{ opm_bin_path }} alpha bundle build --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }} -t {{ mtb_bundle_image }} -b {{ opm_container_tool }}"
+            cmd: "{{ opm_bin_path }} alpha bundle generate --directory {{ mtb_version }} -u {{ mtb_base_dir }}/{{ mtb_operator }} --package {{ mtb_operator }} {{ opm_bundle_alpha_add_args }}"
+            chdir: "{{ mtb_base_dir }}/{{ mtb_operator }}"
+          # ignore_errors: true
+          # register: mtb_gbi_rc
+
+        - name: "Create directory '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+          file:
+            state: directory
+            path: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}/{{ item }}"
+          with_items:
+            - manifests
+            - metadata
+
+        - name: "Copy generated bundle files to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+          copy:
+            src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ item }}"
+            dest: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+            remote_src: true
+          with_items:
+            - manifests
+            - metadata
+            - bundle.Dockerfile
+
+        - name: "Ensure that the operator temporary bundle files are removed from '{{ mtb_base_dir }}/{{ mtb_operator }}'"
+          file:
+            state: absent
+            path: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ item }}"
+          with_items:
+            - "manifests"
+            - "metadata"
+            - "bundle.Dockerfile"
+
+      when: oi_operator_format == "manifest"
+
+    - name: "Bundle image for bundle format"
+      block:
+        - name: "Copy bundle format to '{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}'"
+          copy:
+            src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+            dest: "{{ mtb_output_dir }}/{{ mtb_operator }}"
+            remote_src: true
+
+        # - name: "Create directory '{{ mtb_output_dir }}/{{ mtb_operator }}'"
+        #   file:
+        #     path: "{{ mtb_output_dir }}/{{ mtb_operator }}"
+        #     state: directory
+
+        # - name: "Link operator version to {{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        #   file:
+        #     src: "{{ mtb_base_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        #     dest: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"
+        #     state: link
+
+      when: oi_operator_format == "bundle"
+
+  when: not oiv_op_st.stat.exists
+
+- name: "Sets 'current_bundle_path'"
+  set_fact:
+    current_bundle_path: "{{ mtb_output_dir }}/{{ mtb_operator }}/{{ mtb_version }}"

@@ -1,0 +1,5 @@
+---
+- name: "Invalidate"
+  set_fact:
+    cl_label_valid: false
+  when: cl_git_label_version not in cl_artificial_label_list

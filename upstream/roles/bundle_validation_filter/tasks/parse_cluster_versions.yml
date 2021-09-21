@@ -1,0 +1,4 @@
+---
+- name: "Set fact"
+  set_fact:
+    pcv_cluster_parsed: pcv_cluster.split('.')

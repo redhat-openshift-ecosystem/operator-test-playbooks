@@ -27,7 +27,9 @@
 
     - name: "Fetch failed operators file to controller machine to path '/tmp/operators_failed-{{ inventory_hostname }}.yaml'"
       fetch: src=/tmp/operators_failed.yaml dest=/tmp/operators_failed-{{ inventory_hostname }}.yaml flat=yes
-      when: operators_config_failed is defined
+      when:
+        - operators_config_failed is defined
+        - ansible_connection != "local"
 
     - name: "Printing failed operator config"
       debug:
@@ -73,6 +75,11 @@
 
         - name: "Fetch failed operators file to controller machine to path '/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml'"
           fetch: src=/tmp/operators_uncomplete.yaml dest=/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml flat=yes
+          when: ansible_connection != "local"
+
+        - name: "Generate operators config file from failed operators"
+          copy: content="{{ chi_uncomplete_packages_config | to_nice_yaml }}" dest="/tmp/operators_uncomplete-{{ inventory_hostname }}.yaml"
+          when: ansible_connection == "local"
 
         - name: "Printing of content config file of uncomplete operators"
           debug:

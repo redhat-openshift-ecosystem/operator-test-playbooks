@@ -1,0 +1,18 @@
+---
+
+- name: "Parsing config file '{{ operator_info_output_file }}'"
+  include_vars:
+    file: "{{ operator_info_output_file }}"
+    name: operator_info_vars
+
+- name: "Loop over all versions"
+  include_tasks: op_index.yml
+  vars:
+    io_index_ver: "v4.9"
+  loop: "{{ operator_info_vars.operators }}"
+  loop_control:
+    loop_var: oi_op_info
+
+
+# - name: "Pause"
+#   pause:

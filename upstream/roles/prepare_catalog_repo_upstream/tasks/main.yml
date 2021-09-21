@@ -36,7 +36,5 @@
         - remove_base_dir|length > 0
         - remove_operator_dirs is defined
         - remove_operator_dirs|length > 0
-
-  when: operator_input_image|length == 0
   tags:
     - catalog_build

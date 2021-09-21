@@ -1,0 +1,66 @@
+---
+- name: "Starting bundle validation filter"
+  block:
+
+    - name: "Fail if 'cluster_type' is not defined"
+      fail:
+        msg: "Variable 'cluster_type' is mandatory."
+      when: cluster_type is undefined or cluster_type|length == 0
+
+    - name: "Reset variables - old clusters have valid APIs"
+      set_fact:
+        bvf_cluster_valid: true
+        bvf_versions: []
+        cl_git_operator_label: ""
+        cl_git_label_list: []
+        bvf_clusters_base_to_loop: "{{ k8s2ocp.keys() | list }}"
+
+    - name: "Load label"
+      include_role:
+        name: compare_labels
+      vars:
+        cl_package_name: "{{ oi_operator_name }}"
+        cl_operator_ver: "{{ oi_operator_ver }}"
+    #  when: oi_operator_format == "bundle"
+
+    - name: "Loop cluster versions '{{ k8s_versions }}' for API validation"
+      include_tasks: validate_api.yml
+      loop: "{{ bvf_clusters_base_to_loop }}"
+      loop_control:
+        loop_var: validate_api_cluster_version
+      when:
+        - validate_api_cluster_version is version(bvf_min | default(ocp2k8s[bvf_supported_cluster_versions[0]], true),'>=')
+        - validate_api_cluster_version is version(bvf_max | default(ocp2k8s[bvf_supported_cluster_versions[-1]], true),'<=')
+        - validate_api|bool
+
+    - name: "Generate label"
+      include_tasks: generate_label.yml
+      when:
+        - generate_label|bool
+
+    - name: "Fail on label not supported"
+      block:
+        - name: "Set conflicting cluster versions"
+          set_fact:
+            bvf_versions_filtered: "{{ cl_git_label_list_supported |difference(bvf_versions) }}"
+
+        - name: "Collect failed labels"
+          set_fact:
+            oi_failed_labels: "{{ oi_failed_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+bvf_versions_filtered|join(',') ] }}"
+          when:
+            - bvf_versions_filtered.0 is defined
+            - cluster_type == "ocp"
+            - oi_operator_format == "bundle"
+
+    - name: "Output bvf_versions"
+      debug:
+        var: bvf_versions
+      when:
+        - validate_api|bool
+
+  when: cluster_type == "ocp"
+
+- name: "Defaults for non OCP"
+  set_fact:
+    bvf_versions: []
+    bvf_label: ""
