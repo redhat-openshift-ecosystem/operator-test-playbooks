@@ -1,7 +1,6 @@
 ---
 - name: "Starting bundle validation filter"
   block:
-
     - name: "Fail if 'cluster_type' is not defined"
       fail:
         msg: "Variable 'cluster_type' is mandatory."
@@ -64,3 +63,5 @@
   set_fact:
     bvf_versions: []
     bvf_label: ""
+  when:
+    - cluster_type == "k8s"
