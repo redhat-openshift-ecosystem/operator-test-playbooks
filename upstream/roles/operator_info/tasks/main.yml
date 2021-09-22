@@ -121,7 +121,7 @@
     - name: "Set operator info file"
       set_fact:
         operator_info_file: "{{ operator_info_output_file }}"
-  when: operator_info_file is undefined or operator_info_file|length == 0
+  when: operator_info_file is undefined or operator_info_file|length > 0
 
 # - name: "Build index"
 #   include_role:
