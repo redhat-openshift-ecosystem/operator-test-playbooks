@@ -1,0 +1,43 @@
+{
+  "Digest": "sha256:3dbed3d785b4492751f823af3f55d17232d99a3719f64431fe29a595b3610fa8",
+  "RepoTags": [],
+  "Created": "2021-09-03T08:25:53.822713258Z",
+  "DockerVersion": "",
+  "Labels": {
+    "architecture": "x86_64",
+    "build-date": "2021-09-03T08:25:48.020568",
+    "com.redhat.build-host": "cpt-1007.osbs.stage.upshift.rdu2.redhat.com",
+    "com.redhat.component": "e2e-test-operator-bundle-container",
+    "com.redhat.delivery.backport": "true",
+    "com.redhat.delivery.operator.bundle": "true",
+    "com.redhat.license_terms": "https://www.redhat.com/agreements",
+    "com.redhat.openshift.versions": "ocpfournine",
+    "description": "This is a testing operator used by Vital",
+    "distribution-scope": "private",
+    "io.k8s.description": "This is a testing operator used by Vital",
+    "io.k8s.display-name": "E2E Test Operator",
+    "maintainer": "Pipeline Vitals Testing <vitals-testing@redhat.com>",
+    "name": "e2e/e2e-test-operator-bundle-container",
+    "operators.operatorframework.io.bundle.channel.default.v1": "4.3",
+    "operators.operatorframework.io.bundle.channels.v1": "4.3",
+    "operators.operatorframework.io.bundle.manifests.v1": "manifests/",
+    "operators.operatorframework.io.bundle.mediatype.v1": "registry+v1",
+    "operators.operatorframework.io.bundle.metadata.v1": "metadata/",
+    "operators.operatorframework.io.bundle.package.v1": "e2e-test-operator",
+    "release": "11",
+    "url": "https://access.qa.redhat.com/containers/#/registry.access.redhat.com/e2e/e2e-test-operator-bundle-container/images/8.0-11",
+    "vcs-ref": "dca3a174a3aedb3a80be62869304e6e0250cc272",
+    "vcs-type": "git",
+    "vendor": "Red Hat, Inc.",
+    "version": "8.0"
+  },
+  "Architecture": "amd64",
+  "Os": "linux",
+  "Layers": [
+    "sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4",
+    "sha256:37e63b1455f2ff52651ced1249a27c3ae6e1b603d2f7cbc338de21cd19778cd4"
+  ],
+  "Env": [
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ]
+}

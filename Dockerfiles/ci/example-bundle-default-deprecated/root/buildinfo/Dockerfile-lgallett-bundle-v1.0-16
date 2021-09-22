@@ -1,0 +1,26 @@
+FROM scratch
+
+COPY manifests/ /manifests/
+COPY metadata/annotations.yaml /metadata/annotations.yaml
+
+LABEL com.redhat.delivery.operator.bundle=true
+LABEL com.redhat.openshift.versions="v4.5-test"
+LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1
+LABEL operators.operatorframework.io.bundle.manifests.v1=manifests/
+LABEL operators.operatorframework.io.bundle.metadata.v1=metadata/
+LABEL operators.operatorframework.io.bundle.package.v1=lgallett-bundle
+LABEL operators.operatorframework.io.bundle.channels.v1=release-v1
+LABEL operators.operatorframework.io.bundle.channel.default.v1=release-v1
+
+LABEL \
+        com.redhat.component="lgallett-bundle-container" \
+        version="v1.0" \
+        name="lgallett-bundle" \
+        License="ASL 2.0" \
+        io.k8s.display-name="lgallett bundle" \
+        io.k8s.description="demo of bundle migration" \
+        summary="demo of bundle migration" \
+        maintainer="Lance Galletti <lgallett@redhat.com>"
+
+
+LABEL "distribution-scope"="public" "vendor"="Red Hat, Inc." "description"="demo of bundle migration" "url"="https://access.redhat.com/containers/#/registry.access.redhat.com/lgallett-bundle/images/v1.0-16" "vcs-type"="git" "architecture"="x86_64" "release"="16" "build-date"="2020-05-12T13:05:53.161326" "com.redhat.license_terms"="https://www.redhat.com/en/about/red-hat-end-user-license-agreements" "com.redhat.build-host"="cpt-1001.osbs.prod.upshift.rdu2.redhat.com" "vcs-ref"="5e89306f5acd8b7fa5ffe0d2f5260f9356010048"

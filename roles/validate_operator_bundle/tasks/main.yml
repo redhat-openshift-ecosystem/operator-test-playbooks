@@ -59,7 +59,7 @@
 
     - name: "Fail if Pyxis response is not 200"
       fail:
-        msg: "Error collecting OCP version range from Pyxis.  Error message: {{ supported_indices_json.content }}"
+        msg: "Error collecting OCP version range from Pyxis - status {{ supported_indices_json.status }}.  Error message: {{ supported_indices_json.content }}"
       when: supported_indices_json.status != 200
 
     - name: "Convert output to map"
@@ -71,8 +71,8 @@
         msg: "Indices: {{ supported_indices['data'] }}"
 
     - name: "Set support_v4_9 to false if there are no supported versions"
-      set_fact:
-        support_v4_9: false
+      fail:
+        msg: "No supported OCP versions found in Pyxis.  Please verify that the version label '{{ ocp_version_annotation }} 'is valid and includes a currently-supported OCP version"
       when: supported_indices['data']|length==0
 
     - name: "Parse values returned from Pyxis"
