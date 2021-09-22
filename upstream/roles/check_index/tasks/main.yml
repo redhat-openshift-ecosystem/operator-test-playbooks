@@ -7,10 +7,10 @@
       vars:
         bundle_index_image_input: "{{ bundle_index_image }}"
 
-    - name: "Find all directories in git repo"
+    - name: "Find all directories in git repo in '{{ ci_operator_base_dir }}'"
       shell:
         cmd: "find . -type d -mindepth 2 -maxdepth 2 | cut -sd / -f 2- | sort"
-        chdir: "{{ operator_base_dir }}"
+        chdir: "{{ ci_operator_base_dir }}"
       register: chi_git_operators_out
       no_log: true
 
