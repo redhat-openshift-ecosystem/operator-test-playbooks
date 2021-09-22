@@ -49,6 +49,7 @@
       with_items:
         - absent
         - directory
+      when: run_remove_operator_bundle_src_dir is undefined or run_remove_operator_bundle_src_dir|bool
 
     - name: "Resetting 'op_info' object"
       set_fact:
