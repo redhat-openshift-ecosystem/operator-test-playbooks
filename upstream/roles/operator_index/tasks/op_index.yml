@@ -64,18 +64,38 @@
 
     - name: "Add '{{ oi_op_info.name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --from-index {{ oi_index }} --mode {{ oi_mode }}"
+      register: oi_index_add
+      ignore_errors: true
 
     - name: "Push index image {{ oi_index }}"
       shell: "{{ opm_container_tool }} push {{ oi_index }}"
+      when:
+        - oi_index_add.rc is defined
+        - oi_index_add.rc == 0
+
+    - name: "Adding operator '{{ oi_op_info.name }}' to 'oi_failed_index_add'"
+      set_fact:
+        oi_failed_index_add: "{{ oi_failed_index_add + [ oi_op_info.name+':'+oi_bundles_str ] }}"
+      when: oi_index_add.rc is udefined or oi_index_add.rc != 0
 
     - name: "Handle deprecatetruncate"
       block:
         - name: "Index deprecatetruncate '{{ oi_op_info.name }}' operator to index image {{ oi_index }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -c {{ opm_container_tool }} --bundles {{ oi_bundles_dt_str }} --tag {{ oi_index }} --from-index {{ oi_index }}"
+          register: oi_index_dt
           ignore_errors: true
 
         - name: "Push index image {{ oi_index }}"
           shell: "{{ opm_container_tool }} push {{ oi_index }}"
+          when:
+            - oi_index_dt.rc is defined
+            - oi_index_dt.rc == 0
+
+        - name: "Adding operator '{{ oi_op_info.name }}' to 'oi_failed_index_add'"
+          set_fact:
+            oi_failed_index_dt: "{{ oi_failed_index_dt + [ oi_op_info.name+':'+oi_bundles_str':'+oi_bundles_dt_str ] }}"
+          when: oi_index_df.rc is udefined or oi_index_df.rc != 0
+
       when: oi_bundles_dt.0 is defined
 
   when: oi_bundles_exists.0 is defined
