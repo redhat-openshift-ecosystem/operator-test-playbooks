@@ -186,6 +186,8 @@
         - name: "Index sanity check"
           include_role:
             name: check_index
+          vars:
+            ci_operator_base_dir: "{{ operator_base_dir }}"
           tags:
             - mirror_index
             - deploy_bundles
