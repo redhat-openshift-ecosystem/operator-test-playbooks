@@ -47,6 +47,7 @@
           set_fact:
             bvf_versions_filtered: "{{ cl_git_label_list_supported |difference(bvf_versions) }}"
 
+# TODO: uncomment
         - name: "Collect failed labels"
           set_fact:
             oi_failed_labels: "{{ oi_failed_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+bvf_versions_filtered|join(',') ] }}"
@@ -61,12 +62,6 @@
       when:
         - validate_api|bool
 
-    - name: "Output idx_user_label_versions"
-      debug:
-        var: idx_user_label_versions
-      when:
-        - validate_api|bool
-
   when: cluster_type == "ocp"
 
 - name: "Defaults for non OCP"
@@ -75,3 +70,7 @@
     bvf_label: ""
   when:
     - cluster_type == "k8s"
+
+- name: "Output idx_user_label_versions"
+  debug:
+    var: idx_user_label_versions
