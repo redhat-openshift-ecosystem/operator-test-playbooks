@@ -41,7 +41,6 @@
     cl_git_operator_label: "{{ cl_operator_label }}"
     cl_git_label_list_supported: []
 
-
 - name: "Loop and pick supported cluster versions"
   set_fact:
     cl_git_label_list_supported: "{{ cl_git_label_list_supported + [cl_git_label_item] }}"
