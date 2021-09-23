@@ -47,7 +47,6 @@
           set_fact:
             bvf_versions_filtered: "{{ cl_git_label_list_supported |difference(bvf_versions) }}"
 
-# TODO: uncomment
         - name: "Collect failed labels"
           set_fact:
             oi_failed_labels: "{{ oi_failed_labels + [ oi_operator_name+':v'+oi_operator_ver+' => '+bvf_versions_filtered|join(',') ] }}"
