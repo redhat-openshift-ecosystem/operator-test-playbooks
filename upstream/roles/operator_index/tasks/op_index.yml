@@ -76,7 +76,7 @@
     - name: "Adding operator '{{ oi_op_info.name }}' to 'oi_failed_index_add'"
       set_fact:
         oi_failed_index_add: "{{ oi_failed_index_add + [ oi_op_info.name+':'+oi_bundles_str ] }}"
-      when: oi_index_add.rc is udefined or oi_index_add.rc != 0
+      when: oi_index_add.rc is undefined or oi_index_add.rc != 0
 
     - name: "Handle deprecatetruncate"
       block:
@@ -94,7 +94,7 @@
         - name: "Adding operator '{{ oi_op_info.name }}' to 'oi_failed_index_add'"
           set_fact:
             oi_failed_index_dt: "{{ oi_failed_index_dt + [ oi_op_info.name+':'+oi_bundles_str':'+oi_bundles_dt_str ] }}"
-          when: oi_index_dt.rc is udefined or oi_index_dt.rc != 0
+          when: oi_index_dt.rc is undefined or oi_index_dt.rc != 0
 
       when: oi_bundles_dt.0 is defined
 
