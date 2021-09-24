@@ -73,3 +73,5 @@
 - name: "Output idx_user_label_versions"
   debug:
     var: idx_user_label_versions
+  when:
+    - validate_api|bool
