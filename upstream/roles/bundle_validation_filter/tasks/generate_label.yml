@@ -7,13 +7,14 @@
 - name: "Reset"
   set_fact:
     label_set: false
+    max_cluster_defined_by_user: "notDefined"
 
 - name: "Set label"
   block:
 
     - name: "Set max_cluster_defined_by_user"
       set_fact:
-        max_cluster_defined_by_user: "{{ cl_operator_label.split('-')[1] }}"
+        max_cluster_defined_by_user: "{{ cl_operator_label.split('-')[1].split('v')[1] }}"
       when: '"-" in cl_operator_label'
 
     - name: "Only single cluster supported"
@@ -52,7 +53,11 @@
       debug:
         var: bvf_versions_count
 
-    - name: "Label cluster range when some cluster unsupported"
+    - name: "Debug max_cluster_defined_by_user"
+      debug:
+        var: max_cluster_defined_by_user
+
+    - name: "Label cluster range when some cluster unsupported with different max in cluster range"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
       when:
@@ -60,7 +65,7 @@
         - bvf_supported_cluster_versions_count != bvf_versions_count
         - bvf_versions[-1] != bvf_supported_cluster_versions[-1]
 
-    - name: "Label cluster range when some cluster unsupported"
+    - name: "Label cluster range when some cluster unsupported when max in range by user equals computed max"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
       when:
@@ -69,7 +74,7 @@
         - bvf_versions[-1] == bvf_supported_cluster_versions[-1]
         - max_cluster_defined_by_user == bvf_versions[-1]
 
-    - name: "Label cluster range when some cluster unsupported"
+    - name: "Label cluster with a single version when some cluster unsupported"
       set_fact:
         bvf_label: "v{{ bvf_versions[0] }}"
       when:
