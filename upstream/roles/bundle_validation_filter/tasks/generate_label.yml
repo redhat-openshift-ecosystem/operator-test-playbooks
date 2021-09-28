@@ -81,6 +81,7 @@
         - bvf_versions_count|int >= 2
         - bvf_supported_cluster_versions_count != bvf_versions_count
         - bvf_versions[-1] == bvf_supported_cluster_versions[-1]
+        - max_cluster_defined_by_user != bvf_versions[-1]
 
   when: bvf_versions|length != 0
 
