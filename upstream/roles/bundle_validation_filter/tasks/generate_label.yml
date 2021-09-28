@@ -11,6 +11,11 @@
 - name: "Set label"
   block:
 
+    - name: "Set max_cluster_defined_by_user"
+      set_fact:
+        max_cluster_defined_by_user: "{{ cl_operator_label.split('-')[1] }}"
+      when: '"-" in cl_operator_label'
+
     - name: "Only single cluster supported"
       set_fact:
         bvf_label: "=v{{ bvf_versions[0] }} }}"
@@ -54,6 +59,15 @@
         - bvf_versions_count|int >= 2
         - bvf_supported_cluster_versions_count != bvf_versions_count
         - bvf_versions[-1] != bvf_supported_cluster_versions[-1]
+
+    - name: "Label cluster range when some cluster unsupported"
+      set_fact:
+        bvf_label: "v{{ bvf_versions[0] }}-v{{ bvf_versions[-1] }}"
+      when:
+        - bvf_versions_count|int >= 2
+        - bvf_supported_cluster_versions_count != bvf_versions_count
+        - bvf_versions[-1] == bvf_supported_cluster_versions[-1]
+        - max_cluster_defined_by_user == bvf_versions[-1]
 
     - name: "Label cluster range when some cluster unsupported"
       set_fact:
