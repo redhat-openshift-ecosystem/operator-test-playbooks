@@ -29,6 +29,9 @@
         status_code: 200
         return_content: true
       register: p_pyxis_respond
+      until: p_pyxis_respond.status == 200
+      retries: 7
+      delay: 5
 
     - name: "Convert output to json"
       set_fact:
