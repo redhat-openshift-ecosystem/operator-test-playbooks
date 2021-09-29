@@ -305,7 +305,9 @@
 
         - name: "Push bundle image with the timestamp"
           include_tasks: preserve_sha.yml
-          when: bb_rc.rc == 0
+          when:
+            - bb_rc.rc == 0
+            - ignore_image_string|length>0
 
         - name: "Set 'result_rc' to false"
           set_fact:
@@ -407,7 +409,9 @@
 
         - name: "Push bundle image with the timestamp"
           include_tasks: preserve_sha.yml
-          when: mb_rc.rc == 0
+          when:
+            - mb_rc.rc == 0
+            - ignore_image_string|length>0
 
         - name: "Set 'result_rc' to false"
           set_fact:
