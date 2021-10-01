@@ -16,9 +16,15 @@
 
 - name: "Add missing replaces versions"
   include_tasks: op_info_index_replaces_loop.yml
+  # vars:
+    # oiirl_ver: "{{ oi_index_replaces_ver_current }}"
   loop: "{{ oii_index | reverse | list  }}"
   loop_control:
     loop_var: oi_index_replaces_ver_current
+
+- debug:
+    var: oiirl_current_replaces_array
+
 
 - name: "Adding current versuon to the 'io_versions_replaces'"
   set_fact:

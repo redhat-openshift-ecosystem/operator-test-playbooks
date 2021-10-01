@@ -1,31 +1,45 @@
 ---
+# - debug:
+#     var: oiirl_ver
 
-- debug:
-    var: oi_index_replaces_ver_current
+# - debug:
+#     var: io_versions_manifests[oiirl_ver].replaces
 
-- debug:
-    var: io_versions_manifests[oi_index_replaces_ver_current].replaces
+- name: "Setting 'oi_index_replaces_ver_current'"
+  set_fact:
+    oiirl_ver: "{{ oi_index_replaces_ver_current }}"
+  when: oiirl_ver is undefined or oiirl_ver|length ==0
 
 - pause:
-# - name: "Loop over all versions"
-#   block:
-#     - name: "Sets 'oicpl_current_channel'"
-#       set_fact:
-#         oicpl_current_channel: "{{ (oicpl_current_channel| default([])) + [ oi_pkg_channel_ver_current ] }}"
+- name: "Loop over all replaces"
+  block:
+    - name: "Sets 'oiirl_current_replaces_array'"
+      set_fact:
+        oiirl_current_replaces_array: "{{ (oiirl_current_replaces_array| default([])) + [ oi_index_replaces_ver_current ] }}"
 
-#     # - name: "Setting 'oi_pkg_channel_ver_current'"
-#     #   set_fact:
-#     #     oi_pkg_channel_ver_current: ''
+    # - name: "Setting 'oi_index_replaces_ver_current'"
+    #   set_fact:
+    #     oi_index_replaces_ver_current: ''
 
-#     - name: "Setting 'oi_pkg_channel_ver_current'"
-#       set_fact:
-#         oi_pkg_channel_ver_current: "{{ io_versions_manifests[oi_pkg_channel_ver_current].replaces }}"
-#       when:
-#         - io_versions_manifests[oi_pkg_channel_ver_current] is defined
+    - debug:
+        var: io_versions_manifests[oiirl_ver].replaces
 
-#   always:
-#     - include_tasks: op_info_index_replaces_loop.yml
-#       when:
-#         - oi_pkg_channel_ver_current is defined
-#         - oi_pkg_channel_ver_current|length > 0
-#         - io_versions_manifests[oi_pkg_channel_ver_current] is defined
+    - name: "Setting 'oiirl_ver'"
+      set_fact:
+        oiirl_ver: "{{ io_versions_manifests[oiirl_ver].replaces }}"
+      # when:
+      #   - io_versions_manifests[oi_index_replaces_ver_current].replaces is defined
+    - debug:
+        var: oiirl_ver
+
+    - debug:
+        var: io_versions_manifests[oiirl_ver].replaces
+
+  always:
+    - include_tasks: op_info_index_replaces_loop.yml
+      # vars:
+      #   oiirl_ver: "{{ oiirl_ver }}"
+      when:
+        - oiirl_ver is defined
+        - oiirl_ver|length > 0
+        - io_versions_manifests[oiirl_ver].replaces is defined
