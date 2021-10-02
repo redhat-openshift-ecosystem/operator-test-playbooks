@@ -1,45 +1,41 @@
 ---
-# - debug:
-#     var: oiirl_ver
-
-# - debug:
-#     var: io_versions_manifests[oiirl_ver].replaces
 
 - name: "Setting 'oi_index_replaces_ver_current'"
   set_fact:
     oiirl_ver: "{{ oi_index_replaces_ver_current }}"
   when: oiirl_ver is undefined or oiirl_ver|length ==0
 
-- pause:
+# - pause:
 - name: "Loop over all replaces"
   block:
-    - name: "Sets 'oiirl_current_replaces_array'"
-      set_fact:
-        oiirl_current_replaces_array: "{{ (oiirl_current_replaces_array| default([])) + [ oi_index_replaces_ver_current ] }}"
-
-    # - name: "Setting 'oi_index_replaces_ver_current'"
-    #   set_fact:
-    #     oi_index_replaces_ver_current: ''
-
-    - debug:
-        var: io_versions_manifests[oiirl_ver].replaces
-
     - name: "Setting 'oiirl_ver'"
       set_fact:
-        oiirl_ver: "{{ io_versions_manifests[oiirl_ver].replaces }}"
+        oiirl_ver: "{{ io_versions_manifests[oiirl_ver].replaces | default('') }}"
       # when:
       #   - io_versions_manifests[oi_index_replaces_ver_current].replaces is defined
-    - debug:
-        var: oiirl_ver
+    # - debug:
+    #     var: oiirl_ver
 
-    - debug:
-        var: io_versions_manifests[oiirl_ver].replaces
+    # - debug:
+    #     var: io_versions_manifests[oiirl_ver].replaces
+
+    - name: "Sets 'oii_index_dt'"
+      set_fact:
+        oii_index_dt: "{{ (oii_index_dt| default([])) + [ oiirl_ver ] }}"
+      when:
+        - oiirl_ver|length > 0
+        - oiirl_ver not in oii_index
+
+    # - debug:
+    #     var: oii_index_dt
+  when:
+    - oiirl_ver is defined
+    - oiirl_ver|length > 0
 
   always:
     - include_tasks: op_info_index_replaces_loop.yml
-      # vars:
-      #   oiirl_ver: "{{ oiirl_ver }}"
       when:
         - oiirl_ver is defined
         - oiirl_ver|length > 0
-        - io_versions_manifests[oiirl_ver].replaces is defined
+        # - io_versions_manifests[oiirl_ver].replaces is defined
+        # - io_versions_manifests[oiirl_ver].replaces|length > 0
