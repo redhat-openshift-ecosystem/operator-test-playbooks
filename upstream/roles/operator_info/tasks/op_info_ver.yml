@@ -99,7 +99,7 @@
 
 - debug:
     var: idx_versions_add
-# - pause: 
+# - pause:
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
