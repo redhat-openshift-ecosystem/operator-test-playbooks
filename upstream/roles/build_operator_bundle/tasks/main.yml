@@ -53,6 +53,19 @@
       set_fact:
         versions_in_dir: "{{ bob_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
         operator_dir_name: "{{ bob_opname }}"
+      when: op_info is undefined
+
+    - debug:
+        var: op_info
+
+    - name: "Setting list of versions from directory structre"
+      set_fact:
+        versions_in_dir: "{{ op_info[bob_opname].versions }}"
+        operator_dir_name: "{{ bob_opname }}"
+      when: op_info is defined
+
+    - debug:
+        var: versions_in_dir
 
     - name: "Detect format"
       include_role:

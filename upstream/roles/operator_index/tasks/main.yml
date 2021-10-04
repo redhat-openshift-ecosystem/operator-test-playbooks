@@ -10,7 +10,7 @@
       include_tasks: op_index.yml
       vars:
         io_index_ver: "v4.9"
-      loop: "{{ operator_info_vars.operators }}"
+      loop: "{{ operator_info_vars.keys()|list }}"
       loop_control:
         loop_var: oi_op_info
 
