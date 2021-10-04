@@ -69,7 +69,7 @@
         var: op_info
 
     - name: "Generate operators info config file"
-      copy: content="operators:\n{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
+      copy: content="{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
 
     - name: "Fail"
       block:
