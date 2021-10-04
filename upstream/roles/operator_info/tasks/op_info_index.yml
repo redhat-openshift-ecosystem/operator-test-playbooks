@@ -1,10 +1,11 @@
 ---
-# - name: "Print Index"
-#   debug:
-#     msg: "Running index '{{ oii_index_version }}'"
+- name: "Print Index"
+  debug:
+    msg: "Running index '{{ oii_index_version }}'"
 
 - name: "Reset 'oii_index_dt'"
   set_fact:
+    oii_index: []
     oii_index_dt: []
 
 - name: "Checking all versions"
@@ -13,6 +14,32 @@
   loop_control:
     loop_var: oiiv_version_item
 
+- name: "Add missing replaces versions"
+  include_tasks: op_info_index_replaces_loop.yml
+  loop: "{{ oii_index | reverse | list  }}"
+  loop_control:
+    loop_var: oi_index_replaces_ver_current
+
+- name: "Adds 'oii_index_dt' to 'oii_index'"
+  set_fact:
+    oii_index_dt: "{{ oii_index_dt | reverse | list }}"
+
+- name: "Adds 'oii_index_dt' to 'oii_index'"
+  set_fact:
+    oii_index: "{{ oii_index_dt | union(oii_index) }}"
+
+- debug:
+    var: oii_index
+# - pause:
+
 - name: "Adding current versuon to the 'io_versions_replaces'"
   set_fact:
+    io_index: "{{ io_index | default({}) | combine({ oii_index_version : oii_index }) }}"
     io_index_dt: "{{ io_index_dt | default({}) | combine({ oii_index_version : oii_index_dt }) }}"
+
+- debug:
+    var: io_index
+
+- debug:
+    var: io_index_dt
+# - pause:
