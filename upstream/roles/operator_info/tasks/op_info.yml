@@ -53,6 +53,34 @@
         oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
         oi_invalid_labels: []
 
+    - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}/tags/list"
+      register: bob_prod_registry_versions
+      failed_when: false
+      changed_when: false
+      when:
+        - production_registry_namespace is defined
+        - production_registry_namespace|length > 0
+
+    - name: "Setting all versions to 'versions_in_prod_registry_full' variable"
+      set_fact:
+        versions_in_prod_registry_full: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+      when:
+        - bob_prod_registry_versions.status is defined
+        - bob_prod_registry_versions.status == 200
+
+    - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
+      set_fact:
+        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list }}"
+      when:
+        - bob_prod_registry_versions.status is defined
+        - bob_prod_registry_versions.status == 200
+
+    - debug:
+        var: versions_in_prod_registry
+    # - pause:
+
     - name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
       file:
         path: "{{ oi_auto_labels_output_file }}"
@@ -114,29 +142,8 @@
       loop_control:
         loop_var: oii_index_version
 
-    # - name: "Count manifests"
-    #   set_fact:
-    #     op_stat_manifests: "{{ 0 if op_stat_manifests is undefined else op_stat_manifests|int + 1 }}"
-    #     op_stat_soperators: "{{ 0 if op_stat_operators is undefined else op_stat_operators|int + 1 }}"
-    #   when: oi_operator_format == "manifest"
-
-    # - name: "Count bundles"
-    #   set_fact:
-    #     op_stat_bundles: "{{ 0 if op_stat_bundles is undefined else op_stat_bundles|int + 1 }}"
-    #     op_stat_operators: "{{ 0 if op_stat_operators is undefined else op_stat_operators|int + 1 }}"
-    #   when: oi_operator_format == "manifest"
-
-    # - name: "Count manifests"
-    #   set_stats:
-    #     data:
-    #       bundles: "{{ bundles }}"
-    #       manifests: "{{ manifests }}"
-    #       operators: "{{ operators }}"
-    #     per_host: yes
-
     - name: "Adding current operator to the 'op_info'"
       set_fact:
-        op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index_dt': io_index_dt}]) }}"
-      when: oi_versions_in_dir.0 is defined
+        op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }]) }}"
 
   when: oi_versions_in_dir.0 is defined
