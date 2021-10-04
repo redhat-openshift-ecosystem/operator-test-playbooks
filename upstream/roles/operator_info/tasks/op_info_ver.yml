@@ -94,12 +94,6 @@
   set_fact:
     idx_versions: "{{ bvf_versions| default([]) }}"
     idx_label: "{{ bvf_label }}"
-    idx_user_label_versions: "{{ bv_user_label_versions }}"
-    idx_versions_add: "{{ bvf_versions | intersect(bv_user_label_versions) }}"
-
-- debug:
-    var: idx_versions_add
-# - pause:
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
@@ -129,8 +123,6 @@
       ocp_max: "{{ ocp_max | default('') }}"
       idx_versions: "{{ idx_versions | default('') }}"
       idx_label: "{{ idx_label | default([]) }}"
-      idx_user_label_versions: "{{ idx_user_label_versions | default([]) }}"
-      idx_versions_add: "{{ idx_versions_add | default([]) }}"
       bundle_prod: "{{ bundle_prod | default([]) }}"
 
 - name: "Add label when manifest format"
