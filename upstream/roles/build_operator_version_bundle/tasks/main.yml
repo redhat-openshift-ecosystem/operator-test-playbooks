@@ -11,6 +11,9 @@
             name: detect_format
           vars:
             df_operator_dir: "{{ operator_dir }}"
+        - name: "Sets df_operator_dir"
+          set_fact:
+            df_operator_dir: "{{ operator_dir }}"
       when: op_info is undefined
 
     - name: "Handle Operator from 'op_info'"
@@ -19,8 +22,13 @@
           include_role:
             name: detect_format
           vars:
-            df_operator_dir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+            # df_operator_dir: "{{ df_operator_dir }}"
+            df_operator_dir: "{{ operator_base_dir }}/{{ operator_package_name }}"
             # op_version: "{{ op_version }}"
+        - name: "Sets df_operator_dir"
+          set_fact:
+            df_operator_dir: "{{ operator_base_dir }}/{{ operator_package_name }}"
+
       when: op_info is defined
 
     # - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of manifest format"
@@ -32,7 +40,7 @@
     - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of bundle format"
       set_fact:
         bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
-        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/manifests/{{ csv_file_path | basename }}"
+        clusterserviceversion_bundle_file_path: "{{ df_operator_dir }}/{{ op_version }}/manifests/{{ csv_file_path | basename }}"
 
     - name: "Failing when version as directory name is not same with version defined in csv file for '{{ operator_package_name }} {{ op_version }}'"
       fail:
@@ -44,20 +52,20 @@
       block:
         - name: "Check if file '{{ opm_index_ci_filename }}' exists"
           stat:
-            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}"
+            path: "{{ df_operator_dir }}/{{ opm_index_ci_filename }}"
           register: boi_ci_file
 
         - name: "Parsing file '{{ operator_package_name }}/{{ opm_index_ci_filename }}' when exists"
           block:
             - name: "Read from yaml file 'updateGraph' key"
-              shell: "{{ yq_bin_path }} r {{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }} -t updateGraph"
+              shell: "{{ yq_bin_path }} r {{ df_operator_dir }}/{{ opm_index_ci_filename }} -t updateGraph"
               register: boi_ci_update_graph
 
             - name: "Sets `boi_ci_update_graph_var` from '{{ opm_index_ci_filename }}' file"
               set_fact:
                 boi_ci_update_graph_var: "{{ boi_ci_update_graph.stdout | replace('-mode','') }}"
 
-            - name: "Setting index add mode from 'updateGraph' value to 'semver' because it is not present in '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ opm_index_ci_filename }}'"
+            - name: "Setting index add mode from 'updateGraph' value to 'semver' because it is not present in '{{ df_operator_dir }}/{{ opm_index_ci_filename }}'"
               set_fact:
                 opm_index_add_mode: "semver"
               when: boi_ci_update_graph_var == "null"
@@ -193,14 +201,14 @@
           shell: "{{ container_tool }} rmi -f {{ bundle_image }}"
           failed_when: false
 
-        - name: "Remove docker file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile'"
+        - name: "Remove docker file '{{ df_operator_dir }}/{{ op_version }}/Dockerfile'"
           file:
-            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+            path: "{{ df_operator_dir }}/{{ op_version }}/Dockerfile"
             state: absent
 
-        - name: "Checking for presence of Dockerfile in '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}'"
+        - name: "Checking for presence of Dockerfile in '{{ df_operator_dir }}/{{ op_version }}'"
           stat:
-            path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+            path: "{{ df_operator_dir }}/{{ op_version }}/Dockerfile"
           register: bovb_bundle_dockerfile
 
         - name: "Trying to generate Dockerfile when not present."
@@ -210,15 +218,15 @@
                 annotations_vars:
                 labels_vars:
 
-            - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
+            - name: "Checking for presence of '{{ df_operator_dir }}/{{ op_version }}/metadata/annotations.yaml'"
               stat:
-                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml"
+                path: "{{ df_operator_dir }}/{{ op_version }}/metadata/annotations.yaml"
               register: bovb_bundle_annotations_file
 
             - name: "Getting info from 'annotations.yaml'"
               block:
-                - name: "Getting content of labels file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml'"
-                  shell: cat "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/annotations.yaml"
+                - name: "Getting content of labels file '{{ df_operator_dir }}/{{ op_version }}/metadata/annotations.yaml'"
+                  shell: cat "{{ df_operator_dir }}/{{ op_version }}/metadata/annotations.yaml"
                   register: bovb_annotation_data
 
                 - name: "Seting annotation variables"
@@ -226,15 +234,15 @@
                     annotations_vars: "{{ bovb_annotation_data.stdout | from_yaml }}"
               when: bovb_bundle_annotations_file.stat.exists
 
-            - name: "Checking for presence of '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml'"
+            - name: "Checking for presence of '{{ df_operator_dir }}/{{ op_version }}/metadata/labels.yaml'"
               stat:
-                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml"
+                path: "{{ df_operator_dir }}/{{ op_version }}/metadata/labels.yaml"
               register: bovb_bundle_labels_file
 
             - name: "Getting info from 'labels.yaml'"
               block:
-                - name: "Getting content of labels file '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml'"
-                  shell: cat "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/metadata/labels.yaml"
+                - name: "Getting content of labels file '{{ df_operator_dir }}/{{ op_version }}/metadata/labels.yaml'"
+                  shell: cat "{{ df_operator_dir }}/{{ op_version }}/metadata/labels.yaml"
                   register: bovb_bundle_labels_data
 
                 - name: "Setting lables variables"
@@ -251,26 +259,26 @@
 
                 - name: "Check if directory exits"
                   stat:
-                    path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
+                    path: "{{ df_operator_dir }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
                   register: bovb_testing_config
 
                 - name: "Fail if directory doesn't exists"
                   fail:
-                    msg: "Directory '{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
+                    msg: "Directory '{{ df_operator_dir }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
                   when: not bovb_testing_config.stat.exists
               when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] is defined
 
             - name: "Generating Dockerfile using info from metadata directory."
               template:
                 src: "Dockerfile.j2"
-                dest: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/Dockerfile"
+                dest: "{{ df_operator_dir }}/{{ op_version }}/Dockerfile"
 
           when: not bovb_bundle_dockerfile.stat.exists
 
         - name: "Generate bundle image {{ bundle_image }} in bundle format"
           shell:
             cmd: "{{ container_tool }} build --tag {{ bundle_image }} ."
-            chdir: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}"
+            chdir: "{{ df_operator_dir }}/{{ op_version }}"
           ignore_errors: true
           register: bb_rc
 
