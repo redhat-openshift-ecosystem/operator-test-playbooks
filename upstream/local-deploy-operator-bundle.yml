@@ -228,6 +228,7 @@
             - name: "Debug"
               debug:
                 var: openshift_robot_hash
+          when: op_info is undefined
           tags:
             - mirror_index
             - deploy_bundles
