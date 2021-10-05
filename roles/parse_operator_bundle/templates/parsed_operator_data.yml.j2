@@ -1,14 +1,14 @@
-package_name: {{ package_name }}
+package_name: "{{ package_name }}"
 is_bundle_image: {{ is_bundle_image }}
 is_backport: {{ is_backport }}
-current_channel: {{ current_channel }}
-default_channel: {{ default_channel }}
-current_csv_dir: {{ current_csv_dir }}
-current_csv: {{ current_csv }}
-csv_path: {{ csv_path }}
-operator_pod_name: {{ operator_pod_name }}
-operator_capabilities: {{ operator_capabilities }}
-operator_container_name: {{ operator_container_name }}
+current_channel: "{{ current_channel }}"
+default_channel: "{{ default_channel }}"
+current_csv_dir: "{{ current_csv_dir }}"
+current_csv: "{{ current_csv }}"
+csv_path: "{{ csv_path }}"
+operator_pod_name: "{{ operator_pod_name }}"
+operator_capabilities: "{{ operator_capabilities }}"
+operator_container_name: "{{ operator_container_name }}"
 operator_allnamespaces_support: {{ operator_allnamespaces_support }}
 operator_ownnamespace_support: {{ operator_ownnamespace_support }}
 operator_singlenamespace_support: {{ operator_singlenamespace_support }}
@@ -21,4 +21,4 @@ crd_paths:
   - {{ crd_path }}
 {% endfor %}
 {% endif %}
-ocp_versions: {{ ocp_versions }}
+ocp_versions: "{{ ocp_versions }}"
