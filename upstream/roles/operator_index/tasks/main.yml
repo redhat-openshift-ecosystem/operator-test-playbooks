@@ -1,18 +1,13 @@
 ---
 - name: "Handle Operator index (new)"
   block:
-    - name: "Parsing config file '{{ operator_info_file }}'"
-      include_vars:
-        file: "{{ operator_info_file }}"
-        name: operator_info_vars
-
     - name: "Loop over all versions"
       include_tasks: op_index.yml
       vars:
-        io_index_ver: "v4.9"
-      loop: "{{ operator_info_vars.keys()|list }}"
+        io_index_ver: "{{ bundle_index_image_version }}"
+      loop: "{{ op_info.keys() | list }}"
       loop_control:
-        loop_var: oi_op_info
+        loop_var: oi_op_name
 
     - name: "Print failed 'oi_failed_index_add'"
       debug:
@@ -29,6 +24,4 @@
         msg: "Some operators failed. List is above !!!"
       when: oi_failed_index_add.0 is defined or oi_failed_index_dt.0 is defined
 
-  when:
-    - operator_info_file is defined
-    - operator_info_file| length > 0
+  when: op_info is defined
