@@ -1,12 +1,13 @@
+---
 - name: "Setting operator was removed to false"
   set_fact:
     operator_removed: false
-    bob_opname: "{{ operator_dir | basename }}"
+    bob_opname: "{{ op_item }}"
     bob_opbasedir: "{{ operator_dir | dirname }}"
 
 - name: "Setting operator was removed to false"
   set_fact:
-    bob_opbasedir: "{{ operator_bundle_src_dir }}"
+    bob_opbasedir: "{{ operator_base_dir }}"
   when: op_info is defined
 
 - name: "Checkning if operator name is not name of catalog"
@@ -238,6 +239,7 @@
         name: build_operator_version_bundle
       vars:
         op_version: "{{ op_ver_item }}"
+        operator_package_name: "{{ bob_opname }}"
       loop: "{{ versions_add }}"
       loop_control:
         loop_var: op_ver_item

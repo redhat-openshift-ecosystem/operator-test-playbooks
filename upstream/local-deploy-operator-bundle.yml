@@ -43,6 +43,11 @@
         # mirror_apply: true
         doic_skip_file_check: false
 
+
+    - name: "Load operator info from file"
+      include_role:
+        name: operator_info_load
+
     - name: "Parsing 'openshift_robot_hash' variable"
       set_fact:
         openshift_robot_hash_array: "{{ openshift_robot_hash.split('|') }}"

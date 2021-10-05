@@ -122,37 +122,50 @@
   when: operator_info_file is undefined or operator_info_file|length == 0
 
 - name: "Load operator info from file"
-  block:
-    # - name: "Parsing config file '{{ operator_info_file }}'"
-    #   include_vars:
-    #     file: "{{ operator_info_file }}"
-    #     name: op_info
-    #     remote_src: true
-    #     # name: operator_info_vars
-    - name: "Check if '{{ operator_info_file }}' file exists"
-      stat:
-        path: "{{ operator_info_file }}"
-      register: operator_info_file_st
+  include_role:
+    name: operator_info_load
 
-    - name: "Fail when file '{{ operator_info_file }}' doesn't exists"
-      fail:
-        msg: "Operator info file '{{ operator_info_file }}' doens't exists !!!"
-      when: not operator_info_file_st.stat.exists
+# - name: "Load operator info from file"
+#   block:
+#     # - name: "Parsing config file '{{ operator_info_file }}'"
+#     #   include_vars:
+#     #     file: "{{ operator_info_file }}"
+#     #     name: op_info
+#     #     remote_src: true
+#     #     # name: operator_info_vars
+#     - name: "Check if '{{ operator_info_file }}' file exists"
+#       stat:
+#         path: "{{ operator_info_file }}"
+#       register: operator_info_file_st
 
-    - name: "Getting content from '{{ operator_info_file }}'"
-      shell: "cat {{ operator_info_file }}"
-      register: operator_info_data
-      ignore_errors: true
+#     - name: "Fail when file '{{ operator_info_file }}' doesn't exists"
+#       fail:
+#         msg: "Operator info file '{{ operator_info_file }}' doens't exists !!!"
+#       when: not operator_info_file_st.stat.exists
 
-    - name: "Sets operator info variables from '{{ operator_info_file }}'"
-      set_fact:
-        op_info: "{{ operator_info_data.stdout | from_yaml }}"
-      when: operator_info_data.rc == 0
+#     - name: "Getting content from '{{ operator_info_file }}'"
+#       shell: "cat {{ operator_info_file }}"
+#       register: operator_info_data
+#       ignore_errors: true
 
-  when:
-    - operator_info_file is defined
-    - operator_info_file| length > 0
+#     - name: "Sets operator info variables from '{{ operator_info_file }}'"
+#       set_fact:
+#         op_info: "{{ operator_info_data.stdout | from_yaml }}"
+#       when: operator_info_data.rc == 0
 
-- name: "Print final 'op_info'"
-  debug:
-    var: op_info
+
+#     - name: "Sets operator info variables from '{{ operator_info_file }}'"
+#       set_fact:
+#         operator_base_dir: "{{ operator_bundle_src_dir }}"
+#         operators: "{{ op_info.keys()|list }}"
+#       when:
+#         - op_info is defined 
+#         - op_info.0 is defined 
+
+#   when:
+#     - operator_info_file is defined
+#     - operator_info_file| length > 0
+
+# - name: "Print final 'op_info'"
+#   debug:
+#     var: op_info
