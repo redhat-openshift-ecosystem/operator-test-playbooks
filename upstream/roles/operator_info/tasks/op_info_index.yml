@@ -22,7 +22,7 @@
 
 - name: "Adds 'oii_index_dt' to 'oii_index'"
   set_fact:
-    oii_index_dt: "{{ oii_index_dt | reverse | list }}"
+    oii_index_dt: "{{ oii_index_dt | reverse | list | unique }}"
 
 - name: "Adds 'oii_index_dt' to 'oii_index'"
   set_fact:

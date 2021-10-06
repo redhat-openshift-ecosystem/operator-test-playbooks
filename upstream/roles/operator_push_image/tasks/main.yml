@@ -54,7 +54,9 @@
         - name: "Set 'rc_last' to tasks rc"
           set_fact:
             rc_last: true
-          when: (opi_push_rc.rc == 0)
+          when:
+            - opi_push_rc.rc is defined
+            - opi_push_rc.rc == 0
 
       when: not (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
 
