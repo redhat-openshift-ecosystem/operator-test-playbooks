@@ -1,1 +1,2 @@
 operator_bundle_src_dir: "{{ work_dir }}/operators"
+skip_operator_info_consistency: true

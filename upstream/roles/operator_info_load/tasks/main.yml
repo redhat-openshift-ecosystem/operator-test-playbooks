@@ -34,6 +34,11 @@
       when:
         - op_info is defined
 
+    - name: "Artifacts consistency check"
+      include_tasks: op_info_consistency.yml
+      when:
+        - skip_operator_info_consistency is undefined or is not skip_operator_info_consistency|bool
+
   when:
     - operator_info_file is defined
     - operator_info_file| length > 0
