@@ -1,0 +1,30 @@
+---
+- name: "List operators in operators dir artifact"
+  find:
+    paths: "{{ operator_bundle_src_dir }}"
+    recurse: false
+    file_type: directory
+  register: oi_check_operators_artifact_raw
+
+- name: "Setting list of versions from directory structre"
+  set_fact:
+    oi_check_operators_artifact: "{{ oi_check_operators_artifact_raw.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+
+- name: "Set operator list from operator_info"
+  set_fact:
+    oi_check_operator_info_keys: "{{ op_info.keys()|list }}"
+
+- name: "Show difference if failing"
+  debug:
+    var: oi_check_operators_artifact
+  when: oi_check_operators_artifact|difference(oi_check_operator_info_keys)
+
+- name: "Show difference if failing II"
+  debug:
+    var: oi_check_operator_info_keys
+  when: oi_check_operators_artifact|difference(oi_check_operator_info_keys)
+
+- name: "Failing"
+  fail:
+    msg: "Found a difference between operators artifact and operator_info [FAIL]"
+  when: oi_check_operators_artifact|difference(oi_check_operator_info_keys)

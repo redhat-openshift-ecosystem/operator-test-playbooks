@@ -32,6 +32,8 @@
     - name: "Load operator info from file"
       include_role:
         name: operator_info_load
+      vars:
+        skip_operator_info_consistency: true
 
     - name: "Running bundle test for operator"
       include_role:
