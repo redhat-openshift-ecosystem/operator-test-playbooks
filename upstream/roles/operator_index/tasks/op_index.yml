@@ -62,8 +62,8 @@
     oi_versions_dt: "{{ op_info[oi_op_name].index_dt[oi_io_index_ver] }}"
     oi_index: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ io_index_ver }}"
     oi_mode: "{{ op_info[oi_op_name].mode }}"
-    oi_bundles: []
-    oi_bundles_dt: []
+    # oi_bundles: []
+    # oi_bundles_dt: []
 
 - name: "Print 'oi_versions'"
   debug:
@@ -130,37 +130,42 @@
 
 - name: "Check if any version can be aded"
   block:
-    - name: "Print 'operator_info_vars'"
+    - name: "Reset 'oibs_bundles'"
       set_fact:
-        oi_bundles: "{{ oi_bundles | default([]) + [ bundle_registry+'/'+bundle_image_namespace+'/'+ oi_op_name+ ':v' + oi_ver ] }}"
+        oibs_bundles: []
+
+    - name: "Build bundle strings for index"
+      include_tasks: op_index_bundle_str.yml
       loop: "{{ oi_versions }}"
       loop_control:
         loop_var: oi_ver
 
-    - name: "Print 'operator_info_vars'"
+    - name: "Sets 'oi_bundles_str'"
       set_fact:
-        oi_bundles_dt: "{{ oi_bundles_dt | default([]) + [ bundle_registry+'/'+bundle_image_namespace+'/'+ oi_op_name+ ':v' + oi_ver ] }}"
-        # oi_bundles_dt: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ oi_op_name  }}:v{{ oi_versions_dt[-1] }}"
+        oi_bundles_str: "{{ oibs_bundles | join(',') }}"
+
+    - name: "Reset 'oibs_bundles'"
+      set_fact:
+        oibs_bundles: []
+
+    - name: "Build bundle strings for index _dt"
+      include_tasks: op_index_bundle_str.yml
       loop: "{{ oi_versions_dt }}"
       loop_control:
         loop_var: oi_ver
 
-    - name: "Print 'oi_bundles'"
+    - name: "Sets 'oi_bundles_dt_str'"
       set_fact:
-        oi_bundles_str: "{{ oi_bundles | join(',') }}"
-        oi_bundles_dt_str: "{{ oi_bundles_dt | join(',') }}"
-
-    - name: "Print 'oi_bundles'"
-      debug:
-        var: oi_bundles
-
-    - name: "Print 'oi_bundles_dt'"
-      debug:
-        var: oi_bundles_dt
+        oi_bundles_dt_str: "{{ oibs_bundles | join(',') }}"
 
     - name: "Print 'oi_bundles_str'"
       debug:
         var: oi_bundles_str
+
+    - name: "Print 'oi_bundles_dt_str'"
+      debug:
+        var: oi_bundles_dt_str
+        
 
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
@@ -275,7 +280,9 @@
             - not result_rc|bool
             - strict_mode is defined
             - strict_mode|bool
-      when: oi_bundles_dt.0 is defined
+      when:
+        - oi_bundles_dt_str is defined
+        - oi_bundles_dt_str|length > 0
 
     - name: "Build operator '{{ oi_op_name }}' from '{{ oi_index }}'' to sha index"
       include_role:

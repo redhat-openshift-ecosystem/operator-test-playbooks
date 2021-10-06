@@ -1,0 +1,28 @@
+---
+
+- name: "Reset 'is_operator_version' to false"
+  set_fact:
+    is_operator_version: false
+
+- name: "Handle version overwrite"
+  set_fact:
+    is_operator_version: true
+  when:
+    - operator_version is defined
+    - operator_version == oi_ver
+
+- name: "Add bundle from 'production_registry_namespace' is defined"
+  set_fact:
+    oibs_bundles: "{{ oibs_bundles | default([]) + [ production_registry_namespace + '/' + oi_op_name + ':v' + oi_ver ] }}"
+  when:
+    - production_registry_namespace is defined
+    - production_registry_namespace|length > 0
+    - op_info[oi_op_name].manifests[oi_ver].in_prod|bool
+    - not is_operator_version|bool
+
+- name: "Add bundle"
+  set_fact:
+    oibs_bundles: "{{ oibs_bundles | default([]) + [ bundle_registry+'/'+bundle_image_namespace+'/'+ oi_op_name + ':v' + oi_ver ] }}"
+  when:
+    - production_registry_namespace is undefined or production_registry_namespace|length == 0 or not op_info[oi_op_name].manifests[oi_ver].in_prod|bool or is_operator_version|bool
+
