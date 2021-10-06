@@ -57,7 +57,7 @@
     - name: "Pull input image '{{ mirror_input_image_final }}'"
       shell: "{{ container_tool }} pull {{ mirror_input_image_final }}"
       register: ms_pull_mirror_input_image_final
-      ignore_errors: true
+      failed_when: false
 
     - name: "Mirroring multi arch index image '{{ mirror_multiarch_image }}' to mirror location '{{ ms_info[0] }}'"
       block:
