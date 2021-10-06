@@ -3,9 +3,6 @@
   debug:
     msg: "Running  '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
 
-- debug:
-    var: io_versions_manifests[oiiv_version_item].idx_versions_add
-
 - name: "Filtering index add versions"
   set_fact:
     oii_index: "{{ (oii_index | default([])) + [ oiiv_version_item ] }}"

@@ -87,7 +87,6 @@
         index_pull_skip: true
       when: min_operators_in_index_allowed is defined
 
-
     - name: "Push index image {{ oi_index }}"
       include_role:
         name: operator_push_image
@@ -190,7 +189,6 @@
         oi_failed_index_add: "{{ oi_failed_index_add + [ oi_op_name+':'+oi_bundles_str ] }}"
       when: oi_index_add.rc is undefined or oi_index_add.rc != 0
 
-
     - name: "Set 'result_rc' to false"
       set_fact:
         result_rc: false
@@ -277,9 +275,20 @@
             - not result_rc|bool
             - strict_mode is defined
             - strict_mode|bool
-
-
       when: oi_bundles_dt.0 is defined
+
+    - name: "Build operator '{{ oi_op_name }}' from '{{ oi_index }}'' to sha index"
+      include_role:
+        name: build_operator_index_sha
+      vars:
+        sis_index_image_input: "{{ bundle_index_image }}"
+        sis_index_image_output: "{{ sis_index_image_input }}{{ bundle_index_sha_posfix }}"
+        sis_package_name: "{{ oi_op_name }}"
+        opm_index_add_mode: "{{ oi_mode }}"
+      when:
+        - bundle_index_image is defined
+        - bundle_index_sha_posfix is defined
+        - bundle_index_sha_posfix|length > 0
 
   when: oi_versions.0 is defined
 # - pause:
