@@ -165,7 +165,6 @@
     - name: "Print 'oi_bundles_dt_str'"
       debug:
         var: oi_bundles_dt_str
-        
 
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
