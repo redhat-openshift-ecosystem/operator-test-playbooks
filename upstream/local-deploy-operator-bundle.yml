@@ -47,6 +47,8 @@
     - name: "Load operator info from file"
       include_role:
         name: operator_info_load
+      vars:
+        skip_operator_info_consistency: true
 
     - name: "Parsing 'openshift_robot_hash' variable"
       set_fact:
