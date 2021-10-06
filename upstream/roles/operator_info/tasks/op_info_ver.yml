@@ -94,11 +94,12 @@
   set_fact:
     idx_versions: "{{ bvf_versions| default([]) }}"
     idx_label: "{{ bvf_label }}"
-    bundle_prod: ""
+    bundle_prod: false
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
-    bundle_prod: "{{ production_registry_namespace }}/{{ oi_operator_name }}:v{{ oi_operator_ver }}"
+    # bundle_prod: "{{ production_registry_namespace }}/{{ oi_operator_name }}:v{{ oi_operator_ver }}"
+    bundle_prod: true
   when:
     - versions_in_prod_registry is defined
     - versions_in_prod_registry|length > 0
