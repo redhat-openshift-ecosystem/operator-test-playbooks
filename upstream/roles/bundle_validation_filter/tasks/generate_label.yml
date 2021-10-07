@@ -13,7 +13,7 @@
 
     - name: "Only single cluster supported"
       set_fact:
-        bvf_label: "=v{{ bvf_versions[0] }} }}"
+        bvf_label: "=v{{ bvf_versions[0] }}"
         bvf_versions_count: "{{ bvf_versions|count }}"
       when:
         - bvf_versions|count == 1
