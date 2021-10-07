@@ -6,4 +6,3 @@ bundle_index_image_name: "catalog"
 bundle_index_image_version: "latest"
 oi_failed_index_add: []
 oi_failed_index_dt: []
-oi_channel_add_args: ""

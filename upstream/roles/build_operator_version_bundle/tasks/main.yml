@@ -232,6 +232,18 @@
                 - name: "Seting annotation variables"
                   set_fact:
                     annotations_vars: "{{ bovb_annotation_data.stdout | from_yaml }}"
+
+
+                - name: "Adding operator channels and default channel as arguments"
+                  set_fact:
+                    annotations_vars.annotations['operators.operatorframework.io.bundle.channels.v1']: "{{ operator_channel_force }}"
+                    annotations_vars.annotations['operators.operatorframework.io.bundle.channel.default.v1']: "{{ operator_channel_force }}"
+                  when:
+                    - operator_channel_force is defined
+                    - operator_channel_force|length > 0
+                - name: "Print 'annotations_vars' before bundle docker file is created"
+                  debug:
+                    var: annotations_vars
               when: bovb_bundle_annotations_file.stat.exists
 
             - name: "Checking for presence of '{{ df_operator_dir }}/{{ op_version }}/metadata/labels.yaml'"

@@ -183,16 +183,8 @@
       debug:
         var: oi_bundles_dt_str
 
-    - name: "Adding operator channels and default channel as arguments"
-      set_fact:
-        oi_channel_add_args: "-c {{ operator_channel_force }} -e {{ operator_channel_force }}"
-      when:
-        - operator_channel_force is defined
-        - operator_channel_force|length > 0
-
-
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
-      shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }} {{ oi_channel_add_args }}"
+      shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
       register: oi_index_add
       ignore_errors: true
 
