@@ -135,6 +135,14 @@
       set_fact:
         io_index: []
         io_index_dt: []
+        io_versions_in_dir: "{{ oi_versions_in_dir }}"
+
+    - name: "Reset indexes"
+      set_fact:
+        io_versions_in_dir: "{{ operator_version }}"
+      when:
+        - operator_version is defined
+        - operator_version|length > 0
 
     - name: "Print 'io_versions_manifests'"
       debug:
@@ -151,8 +159,8 @@
 
     - name: "Loop over all supported index versions"
       set_fact:
-        io_index: "{{ io_index | default({}) | combine({ supported_cluster_versions : oi_versions_in_dir }) }}"
-        io_index_dt: "{{ io_index | default({}) | combine({ supported_cluster_versions : io_index_dt }) }}"
+        io_index: "{{ io_index | default({}) | combine({ supported_cluster_versions : io_versions_in_dir }) }}"
+        io_index_dt: "{{ io_index_dt | default({}) | combine({ supported_cluster_versions : io_index_dt }) }}"
       when: oi_supported_cluster_versions.0 is undefined
 
     - name: "Loop over all supported index versions"
