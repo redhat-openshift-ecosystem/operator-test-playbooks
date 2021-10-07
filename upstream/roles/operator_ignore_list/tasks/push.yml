@@ -1,15 +1,15 @@
 ---
 - name: "Save ignore_list variable to a file"
   copy:
-    content: "{{ ignore_list }}"
-    dest: "{{ oil_ignore_list_file_path }}"
+    content: "{{ ignore_list | to_nice_yaml }}"
+    dest: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
   when:
    - ignore_list is defined
    - ignore_list|length > 0
 
-- name: "Check if {{ oil_ignore_list_file_path }} exists"
+- name: "Check if {{ oil_dir }}/{{ oil_ignore_list_file }} exists"
   stat:
-    path: "{{ oil_ignore_list_file_path }}"
+    path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
   register: oil_ignore_list_presence
 
 - name: "Build and push"

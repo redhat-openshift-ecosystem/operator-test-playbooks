@@ -4,9 +4,9 @@
     state: directory
     path: "{{ oil_dir }}"
 
-- name: "Check if {{ oil_ignore_list_file_path }} exists"
+- name: "Check if {{ oil_dir }}/{{ oil_ignore_list_file }} exists"
   stat:
-    path: "{{ oil_ignore_list_file_path }}"
+    path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
   register: oil_ignore_list_presence
 
 - name: "Load ignore list"
