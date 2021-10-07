@@ -27,12 +27,7 @@
         op_info: "{{ operator_info_data.stdout | from_yaml }}"
       when: operator_info_data.rc == 0
 
-    - name: "Sets operator info variables from '{{ operator_info_file }}'"
-      set_fact:
-        operator_base_dir: "{{ operator_bundle_src_dir }}"
-        operators: "{{ op_info.keys() | list | join(',') }}"
-      when:
-        - op_info is defined
+
 
     - name: "Artifacts consistency check"
       include_tasks: op_info_consistency.yml
@@ -43,6 +38,22 @@
   when:
     - operator_info_file is defined
     - operator_info_file| length > 0
+
+
+- name: "Sets operator info variables from 'operator_info_file'"
+  set_fact:
+    operator_base_dir: "{{ operator_bundle_src_dir }}"
+    operators: "{{ op_info.keys() | list | join(',') }}"
+  when:
+    - op_info is defined
+
+- name: "Print final 'operator_base_dir'"
+  debug:
+    var: operator_base_dir
+
+- name: "Print final 'operators'"
+  debug:
+    var: operators
 
 - name: "Print final 'op_info'"
   debug:
