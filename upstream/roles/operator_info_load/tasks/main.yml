@@ -44,6 +44,7 @@
   set_fact:
     operator_base_dir: "{{ operator_bundle_src_dir }}"
     operators: "{{ op_info.keys() | list | join(',') }}"
+    operator_format: "bundle"
   when:
     - op_info is defined
 

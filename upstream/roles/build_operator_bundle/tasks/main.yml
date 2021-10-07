@@ -43,7 +43,7 @@
 
 - name: "Handling operator '{{ bob_opname }}'"
   block:
-    - name: "Search for all versions for operator '{{ bob_opname }}'"
+    - name: "Search for all versions for operator '{{ bob_opname }}' in '{{ bob_opbasedir }}'"
       find:
         paths: "{{ bob_opbasedir }}/{{ bob_opname }}"
         recurse: false
