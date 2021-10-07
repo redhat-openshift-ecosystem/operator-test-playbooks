@@ -61,6 +61,9 @@
     oi_io_index_ver: "{{ io_index_ver[1:] }}"
   when: io_index_ver[0] == "v"
 
+
+
+
 - name: "Set versions and versions_bt"
   set_fact:
     oi_versions: "{{ op_info[oi_op_name].index[oi_io_index_ver] }}"
@@ -69,6 +72,15 @@
     oi_mode: "{{ op_info[oi_op_name].mode }}"
     # oi_bundles: []
     # oi_bundles_dt: []
+
+- name: "Reset indexes"
+  set_fact:
+    oi_versions: "[ '{{ operator_version }}' ]"
+    oi_versions_dt: []
+  when:
+    - operator_version is defined
+    - operator_version|length > 0
+
 
 - name: "Print 'oi_versions'"
   debug:
