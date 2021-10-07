@@ -139,7 +139,7 @@
 
     - name: "Reset indexes"
       set_fact:
-        io_versions_in_dir: "[ {{ operator_version }} ]"
+        io_versions_in_dir: "[ '{{ operator_version }}' ]"
       when:
         - operator_version is defined
         - operator_version|length > 0
