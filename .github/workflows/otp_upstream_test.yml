@@ -29,7 +29,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build -e catalog_repo=https://github.com/redhat-openshift-ecosystem/community-operators-prod.git
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -vv -e operator_dir=/tmp/community-operators-for-catalog/operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -e cluster_type=k8s -e operator_channel_force=optest
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -e cluster_type=k8s -e operator_channel_force=optest
 
   otpu_bundle_format_community:
     name: Bundle format community
@@ -46,7 +46,7 @@ jobs:
       - name: Preparing operator test environment
         run: ansible-playbook $ANSIBLE_BASE_ARGS --tags host_build -e catalog_repo=https://github.com/redhat-openshift-ecosystem/community-operators-prod.git
       - name: Operator test
-        run: ansible-playbook $ANSIBLE_BASE_ARGS -vv -e operator_dir=/tmp/community-operators-for-catalog/operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -e enable_bundle_validate_community=true -e cluster_type=ocp -e stream_kind=openshift_upstream -e operator_channel_force=optest
+        run: ansible-playbook $ANSIBLE_BASE_ARGS -e operator_dir=/tmp/community-operators-for-catalog/operators/aqua -e operator_version=6.2.0 --tags pure_test -e strict_mode=true -e enable_bundle_validate_community=true -e cluster_type=ocp -e stream_kind=openshift_upstream -e operator_channel_force=optest
 
   otpu_manifest_to_bundle_format:
     name: Manifest to bundle format
