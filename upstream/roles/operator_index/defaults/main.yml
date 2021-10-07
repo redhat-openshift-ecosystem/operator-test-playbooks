@@ -7,5 +7,3 @@ bundle_index_image_version: "latest"
 oi_failed_index_add: []
 oi_failed_index_dt: []
 oi_channel_add_args: ""
-operator_channels: "optest"
-operator_channel_default: "optest"

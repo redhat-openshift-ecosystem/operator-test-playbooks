@@ -185,7 +185,7 @@
 
     - name: "Adding operator channels and default channel as arguments"
       set_fact:
-        oi_channel_add_args: "-c {{ operator_channels }} -e {{ operator_channel_default }}"
+        oi_channel_add_args: "-c {{ operator_channel_force }} -e {{ operator_channel_force }}"
       when:
         - operator_channel_force is defined
         - operator_channel_force|length > 0
