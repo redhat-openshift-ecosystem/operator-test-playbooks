@@ -59,7 +59,7 @@
 - name: "Set 'oi_io_index_ver'"
   set_fact:
     oi_io_index_ver: "{{ io_index_ver[1:] }}"
-  when: io_index_ver == "latest"
+  when: io_index_ver[0] == "v"
 
 - name: "Set versions and versions_bt"
   set_fact:

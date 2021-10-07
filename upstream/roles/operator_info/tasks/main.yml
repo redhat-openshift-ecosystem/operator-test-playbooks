@@ -7,7 +7,7 @@
     - name: " Handle 'supported_cluster_versions'"
       set_fact:
         oi_supported_cluster_versions: []
-      when: supported_cluster_versions == "latest"
+      when: bundle_index_image_version == "latest"
 
     - name: "Handle situation when 'operator_dir' is defined"
       set_fact:

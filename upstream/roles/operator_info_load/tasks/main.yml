@@ -27,13 +27,16 @@
         op_info: "{{ operator_info_data.stdout | from_yaml }}"
       when: operator_info_data.rc == 0
 
-
-
     - name: "Artifacts consistency check"
       include_tasks: op_info_consistency.yml
       when:
         - skip_operator_info_consistency is defined
         - not skip_operator_info_consistency|bool
+
+    - name: " Handle 'supported_cluster_versions'"
+      set_fact:
+        oi_supported_cluster_versions: []
+      when: bundle_index_image_version == "latest"
 
   when:
     - operator_info_file is defined
