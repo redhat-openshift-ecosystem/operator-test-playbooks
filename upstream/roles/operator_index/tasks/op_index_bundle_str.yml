@@ -9,7 +9,7 @@
   when:
     - operator_version is defined
     - operator_version == oi_ver
-    
+
 - name: "Debug 'operator_version'"
   debug:
     var: operator_version
