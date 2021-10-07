@@ -1,4 +1,4 @@
-operator_base_dir: /tmp/operator-test/operators
+operator_base_dir: /tmp/community-operators-for-catalog/operators
 operators:
   - aqua
   - cockroachdb
