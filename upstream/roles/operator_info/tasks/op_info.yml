@@ -8,7 +8,7 @@
     io_versions_replaces: {}
     io_channels: []
 
-- name: "Search for all versions for operator '{{ operator_base_dir | basename }}/{{ oi_operator_name }}'"
+- name: "Search for all versions for operator '{{ operator_base_dir }}/{{ oi_operator_name }}'"
   find:
     paths: "{{ operator_base_dir }}/{{ oi_operator_name }}"
     recurse: false
@@ -144,7 +144,7 @@
         - operator_version is defined
         - operator_version|length > 0
 
-    - name: "Print 'io_versions_manifests'"
+    - name: "Print 'oi_supported_cluster_versions'"
       debug:
         var: oi_supported_cluster_versions
 

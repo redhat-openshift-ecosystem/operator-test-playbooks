@@ -36,7 +36,7 @@
     - name: " Handle 'supported_cluster_versions'"
       set_fact:
         oi_supported_cluster_versions: []
-      when: bundle_index_image_version == "latest"
+      when: supported_cluster_versions == "latest"
 
   when:
     - operator_info_file is defined
