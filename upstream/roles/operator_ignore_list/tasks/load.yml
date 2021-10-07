@@ -10,10 +10,13 @@
 
 - name: "Wait for container to be created"
   wait_for:
-    timeout: 5
+    timeout: 3
 
 - name: "Cp ignore list"
   shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}||true"
+
+- set_fact:
+    oil_ignore_list_file_path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
 
 - set_fact:
     ignore_list: "{{ lookup('file', oil_ignore_list_file_path) }}"
