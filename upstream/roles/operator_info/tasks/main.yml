@@ -4,6 +4,10 @@
     - name: "Print operator dir"
       debug:
         var: operator_base_dir
+    - name: " Handle 'supported_cluster_versions'"
+      set_fact:
+        oi_supported_cluster_versions: []
+      when: supported_cluster_versions == "latest"
 
     - name: "Handle situation when 'operator_dir' is defined"
       set_fact:

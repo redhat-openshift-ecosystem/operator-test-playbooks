@@ -99,7 +99,6 @@
         - not automatic_cluster_version_label|bool
         - oi_auto_labels.0 is defined
 
-
     - name: "Check if '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' exits"
       stat:
         path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
@@ -135,12 +134,31 @@
     - name: "Reset indexes"
       set_fact:
         io_index: []
+        io_index_dt: []
+
+    - name: "Print 'io_versions_manifests'"
+      debug:
+        var: oi_supported_cluster_versions
+
+    - name: "Build operator index"
+      block:
+        - name: "Loop over all supported index versions"
+          include_tasks: op_info_index.yml
+          loop: "{{ oi_supported_cluster_versions }}"
+          loop_control:
+            loop_var: oii_index_version
+      when: oi_supported_cluster_versions.0 is defined
 
     - name: "Loop over all supported index versions"
-      include_tasks: op_info_index.yml
-      loop: "{{ oi_supported_cluster_versions }}"
-      loop_control:
-        loop_var: oii_index_version
+      set_fact:
+        io_index: "{{ io_index | default({}) | combine({ supported_cluster_versions : oi_versions_in_dir }) }}"
+        io_index_dt: "{{ io_index | default({}) | combine({ supported_cluster_versions : io_index_dt }) }}"
+      when: oi_supported_cluster_versions.0 is undefined
+
+    - name: "Loop over all supported index versions"
+      debug:
+        var: io_index
+      when: oi_supported_cluster_versions.0 is undefined
 
     - name: "Adding current operator to the 'op_info'"
       set_fact:

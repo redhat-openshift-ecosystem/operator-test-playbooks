@@ -48,6 +48,7 @@
       when:
         - skopeo_inspect_json.Labels['com.redhat.openshift.versions'] is defined
         - skopeo_inspect_json.Labels['com.redhat.openshift.versions']|length > 0
+        - oi_supported_cluster_versions.0 is defined
 
     - name: "No cluster version defined on label, version is supported. Do not run for clean_index_check in check_index, run only for release in deploy_bundles."
       include_tasks: version_found.yml
