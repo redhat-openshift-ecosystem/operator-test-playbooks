@@ -1,0 +1,24 @@
+---
+- name: "Ensure that the {{ oil_dir }} directory exists"
+  file:
+    state: directory
+    path: "{{ oil_dir }}"
+
+- name: "Check if {{ oil_dir }}/{{ oil_ignore_list_file }} exists"
+  stat:
+    path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+  register: oil_ignore_list_presence
+
+- name: "Load ignore list"
+  include_tasks: "load.yml"
+  when:
+    - oil_action=="load"
+    - oil_index_image is defined
+    - oil_index_image|length>0
+
+- name: "Push ignore list to the index"
+  include_tasks: "push.yml"
+  when:
+    - oil_action=="push"
+    - oil_index_image is defined
+    - oil_index_image|length>0
