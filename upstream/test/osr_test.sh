@@ -17,6 +17,8 @@ OP_ANSIBLE_EXTRA=${OP_ANSIBLE_EXTRA-"-e opm_container_tool=podman -e container_t
 
 ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 --tags deploy_bundles \
+-e operator_info_file="" \
+-e ignore_image_string="" \
 -e run_upstream=true \
 -e operator_dir=/tmp/community-operators-for-catalog/$OP_STREAM/$OP_NAME \
 -e operator_version=$OP_VERSION \

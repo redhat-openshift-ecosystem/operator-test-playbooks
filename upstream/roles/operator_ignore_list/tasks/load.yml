@@ -1,0 +1,29 @@
+---
+- name: "Pull index image '{{ oil_index_image }}'"
+  shell: "{{ container_tool }} pull {{ oil_index_image }}"
+
+- set_fact:
+    oil_temp: "{{ ansible_date_time.iso8601_basic_short }}"
+
+- name: "Create the {{ oil_temp }} container"
+  shell: "{{ container_tool }} create --name {{ oil_temp }} {{ oil_index_image }}"
+
+- name: "Wait for container to be created"
+  wait_for:
+    timeout: 3
+
+- name: "Cp ignore list"
+  shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}||true"
+
+- set_fact:
+    oil_ignore_list_file_path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+
+- set_fact:
+    ignore_list: "{{ lookup('file', oil_ignore_list_file_path) }}"
+  when: oil_ignore_list_presence.stat.exists == true
+
+- debug:
+    var: ignore_list
+
+- debug:
+    var: oil_temp

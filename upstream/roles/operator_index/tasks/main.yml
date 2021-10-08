@@ -1,32 +1,27 @@
 ---
+- name: "Handle Operator index (new)"
+  block:
+    - name: "Loop over all versions"
+      include_tasks: op_index.yml
+      vars:
+        io_index_ver: "{{ bundle_index_image_version }}"
+      loop: "{{ op_info.keys() | list }}"
+      loop_control:
+        loop_var: oi_op_name
 
-- name: "Parsing config file '{{ operator_info_file }}'"
-  include_vars:
-    file: "{{ operator_info_file }}"
-    name: operator_info_vars
+    - name: "Print failed 'oi_failed_index_add'"
+      debug:
+        var: oi_failed_index_add
+      when: oi_failed_index_add.0 is defined
 
-- name: "Loop over all versions"
-  include_tasks: op_index.yml
-  vars:
-    io_index_ver: "v4.9"
-  loop: "{{ operator_info_vars.operators }}"
-  loop_control:
-    loop_var: oi_op_info
+    - name: "Print failed 'oi_failed_index_dt'"
+      debug:
+        var: oi_failed_index_dt
+      when: oi_failed_index_dt.0 is defined
 
-- name: "Print failed 'oi_failed_index_add'"
-  debug:
-    var: oi_failed_index_add
-  when: oi_failed_index_add.0 is defined
+    - name: "Failing when some operators failed"
+      fail:
+        msg: "Some operators failed. List is above !!!"
+      when: oi_failed_index_add.0 is defined or oi_failed_index_dt.0 is defined
 
-- name: "Print failed 'oi_failed_index_dt'"
-  debug:
-    var: oi_failed_index_dt
-  when: oi_failed_index_dt.0 is defined
-
-- name: "Failing when some operators failed"
-  fail:
-    msg: "Some operators failed. List is above !!!"
-  when: oi_failed_index_add.0 is defined or oi_failed_index_dt.0 is defined
-
-# - name: "Pause"
-#   pause:
+  when: op_info is defined

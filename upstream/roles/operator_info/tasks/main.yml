@@ -4,6 +4,10 @@
     - name: "Print operator dir"
       debug:
         var: operator_base_dir
+    - name: " Handle 'supported_cluster_versions'"
+      set_fact:
+        oi_supported_cluster_versions: []
+      when: supported_cluster_versions == "latest"
 
     - name: "Handle situation when 'operator_dir' is defined"
       set_fact:
@@ -41,7 +45,6 @@
           when: operator_base_dir|length == 0
       when: operators_config is defined
 
-
     - name: "Ensure that the 'operator_bundle_src_dir' directory exists and is empty"
       file:
         state: "{{ item }}"
@@ -70,11 +73,10 @@
         var: op_info
 
     - name: "Generate operators info config file"
-      copy: content="operators:\n{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
+      copy: content="{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"
 
     - name: "Fail"
       block:
-
         - name: "Generate error file"
           copy: content="operators:\n{{ oi_failed_labels | to_nice_yaml }}" dest="{{ oi_failed_labels_output_file }}"
 
@@ -90,7 +92,6 @@
 
     - name: "Fail when automatic cluster version label is needed and 'automatic_cluster_version_label' is not set to True"
       block:
-
         - name: "Generate error file"
           copy: content="operators:\n{{ oi_auto_labels | to_nice_yaml }}" dest="{{ oi_auto_labels_output_file }}"
 
@@ -122,24 +123,11 @@
     - name: "Set operator info file"
       set_fact:
         operator_info_file: "{{ operator_info_output_file }}"
-  when: operator_info_file is undefined or operator_info_file|length > 0
+  when: operator_info_file is undefined
+- name: "Print 'operator_info_file'"
+  debug:
+    var: operator_info_file
 
-# - name: "Build index"
-#   include_role:
-#     name: operator_index
-
-# - name: "Parsing config file '{{ operator_info_output_file }}'"
-#   include_vars:
-#     file: "{{ operator_info_output_file }}"
-#     name: operator_info_vars
-
-# - name: "Resetting 'op_info' object"
-#   set_fact:
-#     op_info: operator_info_vars.operators
-
-# - name: "Print 'operator_info_vars'"
-#   debug:
-#     var: operator_info_vars.operators[0].replaces[test]
-
-# - name: "Pause"
-#   pause:
+- name: "Load operator info from file"
+  include_role:
+    name: operator_info_load

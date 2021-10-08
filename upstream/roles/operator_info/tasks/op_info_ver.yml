@@ -50,7 +50,9 @@
     ocp_max: ""
     ocp_k8s_max: ""
     idx_versions: []
+    idx_user_label_versions: []
     idx_label: ""
+    in_prod: false
 
 - name: "Check olm.maxOpenShiftVersion"
   block:
@@ -87,11 +89,21 @@
     validate_api: true
     generate_label: true
     bundle_to_validate: "{{ current_bundle_path }}"
+  when: oi_supported_cluster_versions|length > 0
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
     idx_versions: "{{ bvf_versions| default([]) }}"
-    idx_label: "{{ bvf_label }}"
+    idx_label: "{{ bvf_label | default('') }}"
+    in_prod: false
+
+- name: "Setting 'idx_versions' and 'idx_label'"
+  set_fact:
+    in_prod: true
+  when:
+    - versions_in_prod_registry is defined
+    - versions_in_prod_registry|length > 0
+    - oi_operator_ver is in versions_in_prod_registry
 
 # - pause:
 # TODO: LABEL handle
@@ -116,6 +128,7 @@
       ocp_max: "{{ ocp_max | default('') }}"
       idx_versions: "{{ idx_versions | default('') }}"
       idx_label: "{{ idx_label | default([]) }}"
+      in_prod: "{{ in_prod | default(false) }}"
 
 - name: "Add label when manifest format"
   lineinfile:

@@ -1,6 +1,8 @@
-operator_info_file: "{{ work_dir }}/op_info.yaml"
+# operator_info_file: "{{ work_dir }}/op_info.yaml"
 bundle_registry: kind-registry:5000
 bundle_image_namespace: test-operator
 bundle_index_image_namespace: test-operator
 bundle_index_image_name: "catalog"
 bundle_index_image_version: "latest"
+oi_failed_index_add: []
+oi_failed_index_dt: []

@@ -20,7 +20,6 @@
       vars:
         cl_package_name: "{{ oi_operator_name }}"
         cl_operator_ver: "{{ oi_operator_ver }}"
-    #  when: oi_operator_format == "bundle"
 
     - name: "Loop cluster versions '{{ k8s_versions }}' for API validation"
       include_tasks: validate_api.yml

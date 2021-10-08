@@ -1,102 +1,315 @@
 ---
-- name: "Print 'oi_op_info'"
-  debug:
-    var: oi_op_info
+- name: "Reseting 'opm_index_add_extra_args' variable"
+  set_fact:
+    opm_index_add_extra_args: ""
+    index_versions_in_registry: []
 
-# - name: "Set versions and versions_bt"
-#   set_fact:
-#     io_index_ver: "v4.9"
+- name: "Handle nonexistent repos"
+  block:
+    - name: "Setting 'bundle_index_image' variable"
+      set_fact:
+        bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ io_index_ver }}"
+        bundle_index_image_version: "{{ io_index_ver }}"
+
+    - name: "Remove index image '{{ bundle_index_image }}'"
+      shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
+      failed_when: false
+
+    - name: "Get list of tags for index image from registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
+      register: boi_registry_versions
+      failed_when: false
+
+    - name: "Create repo for index image with public visibility '{{ bundle_image_namespace }}/{{ bundle_index_image_name }}'"
+      uri:
+        url: "https://quay.io/api/v1/repository"
+        method: POST
+        body: '{"kind":"image","namespace":"{{ bundle_image_namespace }}","repository":"{{ bundle_index_image_name }}","description":"","visibility":"public"}'
+        body_format: json
+        force_basic_auth: true
+        headers:
+          Authorization: "Bearer {{ quay_api_token }}"
+        status_code: 201
+        return_content: true
+      when:
+        - quay_api_token is defined
+        - quay_api_token|length > 0
+        - boi_registry_versions.status != 200
+
+    - name: "Setting all versions to 'index_versions_in_registry' variable"
+      set_fact:
+        index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions }}"
+      when:
+        - boi_registry_versions.status == 200
+
+    - name: "Setting opm index extra arguments"
+      set_fact:
+        opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ io_index_ver }}"
+      when:
+        - io_index_ver in index_versions_in_registry
+
+  when:
+    - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
+
+- name: "Set 'oi_io_index_ver'"
+  set_fact:
+    oi_io_index_ver: "{{ io_index_ver }}"
+
+- name: "Set 'oi_io_index_ver'"
+  set_fact:
+    oi_io_index_ver: "{{ io_index_ver[1:] }}"
+  when: io_index_ver[0] == "v"
 
 - name: "Set versions and versions_bt"
   set_fact:
-    oi_versions: "{{ oi_op_info.versions }}"
-    oi_versions_dt: "{{ oi_op_info.index_dt['4.9'] }}"
+    oi_versions: "{{ op_info[oi_op_name].index[oi_io_index_ver] }}"
+    oi_versions_dt: "{{ op_info[oi_op_name].index_dt[oi_io_index_ver] }}"
     oi_index: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ io_index_ver }}"
-    oi_mode: "{{ oi_op_info.mode }}"
-    oi_bundles_exists: "{{ oi_op_info.versions | symmetric_difference(oi_op_info.index_dt['4.9']) }}"
-    oi_bundles: []
-    oi_bundles_dt: []
+    oi_mode: "{{ op_info[oi_op_name].mode }}"
+    # oi_bundles: []
+    # oi_bundles_dt: []
 
-- name: "Print 'oi_bundles_exists'"
+- name: "Sets 'oi_versions' when 'operator_version' and 'operator_channel_force' is defined"
+  set_fact:
+    oi_versions: "[ '{{ operator_version }}' ]"
+    oi_versions_dt: []
+  when:
+    - operator_version is defined
+    - operator_version|length > 0
+    - operator_channel_force is defined
+    - operator_channel_force|length > 0
+
+- name: "Print 'oi_versions'"
   debug:
-    var: oi_bundles_exists
+    var: oi_versions
 
-- name: "Remove '{{ oi_op_info.name }}' operator to index image {{ oi_index }}"
-  shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_info.name }} --tag {{ oi_index }} --from-index {{ oi_index }}"
+- name: "Print 'oi_versions_dt'"
+  debug:
+    var: oi_versions_dt
 
-- name: "Push index image {{ oi_index }}"
-  shell: "{{ opm_container_tool }} push {{ oi_index }}"
+- name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
+  block:
+    - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
+      shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} {{ opm_index_add_extra_args }}"
+      register: oi_index_rm
+
+    - name: "Index safety check to avoid accidental overwrite"
+      include_role:
+        name: export_list_of_packages_from_index
+      vars:
+        bundle_index_image_input: "{{ oi_index }}"
+        index_pull_skip: true
+      when: min_operators_in_index_allowed is defined
+
+    - name: "Push index image {{ oi_index }}"
+      include_role:
+        name: operator_push_image
+      vars:
+        fqp_image: "{{ oi_index }}"
+      when:
+        - oi_index_rm.rc is defined
+        - oi_index_rm.rc == 0
+
+    - name: "Set 'result_rc' to false"
+      set_fact:
+        result_rc: false
+
+    - name: "Set 'result_rc'"
+      set_fact:
+        result_rc: true
+      when: ((oi_index_rm.rc is defined and oi_index_rm.rc == 0) and rc_last|bool)
+
+    - name: "Prints message that bundles were added to catalog"
+      debug:
+        msg: "Operator '{{ oi_op_name }}' were removed and push to catalog '{{ oi_index }}' : [OK]"
+      when:
+        - result_rc|bool
+
+    - name: "Print failing msg that bundle was not added to catalog or not pushed"
+      debug:
+        msg: "Operator '{{ oi_op_name }}' were removed and push to catalog '{{ oi_index }}' : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Failing when bundle was not added to catalog or not pushed"
+      fail:
+        msg: "Operator '{{ oi_op_name }}' were removed and push to catalog '{{ oi_index }}' : : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is defined and strict_mode|bool)
+
+  when:
+    - opm_index_add_extra_args|length > 0
 
 - name: "Check if any version can be aded"
   block:
-
-    - name: "Print 'operator_info_vars'"
+    - name: "Reset 'oibs_bundles'"
       set_fact:
-        oi_bundles: "{{ oi_bundles | default([]) + [ bundle_registry+'/'+bundle_image_namespace+'/'+ oi_op_info.name+ ':v' + oi_ver ] }}"
+        oibs_bundles: []
+
+    - name: "Build bundle strings for index"
+      include_tasks: op_index_bundle_str.yml
       loop: "{{ oi_versions }}"
       loop_control:
         loop_var: oi_ver
 
-    - name: "Print 'operator_info_vars'"
+    - name: "Sets 'oi_bundles_str'"
       set_fact:
-        oi_bundles_dt: "{{ oi_bundles_dt | default([]) + [ bundle_registry+'/'+bundle_image_namespace+'/'+ oi_op_info.name+ ':v' + oi_ver ] }}"
-        # oi_bundles_dt: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ oi_op_info.name  }}:v{{ oi_versions_dt[-1] }}"
+        oi_bundles_str: "{{ oibs_bundles | join(',') }}"
+
+    - name: "Reset 'oibs_bundles'"
+      set_fact:
+        oibs_bundles: []
+
+    - name: "Build bundle strings for index _dt"
+      include_tasks: op_index_bundle_str.yml
       loop: "{{ oi_versions_dt }}"
       loop_control:
         loop_var: oi_ver
 
-    - name: "Print 'oi_bundles'"
+    - name: "Sets 'oi_bundles_dt_str'"
       set_fact:
-        oi_bundles_str: "{{ oi_bundles | join(',') }}"
-        oi_bundles_dt_str: "{{ oi_bundles_dt | join(',') }}"
-
-    - name: "Print 'oi_bundles'"
-      debug:
-        var: oi_bundles
-
-    - name: "Print 'oi_bundles_dt'"
-      debug:
-        var: oi_bundles_dt
+        oi_bundles_dt_str: "{{ oibs_bundles | join(',') }}"
 
     - name: "Print 'oi_bundles_str'"
       debug:
         var: oi_bundles_str
 
-    - name: "Add '{{ oi_op_info.name }}' operator to index image {{ oi_index }}"
-      shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --from-index {{ oi_index }} --mode {{ oi_mode }}"
+    - name: "Print 'oi_bundles_dt_str'"
+      debug:
+        var: oi_bundles_dt_str
+
+    - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
+      shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
       register: oi_index_add
       ignore_errors: true
 
+    - name: "Index safety check to avoid accidental overwrite"
+      include_role:
+        name: export_list_of_packages_from_index
+      vars:
+        bundle_index_image_input: "{{ oi_index }}"
+        index_pull_skip: true
+      when: min_operators_in_index_allowed is defined
+
     - name: "Push index image {{ oi_index }}"
-      shell: "{{ opm_container_tool }} push {{ oi_index }}"
+      include_role:
+        name: operator_push_image
+      vars:
+        fqp_image: "{{ oi_index }}"
       when:
         - oi_index_add.rc is defined
         - oi_index_add.rc == 0
 
-    - name: "Adding operator '{{ oi_op_info.name }}' to 'oi_failed_index_add'"
+    - name: "Adding operator '{{ oi_op_name }}' to 'oi_failed_index_add'"
       set_fact:
-        oi_failed_index_add: "{{ oi_failed_index_add + [ oi_op_info.name+':'+oi_bundles_str ] }}"
-      when: oi_index_add.rc is udefined or oi_index_add.rc != 0
+        oi_failed_index_add: "{{ oi_failed_index_add + [ oi_op_name+':'+oi_bundles_str ] }}"
+      when: oi_index_add.rc is undefined or oi_index_add.rc != 0
+
+    - name: "Set 'result_rc' to false"
+      set_fact:
+        result_rc: false
+
+    - name: "Set 'result_rc'"
+      set_fact:
+        result_rc: true
+      when:
+        - oi_index_add.rc is defined
+        - oi_index_add.rc == 0
+        - rc_last|bool
+
+    - name: "Prints message that bundles were added to catalog"
+      debug:
+        msg: "Bundles '{{ oi_bundles_str }}'' were added and push to catalog '{{ oi_index }}' using mode '{{ oi_mode }}' : [OK]"
+      when:
+        - result_rc|bool
+
+    - name: "Print failing msg that bundle was not added to catalog or not pushed"
+      debug:
+        msg: "Bundle '{{ oi_bundles_str }}'' was not added or not pushed to '{{ oi_index }}' using mode '{{ oi_mode }}' : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Failing when bundle was not added to catalog or not pushed"
+      fail:
+        msg: "Bundle '{{ oi_bundles_str }}'' was not added or not pushed to '{{ oi_index }}' using mode '{{ oi_mode }}' : [FAIL]"
+      when:
+        - not result_rc|bool
+        - strict_mode is defined
+        - strict_mode|bool
 
     - name: "Handle deprecatetruncate"
       block:
-        - name: "Index deprecatetruncate '{{ oi_op_info.name }}' operator to index image {{ oi_index }}"
+        - name: "Index deprecatetruncate '{{ oi_op_name }}' operator to index image {{ oi_index }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -c {{ opm_container_tool }} --bundles {{ oi_bundles_dt_str }} --tag {{ oi_index }} --from-index {{ oi_index }}"
           register: oi_index_dt
           ignore_errors: true
 
         - name: "Push index image {{ oi_index }}"
-          shell: "{{ opm_container_tool }} push {{ oi_index }}"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ oi_index }}"
           when:
             - oi_index_dt.rc is defined
             - oi_index_dt.rc == 0
 
-        - name: "Adding operator '{{ oi_op_info.name }}' to 'oi_failed_index_add'"
+        - name: "Adding operator '{{ oi_op_name }}' to 'oi_failed_index_add'"
           set_fact:
-            oi_failed_index_dt: "{{ oi_failed_index_dt + [ oi_op_info.name+':'+oi_bundles_str':'+oi_bundles_dt_str ] }}"
-          when: oi_index_dt.rc is udefined or oi_index_dt.rc != 0
+            oi_failed_index_dt: "{{ oi_failed_index_dt + [ oi_op_name+':'+oi_bundles_str+':'+oi_bundles_dt_str ] }}"
+          when: oi_index_dt.rc is undefined or oi_index_dt.rc != 0
 
-      when: oi_bundles_dt.0 is defined
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
 
-  when: oi_bundles_exists.0 is defined
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when:
+            - oi_index_dt.rc is defined
+            - oi_index_dt.rc == 0
+            - rc_last|bool
+
+        - name: "Prints message that bundles were added to catalog"
+          debug:
+            msg: "Bundles '{{ oi_bundles_dt_str }}' were deprecatetruncate and push to catalog '{{ oi_index }}' : [OK]"
+          when:
+            - result_rc|bool
+
+        - name: "Print failing msg that bundle was not added to catalog or not pushed"
+          debug:
+            msg: "Bundle '{{ oi_bundles_dt_str }}' was not deprecatetruncate or not pushed to '{{ oi_index }}': [FAIL]"
+          when:
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
+
+        - name: "Failing when bundle was not added to catalog or not pushed"
+          fail:
+            msg: "Bundle '{{ oi_bundles_dt_str }}' was not deprecatetruncate or not pushed to '{{ oi_index }}' : [FAIL]"
+          when:
+            - not result_rc|bool
+            - strict_mode is defined
+            - strict_mode|bool
+      when:
+        - oi_bundles_dt_str is defined
+        - oi_bundles_dt_str|length > 0
+
+    - name: "Build operator '{{ oi_op_name }}' from '{{ oi_index }}'' to sha index"
+      include_role:
+        name: build_operator_index_sha
+      vars:
+        sis_index_image_input: "{{ bundle_index_image }}"
+        sis_index_image_output: "{{ sis_index_image_input }}{{ bundle_index_sha_posfix }}"
+        sis_package_name: "{{ oi_op_name }}"
+        opm_index_add_mode: "{{ oi_mode }}"
+      when:
+        - bundle_index_image is defined
+        - bundle_index_sha_posfix is defined
+        - bundle_index_sha_posfix|length > 0
+
+  when: oi_versions.0 is defined
 # - pause:

@@ -36,35 +36,46 @@
     - fail_on_no_index_change|bool
     - operators_for_index.0 is undefined
 
-- name: "Reset list of operators for each cluster version"
-  set_fact:
-    boi_cluster_versions: []
+- name: "Handle Detect operators in cluster"
+  block:
+    - name: "Reset list of operators for each cluster version"
+      set_fact:
+        boi_cluster_versions: []
 
-- name: "List of operators for each cluster version"
-  set_fact:
-    boi_cluster_versions: "{{ boi_cluster_versions | union( [{'name': item, 'operators': operators_for_index }]) }}"
-  with_items: "{{ supported_cluster_versions.split(',') }}"
-  when:
-    - (use_cluster_filter is undefined or not use_cluster_filter|bool)
+    - name: "List of operators for each cluster version"
+      set_fact:
+        boi_cluster_versions: "{{ boi_cluster_versions | union( [{'name': item, 'operators': operators_for_index }]) }}"
+      with_items: "{{ supported_cluster_versions.split(',') }}"
+      when:
+        - (use_cluster_filter is undefined or not use_cluster_filter|bool)
 
-- name: "Convert allowed input versions to list"
-  set_fact:
-    ocs_allowed_versions: "{{ supported_cluster_versions.split(',') }}"
+    - name: "Convert allowed input versions to list"
+      set_fact:
+        ocs_allowed_versions: "{{ supported_cluster_versions.split(',') }}"
 
-- name: "Detect operator version in relation with cluster version"
-  include_role:
-    name: detect_operators_in_cluster
-  when:
-    - ocs_allowed_versions.0 is defined
-    - use_cluster_filter is defined
-    - use_cluster_filter|bool
+    - name: "Detect operator version in relation with cluster version"
+      include_role:
+        name: detect_operators_in_cluster
+      when:
+        - ocs_allowed_versions.0 is defined
+        - use_cluster_filter is defined
+        - use_cluster_filter|bool
 
-- name: "Printing cluster versions"
-  debug:
-    var: boi_cluster_versions
+    - name: "Printing cluster versions"
+      debug:
+        var: boi_cluster_versions
 
-- name: "Build index image for all cluster versions"
-  include_tasks: single_cluster_version.yml
-  loop: "{{ boi_cluster_versions }}"
-  loop_control:
-    loop_var: boi_cluster_version
+    - name: "Build index image for all cluster versions"
+      include_tasks: single_cluster_version.yml
+      loop: "{{ boi_cluster_versions }}"
+      loop_control:
+        loop_var: boi_cluster_version
+
+  when: op_info is undefined
+
+- name: "Build index when 'op_info is defined'"
+  block:
+    - name: "Build index image for all cluster versions"
+      include_role:
+        name: operator_index
+  when: op_info is defined
