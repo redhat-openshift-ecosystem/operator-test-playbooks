@@ -39,7 +39,7 @@
     - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of manifest format"
       set_fact:
         bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
-        clusterserviceversion_bundle_file_path: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/{{ csv_file_path | basename }}"
+        clusterserviceversion_bundle_file_path: "{{ df_operator_dir }}/{{ op_version }}/{{ csv_file_path | basename }}"
       when:
         - operator_format == "manifest"
         - op_info is undefined
