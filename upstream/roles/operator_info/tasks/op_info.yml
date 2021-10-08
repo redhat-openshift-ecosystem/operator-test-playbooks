@@ -143,6 +143,8 @@
       when:
         - operator_version is defined
         - operator_version|length > 0
+        - operator_channel_force is defined
+        - operator_channel_force|length > 0
 
     - name: "Print 'oi_supported_cluster_versions'"
       debug:
