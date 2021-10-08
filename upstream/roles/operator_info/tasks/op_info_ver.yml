@@ -59,10 +59,12 @@
     - name: "Parse 'olm.maxOpenShiftVersion' from 'olm.properties'"
       set_fact:
         olm_maxOpenShiftVersion_obj: "{{ operator_vars.metadata.annotations['olm.properties'] | from_yaml | selectattr('type', 'equalto', 'olm.maxOpenShiftVersion') | join() }}"
+        olm_maxOpenShiftVersion: ""
 
     - name: "Setting value from 'olm.maxOpenShiftVersion'"
       set_fact:
         olm_maxOpenShiftVersion: "{{ olm_maxOpenShiftVersion_obj.value }}"
+      when: olm_maxOpenShiftVersion_obj.value is defined
 
     - name: "Setting 'ocp_max' and 'ocp_k8s_max'"
       set_fact:
