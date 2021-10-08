@@ -8,8 +8,10 @@ RUN export ARCH=$(case $(arch) in x86_64) echo -n amd64 ;; aarch64) echo -n arm6
     chmod a+x /usr/local/bin/operator-sdk && \
     curl -fL -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64 && \
     chmod a+x /usr/local/bin/yq && \
+    curl -fL -o /usr/local/bin/umoci https://github.com/opencontainers/umoci/releases/download/v0.4.5/umoci.amd64 && \
+    chmod a+x /usr/local/bin/umoci && \
     mkdir /project/output && \
-    dnf install --setopt=install_weak_deps=False -y git-core ansible python3-pip mlocate jq && \
+    dnf install --setopt=install_weak_deps=False -y git-core ansible python3-pip mlocate jq skopeo && \
     dnf clean all && \
     pip3 install operator-courier
 ADD ./run_tests.py /run_tests.py

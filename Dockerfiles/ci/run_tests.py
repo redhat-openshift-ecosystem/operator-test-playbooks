@@ -37,6 +37,38 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
             print(result_output)
             self.assertEqual(result_output["result"], "pass")
 
+    def test_extract_operator_bundle_430_channel_success(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_430_channel_success".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:test-430-channel-positive-v1"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertIn('package_name: "e2e-test-operator"', parsed_output)
+            self.assertIn('current_csv: "e2e-test-operator.4.3.1-202002032140"', parsed_output)
+            self.assertIn('current_channel: "4.30"', parsed_output)
+            self.assertIn('is_bundle_image: True', parsed_output)
+            self.assertIn('is_backport: True', parsed_output)
+            self.assertIn('ocp_versions: "v4.5"', parsed_output)
+
     def test_validate_default_operator_bundle_success(self):
         operator_work_dir = "{}/example-bundle-default-positive".format(self.test_dir)
         work_dir = "{}/example-workdir-v45-v49".format(self.test_dir)
