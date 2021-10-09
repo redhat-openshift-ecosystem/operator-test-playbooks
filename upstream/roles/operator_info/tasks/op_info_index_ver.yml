@@ -1,14 +1,14 @@
 ---
-- name: "Print"
-  debug:
-    msg: "Running  '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
+# - name: "Info message"
+#   debug:
+#     msg: "Running  '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
 
-- debug:
-    var: io_versions_manifests[oiiv_version_item].idx_versions
+# - debug:
+#     var: io_versions_manifests[oiiv_version_item].idx_versions
 
-- name: "Filtering index add versions"
+- name: "Filtering index add versions : '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
   set_fact:
-    oii_index: "{{ (oii_index | default([])) + [ oiiv_version_item ] }}"
+    oii_index: "{{ oii_index + [ oiiv_version_item ] }}"
   when: oii_index_version in io_versions_manifests[oiiv_version_item].idx_versions
 
 # - name: "Filtering deprecate truncate versions"
