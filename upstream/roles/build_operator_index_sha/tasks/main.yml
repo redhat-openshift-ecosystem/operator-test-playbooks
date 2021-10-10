@@ -37,10 +37,11 @@
     - name: "Setting empty bundles array"
       set_fact:
         bob_bundles_sha_arr: []
+        elopfi_index_bundles_op: "{{ sis_bundles_str.split(',') }}"
 
     - name: "Filling shas bundles for '{{ sis_package_name }}'"
       include_tasks: bundle_sha.yml
-      with_items: "{{ sis_bundles_str.split(',') }}"
+      with_items: "{{ elopfi_index_bundles_op }}"
 
     - name: "Setting bundle image names index add mode"
       set_fact:
