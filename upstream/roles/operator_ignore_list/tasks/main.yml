@@ -17,13 +17,13 @@
 - name: "Load ignore list"
   include_tasks: "load.yml"
   when:
-    - oil_action=="load"
+    - oil_load|bool
     - oil_index_image is defined
     - oil_index_image|length>0
 
 - name: "Push ignore list to the index"
   include_tasks: "push.yml"
   when:
-    - oil_action=="push"
+    - oil_push|bool
     - oil_index_image is defined
     - oil_index_image|length>0

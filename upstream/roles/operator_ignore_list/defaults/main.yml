@@ -1,4 +1,5 @@
-oil_action: "none"
+oil_load: false
+oil_push: false
 oil_dir: "/tmp/ignore_list"
 container_tool: "podman"
 oil_ignore_list_file: "operator_ignore.yaml"

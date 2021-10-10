@@ -27,10 +27,15 @@
   register: oil_ignore_list_data
   when: oil_ignore_list_presence.stat.exists
 
-- name: "Building 'ignore_list'"
+- name: "Building 'ignore_list_from_file'"
   set_fact:
-    ignore_list: "{{ oil_ignore_list_data.stdout | from_yaml }}"
+    ignore_list_from_file: "{{ oil_ignore_list_data.stdout | from_yaml }}"
   when: oil_ignore_list_data.stdout is defined
+
+- name: "Add 'ignore_list_from_file' to 'ignore_list'"
+  set_fact:
+    ignore_list: "{{ ignore_list| union(ignore_list_from_file) | unique }}"
+  when: ignore_list_from_file.0 is defined
 
 - name: "Print 'ignore_list'"
   debug:
