@@ -5,6 +5,7 @@
 - name: "Set time to 'oil_temp'"
   set_fact:
     oil_temp: "ignore_list"
+    ignore_list: []
 
 - name: "Create the {{ oil_temp }} container"
   shell: "{{ container_tool }} rm -f {{ oil_temp }}"
@@ -26,12 +27,13 @@
   register: oil_ignore_list_data
   when: oil_ignore_list_presence.stat.exists
 
-- name: "Seting annotation variables"
+- name: "Building 'ignore_list'"
   set_fact:
     ignore_list: "{{ oil_ignore_list_data.stdout | from_yaml }}"
+  when: oil_ignore_list_data.stdout is defined
 
-- debug:
+- name: "Print 'ignore_list'"
+  debug:
     var: ignore_list
-
 # - debug:
 #     var: oil_temp

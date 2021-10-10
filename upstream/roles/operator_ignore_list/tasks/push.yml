@@ -4,8 +4,8 @@
     content: "{{ ignore_list | to_nice_yaml }}"
     dest: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
   when:
-   - ignore_list is defined
-   - ignore_list|length > 0
+    - ignore_list is defined
+    - ignore_list|length > 0
 
 - name: "Check if {{ oil_dir }}/{{ oil_ignore_list_file }} exists"
   stat:
@@ -20,9 +20,12 @@
         dest: "{{ oil_dockerfile }}"
 
     - name: "Build index image '{{ oil_index_image }}'"
+      shell: "{{ container_tool }} pull {{ oil_index_image }}"
+
+    - name: "Build index image '{{ oil_index_image }}'"
       shell: "{{ container_tool }} build --no-cache -t {{ oil_index_image }} {{ oil_dir }}"
 
     - name: "Push index image '{{ oil_index_image }}'"
       shell: "{{ container_tool }} push {{ oil_index_image }}"
   when:
-    - oil_ignore_list_presence.stat.exists == true
+    - oil_ignore_list_presence.stat.exists|bool
