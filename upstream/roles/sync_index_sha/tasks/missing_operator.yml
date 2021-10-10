@@ -10,6 +10,61 @@
   vars:
     ecy_path: "{{ catalog_repo_dir }}/{{ op_base_name }}/{{ si_item }}/ci.yaml"
 
+- name: "Handle case when opinfo_is defined"
+  block:
+    - name: "Reset 'oibs_bundles'"
+      set_fact:
+        oibs_bundles: []
+        mo_versions: "{{ op_info[si_item].index[bundle_index_image_version[1:]] }}"
+        mo_versions_dt: "{{ op_info[si_item].index_dt[bundle_index_image_version[1:]] }}"
+
+    - name: "Print 'mo_versions'"
+      debug:
+        var: mo_versions
+    - name: "Print 'mo_versions_dt'"
+      debug:
+        var: mo_versions_dt
+
+    - name: "Build bundle strings for index"
+      include_tasks: op_index_bundle_str.yml
+      loop: "{{ mo_versions }}"
+      loop_control:
+        loop_var: oi_ver
+    - name: "Sets 'oi_bundles_str'"
+      set_fact:
+        oi_bundles_str: "{{ oibs_bundles | join(',') }}"
+    - name: "Reset 'oibs_bundles'"
+      set_fact:
+        oibs_bundles: []
+    - name: "Build bundle strings for index _dt"
+      include_tasks: op_index_bundle_str.yml
+      loop: "{{ mo_versions_dt }}"
+      loop_control:
+        loop_var: oi_ver
+    - name: "Sets 'oi_bundles_dt_str'"
+      set_fact:
+        oi_bundles_dt_str: "{{ oibs_bundles | join(',') }}"
+    - name: "Print 'oi_bundles_str'"
+      debug:
+        var: oi_bundles_str
+    - name: "Print 'oi_bundles_dt_str'"
+      debug:
+        var: oi_bundles_dt_str
+    - name: "Build operator '{{ si_item }}' from '{{ sis_index_image }}'' to sha index"
+      include_role:
+        name: build_operator_index_sha
+      vars:
+        sis_index_image_input: "{{ sis_index_image }}"
+        sis_package_name: "{{ si_item }}"
+        opm_index_add_mode: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
+        sis_export_skip: true
+        sis_index_rm_skip: true
+        sis_extract_bundles_from_index: false
+        sis_bundles_str: "{{ oi_bundles_str }}"
+        sis_bundles_dt_str: "{{ oi_bundles_dt_str }}"
+
+  when: op_info[si_item] is defined
+
 - name: "Build operator '{{ si_item }}' from '{{ sis_index_image }}'' to sha index"
   include_role:
     name: build_operator_index_sha
@@ -19,3 +74,6 @@
     opm_index_add_mode: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
     sis_export_skip: true
     sis_index_rm_skip: true
+
+  when: op_info[si_item] is undefined
+
