@@ -40,10 +40,10 @@
           vars:
             oil_load: true
             oil_index_image: "{{ bundle_index_image }}"
-
         - name: "Setting list of operators present in git, but not in index"
           set_fact:
             chi_git_not_index_operators: "{{ chi_git_not_index_operators | difference(ignore_list) }}"
+          when: ignore_list.0 is defined
       when: use_index_ignorelist is undefined or use_index_ignorelist|bool
     - name: "Clean index check"
       include_role:
