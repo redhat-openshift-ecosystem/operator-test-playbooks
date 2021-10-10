@@ -1,0 +1,17 @@
+---
+- name: "Filter ignored versions"
+  set_fact:
+    oilti_ignored_versions: "{{ op_info[oi_op_name].versions | difference(op_info[oi_op_name].index[oilti_index_version]) }}"
+    oilti_ignored_bundles: []
+
+- name: "Loop over all operators"
+  set_fact:
+    oilti_ignored_bundles: "{{ oilti_ignored_bundles | default([]) }} + [ '{{ oi_op_name }}:v{{ oilti_ver_item }}' ]"
+  loop: "{{ oilti_ignored_versions }}"
+  loop_control:
+    loop_var: oilti_ver_item
+  when: oilti_ignored_versions.0 is defined
+
+- name: "Add bundles to the ignored list"
+  set_fact:
+    oilti_ignored_bundles_all: "{{ oilti_ignored_bundles_all|union(oilti_ignored_bundles) }}"

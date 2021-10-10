@@ -32,9 +32,25 @@
         chi_git_not_index_operators: "{{ chi_git_operators | difference(chi_index_operators) }}"
       no_log: true
 
+    - name: "Use index ignore list"
+      block:
+        - name: "Get ignore list from  index"
+          include_role:
+            name: operator_ignore_list
+          vars:
+            oil_action: "load"
+            oil_index_image: "{{ bundle_index_image }}"
+
+        - name: "Setting list of operators present in git, but not in index"
+          set_fact:
+            chi_git_not_index_operators: "{{ chi_git_not_index_operators | difference(ignore_list) }}"
+      when: use_index_ignorelist is undefined or use_index_ignorelist|bool
     - name: "Clean index check"
       include_role:
         name: clean_index_check
+      when:
+        - use_index_ignorelist is defined
+        - not use_index_ignorelist|bool
 
     - name: "Printing list of operators present in git, but not in index after cleaning"
       debug:
@@ -64,7 +80,6 @@
     - name: "Setting list of incomplete packages"
       set_fact:
         chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
-
 
     - name: "Resetting incomplete packages"
       set_fact:

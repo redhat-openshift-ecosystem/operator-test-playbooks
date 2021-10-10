@@ -2,28 +2,36 @@
 - name: "Pull index image '{{ oil_index_image }}'"
   shell: "{{ container_tool }} pull {{ oil_index_image }}"
 
-- set_fact:
-    oil_temp: "{{ ansible_date_time.iso8601_basic_short }}"
+- name: "Set time to 'oil_temp'"
+  set_fact:
+    oil_temp: "ignore_list"
+
+- name: "Create the {{ oil_temp }} container"
+  shell: "{{ container_tool }} rm -f {{ oil_temp }}"
 
 - name: "Create the {{ oil_temp }} container"
   shell: "{{ container_tool }} create --name {{ oil_temp }} {{ oil_index_image }}"
 
-- name: "Wait for container to be created"
-  wait_for:
-    timeout: 3
-
 - name: "Cp ignore list"
-  shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}||true"
+  shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}"
+  failed_when: false
 
-- set_fact:
-    oil_ignore_list_file_path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+- name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
+  stat:
+    path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+  register: oil_ignore_list_presence
 
-- set_fact:
-    ignore_list: "{{ lookup('file', oil_ignore_list_file_path) }}"
-  when: oil_ignore_list_presence.stat.exists == true
+- name: "Getting content file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
+  shell: cat "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+  register: oil_ignore_list_data
+  when: oil_ignore_list_presence.stat.exists
+
+- name: "Seting annotation variables"
+  set_fact:
+    ignore_list: "{{ oil_ignore_list_data.stdout | from_yaml }}"
 
 - debug:
     var: ignore_list
 
-- debug:
-    var: oil_temp
+# - debug:
+#     var: oil_temp

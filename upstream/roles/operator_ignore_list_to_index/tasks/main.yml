@@ -1,0 +1,34 @@
+---
+- name: "Load operator info from file"
+  include_role:
+    name: operator_info_load
+  vars:
+    skip_operator_info_consistency: true
+- name: "Set initial values"
+  set_fact:
+    oilti_index: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
+    oilti_index_version: "{{ bundle_index_image_version }}"
+    oilti_ignored_bundles_all: []
+
+- name: "Set Index version"
+  set_fact:
+    oilti_index_version: "{{ bundle_index_image_version[1:] }}"
+  when: bundle_index_image_version != "latest"
+
+- name: "Loop over all operators"
+  include_tasks: op_ingore_list.yml
+  loop: "{{ op_info.keys() | list }}"
+  loop_control:
+    loop_var: oi_op_name
+
+- name: "Print 'oilti_ignored_bundles_all'"
+  debug:
+    var: oilti_ignored_bundles_all
+
+- name: "Push ignore list to index"
+  include_role:
+    name: operator_ignore_list
+  vars:
+    oil_action: "push"
+    ignore_list: "{{ oilti_ignored_bundles_all }}"
+    oil_index_image: "{{ oilti_index }}"
