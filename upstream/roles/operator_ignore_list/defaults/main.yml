@@ -4,7 +4,7 @@ oil_dir: "/tmp/ignore_list"
 container_tool: "podman"
 oil_ignore_list_file: "operator_ignore.yaml"
 oil_dockerfile: "{{ oil_dir }}/Dockerfile"
-ignore_list: ""
+ignore_list: []
 #oil_index_image: "quay.io/community-operators-pipeline/catalog:v4.9"
 oil_index_image: ""
 #ignore_list:

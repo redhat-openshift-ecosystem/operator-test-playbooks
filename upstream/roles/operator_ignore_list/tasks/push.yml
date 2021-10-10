@@ -1,4 +1,8 @@
 ---
+- name: "Print 'ignore_list' before push to index '{{ oil_index_image }}'"
+  debug:
+    var: ignore_list
+
 - name: "Save ignore_list variable to a file"
   copy:
     content: "{{ ignore_list | to_nice_yaml }}"

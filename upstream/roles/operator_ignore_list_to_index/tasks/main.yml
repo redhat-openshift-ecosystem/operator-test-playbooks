@@ -9,6 +9,7 @@
     oilti_index: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
     oilti_index_version: "{{ bundle_index_image_version }}"
     oilti_ignored_bundles_all: []
+    ignore_list: []
 
 - name: "Set Index version"
   set_fact:
@@ -25,10 +26,14 @@
   debug:
     var: oilti_ignored_bundles_all
 
+- name: "Set 'ignore_list' from 'oilti_ignored_bundles_all'"
+  set_fact:
+    ignore_list: "{{ oilti_ignored_bundles_all }}"
+
 - name: "Push ignore list to index"
   include_role:
     name: operator_ignore_list
   vars:
     oil_push: true
-    ignore_list: "{{ oilti_ignored_bundles_all }}"
+
     oil_index_image: "{{ oilti_index }}"
