@@ -306,6 +306,9 @@
         sis_index_image_output: "{{ sis_index_image_input }}{{ bundle_index_sha_posfix }}"
         sis_package_name: "{{ oi_op_name }}"
         opm_index_add_mode: "{{ oi_mode }}"
+        sis_extract_bundles_from_index: false
+        sis_bundles_str: "{{ oi_bundles_str }}"
+        sis_bundles_dt_str: "{{ oi_bundles_dt_str }}"
       when:
         - bundle_index_image is defined
         - bundle_index_sha_posfix is defined
