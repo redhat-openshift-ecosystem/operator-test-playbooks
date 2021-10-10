@@ -124,6 +124,7 @@
       set_fact:
         operator_info_file: "{{ operator_info_output_file }}"
   when: operator_info_file is undefined
+
 - name: "Print 'operator_info_file'"
   debug:
     var: operator_info_file

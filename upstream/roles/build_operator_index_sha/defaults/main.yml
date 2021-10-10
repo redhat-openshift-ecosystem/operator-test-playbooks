@@ -2,4 +2,7 @@ container_tool: "docker"
 sis_export_skip: false
 sis_index_rm_skip: false
 sis_index_add_skip: false
+sis_extract_bundles_from_index: true
+sis_bundles_str: ""
+sis_bundles_dt_str: ""
 boi_index_args: ""

@@ -5,29 +5,68 @@
     sis_opm_extra_args: ""
     sis_package_name_regex: "^(.*)/{{ sis_package_name }}:(.*)$"
 
+- name: "Export list of bundles from index"
+  block:
+    - name: "Export list of packages"
+      include_role:
+        name: export_list_of_packages_from_index
+      vars:
+        bundle_index_image_input: "{{ sis_index_image_input }}"
+      when: not sis_export_skip|bool
 
-- name: "Export list of packages"
-  include_role:
-    name: export_list_of_packages_from_index
-  vars:
-    bundle_index_image_input: "{{ sis_index_image_input }}"
-  when: not sis_export_skip|bool
+    - name: "Filter operator bundles only"
+      set_fact:
+        elopfi_index_bundles_op: "{{ elopfi_index_bundles | select('match', sis_package_name_regex ) | list }}"
 
-- name: "Filter operator bundles only"
-  set_fact:
-    elopfi_index_bundles_op: "{{ elopfi_index_bundles | select('match', sis_package_name_regex ) | list }}"
+    - name: "Filling shas bundles for '{{ sis_package_name }}'"
+      include_tasks: bundle_sha.yml
+      with_items: "{{ elopfi_index_bundles_op }}"
 
-- name: "Filling shas bundles for '{{ sis_package_name }}'"
-  include_tasks: bundle_sha.yml
-  with_items: "{{ elopfi_index_bundles_op }}"
+    - name: "Print list of bundles using shas"
+      debug:
+        var: bob_bundles_sha_arr
 
-- name: "Print list of bundles using shas"
-  debug:
-    var: bob_bundles_sha_arr
+    - name: "Setting bundle image names index add mode"
+      set_fact:
+        bundle_sha_images: "{{ bob_bundles_sha_arr | join(',') }}"
 
-- name: "Setting bundle image names index add mode"
-  set_fact:
-    bundle_sha_images: "{{ bob_bundles_sha_arr | join(',') }}"
+  when: sis_extract_bundles_from_index|bool
+
+- name: "Export list of bundles from index"
+  block:
+    - name: "Setting empty bundles array"
+      set_fact:
+        bob_bundles_sha_arr: []
+        elopfi_index_bundles_op: "{{ sis_bundles_str.split(',') }}"
+
+    - name: "Filling shas bundles for '{{ sis_package_name }}'"
+      include_tasks: bundle_sha.yml
+      with_items: "{{ elopfi_index_bundles_op }}"
+
+    - name: "Setting bundle image names index add mode"
+      set_fact:
+        bundle_sha_images: "{{ bob_bundles_sha_arr | join(',') }}"
+
+    - name: "Setting empty bundles array"
+      set_fact:
+        bob_bundles_sha_arr: []
+
+    - name: "Filling shas dt bundles for '{{ sis_package_name }}'"
+      include_tasks: bundle_sha.yml
+      with_items: "{{ sis_bundles_dt_str.split(',') }}"
+
+    - name: "Setting bundle image names index add mode"
+      set_fact:
+        bundle_sha_images_dt: "{{ bob_bundles_sha_arr | join(',') }}"
+
+    - name: "Print list of bundles 'bundle_sha_images'"
+      debug:
+        var: bundle_sha_images
+
+    - name: "Print list of bundles 'bundle_sha_images_dt'"
+      debug:
+        var: bundle_sha_images_dt
+  when: not sis_extract_bundles_from_index|bool
 
 - name: "Pull index image '{{ sis_index_image_output }}' (before removal of '{{ sis_package_name }}' operator)"
   shell: "{{ container_tool }} pull {{ sis_index_image_output }}"
@@ -92,7 +131,6 @@
     - sis_opm_extra_args is defined
     - sis_opm_extra_args|length > 0
     - not sis_index_rm_skip|bool
-
 
 - name: "Add operator to index"
   block:
@@ -159,6 +197,73 @@
         - not result_rc|bool
         - strict_mode is defined
         - strict_mode|bool
+
+    - name: "Doing deprecate truncate on index image '{{ sis_index_image_output }}'"
+      block:
+        - name: "Deprecate truncate '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
+          shell: "{{ opm_bin_path }} index deprecatetruncate -u {{ opm_container_tool }} --bundles {{ bundle_sha_images_dt }} --tag {{ sis_index_image_output }} {{ sis_opm_extra_args }}"
+          ignore_errors: true
+          register: sis_ia_rc
+          when: bundle_sha_images|length > 0
+
+        - name: "Debug"
+          debug:
+            var: bundle_sha_images
+
+        - name: "Debug"
+          debug:
+            var: sis_ia_rc
+
+        - name: "Index safety check to avoid accidental overwrite"
+          include_role:
+            name: export_list_of_packages_from_index
+          vars:
+            sis_index_image_output_input: "{{ sis_index_image_output }}"
+            index_pull_skip: true
+          when: min_operators_in_index_allowed is defined
+
+        - name: "Push index image '{{ sis_index_image_output }}'"
+          include_role:
+            name: operator_push_image
+          vars:
+            fqp_image: "{{ sis_index_image_output }}"
+          when:
+            - sis_ia_rc.rc is defined
+            - sis_ia_rc.rc == 0
+
+        - name: "Set 'result_rc' to false"
+          set_fact:
+            result_rc: false
+
+        - name: "Set 'result_rc'"
+          set_fact:
+            result_rc: true
+          when:
+            - sis_ia_rc.rc is defined
+            - sis_ia_rc.rc == 0
+            - rc_last|bool
+
+        - name: "Prints message that bundles were added to catalog"
+          debug:
+            msg: "Bundles '{{ bundle_sha_images_dt }}'' were deprecatetruncate and push to catalog '{{ sis_index_image_output }}' using mode '{{ opm_index_add_mode }}' : [OK]"
+          when:
+            - result_rc|bool
+
+        - name: "Print failing msg that bundle was not added to catalog or not pushed"
+          debug:
+            msg: "Bundle '{{ bundle_sha_images_dt }}'' was not deprecatetruncate or not pushed to '{{ sis_index_image_output }}' using mode '{{ opm_index_add_mode }}' : [FAIL]"
+          when:
+            - not result_rc|bool
+            - (strict_mode is undefined or not strict_mode|bool)
+
+        - name: "Failing when bundle was not added to catalog or not pushed"
+          fail:
+            msg: "Bundle '{{ bundle_sha_images_dt }}'' was not deprecatetruncate or not pushed to '{{ sis_index_image_output }}' using mode '{{ opm_index_add_mode }}' : [FAIL]"
+          when:
+            - not result_rc|bool
+            - strict_mode is defined
+            - strict_mode|bool
+      when: bundle_sha_images_dt|length > 0
 
     - name: "Cleanup local images"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"

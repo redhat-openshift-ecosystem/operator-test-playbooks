@@ -11,7 +11,7 @@
 
     - name: "CSV file existence error message"
       fail:
-        msg: "Could not find csv file in '{{ op_csv_dir }}'"
+        msg: "Could not find csv file in '{{ op_csv_dir }}/manifests/'"
       when: csv_find_bundle.files|length == 0
 
     - name: "Set csv_file_path"
