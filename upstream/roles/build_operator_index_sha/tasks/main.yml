@@ -34,6 +34,10 @@
 
 - name: "Export list of bundles from index"
   block:
+    - name: "Setting empty bundles array"
+      set_fact:
+        bob_bundles_sha_arr: []
+
     - name: "Filling shas bundles for '{{ sis_package_name }}'"
       include_tasks: bundle_sha.yml
       with_items: "{{ sis_bundles_str.split(',') }}"
@@ -41,6 +45,10 @@
     - name: "Setting bundle image names index add mode"
       set_fact:
         bundle_sha_images: "{{ bob_bundles_sha_arr | join(',') }}"
+
+    - name: "Setting empty bundles array"
+      set_fact:
+        bob_bundles_sha_arr: []
 
     - name: "Filling shas dt bundles for '{{ sis_package_name }}'"
       include_tasks: bundle_sha.yml
