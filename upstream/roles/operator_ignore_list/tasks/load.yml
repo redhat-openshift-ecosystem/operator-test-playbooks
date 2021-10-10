@@ -5,7 +5,7 @@
 - name: "Set time to 'oil_temp'"
   set_fact:
     oil_temp: "ignore_list"
-    ignore_list: []
+    # ignore_list: []
 
 - name: "Create the {{ oil_temp }} container"
   shell: "{{ container_tool }} rm -f {{ oil_temp }}"
@@ -34,7 +34,7 @@
 
 - name: "Add 'ignore_list_from_file' to 'ignore_list'"
   set_fact:
-    ignore_list: "{{ ignore_list| union(ignore_list_from_file) | unique }}"
+    ignore_list: "{{ ignore_list | default([]) | union(ignore_list_from_file) | unique }}"
   when: ignore_list_from_file.0 is defined
 
 - name: "Print 'ignore_list'"
