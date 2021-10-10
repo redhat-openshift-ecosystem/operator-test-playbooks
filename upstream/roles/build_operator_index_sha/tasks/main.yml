@@ -54,6 +54,7 @@
     - name: "Filling shas dt bundles for '{{ sis_package_name }}'"
       include_tasks: bundle_sha.yml
       with_items: "{{ sis_bundles_dt_str.split(',') }}"
+      when: sis_bundles_dt_str|length > 0
 
     - name: "Setting bundle image names index add mode"
       set_fact:
