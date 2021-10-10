@@ -264,7 +264,9 @@
             - not result_rc|bool
             - strict_mode is defined
             - strict_mode|bool
-      when: bundle_sha_images_dt|length > 0
+      when:
+        - bundle_sha_images_dt is defined
+        - bundle_sha_images_dt|length > 0
 
     - name: "Cleanup local images"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
