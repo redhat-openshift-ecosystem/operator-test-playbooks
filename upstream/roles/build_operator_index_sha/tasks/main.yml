@@ -200,7 +200,7 @@
     - name: "Doing deprecate truncate on index image '{{ sis_index_image_output }}'"
       block:
         - name: "Deprecate truncate '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
-          shell: "{{ opm_bin_path }} index deprecatetruncate -u {{ opm_container_tool }} --bundles {{ bundle_sha_images_dt }} --tag {{ sis_index_image_output }} --mode {{ opm_index_add_mode }} {{ sis_opm_extra_args }}"
+          shell: "{{ opm_bin_path }} index deprecatetruncate -u {{ opm_container_tool }} --bundles {{ bundle_sha_images_dt }} --tag {{ sis_index_image_output }} {{ sis_opm_extra_args }}"
           ignore_errors: true
           register: sis_ia_rc
           when: bundle_sha_images|length > 0
