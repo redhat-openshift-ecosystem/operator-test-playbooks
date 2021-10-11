@@ -298,6 +298,27 @@
         - oi_bundles_dt_str is defined
         - oi_bundles_dt_str|length > 0
 
+# TODO
+    - name: "Setting 'oiatil_versions'"
+      set_fact:
+        oiatil_versions: "{{ op_info[oi_op_name].versions }}"
+
+    - name: "Setting 'oiatil_versions'"
+      set_fact:
+        oiatil_versions: "{{ oiatil_versions | difference(oi_versions) }}"
+
+    - name: "Setting 'oiatil_versions'"
+      set_fact:
+        oiatil_versions: "{{ oiatil_versions | union(oi_versions_dt) }}"
+    
+    - debug:
+        var: oiatil_versions
+    - pause:
+
+    - name: "Generating ingore list"
+      include_tasks: op_index_add_to_ignore_list.yml
+
+
     - name: "Build operator '{{ oi_op_name }}' from '{{ oi_index }}'' to sha index"
       include_role:
         name: build_operator_index_sha
