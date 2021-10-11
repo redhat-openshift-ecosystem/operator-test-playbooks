@@ -320,17 +320,17 @@
   block:
     - name: "Reset 'oibs_bundles'"
       set_fact:
-        oibs_bundles: []
+        oibs_name_versions: []
 
     - name: "Build bundle strings for index"
-      include_tasks: op_index_bundle_str.yml
+      include_tasks: op_index_name_ver_str.yml
       loop: "{{ op_info[oi_op_name].versions }}"
       loop_control:
         loop_var: oi_ver
 
     - name: "Reset 'oibs_bundles'"
       set_fact:
-        ignore_list: "{{ oibs_bundles }}"
+        ignore_list: "{{ oibs_name_versions }}"
 
     - name: "Print ignore list"
       debug:
@@ -342,6 +342,6 @@
       vars:
         oil_load: true
         oil_push: true
-        oil_index_image: "{{ oilti_index }}"
+        oil_index_image: "{{ oi_index }}"
   when: oi_versions.0 is undefined
 # - pause:
