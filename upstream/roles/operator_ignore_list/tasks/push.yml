@@ -1,5 +1,5 @@
 ---
-- name: "Print 'ignore_list' before push to index '{{ oil_index_image }}'"
+- name: "Print 'ignore_list' before push to index '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
   debug:
     var: ignore_list
 
@@ -11,25 +11,36 @@
     - ignore_list is defined
     - ignore_list|length > 0
 
-- name: "Check if {{ oil_dir }}/{{ oil_ignore_list_file }} exists"
+- name: "Check if '{{ oil_dir }}/{{ oil_ignore_list_file }}' exists"
   stat:
     path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
   register: oil_ignore_list_presence
 
 - name: "Build and push"
   block:
+    - name: "Build index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
+      ignore_errors: true
+      register: oil_push_image_exists
+
+    - name: "Sets 'oil_index_image_in'"
+      set_fact:
+        oil_index_image_in: "{{ oil_index_image }}{{ oil_index_image_postfix }}"
+
+    - name: "Sets 'oil_index_image_in'"
+      set_fact:
+        oil_index_image_in: "scratch"
+      when: oil_push_image_exists.rc is undefined or oil_push_image_exists.rc != 0
+
     - name: "Copy Dockerfile"
       template:
         src: "Dockerfile"
         dest: "{{ oil_dockerfile }}"
 
-    - name: "Build index image '{{ oil_index_image }}'"
-      shell: "{{ container_tool }} pull {{ oil_index_image }}"
+    - name: "Build index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} build --no-cache -t {{ oil_index_image }}{{ oil_index_image_postfix }} {{ oil_dir }}"
 
-    - name: "Build index image '{{ oil_index_image }}'"
-      shell: "{{ container_tool }} build --no-cache -t {{ oil_index_image }} {{ oil_dir }}"
-
-    - name: "Push index image '{{ oil_index_image }}'"
-      shell: "{{ container_tool }} push {{ oil_index_image }}"
+    - name: "Push index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} push {{ oil_index_image }}{{ oil_index_image_postfix }}"
   when:
     - oil_ignore_list_presence.stat.exists|bool
