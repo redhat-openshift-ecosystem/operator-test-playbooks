@@ -6,6 +6,12 @@ automatic_cluster_version_label: false
 strict_cluster_version_labels: false
 ignore_image_string: "--"
 ocp2k8s:
+  "4.0": "1.13"
+  "4.1": "1.14"
+  "4.2": "1.15"
+  "4.3": "1.16"
+  "4.4": "1.17"
+  "4.5": "1.18"
   "4.6": "1.19"
   "4.7": "1.20"
   "4.8": "1.21"
