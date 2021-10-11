@@ -264,6 +264,10 @@ ansible-playbook -i localhost, upstream/local.yml -e run_upstream=true \
 -e quay_api_token=xxx
 ```
 
+## Edit ignore list
+```
+ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=operator_ignore_list -e oil_index_image=quay.io/operator_testing/idx:v4.9 -e container_tool="docker" -e oil_load="true" -e oil_ignore_list_external_file=~/projects/RH/ignore-list-add.txt -e oil_external_file_action="add"
+```
 ## Misc options to use
 
 Usage:

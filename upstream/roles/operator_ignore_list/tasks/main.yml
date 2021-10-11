@@ -4,7 +4,7 @@
     state: directory
     path: "{{ oil_dir }}"
 
-- name: "Ensure that the file '{{ oil_dir }}/{{ oil_ignore_list_file }}' doen't exist"
+- name: "Ensure that the file '{{ oil_dir }}/{{ oil_ignore_list_file }}' doesn't exist"
   file:
     state: "absent"
     path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
@@ -20,22 +20,6 @@
     - oil_load|bool
     - oil_index_image is defined
     - oil_index_image|length>0
-
-
-
-# - name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
-#   stat:
-#     path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
-#   register: ignore_list_add_file_st
-
-# - name: "Getting content file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
-#   shell: cat "{{ oil_dir }}/{{ oil_ignore_list_file }}"
-#   register: oil_ignore_list_data
-#   when: ignore_list_add_file_st.stat.exists
-# - name: "Add 'ignore_list_from_file' to 'ignore_list'"
-#   set_fact:
-#     ignore_list: "{{ ignore_list | union(ignore_list_from_file) }}"
-#   when: ignore_list_add_file is defined
 
 - name: "Push ignore list to the index"
   include_tasks: "push.yml"
