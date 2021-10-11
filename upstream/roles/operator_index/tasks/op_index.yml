@@ -315,4 +315,33 @@
         - bundle_index_sha_posfix|length > 0
 
   when: oi_versions.0 is defined
+
+- name: "Add all versions ignore list for operator '{{ oi_op_name }}'"
+  block:
+    - name: "Reset 'oibs_bundles'"
+      set_fact:
+        oibs_bundles: []
+
+    - name: "Build bundle strings for index"
+      include_tasks: op_index_bundle_str.yml
+      loop: "{{ op_info[oi_op_name].versions }}"
+      loop_control:
+        loop_var: oi_ver
+
+    - name: "Reset 'oibs_bundles'"
+      set_fact:
+        ignore_list: "{{ oibs_bundles }}"
+
+    - name: "Print ignore list"
+      debug:
+        var: ignore_list
+
+    - name: "Push ignore list to index"
+      include_role:
+        name: operator_ignore_list
+      vars:
+        oil_load: true
+        oil_push: true
+        oil_index_image: "{{ oilti_index }}"
+  when: oi_versions.0 is undefined
 # - pause:

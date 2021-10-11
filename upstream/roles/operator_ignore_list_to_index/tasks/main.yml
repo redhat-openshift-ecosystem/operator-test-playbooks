@@ -34,6 +34,6 @@
   include_role:
     name: operator_ignore_list
   vars:
+    oil_load: true
     oil_push: true
-
     oil_index_image: "{{ oilti_index }}"
