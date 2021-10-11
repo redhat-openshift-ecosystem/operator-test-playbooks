@@ -21,8 +21,13 @@
     olm_maxOpenShiftVersion: ""
 
 - name: "Extracting replaces version from 'operator_vars.spec.replaces'"
-  set_fact:
-    ovi_replaces_ver: "{{ operator_vars.spec.replaces.split('.v')[-1] }}"
+  block:
+    - name: "Extract version prefix"
+      set_fact:
+        ovi_prefix: "{{ operator_vars.metadata.name | replace(operator_vars.spec.version,'') }}"
+    - name: "Remove version prefix"
+      set_fact:
+        ovi_replaces_ver: "{{ operator_vars.spec.replaces | replace(ovi_prefix,'') }}"
   when: operator_vars.spec.replaces is defined
 
 - name: "Export annotations variables"
