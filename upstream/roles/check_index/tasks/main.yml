@@ -7,12 +7,16 @@
       vars:
         bundle_index_image_input: "{{ bundle_index_image }}"
 
+    - name: "Prints 'ci_operator_base_dir'"
+      debug:
+        var: ci_operator_base_dir
+
     - name: "Find all directories in git repo in '{{ ci_operator_base_dir }}'"
       shell:
         cmd: "find . -type d -mindepth 2 -maxdepth 2 | cut -sd / -f 2- | sort"
         chdir: "{{ ci_operator_base_dir }}"
       register: chi_git_operators_out
-      no_log: true
+      # no_log: true
 
     - name: "Set list of all operators in index"
       set_fact:
