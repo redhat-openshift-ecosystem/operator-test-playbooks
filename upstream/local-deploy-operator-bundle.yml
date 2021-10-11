@@ -43,7 +43,6 @@
         # mirror_apply: true
         doic_skip_file_check: false
 
-
     - name: "Load operator info from file"
       include_role:
         name: operator_info_load
@@ -189,12 +188,26 @@
         #     - deploy_bundles
         #   when:
         #     - operators_for_index.0 is undefined
+        - name: "Setting operator base dir"
+          set_fact:
+            ldob_operator_base_dir: "{{ operator_base_dir }}"
+
+        - name: "Checking if operator base dir exists"
+          stat:
+            path: "{{ catalog_repo_dir }}/operators"
+          register: ldob_operator_dir_st
+
+        - name: "Setting operator base dir"
+          set_fact:
+            ldob_operator_base_dir: "{{ catalog_repo_dir }}/operators"
+          when:
+            - ldob_operator_dir_st.stat.exists
 
         - name: "Index sanity check"
           include_role:
             name: check_index
           vars:
-            ci_operator_base_dir: "{{ operator_base_dir }}"
+            ci_operator_base_dir: "{{ ldob_operator_base_dir }}"
           tags:
             - mirror_index
             - deploy_bundles
