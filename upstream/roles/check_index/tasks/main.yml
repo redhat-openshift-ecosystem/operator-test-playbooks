@@ -7,12 +7,16 @@
       vars:
         bundle_index_image_input: "{{ bundle_index_image }}"
 
+    - name: "Prints 'ci_operator_base_dir'"
+      debug:
+        var: ci_operator_base_dir
+
     - name: "Find all directories in git repo in '{{ ci_operator_base_dir }}'"
       shell:
         cmd: "find . -type d -mindepth 2 -maxdepth 2 | cut -sd / -f 2- | sort"
         chdir: "{{ ci_operator_base_dir }}"
       register: chi_git_operators_out
-      no_log: true
+      # no_log: true
 
     - name: "Set list of all operators in index"
       set_fact:
@@ -32,9 +36,25 @@
         chi_git_not_index_operators: "{{ chi_git_operators | difference(chi_index_operators) }}"
       no_log: true
 
+    - name: "Use index ignore list"
+      block:
+        - name: "Get ignore list from  index"
+          include_role:
+            name: operator_ignore_list
+          vars:
+            oil_load: true
+            oil_index_image: "{{ bundle_index_image }}"
+        - name: "Setting list of operators present in git, but not in index"
+          set_fact:
+            chi_git_not_index_operators: "{{ chi_git_not_index_operators | difference(ignore_list) }}"
+          when: ignore_list.0 is defined
+      when: use_index_ignorelist is undefined or use_index_ignorelist|bool
     - name: "Clean index check"
       include_role:
         name: clean_index_check
+      when:
+        - use_index_ignorelist is defined
+        - not use_index_ignorelist|bool
 
     - name: "Printing list of operators present in git, but not in index after cleaning"
       debug:
@@ -64,7 +84,6 @@
     - name: "Setting list of incomplete packages"
       set_fact:
         chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
-
 
     - name: "Resetting incomplete packages"
       set_fact:

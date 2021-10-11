@@ -1,11 +1,14 @@
-oil_action: "none"
+oil_load: false
+oil_push: false
 oil_dir: "/tmp/ignore_list"
 container_tool: "podman"
 oil_ignore_list_file: "operator_ignore.yaml"
 oil_dockerfile: "{{ oil_dir }}/Dockerfile"
-ignore_list: ""
+ignore_list: []
 #oil_index_image: "quay.io/community-operators-pipeline/catalog:v4.9"
 oil_index_image: ""
+oil_index_image_postfix: "i"
+oil_external_file_action: "add"
 #ignore_list:
 #  - aqua:v0.0.1
 #  - aqua:v0.0.2
@@ -15,4 +18,3 @@ oil_index_image: ""
 #  - aqua:v5.3.0
 #  - aqua:v6.0.0
 #  - aqua:v6.2.0
-

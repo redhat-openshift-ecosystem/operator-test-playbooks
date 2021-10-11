@@ -1,29 +1,100 @@
 ---
-- name: "Pull index image '{{ oil_index_image }}'"
-  shell: "{{ container_tool }} pull {{ oil_index_image }}"
+- name: "Reset 'oil_ignore_list_external_data'"
+  set_fact:
+   oil_ignore_list_external_data: ""
 
-- set_fact:
-    oil_temp: "{{ ansible_date_time.iso8601_basic_short }}"
+- name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+  shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
+  ignore_errors: true
+  register: oil_image_exists
 
-- name: "Create the {{ oil_temp }} container"
-  shell: "{{ container_tool }} create --name {{ oil_temp }} {{ oil_index_image }}"
+- name: "Load ignore list from '{{ oil_index_image }}{{ oil_index_image_postfix }}' if it exists"
+  block:
+    - name: "Set 'oil_temp'"
+      set_fact:
+        oil_temp: "ignore_list"
+        # ignore_list: []
 
-- name: "Wait for container to be created"
-  wait_for:
-    timeout: 3
+    - name: "Rm the {{ oil_temp }} container"
+      shell: "{{ container_tool }} rm -f {{ oil_temp }}"
 
-- name: "Cp ignore list"
-  shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}||true"
+    - name: "Create the {{ oil_temp }} container"
+      shell: "{{ container_tool }} create --name {{ oil_temp }} {{ oil_index_image }}{{ oil_index_image_postfix }} /bin/sh"
 
-- set_fact:
-    oil_ignore_list_file_path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+    - name: "Cp ignore list"
+      shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}"
+      failed_when: false
 
-- set_fact:
-    ignore_list: "{{ lookup('file', oil_ignore_list_file_path) }}"
-  when: oil_ignore_list_presence.stat.exists == true
+    - name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
+      stat:
+        path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+      register: oil_ignore_list_presence
 
-- debug:
+    - name: "Getting content of the file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
+      shell: cat "{{ oil_dir }}/{{ oil_ignore_list_file }}"
+      register: oil_ignore_list_data
+      when: oil_ignore_list_presence.stat.exists
+
+    - name: "Building 'ignore_list_from_file'"
+      set_fact:
+        ignore_list_from_file: "{{ oil_ignore_list_data.stdout | from_yaml }}"
+      when: oil_ignore_list_data.stdout is defined
+
+    - name: "Print 'ignore_list_from_file'"
+      debug:
+        var: ignore_list_from_file
+    - name: "Print 'ignore_list'"
+      debug:
+        var: ignore_list
+    - name: "Add 'ignore_list_from_file' to 'ignore_list'"
+      set_fact:
+        ignore_list: "{{ ignore_list | union(ignore_list_from_file) }}"
+      when: ignore_list_from_file.0 is defined
+  when:
+    - oil_image_exists.rc is defined
+    - oil_image_exists.rc == 0
+
+- name: "Add/remove ignore list entries according external file"
+  block:
+    - name: "Check for file '{{ oil_ignore_list_external_file }}'"
+      stat:
+       path: "{{ oil_ignore_list_external_file }}"
+      register: oil_ignore_list_external_file_st
+      when:
+       - oil_ignore_list_external_file is defined
+       - oil_ignore_list_external_file|length>0
+
+    - name: "Getting content of the file '{{ oil_ignore_list_external_file }}'"
+      shell: "cat {{ oil_ignore_list_external_file }}"
+      register: oil_ignore_list_external_data
+      when: oil_ignore_list_external_file_st.stat.exists
+
+    - name: "Set 'oil_ignore_list_external'"
+      set_fact:
+        oil_ignore_list_external: "{{ oil_ignore_list_external_data.stdout | from_yaml }}"
+      when: oil_ignore_list_external_data.stdout is defined
+
+    - name: "Add 'oil_ignore_list_external' to 'ignore_list'"
+      set_fact:
+       ignore_list: "{{ ignore_list | union(oil_ignore_list_external) | unique }}"
+      when:
+       - oil_ignore_list_external_data is defined
+       - oil_ignore_list_external_data|length>0
+       - oil_external_file_action=="add"
+
+    - name: "Remove 'oil_ignore_list_external' from 'ignore_list'"
+      set_fact:
+       ignore_list: "{{ ignore_list | difference(oil_ignore_list_external) | unique }}"
+      when:
+       - oil_ignore_list_external_data is defined
+       - oil_ignore_list_external_data|length>0
+       - oil_external_file_action=="rm"
+  when:
+     - oil_ignore_list_external_file is defined
+     - oil_ignore_list_external_file|length>0
+
+- name: "Print 'ignore_list'"
+  debug:
     var: ignore_list
-
-- debug:
-    var: oil_temp
+# - debug:
+#     var: oil_temp

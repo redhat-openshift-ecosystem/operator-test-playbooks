@@ -23,6 +23,7 @@
     opm_container_tool: "docker"
     opm_container_tool_index: "docker"
     recreate_operators_config: "{{ work_dir }}/operators_config.yaml"
+    catalog_repo_dir: /tmp/community-operators-for-catalog
     bundle_registry: kind-registry:5000
     bundle_image_namespace: test-operator
     bundle_index_image_namespace: test-operator
@@ -38,11 +39,11 @@
         yq_bin_path: "{{ testing_bin_path }}/yq"
         umoci_bin_path: "{{ testing_bin_path }}/umoci"
         opm_bin_path: "{{ testing_bin_path }}/opm"
+        catalog_repo_dir: /tmp/community-operators-for-catalog
         operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
         oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
         # mirror_apply: true
         doic_skip_file_check: false
-
 
     - name: "Load operator info from file"
       include_role:
@@ -189,12 +190,29 @@
         #     - deploy_bundles
         #   when:
         #     - operators_for_index.0 is undefined
+        - name: "Set Index check variable"
+          block:
+            - name: "Setting operator base dir"
+              set_fact:
+                ldob_operator_base_dir: "{{ operator_base_dir }}"
 
-        - name: "Index sanity check"
-          include_role:
-            name: check_index
-          vars:
-            ci_operator_base_dir: "{{ operator_base_dir }}"
+            - name: "Checking if operator base dir exists"
+              stat:
+                path: "{{ catalog_repo_dir }}/operators"
+              register: ldob_operator_dir_st
+              ignore_errors: true
+
+            - name: "Setting operator base dir"
+              set_fact:
+                ldob_operator_base_dir: "{{ catalog_repo_dir }}/operators"
+              when:
+                - ldob_operator_dir_st.stat.exists
+
+            - name: "Index sanity check"
+              include_role:
+                name: check_index
+              vars:
+                ci_operator_base_dir: "{{ ldob_operator_base_dir }}"
           tags:
             - mirror_index
             - deploy_bundles

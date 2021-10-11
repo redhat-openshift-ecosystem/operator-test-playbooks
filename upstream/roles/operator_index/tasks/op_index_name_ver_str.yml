@@ -1,0 +1,4 @@
+---
+- name: "Add '{{ oi_op_name }}:v{{ oi_ver }}'"
+  set_fact:
+    oibs_name_versions: "{{ oibs_name_versions | default([]) + [ oi_op_name + ':v' + oi_ver ] }}"

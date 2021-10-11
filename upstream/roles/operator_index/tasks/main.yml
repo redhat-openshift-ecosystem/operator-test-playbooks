@@ -8,6 +8,19 @@
       loop: "{{ op_info.keys() | list }}"
       loop_control:
         loop_var: oi_op_name
+      when:
+        - operator_index_operators is undefined or operator_index_operators|length == 0
+
+    - name: "Loop over all versions"
+      include_tasks: op_index.yml
+      vars:
+        io_index_ver: "{{ bundle_index_image_version }}"
+      loop: "{{ operator_index_operators.split(',') | list }}"
+      loop_control:
+        loop_var: oi_op_name
+      when:
+        - operator_index_operators is defined
+        - operator_index_operators|length > 0
 
     - name: "Print failed 'oi_failed_index_add'"
       debug:

@@ -1,0 +1,25 @@
+- name: "Reset 'oibs_bundles'"
+  set_fact:
+    oibs_name_versions: []
+
+- name: "Build bundle strings for index"
+  include_tasks: op_index_name_ver_str.yml
+  loop: "{{ oiatil_versions }}"
+  loop_control:
+    loop_var: oi_ver
+
+- name: "Reset 'oibs_name_versions'"
+  set_fact:
+    ignore_list: "{{ oibs_name_versions }}"
+
+- name: "Print ignore list"
+  debug:
+    var: ignore_list
+
+- name: "Push ignore list to index"
+  include_role:
+    name: operator_ignore_list
+  vars:
+    oil_load: true
+    oil_push: true
+    oil_index_image: "{{ oi_index }}"
