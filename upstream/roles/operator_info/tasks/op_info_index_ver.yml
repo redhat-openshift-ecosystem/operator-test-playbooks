@@ -5,4 +5,3 @@
   when:
     - io_versions_manifests[oiiv_version_item].idx_versions.0 is defined
     - oii_index_version in io_versions_manifests[oiiv_version_item].idx_versions
-
