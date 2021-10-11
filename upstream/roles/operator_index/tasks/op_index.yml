@@ -318,30 +318,12 @@
 
 - name: "Add all versions ignore list for operator '{{ oi_op_name }}'"
   block:
-    - name: "Reset 'oibs_bundles'"
+    - name: "Setting 'oiatil_versions'"
       set_fact:
-        oibs_name_versions: []
+        oiatil_versions: "{{ op_info[oi_op_name].versions }}"
 
-    - name: "Build bundle strings for index"
-      include_tasks: op_index_name_ver_str.yml
-      loop: "{{ op_info[oi_op_name].versions }}"
-      loop_control:
-        loop_var: oi_ver
+    - name: "Generating ingore list"
+      include_tasks: op_index_add_to_ignore_list.yml
 
-    - name: "Reset 'oibs_bundles'"
-      set_fact:
-        ignore_list: "{{ oibs_name_versions }}"
-
-    - name: "Print ignore list"
-      debug:
-        var: ignore_list
-
-    - name: "Push ignore list to index"
-      include_role:
-        name: operator_ignore_list
-      vars:
-        oil_load: true
-        oil_push: true
-        oil_index_image: "{{ oi_index }}"
   when: oi_versions.0 is undefined
 # - pause:
