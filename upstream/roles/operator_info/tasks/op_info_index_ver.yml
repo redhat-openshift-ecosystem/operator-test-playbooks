@@ -1,19 +1,8 @@
 ---
-# - name: "Info message"
-#   debug:
-#     msg: "Running  '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
-
-# - debug:
-#     var: io_versions_manifests[oiiv_version_item].idx_versions
-
 - name: "Filtering index add versions : '{{ oi_operator_name }}:{{ oiiv_version_item }}' for index '{{ oii_index_version }}'"
   set_fact:
     oii_index: "{{ oii_index + [ oiiv_version_item ] }}"
-  when: oii_index_version in io_versions_manifests[oiiv_version_item].idx_versions
+  when:
+    - io_versions_manifests[oiiv_version_item].idx_versions.0 is defined
+    - oii_index_version in io_versions_manifests[oiiv_version_item].idx_versions
 
-# - name: "Filtering deprecate truncate versions"
-#   set_fact:
-#     oii_index_dt: "{{ (oii_index_dt | default([])) + [ oiiv_version_item ] }}"
-#   when:
-#     - oii_index_version is in io_versions_manifests[oiiv_version_item].idx_user_label_versions
-#     - oii_index_version not in io_versions_manifests[oiiv_version_item].idx_versions
