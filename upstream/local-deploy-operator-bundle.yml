@@ -195,6 +195,8 @@
             - name: "Setting operator base dir"
               set_fact:
                 ldob_operator_base_dir: "{{ operator_base_dir }}"
+              when:
+                - operator_base_dir is defined
 
             - name: "Checking if operator base dir exists"
               stat:
