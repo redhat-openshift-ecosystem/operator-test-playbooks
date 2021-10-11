@@ -24,7 +24,7 @@
   block:
     - name: "Extract version prefix"
       set_fact:
-        ovi_prefix: "{{ operator_vars.spec.name | replace(operator_vars.spec.version,'') }}"
+        ovi_prefix: "{{ operator_vars.metadata.name | replace(operator_vars.spec.version,'') }}"
     - debug:
         var: ovi_prefix
     - pause:
