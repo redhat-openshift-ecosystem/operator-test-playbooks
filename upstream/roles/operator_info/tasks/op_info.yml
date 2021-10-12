@@ -8,6 +8,12 @@
     io_versions_replaces: {}
     io_channels: []
 
+- name: "Check operator format consistency"
+  include_role:
+    name: check_operator_format_consistency
+  vars:
+    cofc_operator_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+
 - name: "Search for all versions for operator '{{ operator_base_dir }}/{{ oi_operator_name }}'"
   find:
     paths: "{{ operator_base_dir }}/{{ oi_operator_name }}"

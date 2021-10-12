@@ -73,8 +73,8 @@
       debug:
         msg: "Operator format consistency for operator '{{ cofc_operator_dir | basename }}' is OK"
 
-  tags:
-    - always
-    - test
-    - pure_test
-    - deploy_bundles
+  # tags:
+  #   - always
+  #   - test
+  #   - pure_test
+  #   - deploy_bundles
