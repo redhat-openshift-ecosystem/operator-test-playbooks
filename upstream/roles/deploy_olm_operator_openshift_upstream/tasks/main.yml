@@ -147,11 +147,11 @@
     return_content: true
   register: dooou_labels_output
 
-- name: "Setting channel 1"
+- name: "Getting labels"
   set_fact:
     current_channel_labels: "{{ dooou_labels_output.json.labels }}"
 
-- name: "Setting channel 2"
+- name: "Setting channel"
   set_fact:
     current_channel_set: "{{ (current_channel_labels |  selectattr('key', 'search', 'operators.operatorframework.io.bundle.channels.v1') | list | first).value }}"
 
@@ -228,7 +228,7 @@
     src: "subscription.yml.j2"
     dest: "{{ olm_operator_files_path }}/subscription.yml"
 
-- name: "debug cat"
+- name: "Debug cat - all yaml files"
   shell: "cat {{ olm_operator_files_path }}/*"
 
 - name: "Create the namespace"
@@ -265,6 +265,13 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Catalog source is up and READY"
+    dooou_control_variable: "{{ operator_source_result1.rc }}"
+    dooou_control_variable_ok_value: "0"
 
 - name: "Show catalogsource"
   shell: '{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml'

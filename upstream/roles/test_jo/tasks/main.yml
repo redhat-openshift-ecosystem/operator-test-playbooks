@@ -1,0 +1,29 @@
+
+- name: "Wait for the catalogsource to be ready"
+  shell: "ls /tmp|grep 123"
+  register: operator_source_result
+  ignore_errors: true
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Catalog source is up and READY"
+    dooou_control_variable: operator_source_result.rc
+    dooou_control_variable_ok_value: "0"
+
+- name: "Wait for the catalogsource to be ready"
+  shell: "ls /tmp|grep 456"
+  register: operator_source_result1
+  ignore_errors: true
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "456 found"
+    dooou_control_variable: "{{ operator_source_result1.rc }}"
+    dooou_control_variable_ok_value: "0"
+
+- name: "Show the final report"
+  debug:
+    var:
+      prow_summary
