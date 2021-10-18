@@ -1,9 +1,0 @@
-apiVersion: "operators.coreos.com/v1alpha1"
-kind: "CatalogSource"
-metadata:
-  name: "test-operators-ocs"
-  namespace: "openshift-marketplace"
-spec:
-  displayName: Community Operators
-  image: {{ index_image_test }}
-  sourceType: grpc
