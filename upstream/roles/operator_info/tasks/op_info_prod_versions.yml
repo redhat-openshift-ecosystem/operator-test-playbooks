@@ -1,0 +1,59 @@
+# - pause:
+
+# - name: "Reseting 'versions_in_prod_registry_curr'"
+#   set_fact:
+#     versions_in_prod_registry_curr: []
+
+- name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
+  block:
+    - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}{{ oipv_url }}"
+      register: bob_prod_registry_versions
+      failed_when: false
+      changed_when: false
+      when:
+        - production_registry_namespace is defined
+        - production_registry_namespace|length > 0
+
+    - name: "Setting all current versions to 'versions_in_prod_registry_curr' variable"
+      set_fact:
+        # versions_in_prod_registry_curr: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        versions_in_prod_registry_curr: "{{ (bob_prod_registry_versions.json.tags | sort_versions) }}"
+      when:
+        - bob_prod_registry_versions.status is defined
+        - bob_prod_registry_versions.status == 200
+
+    - name: "Adding versions to 'versions_in_prod_registry_full' variable"
+      set_fact:
+        versions_in_prod_registry_full: "{{ versions_in_prod_registry_full + versions_in_prod_registry_curr }}"
+      when: versions_in_prod_registry_curr.0 is defined
+
+  when:
+    - oipv_url is defined
+    - oipv_url|length>0
+
+  always:
+    - name: "Get list of version when there are more versions"
+      block:
+        - name: "Parse 'oipv_link'"
+          set_fact:
+            oipv_link: "{{ bob_prod_registry_versions.link.split('<').1 }}"
+        - name: "Parse 'oipv_link' 2"
+          set_fact:
+            oipv_link: "{{ oipv_link.split('>').0 }}"
+      when:
+        - oipv_url is defined
+        - oipv_url|length > 0
+        - bob_prod_registry_versions.link is defined
+        - bob_prod_registry_versions.link|length > 0
+
+    - name: "Call 'op_info_prod_versions' task"
+      include_tasks: op_info_prod_versions.yml
+      vars:
+        oipv_url: "{{ oipv_link }}"
+      when:
+        - oipv_link is defined
+        - oipv_link|length > 0
+        - bob_prod_registry_versions.link is defined
+        - bob_prod_registry_versions.link|length > 0
