@@ -271,7 +271,7 @@
 - name: "Report"
   include_tasks: report.yml
   vars:
-    dooou_text_variable: "Catalog source is up and READY"
+    dooou_text_variable: "Catalog source is up and READY        "
     dooou_control_variable: "{{ operator_source_result1.rc }}"
     dooou_control_variable_ok_value: "0"
 
@@ -315,7 +315,7 @@
 - name: "Report"
   include_tasks: report.yml
   vars:
-    dooou_text_variable: "Operatorgroup is present"
+    dooou_text_variable: "Operatorgroup is present              "
     dooou_control_variable: "{{ dooou_operatorgroup2_wc.stdout }}"
     dooou_control_variable_ok_value: "2"
 
@@ -333,7 +333,7 @@
 - name: "Report"
   include_tasks: report.yml
   vars:
-    dooou_text_variable: "Subscribed"
+    dooou_text_variable: "Subscribed                            "
     dooou_control_variable: "{{ dooou_subscription_yaml.rc }}"
     dooou_control_variable_ok_value: "0"
 
@@ -356,7 +356,7 @@
 - name: "Report"
   include_tasks: report.yml
   vars:
-    dooou_text_variable: "Operator is in packagemanifests"
+    dooou_text_variable: "Operator is in packagemanifests       "
     dooou_control_variable: "{{ packagemanifest_presence.rc }}"
     dooou_control_variable_ok_value: "0"
 
@@ -373,7 +373,7 @@
 - name: "Report"
   include_tasks: report.yml
   vars:
-    dooou_text_variable: "Operator startup"
+    dooou_text_variable: "Operator startup                      "
     dooou_control_variable: "{{ operator_result.rc }}"
     dooou_control_variable_ok_value: "0"
 
