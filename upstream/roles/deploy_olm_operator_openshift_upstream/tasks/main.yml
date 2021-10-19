@@ -343,7 +343,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
-  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n {{ openshift_namespace }}"
   register: packagemanifest_presence
   retries: 25
   delay: 5
