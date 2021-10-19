@@ -107,12 +107,11 @@
     idx_label: "{{ bvf_label | default('') }}"
     in_prod: false
 
-- name: "Setting 'idx_versions' and 'idx_label'"
+- name: "Setting 'in_prod'"
   set_fact:
     in_prod: true
   when:
-    - versions_in_prod_registry is defined
-    - versions_in_prod_registry|length > 0
+    - versions_in_prod_registry.0 is defined
     - oi_operator_ver is in versions_in_prod_registry
 
 # - pause:
