@@ -700,7 +700,7 @@
 
 - name: "Report the most common failure"
   debug:
-    msg: "Operator is unable to start."
+    msg: " * * * * * Operator is unable to start. * * * * * "
   when: dooou_operator_startup_failed|bool
 
 - name: "Report short prow summary"
