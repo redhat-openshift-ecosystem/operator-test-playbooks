@@ -1,0 +1,18 @@
+---
+- name: "Reset dooou_reported"
+  set_fact:
+    dooou_reported: false
+
+- name: "Add the OK status to the short report"
+  set_fact:
+    prow_summary: "{{ prow_summary | default([]) + [dooou_text_variable+'    [OK]'] }}"
+    dooou_reported: true
+  when:
+    - dooou_control_variable|string == dooou_control_variable_ok_value
+
+- name: "Add the not OK status to the short report"
+  set_fact:
+    prow_summary: "{{ prow_summary | default([]) + [dooou_text_variable+'    [FAIL]'] }}"
+    dooou_reported: true
+  when:
+    - dooou_control_variable != dooou_control_variable_ok_value

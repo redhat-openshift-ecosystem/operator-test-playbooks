@@ -1,7 +1,9 @@
 ---
-- name: "Set OLM namespace to check"
+- name: "Set initial values"
   set_fact:
     olm_namespace_check: "openshift-operator-lifecycle-manager"
+    dooou_operator_startup_failed: false
+    prow_summary: []
 
 - name: "Create {{ testing_bin_path }} directory"
   file:
@@ -147,11 +149,11 @@
     return_content: true
   register: dooou_labels_output
 
-- name: "Setting channel 1"
+- name: "Getting labels"
   set_fact:
     current_channel_labels: "{{ dooou_labels_output.json.labels }}"
 
-- name: "Setting channel 2"
+- name: "Setting channel"
   set_fact:
     current_channel_set: "{{ (current_channel_labels |  selectattr('key', 'search', 'operators.operatorframework.io.bundle.channels.v1') | list | first).value }}"
 
@@ -228,7 +230,7 @@
     src: "subscription.yml.j2"
     dest: "{{ olm_operator_files_path }}/subscription.yml"
 
-- name: "debug cat"
+- name: "Debug cat - all yaml files"
   shell: "cat {{ olm_operator_files_path }}/*"
 
 - name: "Create the namespace"
@@ -258,13 +260,20 @@
 
 - name: "Wait for the catalogsource to be ready"
   shell: "{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml | grep 'lastObservedState:' | grep READY"
-  register: operator_source_result
+  register: operator_source_result1
   retries: 60
   delay: 10
-  until: operator_source_result.rc == 0
+  until: operator_source_result1.rc == 0
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Catalog source is up and READY        "
+    dooou_control_variable: "{{ operator_source_result1.rc }}"
+    dooou_control_variable_ok_value: "0"
 
 - name: "Show catalogsource"
   shell: '{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml'
@@ -296,6 +305,20 @@
   when:
     - dooou_operatorgroup_wc.stdout|int<2
 
+- name: "Get OperatorGroup(s) in {{ openshift_namespace }} after og apply"
+  shell: "{{ oc_bin_path }} get OperatorGroup -n {{ openshift_namespace }}|wc -l"
+  ignore_errors: true
+  register: dooou_operatorgroup2_wc
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Operatorgroup is present              "
+    dooou_control_variable: "{{ dooou_operatorgroup2_wc.stdout }}"
+    dooou_control_variable_ok_value: "2"
+
 - name: "Apply subscription"
   shell: '{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/subscription.yml -n {{ openshift_namespace }}'
   environment:
@@ -303,8 +326,16 @@
 
 - name: "Show subscription"
   shell: '{{ oc_bin_path }} get subs {{ package_name }} -n {{ openshift_namespace }} -o=yaml'
+  register: dooou_subscription_yaml
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Subscribed                            "
+    dooou_control_variable: "{{ dooou_subscription_yaml.rc }}"
+    dooou_control_variable_ok_value: "0"
 
 - name: "Show catalogsource again"
   shell: '{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml'
@@ -312,7 +343,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
-  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n {{ openshift_namespace }}"
   register: packagemanifest_presence
   retries: 25
   delay: 5
@@ -321,6 +352,13 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 #  when: run_upstream|bool
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Operator is in packagemanifests       "
+    dooou_control_variable: "{{ packagemanifest_presence.rc }}"
+    dooou_control_variable_ok_value: "0"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
   shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}| grep {{ operator_pod_name }} | grep Running"
@@ -331,6 +369,19 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Operator startup                      "
+    dooou_control_variable: "{{ operator_result.rc }}"
+    dooou_control_variable_ok_value: "0"
+
+- name: "Save failed operator startup status"
+  set_fact:
+    dooou_operator_startup_failed: true
+  when:
+    - operator_result.rc != 0
 
 - name: "General debug"
   shell: "{{ oc_bin_path }} get pods -n {{ openshift_namespace }}"
@@ -351,6 +402,15 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  when: operator_result.rc == 0
+
+- name: "Report"
+  include_tasks: report.yml
+  vars:
+    dooou_text_variable: "Operator stayed healthy after startup"
+    dooou_control_variable: "{{ operator_uptime.rc }}"
+    dooou_control_variable_ok_value: "0"
+  when: operator_result.rc == 0
 
 - name: "Get subscription"
   shell: "{{ oc_bin_path }} get sub -n {{ openshift_namespace }} | grep test-operators-ocs | cut -f1 -d' '| xargs -I{} {{ oc_bin_path }} describe sub {} -n {{ openshift_namespace }}"
@@ -637,6 +697,15 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   ignore_errors: true
+
+- name: "Report the most common failure"
+  debug:
+    msg: " * * * * * Operator is unable to start. * * * * * "
+  when: dooou_operator_startup_failed|bool
+
+- name: "Report short prow summary"
+  debug:
+    var: prow_summary
 
 - name: "Fail when Operator deployment with OLM failed"
   fail:
