@@ -260,10 +260,10 @@
 
 - name: "Wait for the catalogsource to be ready"
   shell: "{{ oc_bin_path }} get catalogsource test-operators-ocs -n openshift-marketplace -o=yaml | grep 'lastObservedState:' | grep READY"
-  register: operator_source_result
+  register: operator_source_result1
   retries: 60
   delay: 10
-  until: operator_source_result.rc == 0
+  until: operator_source_result1.rc == 0
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
