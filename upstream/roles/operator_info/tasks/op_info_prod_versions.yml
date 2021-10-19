@@ -51,7 +51,7 @@
     - name: "Call 'op_info_prod_versions' task"
       include_tasks: op_info_prod_versions.yml
       vars:
-        oipv_url: "{{ oipv_link }}"
+        oipv_url: "{{ oipv_link | default('')}}"
       when:
         - oipv_link is defined
         - oipv_link|length > 0
