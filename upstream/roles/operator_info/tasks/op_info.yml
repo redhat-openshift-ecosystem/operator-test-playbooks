@@ -78,6 +78,7 @@
     - name: "Setting all versions to 'versions_in_prod_registry_full' variable"
       set_fact:
         versions_in_prod_registry: "{{ (versions_in_prod_registry | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+      when: versions_in_prod_registry.0 is defined
 
     - name: "Print 'versions_in_prod_registrys'"
       debug:
