@@ -4,6 +4,8 @@
     olm_namespace_check: "openshift-operator-lifecycle-manager"
     dooou_operator_startup_failed: false
     prow_summary: []
+    oi_supported_cluster_versions:
+      - dummy
 
 - name: "Create {{ testing_bin_path }} directory"
   file:
@@ -407,7 +409,7 @@
 - name: "Report"
   include_tasks: report.yml
   vars:
-    dooou_text_variable: "Operator stayed healthy after startup"
+    dooou_text_variable: "Operator stayed healthy after startup "
     dooou_control_variable: "{{ operator_uptime.rc }}"
     dooou_control_variable_ok_value: "0"
   when: operator_result.rc == 0
