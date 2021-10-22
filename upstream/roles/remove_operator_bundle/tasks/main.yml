@@ -28,7 +28,7 @@
         - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
           include_tasks: rob_versions.yml
           vars:
-            rob_url: "/v2/{{ bundle_registry }}/{{ oi_operator_name }}/tags/list"
+            rob_url: "/v2/{{ bundle_registry }}/{{ operator_dir_name }}/tags/list"
 
         - name: "Setting all versions to 'rob_versions_rm_repo' variable without '{{ ignore_image_string }}' to avoid adding to an index"
           set_fact:
