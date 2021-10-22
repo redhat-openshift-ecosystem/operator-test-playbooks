@@ -330,6 +330,9 @@ Usage:
 | allow_big_changes_to_existing | Do not stop pipeline if change to a CSV is outside of `dc_changes_allowed` [bool]|N/A|N/A|
 | automatic_cluster_version_label | Flag if it is allowed to add cluster version label in case of package manifest format [bool]|false|N/A|
 | strict_cluster_version_labels | Flag if failing on wrong cluster version label in git regarding deprecated API [bool]|true|N/A|
+| oil_load | Load ignore list from specified index [bool]|N/A|N/A|
+| oil_push | After ignore list is edited, push specified index [bool]|N/A|N/A|
+| oil_external_file_action | 'oil_ignore_list_external_file' will be used as list for removal or add to 'oil_index_image'. Usage: rm/add. [string]|N/A|N/A|
 
 
 ## Tags to use
@@ -357,7 +360,13 @@ Usage:
 
 
 # Scripts
-
+## Ignore list add
+```
+ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=operator_ignore_list \
+-e oil_index_image=quay.io/openshift-community-operators/catalog:v4.9 -e container_tool="docker" \
+-e oil_load="true" -e oil_ignore_list_external_file=~/projects/RH/ignore-list.txt -e oil_external_file_action="rm" \
+-e oil_push="true"
+```
 ## Recreate
 ```
 #!/bin/bash
