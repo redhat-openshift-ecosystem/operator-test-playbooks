@@ -24,6 +24,7 @@
         - name: "Reset 'rob_versions_rm_repo' variable"
           set_fact:
             rob_versions_rm_repo: []
+            rob_versions_rm_repo_full: []
 
         - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
           include_tasks: rob_versions.yml
