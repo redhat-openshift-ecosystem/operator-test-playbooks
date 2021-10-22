@@ -1,0 +1,50 @@
+- name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
+  block:
+    - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}{{ rob_url }}"
+      register: rob_versions_rm
+      failed_when: false
+      changed_when: false
+
+    - name: "Setting all current versions to 'rob_versions_rm_repo_curr' variable"
+      set_fact:
+        # rob_versions_rm_repo_curr: "{{ (rob_versions_rm.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        rob_versions_rm_repo_curr: "{{ (rob_versions_rm.json.tags | sort_versions) }}"
+      when:
+        - rob_versions_rm.status is defined
+        - rob_versions_rm.status == 200
+
+    - name: "Adding versions to 'rob_versions_rm_repo_full' variable"
+      set_fact:
+        rob_versions_rm_repo_full: "{{ rob_versions_rm_repo_full + rob_versions_rm_repo_curr }}"
+      when: rob_versions_rm_repo_curr.0 is defined
+
+  when:
+    - rob_url is defined
+    - rob_url|length>0
+
+  always:
+    - name: "Get list of version when there are more versions"
+      block:
+        - name: "Parse 'rob_link'"
+          set_fact:
+            rob_link: "{{ rob_versions_rm.link.split('<').1 }}"
+        - name: "Parse 'rob_link' 2"
+          set_fact:
+            rob_link: "{{ rob_link.split('>').0 }}"
+      when:
+        - rob_url is defined
+        - rob_url|length > 0
+        - rob_versions_rm.link is defined
+        - rob_versions_rm.link|length > 0
+
+    - name: "Call 'rob_versions' task"
+      include_tasks: rob_versions.yml
+      vars:
+        rob_url: "{{ rob_link | default('')}}"
+      when:
+        - rob_link is defined
+        - rob_link|length > 0
+        - rob_versions_rm.link is defined
+        - rob_versions_rm.link|length > 0
