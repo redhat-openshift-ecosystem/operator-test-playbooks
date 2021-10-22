@@ -1,8 +1,8 @@
-- name: "Get list of tags for index image from bundle registry ('{{ bundle_image_namespace }}/{{ rob_url }}')"
+- name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ rob_url }}')"
   block:
-    - name: "Get list of tags for index image from bundle registry ('{{ bundle_image_namespace }}/{{ rob_url }}')"
+    - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ rob_url }}')"
       uri:
-        url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_image_namespace }}{{ rob_url }}"
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}{{ rob_url }}"
       register: rob_versions_rm
       failed_when: false
       changed_when: false
