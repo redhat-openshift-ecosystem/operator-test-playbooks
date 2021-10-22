@@ -1,6 +1,6 @@
-- name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
+- name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ rob_url }}')"
   block:
-    - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
+    - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ rob_url }}')"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}{{ rob_url }}"
       register: rob_versions_rm
@@ -14,6 +14,8 @@
       when:
         - rob_versions_rm.status is defined
         - rob_versions_rm.status == 200
+    - debug:
+        var: rob_versions_rm_repo_curr
 
     - name: "Adding versions to 'rob_versions_rm_repo_full' variable"
       set_fact:
