@@ -21,22 +21,21 @@
 
     - name: "Remove repo '{{ bundle_image_namespace }}/{{ operator_dir_name }}' from 'quay'"
       block:
-        - name: "Get list of tags for index image from bundle registry"
-          uri:
-            url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_dir_name }}/tags/list"
-          register: rob_registry_versions_rm_repo
-          failed_when: false
-
         - name: "Reset 'rob_versions_rm_repo' variable"
           set_fact:
             rob_versions_rm_repo: []
+            rob_versions_rm_repo_full: []
 
-        - name: "Setting all versions to 'rob_versions_rm_repo' variable"
+        - name: "Get list of tags for index image from bundle registry ('{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}')"
+          include_tasks: rob_versions.yml
+          vars:
+            rob_url: "/v2/{{ bundle_image_namespace }}/{{ operator_dir_name }}/tags/list"
+
+        - name: "Setting all versions to 'rob_versions_rm_repo' variable without '{{ ignore_image_string }}' to avoid adding to an index"
           set_fact:
-            rob_versions_rm_repo: "{{ (rob_registry_versions_rm_repo.json.tags | reject('search', ignore_image_string) | list) }}"
+            rob_versions_rm_repo: "{{ rob_versions_rm_repo_full | reject('search', ignore_image_string) | list | sort_versions }}"
           when:
-            - rob_registry_versions_rm_repo.status is defined
-            - rob_registry_versions_rm_repo.status == 200
+            - rob_versions_rm_repo_full.0 is defined
 
         - name: "Print versions to be removed from '{{ bundle_image_namespace }}/{{ operator_dir_name }}'"
           debug:

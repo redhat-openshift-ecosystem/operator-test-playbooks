@@ -32,6 +32,7 @@
         jq: "{{ jq_version }}"
         yq: "{{ yq_version }}"
         umoci: "{{ umoci_version }}"
+        iib_version: "{{ iib_version }}"
 
   when: not otif.stat.exists|bool
 
