@@ -8,6 +8,7 @@
     quay_release: "0.0.1"
     upstream_namespace_param: ""
     olm_operator_files_path: /tmp/operator-test/olm-operator-files
+    prow_summary: []
 
 - name: "Set custom namespace command"
   set_fact:
@@ -81,6 +82,16 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: not run_upstream|bool
 
+- name: "Report"
+  include_role:
+    name: deploy_olm_operator_openshift_upstream
+    tasks_from: report.yml
+  vars:
+    dooou_text_variable: "Catalogsource startup                          "
+    dooou_control_variable: "{{ operator_source_result.rc }}"
+    dooou_control_variable_ok_value: "0"
+  when: not run_upstream|bool
+
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
   shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n {{ operator_suggested_namespace }}"
   register: packagemanifest_presence
@@ -90,6 +101,15 @@
   ignore_errors: true
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Report"
+  include_role:
+    name: deploy_olm_operator_openshift_upstream
+    tasks_from: report.yml
+  vars:
+    dooou_text_variable: "Operator is in packagemanifests                "
+    dooou_control_variable: "{{ packagemanifest_presence.rc }}"
+    dooou_control_variable_ok_value: "0"
 
 - name: "Create the subscription"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/subscription.yml"
@@ -106,6 +126,15 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
+- name: "Report"
+  include_role:
+    name: deploy_olm_operator_openshift_upstream
+    tasks_from: report.yml
+  vars:
+    dooou_text_variable: "Operator started after subscribed to channel   "
+    dooou_control_variable: "{{ operator_result.rc }}"
+    dooou_control_variable_ok_value: "0"
+
 - name: "Reset uptime test result"
   set_fact:
     operator_uptime_passed: false
@@ -115,6 +144,15 @@
   include_tasks: stay_healthy.yml
   loop: "{{ range(pod_stay_healthy_start, pod_stay_healthy_retries + 1)|list }}"
   when: operator_result.rc == 0
+
+- name: "Report"
+  include_role:
+    name: deploy_olm_operator_openshift_upstream
+    tasks_from: report.yml
+  vars:
+    dooou_text_variable: "Operator was able to stay healthy 1 min        "
+    dooou_control_variable: "{{ operator_uptime_passed }}"
+    dooou_control_variable_ok_value: true
 
 - name: "Get the details of the deployed CSVs"
   shell: "{{ oc_bin_path }} describe csvs {{ upstream_namespace_param }}"
@@ -283,6 +321,27 @@
     var: dooub_namespace_state.stdout
   when:
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
+
+- name: "Report the most common failure"
+  debug:
+    msg: |
+      -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+      Operator is unable to start.
+      We were unable to 'grep Running' the operator from 'kubectl get pods' in related namespace.
+      See 'pod to start up' step above.
+      Also check, that the operator is not listed in running containers in the namespace 'Print namespace state' step.
+      In some cases step 'Print catalog-operator log in case of an error' can be helpful. If installation was finished.
+      You can find that 'Print catalog-operator log in case of an error' shows interrupted 'Installing'. Then you can request
+      more time for installation - maintainers will set 'allow/longer-deployment' label.
+      Also check other debug outputs.
+      -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  when:
+   - operator_result.rc is defined
+   - operator_result.rc != 0
+
+- name: "Report a brief installation summary"
+  debug:
+    var: prow_summary
 
 - name: "Fail when operator is failing to deploy on kind cluster"
   block:

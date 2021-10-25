@@ -47,7 +47,10 @@
 
 - name: "Print err message if image not found"
   fail:
-    msg: "Value of 'metadata.annotations.containerImage' not found, please check."
+    msg: |
+      Value of 'metadata.annotations.containerImage' not found, please check. This field is required on Operatorhub.
+      The operator is using some image which must have exactly the same value as 'metadata.annotations.containerImage'.
+      Please check both values and make them the same.
   when:
     - (operator_external_image is not defined) or (operator_external_image|length == 0)
 
@@ -66,7 +69,10 @@
 
     - name: "Print err message"
       fail:
-        msg: "Value of 'metadata.annotations.containerImage' not used in any container, please check."
+        msg: |
+          Value of 'metadata.annotations.containerImage' not used in any container, please check.
+          The operator is using some image which must have exactly the same value as 'metadata.annotations.containerImage'.
+          Please check both values and make them the same.
       when: vob_annotation_image_count_stdout|int < 2
 
     - name: "Pull external operator image '{{ operator_external_image }}' on Kubernetes"
