@@ -125,7 +125,7 @@
           fail:
             msg: "Problem creating index image '{{ mi_ms_iib_image }}' in iib"
           when:
-            - (mi_ms_multiarch_response is undefined or mi_ms_multiarch_response.rc != 0)
+            - (mi_ms_multiarch_response.attempts is defined and mi_ms_multiarch_response.attempts == 50)
             - (skip_iib_index is undefined or not skip_iib_index|bool)
 
         - name: "Transfer image to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
@@ -155,7 +155,7 @@
                 - ms_info.4 is defined
           when:
             - mi_ms_multiarch_response is defined
-            - mi_ms_multiarch_response.rc == 0
+            - mi_ms_multiarch_response.attempts < 50
       when:
         - mirror_input_image is defined
         - mirror_input_image|length > 0
