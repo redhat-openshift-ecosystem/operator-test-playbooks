@@ -85,7 +85,8 @@
           when: mirror_input_image.startswith('kind-registry')
 
         - name: "Triggering http request to build multiarch image "
-          shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
+          # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
+          shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
           register: mi_ms_multiarch_request
 
         - name: "Fail in when request was not succesfull"
