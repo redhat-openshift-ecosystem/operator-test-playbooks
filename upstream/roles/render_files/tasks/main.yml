@@ -1,33 +1,6 @@
 ---
 #rf_render_target - only bundle image is supported
 
-- name: "Stop previous opm container"
-  shell: "{{ container_tool }} rm -f {{ opm_container_name }}"
-  failed_when: false
-  changed_when: false
-  no_log: true
-
-- name: "Pull the opm image {{ opm_image }}"
-  shell: "{{ container_tool }} pull {{ opm_image }}"
-  register: rf_pull_opm_image
-
-- name: "Create the opm image"
-  shell: "{{ container_tool }} create --name {{ opm_container_name }} {{ opm_image }}"
-  register: rf_pull_opm_image
-
-- name: "Remove opm second binary"
-  file:
-    path: "{{ opm_bin_path_2 }}"
-    state: absent
-  failed_when: false
-
-- name: "Copy from {{ opm_container_name }}:/{{ opm_bin_source_path }}"
-  copy:
-    content: "{{ opm_container_name }}:/{{ opm_bin_source_path }}"
-    dest: "{{ opm_bin_path_2 }}"
-    mode: +x
-
-
 - name: "Parse bundle image string"
   set_fact:
     rf_operator_package_and_version: "{{ rf_render_target.split('/')[-1] }}"
@@ -44,11 +17,10 @@
   failed_when: false
 
 - name: "OPM render {{ rf_render_target }}"
-  shell: "{{ opm_bin_path_2 }} render {{ rf_render_target }} --output=yaml > {{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}/{{ rf_operator_version }}.yaml"
+  shell: "{{ opm_bin_path }} render {{ rf_render_target }} --output=yaml > {{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}/{{ rf_operator_version }}.yaml"
 #  register: rf_
 
 - name: "Debug"
-  shell: "head {{ rf_render_output_dir }}/operators/{{ rf_package }}/{{ rf_operator_version }}.yaml"
+  shell: "cat {{ rf_render_output_dir }}/operators/{{ rf_package }}/{{ rf_operator_version }}.yaml"
   failed_when: false
   changed_when: false
-  no_log: true

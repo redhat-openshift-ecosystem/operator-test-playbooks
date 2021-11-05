@@ -4,6 +4,5 @@ rf_render_output_root: "operators"
 container_tool: "docker"
 opm_image: "quay.io/operator-framework/opm:master"
 opm_container_name: "opm-container"
-opm_bin_path_2: "{{ opm_bin_path }}2"
 opm_bin_source_path: "/bin/opm"
 
