@@ -88,13 +88,17 @@
           include_role:
             name: quay_login
           vars:
-            quay_user: "{{ quay_arch_input_user }}"
-            quay_password: "{{ quay_arch_input_password }}"
+            registry_user: "{{ quay_arch_input_user | default('') }}"
+            registry_password: "{{ quay_arch_input_password | default('') }}"
+            registry_api_token: ""
+            registry_host: "{{ quay_arch_input_host | default('') }}"
           when:
             - quay_arch_input_user is defined
             - quay_arch_input_token is defined
+            - quay_arch_input_host is defined            
             - quay_arch_input_user|length > 0
             - quay_arch_input_token|length > 0
+            - quay_arch_input_host|length > 0
 
         - name: "Get list of arch from image '{{ mirror_multiarch_image }}'"
           shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
