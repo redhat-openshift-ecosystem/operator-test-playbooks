@@ -101,6 +101,13 @@
           debug:
             var: archs
 
+        - name: "Parse the image manifest json retrieved by skopeo"
+          set_fact:
+            archs:
+             - "amd64"
+             - "s390x"
+             - "ppc64le"
+
         - name: "Triggering http request to build multiarch image "
           uri:
             url: "{{ iib_base_url }}/api/v1/builds/add"
