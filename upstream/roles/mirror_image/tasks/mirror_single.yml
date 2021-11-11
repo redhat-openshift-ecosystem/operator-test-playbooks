@@ -98,15 +98,31 @@
             var: archs
 
         - name: "Triggering http request to build multiarch image "
-          # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
-          shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
-          # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": {{ archs }},"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
+          uri:
+            url: "{{ iib_base_url }}/api/v1/builds/add"
+            method: POST
+            body_format: json
+            status_code: [200, 202]
+            return_content: true
+            headers:
+              Content-Type: application/json
+            body:
+              add_arches: "{{ archs }}"
+              binary_image: "{{ mirror_multiarch_image }}"
+              from_index: "{{ mirror_input_image_final }}"
           register: mi_ms_multiarch_request
 
-        - name: "Fail in when request was not succesfull"
-          fail:
-            msg: "Triggering http rquest to build multiarch image failed"
-          when: mi_ms_multiarch_request.rc != 0
+
+
+          # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
+          # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le"],"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
+          # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": {{ archs }},"binary_image": "{{ mirror_multiarch_image }}","from_index": "{{ mirror_input_image_final }}"}'''
+          # register: mi_ms_multiarch_request
+
+        # - name: "Fail in when request was not succesfull"
+        #   fail:
+        #     msg: "Triggering http rquest to build multiarch image failed"
+        #   when: mi_ms_multiarch_request.rc != 0
 
         - name: "Print multi arch request"
           debug:
@@ -114,7 +130,7 @@
 
         - name: "Parsing id from http response"
           set_fact:
-            mi_ms_multiarch_response: "{{ mi_ms_multiarch_request.stdout | from_json }} "
+            mi_ms_multiarch_response: "{{ mi_ms_multiarch_request.content | from_json }} "
 
         - name: "Set input iib image"
           set_fact:
