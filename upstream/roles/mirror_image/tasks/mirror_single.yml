@@ -86,8 +86,12 @@
 
 
         - name: "Get list of arch from image '{{ mirror_multiarch_image }}'"
-          shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image }} |  {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+          shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
           register: archs_inspect_result
+
+        - name: "Prints 'archs'"
+          debug:
+            var: archs_inspect_result
 
         - name: "Parse the image manifest json retrieved by skopeo"
           set_fact:
