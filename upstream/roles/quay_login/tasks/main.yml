@@ -1,14 +1,27 @@
 ---
-- name: "Quay login"
-  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+- name: "Set defaults for previous compatibility"
+  set_fact:
+    ql_registry_user: "{{ quay_user | default('') }}"
+    ql_registry_password: "{{ quay_password | default('') }}"
+    ql_registry_api_token: "{{ quay_api_token | default('') }}"
+  when:
+    - ql_registry_user|length == 0
+    - ql_registry_password|length == 0
+    - ql_registry_api_token|length == 0
+
+- name: "Registry login '{{ ql_registry_host }}'"
+  shell: "{{ container_tool }} login -u=\"{{ ql_registry_user }}\" -p={{ ql_registry_password }} {{ ql_registry_host }}"
   no_log: true
   when:
-    - quay_user is defined
-    - quay_password is defined
-    - quay_user|length > 0
-    - quay_password|length > 0
+    - ql_registry_user is defined
+    - ql_registry_password is defined
+    - ql_registry_host is defined
+    - ql_registry_user|length > 0
+    - ql_registry_password|length > 0
+    - ql_registry_host|length > 0
 
-- name: "Quay login via auth token"
-  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+
+- name: "Registry login via auth token '{{ ql_registry_host }}'"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ ql_registry_api_token }} {{ ql_registry_host }}"
   no_log: true
-  when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and quay_api_token is defined and quay_api_token|length > 0
+  when: (ql_registry_user is undefined or ql_registry_password is undefined or ql_registry_user|length == 0 or ql_registry_password|length == 0) and ql_registry_api_token is defined and ql_registry_api_token|length > 0

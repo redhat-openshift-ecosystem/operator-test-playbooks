@@ -1,0 +1,26 @@
+---
+#rf_render_target - only bundle image is supported
+
+- name: "Parse bundle image string"
+  set_fact:
+    rf_operator_package_and_version: "{{ rf_render_target.split('/')[-1] }}"
+
+- name: "Set package and version"
+  set_fact:
+    rf_package: "{{ rf_operator_package_and_version.split(':')[0] }}"
+    rf_operator_version: "{{ rf_operator_package_and_version.split(':')[1] }}"
+
+- name: "Create a directory for opm render output"
+  file:
+    path: "{{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}"
+    state: directory
+  failed_when: false
+
+- name: "OPM render {{ rf_render_target }}"
+  shell: "{{ opm_bin_path }} render {{ rf_render_target }} --output=yaml > {{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}/{{ rf_operator_version }}.yaml"
+#  register: rf_
+
+- name: "Debug"
+  shell: "cat {{ rf_render_output_dir }}/operators/{{ rf_package }}/{{ rf_operator_version }}.yaml"
+  failed_when: false
+  changed_when: false

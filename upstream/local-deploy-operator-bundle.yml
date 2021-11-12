@@ -18,6 +18,7 @@
     run_upstream: false
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"
+    jq_bin_path: "{{ testing_bin_path }}/jq"
     operators_for_index: []
     container_tool: "docker"
     opm_container_tool: "docker"

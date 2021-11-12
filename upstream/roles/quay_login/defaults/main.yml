@@ -1,3 +1,4 @@
-quay_user: ""
-quay_password: ""
-quay_api_token: ""
+ql_registry_user: ""
+ql_registry_password: ""
+ql_registry_api_token: ""
+ql_registry_host: "quay.io"

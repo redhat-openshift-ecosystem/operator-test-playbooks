@@ -5,7 +5,8 @@
 
 - name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
   shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
-  ignore_errors: true
+  # ignore_errors: true
+  failed_when: false
   register: oil_image_exists
 
 - name: "Load ignore list from '{{ oil_index_image }}{{ oil_index_image_postfix }}' if it exists"
