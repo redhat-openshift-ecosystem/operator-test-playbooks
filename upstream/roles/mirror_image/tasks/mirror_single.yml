@@ -133,7 +133,7 @@
             headers:
               Content-Type: application/json
             body:
-              add_arches: "[\"amd64\", \"s390x\", \"ppc64le\"]"
+              arches: "[\"amd64\", \"s390x\", \"ppc64le\"]"
               binary_image: "{{ mirror_multiarch_image }}"
               from_index: "{{ mirror_input_image_final }}"
           register: mi_ms_multiarch_request
