@@ -3,8 +3,8 @@
 VERSION="v$(date +%Y%m%d)"
 if [ "$1" = "refs/heads/upstream-community" ];then
     TAG="latest"
-elif [ "$1" = "refs/heads/upstream-community-dev" ];then
-    TAG="latest"
+elif [[ $1 == refs/heads/upstream-community-* ]];then
+    # TAG="latest"
     # VERSION="${VERSION}_${1}"
     VERSION=dev
     TAG=dev
