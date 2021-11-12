@@ -116,12 +116,12 @@
           debug:
             var: add_arches
 
-        - name: "Setting own fixed archs (tmp)"
-          set_fact:
-            add_arches:
-             - "amd64"
-             - "s390x"
-             - "ppc64le"
+        # - name: "Setting own fixed archs (tmp)"
+        #   set_fact:
+        #     add_arches:
+        #      - "amd64"
+        #      - "s390x"
+        #      - "ppc64le"
 
         - name: "Triggering http request to build multiarch image "
           uri:
@@ -133,10 +133,7 @@
             headers:
               Content-Type: application/json
             body:
-              add_arches: 
-                - "amd64"
-                - "s390x"
-                - "ppc64le"
+              add_arches: "{{ add_arches }}"
               binary_image: "{{ mirror_multiarch_image }}"
               from_index: "{{ mirror_input_image_final }}"
           register: mi_ms_multiarch_request
