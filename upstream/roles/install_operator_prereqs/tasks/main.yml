@@ -55,7 +55,7 @@
     - uninstall
     - reset_tools
 
-- name: "Install opm ({{ opm_version }})"
+- name: "Install released opm ({{ opm_version }})"
   get_url:
     url: https://github.com/operator-framework/operator-registry/releases/download/{{ opm_version }}/linux-amd64-opm
     dest: "{{ opm_bin_path }}"
@@ -65,6 +65,15 @@
   retries: 10
   delay: 15
   failed_when: opm_install_result is failure
+  when: opm_source != "master"
+  tags:
+    - install
+    - host_build
+    - reset_tools
+
+- name: "Install  opm from master"
+  include_tasks: opm_special.yml
+  when: opm_source == "master"
   tags:
     - install
     - host_build
