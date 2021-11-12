@@ -128,7 +128,7 @@
             url: "{{ iib_base_url }}/api/v1/builds/add"
             method: POST
             body_format: json
-            status_code: [200, 202]
+            status_code: [200, 201, 202]
             return_content: true
             headers:
               Content-Type: application/json
