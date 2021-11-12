@@ -110,15 +110,16 @@
 
         - name: "Parse the image manifest json retrieved by skopeo"
           set_fact:
-            archs: "{{ archs_inspect_result.stdout_lines | list }}"
+            add_arches: "{{ archs_inspect_result.stdout_lines | list }}"
 
-        # - name: "Prints 'archs'"
-        #   debug:
-        #     var: archs
+        - name: "Prints 'archs'"
+          debug:
+            var: add_arches
+        - name: ""
 
-        - name: "Parse the image manifest json retrieved by skopeo"
+        - name: "Setting own fixed archs (tmp)"
           set_fact:
-            archs:
+            add_arches:
              - "amd64"
              - "s390x"
              - "ppc64le"
@@ -133,7 +134,7 @@
             headers:
               Content-Type: application/json
             body:
-              add_arches: "{{ archs }}"
+              add_arches: "{{ add_arches }}"
               binary_image: "{{ mirror_multiarch_image }}"
               from_index: "{{ mirror_input_image_final }}"
           register: mi_ms_multiarch_request
