@@ -112,16 +112,9 @@
           set_fact:
             add_arches: "{{ archs_inspect_result.stdout_lines | list }}"
 
-        - name: "Prints 'archs'"
+        - name: "Prints archs supportted by '{{ mirror_multiarch_image }}'"
           debug:
             var: add_arches
-
-        # - name: "Setting own fixed archs (tmp)"
-        #   set_fact:
-        #     add_arches:
-        #      - "amd64"
-        #      - "s390x"
-        #      - "ppc64le"
 
         - name: "Triggering http request to build multiarch image "
           uri:
