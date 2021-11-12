@@ -108,32 +108,6 @@
 - name: "Check suggested_namespace"
   include_tasks: get_namespace.yml
 
-- name: "Check if operator image {{ operator_external_image }} is available for pulling"
-  shell: "{{ oc_bin_path }} get pods -n testimagepull | grep ImagePullBackOff"
-  register: doou_external_image_availability_result
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  failed_when: false
-
-- name: "Debug doou_external_image_availability_result.stdout"
-  debug:
-    var: doou_external_image_availability_result.stdout
-
-- name: "Debug doou_external_image_availability_result.stdout length"
-  debug:
-    var: doou_external_image_availability_result.stdout|length
-
-- name: "Debug pulling"
-  shell: "{{ oc_bin_path }} get pods -n testimagepull"
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  failed_when: false
-
-- name: "Fail when {{ operator_external_image }} is not available for pulling"
-  fail:
-    msg: "Please check permissions, '{{ operator_external_image }}' is not available for pulling."
-  when: doou_external_image_availability_result.stdout|length > 0
-
 - name: "Sets index image test"
   set_fact:
     index_image_test: "quay.io/{{ test_quay_namespace }}/catalog:{{ commit_tag }}"
@@ -261,11 +235,31 @@
 - name: "Debug cat - all yaml files"
   shell: "cat {{ olm_operator_files_path }}/*"
 
-- name: "Debug pulling 2"
+- name: "Check if operator image {{ operator_external_image }} is available for pulling"
+  shell: "{{ oc_bin_path }} get pods -n testimagepull | grep ImagePullBackOff"
+  register: doou_external_image_availability_result
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  failed_when: false
+
+- name: "Debug doou_external_image_availability_result.stdout"
+  debug:
+    var: doou_external_image_availability_result.stdout
+
+- name: "Debug doou_external_image_availability_result.stdout length"
+  debug:
+    var: doou_external_image_availability_result.stdout|length
+
+- name: "Debug pulling"
   shell: "{{ oc_bin_path }} get pods -n testimagepull"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   failed_when: false
+
+- name: "Fail when {{ operator_external_image }} is not available for pulling"
+  fail:
+    msg: "Please check permissions, '{{ operator_external_image }}' is not available for pulling."
+  when: doou_external_image_availability_result.stdout|length > 0
 
 - name: "Create the namespace"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/namespace.yml"
