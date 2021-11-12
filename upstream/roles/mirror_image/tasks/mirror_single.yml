@@ -88,10 +88,10 @@
           include_role:
             name: quay_login
           vars:
-            registry_user: "{{ quay_arch_input_user | default('') }}"
-            registry_password: "{{ quay_arch_input_password | default('') }}"
-            registry_api_token: ""
-            registry_host: "{{ quay_arch_input_host | default('') }}"
+            ql_registry_user: "{{ quay_arch_input_user | default('') }}"
+            ql_registry_password: "{{ quay_arch_input_password | default('') }}"
+            ql_registry_api_token: ""
+            ql_registry_host: "{{ quay_arch_input_host | default('') }}"
           when:
             - quay_arch_input_user is defined
             - quay_arch_input_token is defined
