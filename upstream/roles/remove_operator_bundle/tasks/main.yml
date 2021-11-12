@@ -1,11 +1,16 @@
 - name: "Removing operator"
   block:
-    - name: "Quay login via auth token"
-      shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
-      no_log: true
-      when:
-        - quay_api_token is defined
-        - quay_api_token|length > 0
+    # - name: "Quay login via auth token"
+    #   shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ quay_api_token }} quay.io"
+    #   no_log: true
+    #   when:
+    #     - quay_api_token is defined
+    #     - quay_api_token|length > 0
+
+    - name: "Quay login via auth token [new]"
+      include_role:
+        name: quay_login
+
 
     - name: "Setting index version and operator dirname"
       set_fact:
