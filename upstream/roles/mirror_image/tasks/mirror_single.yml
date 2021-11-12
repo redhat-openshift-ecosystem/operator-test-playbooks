@@ -115,7 +115,6 @@
         - name: "Prints 'archs'"
           debug:
             var: add_arches
-        - name: ""
 
         - name: "Setting own fixed archs (tmp)"
           set_fact:
