@@ -123,6 +123,12 @@
   debug:
     var: doou_external_image_availability_result.stdout|length
 
+- name: "Debug pulling"
+  shell: "{{ oc_bin_path }} get pods -n testimagepull"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  failed_when: false
+
 - name: "Fail when {{ operator_external_image }} is not available for pulling"
   fail:
     msg: "Please check permissions, '{{ operator_external_image }}' is not available for pulling."
@@ -254,6 +260,12 @@
 
 - name: "Debug cat - all yaml files"
   shell: "cat {{ olm_operator_files_path }}/*"
+
+- name: "Debug pulling 2"
+  shell: "{{ oc_bin_path }} get pods -n testimagepull"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  failed_when: false
 
 - name: "Create the namespace"
   shell: "{{ oc_bin_path }} apply -f {{ olm_operator_files_path }}/namespace.yml"
