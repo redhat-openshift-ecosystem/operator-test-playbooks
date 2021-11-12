@@ -22,6 +22,6 @@
 
 
 - name: "Registry login via auth token '{{ ql_registry_host }}'"
-  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ ql_registry_api_token }}{{ ql_registry_host }}"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ ql_registry_api_token }} {{ ql_registry_host }}"
   no_log: true
   when: (ql_registry_user is undefined or ql_registry_password is undefined or ql_registry_user|length == 0 or ql_registry_password|length == 0) and ql_registry_api_token is defined and ql_registry_api_token|length > 0
