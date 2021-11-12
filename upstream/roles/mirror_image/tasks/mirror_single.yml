@@ -95,7 +95,7 @@
           when:
             - quay_arch_input_user is defined
             - quay_arch_input_password is defined
-            - quay_arch_input_host is defined            
+            - quay_arch_input_host is defined
             - quay_arch_input_user|length > 0
             - quay_arch_input_password|length > 0
             - quay_arch_input_host|length > 0
