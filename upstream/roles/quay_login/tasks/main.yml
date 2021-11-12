@@ -1,17 +1,27 @@
 ---
-- name: "Registry login '{{ registry_host }}'"
-  shell: "{{ container_tool }} login -u=\"{{ registry_user }}\" -p={{ registry_password }} {{ registry_host }}"
+- name: "Set defaults for previous compatibility"
+  set_fact:
+    ql_registry_user: "{{ quay_user | default('') }}"
+    ql_registry_password: "{{ quay_password | default('') }}"
+    ql_registry_api_token: "{{ quay_api_token | default('') }}"
+  when:
+    - ql_registry_user|length == 0
+    - ql_registry_password|length == 0
+    - ql_registry_api_token|length == 0
+
+- name: "Registry login '{{ ql_registry_host }}'"
+  shell: "{{ container_tool }} login -u=\"{{ ql_registry_user }}\" -p={{ ql_registry_password }} {{ ql_registry_host }}"
   no_log: true
   when:
-    - registry_user is defined
-    - registry_password is defined
-    - registry_host is defined
-    - registry_user|length > 0
-    - registry_password|length > 0
-    - registry_host|length > 0
+    - ql_registry_user is defined
+    - ql_registry_password is defined
+    - ql_registry_host is defined
+    - ql_registry_user|length > 0
+    - ql_registry_password|length > 0
+    - ql_registry_host|length > 0
 
 
-- name: "Registry login via auth token '{{ registry_host }}'"
-  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ registry_api_token }}{{ registry_host }}"
+- name: "Registry login via auth token '{{ ql_registry_host }}'"
+  shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ ql_registry_api_token }}{{ ql_registry_host }}"
   no_log: true
-  when: (registry_user is undefined or registry_password is undefined or registry_user|length == 0 or registry_password|length == 0) and registry_api_token is defined and registry_api_token|length > 0
+  when: (ql_registry_user is undefined or ql_registry_password is undefined or ql_registry_user|length == 0 or ql_registry_password|length == 0) and ql_registry_api_token is defined and ql_registry_api_token|length > 0

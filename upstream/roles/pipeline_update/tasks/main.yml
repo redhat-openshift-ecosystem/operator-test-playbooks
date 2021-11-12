@@ -45,10 +45,6 @@
     - name: "Login to quay"
       include_role:
         name: quay_login
-      vars:
-        registry_user: "{{ quay_user | default('') }}"
-        registry_password: "{{ quay_password | default('') }}"
-        registry_api_token: "{{ quay_api_token | default('') }}"
         
     - name: "Get list of versions in ''"
       uri:
