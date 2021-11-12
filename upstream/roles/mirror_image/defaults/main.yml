@@ -1,6 +1,9 @@
 opm_container_tool: "docker"
 container_tool: "docker"
 container_push_extra: ""
+work_dir: "/tmp/operator-test"
+testing_bin_path: "{{ work_dir }}/bin"
+jq_bin_path: "{{ testing_bin_path }}/jq"
 mirror_input_image: "kind-registry:5000/test-operator/catalog"
 mirror_index_images: "kind-registry:5000/test-operator/catalog_mirror_auth|user|password,kind-registry:5000/test-operator/catalog_mirror_no_auth"
 iib_base_url: http://localhost:8080
