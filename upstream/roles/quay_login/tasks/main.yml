@@ -1,5 +1,5 @@
 ---
-- name: "Set defaults for previous compatibility"
+- name: "Set defaults login variables"
   set_fact:
     ql_registry_user: "{{ quay_user | default('') }}"
     ql_registry_password: "{{ quay_password | default('') }}"
@@ -9,7 +9,7 @@
     - ql_registry_password|length == 0
     - ql_registry_api_token|length == 0
 
-- name: "Registry login to '{{ ql_registry_host }}' via '{{ ql_registry_user }}'"
+- name: "Login to registry '{{ ql_registry_host }}' via '{{ ql_registry_user }}'"
   shell: "{{ container_tool }} login -u=\"{{ ql_registry_user }}\" -p={{ ql_registry_password }} {{ ql_registry_host }}"
   no_log: true
   when:
@@ -21,7 +21,7 @@
     - ql_registry_host|length > 0
 
 
-- name: "Registry login to '{{ ql_registry_host }}' via auth token"
+- name: "Login to registry '{{ ql_registry_host }}' via auth token"
   shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ ql_registry_api_token }} {{ ql_registry_host }}"
   no_log: true
   when: (ql_registry_user is undefined or ql_registry_password is undefined or ql_registry_user|length == 0 or ql_registry_password|length == 0) and ql_registry_api_token is defined and ql_registry_api_token|length > 0
