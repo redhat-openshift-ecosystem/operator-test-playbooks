@@ -142,13 +142,12 @@
     - cosmetics_install
 
 - name: "Download dyff"
-  shell: "curl --silent --location https://tinyurl.com/y4qvdl4d | bash"
+  shell: "curl --silent --location https://git.io/JYfAY | bash"
   register: dyff_install_result
   failed_when: dyff_install_result is failure
   environment:
     HOME: "{{ work_dir }}"
     PATH: "{{ testing_bin_path }}:{{ ansible_env.PATH }}"
-  # become: true
   tags:
     - install
     - reset_tools
