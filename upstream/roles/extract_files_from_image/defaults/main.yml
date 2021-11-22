@@ -4,4 +4,3 @@ effi_target_copy_path: ""
 container_tool: "docker"
 effi_container_name: ""
 effi_unset_name_needed: false
-

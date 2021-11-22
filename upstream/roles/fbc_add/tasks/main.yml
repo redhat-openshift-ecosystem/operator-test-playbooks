@@ -1,0 +1,23 @@
+---
+- name: "Delete directory for fbc extraction"
+  file:
+    path: "{{ fadd_extracted_fbc_location }}"
+    state: absent
+
+- name: "Prepare directory"
+  file:
+    path: "{{ fadd_extracted_fbc_location }}"
+    state: directory
+
+- name: "Get current state"
+  include_role:
+    name: extract_files_from_image
+  vars:
+    effi_image: "{{ fadd_index }}"
+    effi_copy_source_path: "{{ fadd_operator_yaml_location }}"
+    effi_target_copy_path: "{{ fadd_extracted_fbc_location }}"
+
+ - name: "Set local FBC path"
+   set_fact:
+     fadd_fbc_config_path: "{{ fadd_extracted_fbc_location }}/configs"
+
