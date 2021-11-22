@@ -31,6 +31,7 @@
   vars:
     op_version: "{{ operator_version }}"
     remove_replaces: true
+    check_alm_examples: true
   when: run_upstream|bool
 
 - name: "Detect if a change is cosmetic"
