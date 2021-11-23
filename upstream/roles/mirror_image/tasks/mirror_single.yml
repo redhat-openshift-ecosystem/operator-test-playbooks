@@ -18,7 +18,9 @@
       no_log: true
       when:
         - ms_info.1 is defined
+        - ms_info.1|length > 0
         - ms_info.2 is defined
+        - ms_info.2|length > 0
 
     - name: "Add index image postfix if needed"
       no_log: true
