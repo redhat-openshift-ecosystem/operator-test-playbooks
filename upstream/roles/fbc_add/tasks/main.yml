@@ -21,3 +21,6 @@
    set_fact:
      fadd_fbc_config_path: "{{ fadd_extracted_fbc_location }}/configs"
 
+#TODO: create local index from operators in release queue
+
+
