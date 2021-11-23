@@ -14,3 +14,4 @@ opm_index_ci_filename: "ci.yaml"
 opm_index_add_mode: "semver"
 enable_bundle_validate_community: false
 ignore_image_string: "--"
+check_alm_examples: false
