@@ -32,3 +32,16 @@
   loop: "{{ fadd_bundles_to_process | list }}"
   loop_control:
     loop_var: rf_render_target
+
+#opm alpha generate dockerfile operatorhubio
+- name: "Create dockerfile"
+  shell: "cd {{ fadd_extracted_fbc_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ fadd_fbc_config_path }}"
+
+- name: "Set opm Dockerfile path"
+  set_fact:
+    fadd_dockerfile_path: "{{ fadd_fbc_config_path }}.Dockerfile"
+
+- name: "Cat"
+  shell: "cat {{ fadd_dockerfile_path }}"
+
+#TODO: build image
