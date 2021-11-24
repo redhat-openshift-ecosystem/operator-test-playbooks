@@ -14,11 +14,27 @@
       changed_when: false
       no_log: true
 
+    - debug:
+        var:
+          effi_image
+
+    - debug:
+        var:
+          container_tool
+
     - name: "Pull the image {{ effi_image }}"
       shell: "{{ container_tool }} pull {{ effi_image }}"
       register: rf_pull_opm_image
 
-    - name: "Create the opm image"
+    - debug:
+        var:
+          effi_container_name
+
+    - debug:
+        var:
+          effi_image
+
+    - name: "Create the image"
       shell: "{{ container_tool }} create --name {{ effi_container_name }} {{ effi_image }}"
       register: rf_pull_opm_image
 

@@ -17,10 +17,18 @@
     effi_copy_source_path: "{{ fadd_operator_yaml_location }}"
     effi_target_copy_path: "{{ fadd_extracted_fbc_location }}"
 
- - name: "Set local FBC path"
-   set_fact:
-     fadd_fbc_config_path: "{{ fadd_extracted_fbc_location }}/configs"
+- name: "Set local FBC path"
+  set_fact:
+    fadd_fbc_config_path: "{{ fadd_extracted_fbc_location }}/configs"
 
 #TODO: create local index from operators in release queue
 
-
+- name: "Render temp index"
+  include_role:
+    name: render_files
+  vars:
+    rf_render_output_dir: "{{ fadd_extracted_fbc_location }}"
+    rf_render_output_root: "{{ fadd_operator_yaml_location }}"
+  loop: "{{ fadd_bundles_to_process | list }}"
+  loop_control:
+    loop_var: rf_render_target
