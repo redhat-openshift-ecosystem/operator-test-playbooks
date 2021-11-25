@@ -277,3 +277,11 @@
   when:
     - ((sis_opm_extra_args is defined and sis_opm_extra_args|length > 0) or (sis_allow_empty_index is defined and sis_allow_empty_index|bool))
     - not sis_index_add_skip|bool
+
+- name: ""
+  include_role:
+    name: produce_fbc
+  vars:
+    pfbc_file_index: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
+    pfbc_sql_index: "{{ sis_index_image_output }}"
+  when: sis_index_rm_rc.rc == 0

@@ -1,0 +1,74 @@
+---
+- name: "Delete directory for fbc extraction"
+  file:
+    path: "{{ pfbc_extracted_fbc_location }}"
+    state: absent
+
+- name: "Prepare directory"
+  file:
+    path: "{{ pfbc_extracted_fbc_location }}"
+    state: directory
+
+- name: "Get current state"
+  include_role:
+    name: extract_files_from_image
+  vars:
+    effi_image: "{{ pfbc_file_index }}"
+    effi_copy_source_path: "{{ pfbc_operator_yaml_location }}"
+    effi_target_copy_path: "{{ pfbc_extracted_fbc_location }}"
+  when: pfbc_index_update|bool
+
+- name: "Set local FBC path"
+  set_fact:
+    pfbc_fbc_config_path: "{{ pfbc_extracted_fbc_location }}/configs"
+
+#TODO: create local index from operators in release queue
+
+- name: "Render index from bundles"
+  include_role:
+    name: render_files
+  vars:
+    rf_render_output_dir: "{{ pfbc_extracted_fbc_location }}"
+    rf_render_output_root: "{{ pfbc_operator_yaml_location }}"
+    rf_render_from: "{{ pfbc_render_from }}"
+  loop: "{{ pfbc_bundles_to_process | list }}"
+  loop_control:
+    loop_var: rf_render_target
+  when: pfbc_render_from == "bundle"
+
+- name: "Render index from temp index"
+  include_role:
+    name: render_files
+  vars:
+    rf_render_output_dir: "{{ pfbc_extracted_fbc_location }}"
+    rf_render_output_root: "{{ pfbc_operator_yaml_location }}"
+    rf_render_target: "{{ pfbc_sql_index }}"
+    rf_render_from: "{{ pfbc_render_from }}"
+  loop_control:
+    loop_var: rf_render_target
+  when: pfbc_render_from == "index"
+
+- name: "Create dockerfile"
+  shell: "cd {{ pfbc_extracted_fbc_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ pfbc_fbc_config_path }}"
+
+- name: "Set opm Dockerfile path"
+  set_fact:
+    pfbc_dockerfile_path: "{{ pfbc_fbc_config_path }}.Dockerfile"
+
+- name: "Cat"
+  shell: "cat {{ pfbc_dockerfile_path }}"
+
+- name: "Delete Dockerfile"
+  file:
+    path: "{{ pfbc_dockerfile_path }}"
+    state: absent
+
+- name: "Create dockerfile"
+  shell: "cd {{ pfbc_extracted_fbc_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ pfbc_fbc_config_path }}"
+
+- name: "Build FBC"
+  shell: "cd {{ pfbc_extracted_fbc_location }}; {{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ pfbc_file_index }}"
+
+#TODO: po index add, dt
+#TODO: build image
+#TODO: delete package every time
