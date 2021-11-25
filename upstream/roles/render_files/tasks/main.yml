@@ -1,14 +1,25 @@
 ---
-#rf_render_target - only bundle image is supported
+- name: "Render from bundles"
+  block:
+    - name: "Parse bundle image string"
+      set_fact:
+        rf_operator_package_and_version: "{{ rf_render_target.split('/')[-1] }}"
 
-- name: "Parse bundle image string"
-  set_fact:
-    rf_operator_package_and_version: "{{ rf_render_target.split('/')[-1] }}"
+    - name: "Set package and version"
+      set_fact:
+        rf_package: "{{ rf_operator_package_and_version.split(':')[0] }}"
+        rf_operator_version: "{{ rf_operator_package_and_version.split(':')[1] }}"
+  when:
+    - rf_render_from == "bundle"
 
-- name: "Set package and version"
-  set_fact:
-    rf_package: "{{ rf_operator_package_and_version.split(':')[0] }}"
-    rf_operator_version: "{{ rf_operator_package_and_version.split(':')[1] }}"
+- name: "Render from index"
+  block:
+    - name: "Parse bundle image string"
+      set_fact:
+        rf_package: ""
+        rf_operator_version: "catalog"
+  when:
+    - rf_render_from == "index"
 
 - name: "Create a directory for opm render output"
   file:
@@ -16,11 +27,9 @@
     state: directory
   failed_when: false
 
+- name: "Print Index"
+  debug:
+    msg: "{{ opm_bin_path }} render {{ rf_render_target }} --output=yaml > {{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}/{{ rf_operator_version }}.yaml"
+
 - name: "OPM render {{ rf_render_target }}"
   shell: "{{ opm_bin_path }} render {{ rf_render_target }} --output=yaml > {{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}/{{ rf_operator_version }}.yaml"
-#  register: rf_
-
-- name: "Debug"
-  shell: "cat {{ rf_render_output_dir }}/operators/{{ rf_package }}/{{ rf_operator_version }}.yaml"
-  failed_when: false
-  changed_when: false

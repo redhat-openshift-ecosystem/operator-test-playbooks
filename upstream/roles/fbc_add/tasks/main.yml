@@ -16,6 +16,7 @@
     effi_image: "{{ fadd_index }}"
     effi_copy_source_path: "{{ fadd_operator_yaml_location }}"
     effi_target_copy_path: "{{ fadd_extracted_fbc_location }}"
+  when: fadd_index_update|bool
 
 - name: "Set local FBC path"
   set_fact:
@@ -23,17 +24,30 @@
 
 #TODO: create local index from operators in release queue
 
-- name: "Render temp index"
+- name: "Render index from bundles"
   include_role:
     name: render_files
   vars:
     rf_render_output_dir: "{{ fadd_extracted_fbc_location }}"
     rf_render_output_root: "{{ fadd_operator_yaml_location }}"
+    rf_render_from: "{{ fadd_render_from }}"
   loop: "{{ fadd_bundles_to_process | list }}"
   loop_control:
     loop_var: rf_render_target
+  when: fadd_render_from == "bundle"
 
-#opm alpha generate dockerfile operatorhubio
+- name: "Render index from temp index"
+  include_role:
+    name: render_files
+  vars:
+    rf_render_output_dir: "{{ fadd_extracted_fbc_location }}"
+    rf_render_output_root: "{{ fadd_operator_yaml_location }}"
+    rf_render_target: "{{ fadd_index_to_process }}"
+    rf_render_from: "{{ fadd_render_from }}"
+  loop_control:
+    loop_var: rf_render_target
+  when: fadd_render_from == "index"
+
 - name: "Create dockerfile"
   shell: "cd {{ fadd_extracted_fbc_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ fadd_fbc_config_path }}"
 
@@ -44,4 +58,17 @@
 - name: "Cat"
   shell: "cat {{ fadd_dockerfile_path }}"
 
+- name: "Delete Dockerfile"
+  file:
+    path: "{{ fadd_dockerfile_path }}"
+    state: absent
+
+- name: "Create dockerfile"
+  shell: "cd {{ fadd_extracted_fbc_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ fadd_fbc_config_path }}"
+
+- name: "Build FBC"
+  shell: "cd {{ fadd_extracted_fbc_location }}; {{ container_tool }} build -f {{ fadd_dockerfile_path }} -t {{ fadd_index }}"
+
+#TODO: po index add, dt
 #TODO: build image
+#TODO: delete package every time

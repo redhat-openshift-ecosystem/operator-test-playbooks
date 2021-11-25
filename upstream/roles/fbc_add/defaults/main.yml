@@ -1,8 +1,11 @@
 fadd_index: ""
 fadd_extracted_fbc_location: "/tmp/fbc_extracted"
 fadd_operator_yaml_location: "configs"
-fadd_bundles_to_process:
-  - quay.io/operator_testing/portworx-essentials:6efa59f8--20210921T232019
-  - quay.io/operator_testing/postgresql:d9e08ae9--20210902T153420
-  - quay.io/operator_testing/postgresql:d9e08ae9--20210901T154421
+fadd_index_update: false
+fadd_render_from: "index"
+fadd_index_to_process: ""
+#fadd_bundles_to_process:
+#  - quay.io/operator_testing/portworx-essentials:6efa59f8--20210921T232019
+#  - quay.io/operator_testing/postgresql:d9e08ae9--20210902T153420
+#  - quay.io/operator_testing/postgresql:d9e08ae9--20210901T154421
 
