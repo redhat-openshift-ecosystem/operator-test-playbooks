@@ -278,7 +278,7 @@
     - ((sis_opm_extra_args is defined and sis_opm_extra_args|length > 0) or (sis_allow_empty_index is defined and sis_allow_empty_index|bool))
     - not sis_index_add_skip|bool
 
-- name: ""
+- name: "Produce FBC"
   include_role:
     name: produce_fbc
   vars:

@@ -8,4 +8,3 @@ pfbc_sql_index: ""
 #  - quay.io/operator_testing/portworx-essentials:6efa59f8--20210921T232019
 #  - quay.io/operator_testing/postgresql:d9e08ae9--20210902T153420
 #  - quay.io/operator_testing/postgresql:d9e08ae9--20210901T154421
-
