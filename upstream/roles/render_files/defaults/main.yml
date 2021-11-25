@@ -6,4 +6,5 @@ opm_image: "quay.io/operator-framework/opm:master"
 opm_container_name: "opm-container"
 opm_bin_source_path: "/bin/opm"
 rf_render_from: "index"
+rf_opm_render: "migrate"
 
