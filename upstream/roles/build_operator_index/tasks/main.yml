@@ -368,12 +368,12 @@
       set_fact:
         bio_export_dir_op: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
 
-    - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
-      include_role:
-        name: operator_courier_verify
-      vars:
-        operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
-      when: run_lint|bool
+    # - name: "Run linting tests with operator-courier verify on the deployed operator '{{ ba_name }}'"
+    #   include_role:
+    #     name: operator_courier_verify
+    #   vars:
+    #     operator_work_dir: "{{ operator_bundle_dir_for_courier }}/{{ ba_name }}"
+    #   when: run_lint|bool
 
     - name: "Checking index vs git"
       block:
