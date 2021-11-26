@@ -22,8 +22,6 @@
   set_fact:
     pfbc_fbc_config_path: "{{ pfbc_extracted_fbc_location }}/configs"
 
-#TODO: create local index from operators in release queue
-
 - name: "Render index from bundles"
   include_role:
     name: render_files
@@ -55,9 +53,6 @@
   set_fact:
     pfbc_dockerfile_path: "{{ pfbc_fbc_config_path }}.Dockerfile"
 
-- name: "Cat"
-  shell: "cat {{ pfbc_dockerfile_path }}"
-
 - name: "Delete Dockerfile"
   file:
     path: "{{ pfbc_dockerfile_path }}"
@@ -68,3 +63,4 @@
 
 - name: "Build FBC"
   shell: "cd {{ pfbc_extracted_fbc_location }}; {{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ pfbc_file_index }}"
+  register: pfbc_rc
