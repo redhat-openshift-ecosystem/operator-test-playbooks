@@ -4,6 +4,7 @@ pfbc_operator_yaml_location: "configs"
 pfbc_index_update: false
 pfbc_render_from: "index"
 pfbc_sql_index: ""
+bundle_index_fbc_postfix: "f"
 #pfbc_bundles_to_process:
 #  - quay.io/operator_testing/portworx-essentials:6efa59f8--20210921T232019
 #  - quay.io/operator_testing/postgresql:d9e08ae9--20210902T153420
