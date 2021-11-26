@@ -22,14 +22,6 @@
       shell: "{{ container_tool }} create --name {{ effi_container_name }} {{ effi_image }}"
       register: rf_pull_opm_image
 
-    - debug:
-        var:
-          effi_copy_source_path
-
-    - debug:
-        var:
-          effi_target_source_path
-
     - name: "Copy from {{ effi_container_name }}:/{{ effi_copy_source_path }}"
       shell: "{{ container_tool }} cp {{ effi_container_name }}:/{{ effi_copy_source_path }} {{ effi_target_copy_path }}"
       when:

@@ -340,7 +340,7 @@ function ExecParameters() {
     [[ $1 == orange_* ]] && [ "$OP_TEST_STREAM" = "upstream-community-operators" ] && OP_TEST_EXEC_USER="" && { echo "Warning: Index versions are not supported for 'upstream-community-operators' !!! Skipping ..."; OP_TEST_SKIP=1; }
 
     # Building index from bundle shas in production
-    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_index_sha_posfix=s"
+    [[ $1 == orange* ]] && [[ $OP_TEST_PROD -eq 1 ]] && OP_TEST_EXEC_USER="$OP_TEST_EXEC_USER -e bundle_index_sha_posfix=s -e bundle_index_fbc_postfix=f"
 
     # Don't reset kind when production (It should speedup deploy when kind and registry is not needed)
     [[ $1 == orange* ]] && [[ $OP_TEST_PROD -ge 1 ]] && OP_TEST_RESET=0
