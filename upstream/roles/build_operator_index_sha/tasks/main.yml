@@ -268,6 +268,56 @@
         - bundle_sha_images_dt is defined
         - bundle_sha_images_dt|length > 0
 
+    - name: "Produce FBC"
+      include_role:
+        name: produce_fbc
+      vars:
+        pfbc_file_index: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
+        pfbc_sql_index: "{{ sis_index_image_output }}"
+      when: result_rc|bool
+
+    - name: "Push index image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}'"
+      include_role:
+        name: operator_push_image
+      vars:
+        fqp_image: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
+      when:
+        - pfbc_rc.rc is defined
+        - pfbc_rc.rc == 0
+
+    - name: "Set 'result_rc' to false"
+      set_fact:
+        result_rc: false
+
+    - name: "Set 'result_rc'"
+      set_fact:
+        result_rc: true
+      when:
+        - pfbc_rc.rc is defined
+        - pfbc_rc.rc == 0
+        - rc_last|bool
+
+    - name: "Prints message that FBC image was updated"
+      debug:
+        msg: "FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was updated and pushed : [OK]"
+      when:
+        - result_rc|bool
+
+    - name: "Print failing msg that FBC image was not updated"
+      debug:
+        msg: "FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was not updated : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Failing when bundle was not added to catalog or not pushed"
+      fail:
+        msg: "FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was not updated or pushed : [FAIL]"
+      when:
+        - not result_rc|bool
+        - strict_mode is defined
+        - strict_mode|bool
+
     - name: "Cleanup local images"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
       failed_when: false

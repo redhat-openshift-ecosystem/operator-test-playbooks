@@ -76,4 +76,3 @@
     sis_index_rm_skip: true
 
   when: op_info[si_item] is undefined
-
