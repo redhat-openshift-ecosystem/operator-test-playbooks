@@ -6,3 +6,4 @@ sis_extract_bundles_from_index: true
 sis_bundles_str: ""
 sis_bundles_dt_str: ""
 boi_index_args: ""
+bundle_index_fbc_postfix: "f"
