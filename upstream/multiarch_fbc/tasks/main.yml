@@ -1,0 +1,66 @@
+---
+#TODO: call multi_arch 2 times + rc's and error statuses
+#TODO: create a role to handle  ^
+
+
+- name: "Tweak Dockerfile to accept arch args part 1"
+  lineinfile:
+    path: "{{ mfbc_dockerfile_path }}"
+    insertbefore: BOF
+    line: 'ARG ARCH='
+
+- name: "Tweak Dockerfile to accept arch args part 2"
+  replace:
+    path: "{{ mfbc_dockerfile_path }}"
+    regexp: 'FROM '
+    replace: 'FROM ${ARCH}'
+
+- name: "Reset 'mfbc_manifest_push_args'"
+  set_fact:
+    mfbc_manifest_push_args: ""
+
+- name: "Detect needed architectures from image '{{ mfbc_list_architectures_from }}'"
+  shell: "{{ container_tool }} manifest inspect {{ mfbc_list_architectures_from }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+  register: mfbc_archs_inspect_result
+
+- name: "Parse archs to list"
+  set_fact:
+    multiarch_fbc_architectures: "{{ mfbc_archs_inspect_result.stdout_lines | list }}"
+
+- name: "Prints archs list'"
+  debug:
+    var: multiarch_fbc_architectures
+
+- name: "Create and push archs one by one"
+  include_tasks:
+    name: process_archs.yml
+  loop: "{{ multiarch_fbc_architectures }}"
+  loop_control:
+    loop_var: mfbc_architecture
+
+- name: "Create the final manifest"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_actual_fbc_arch_image }} {{ mfbc_manifest_push_args }}"
+
+- name: "Parsing output image with login information"
+  no_log: true
+  set_fact:
+    ms_info: "{{ mi.split('|') }}"
+    ms_image_postfix: ""
+
+- name: "Failing when image is not defined"
+  fail:
+    msg: "Mirror image is not defined correctly !!!"
+  when:
+    - ms_info.0 is undefined
+
+- name: "Login to docker registry"
+  shell: "{{ container_tool }} login -u={{ ms_info[1] }} -p={{ ms_info[2] }} {{  ms_info[0].split('/')[0] }}"
+  no_log: true
+  when:
+    - ms_info.1 is defined
+    - ms_info.1|length > 0
+    - ms_info.2 is defined
+    - ms_info.2|length > 0
+
+- name: "Push the final manifest"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ container_push_extra }} {{ mfbc_actual_fbc_arch_image }}"
