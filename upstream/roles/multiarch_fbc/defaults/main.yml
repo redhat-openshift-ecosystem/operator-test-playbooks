@@ -1,6 +1,6 @@
 mfbc_dockerfile_path: "{{ pfbc_dockerfile_path }}"
 mfbc_extracted_fbc_location: "{{ pfbc_extracted_fbc_location }}"
-mfbc_multi_arch_input_image: "{{ mfbc_file_index }}"
+mfbc_multi_arch_input_image: ""
 mfbc_multi_arch_output_image: ""
 mfbc_list_architectures_from: "quay.io/operator-framework/opm:latest"
 #multiarch_fbc_architectures:

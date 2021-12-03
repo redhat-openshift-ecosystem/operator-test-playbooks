@@ -43,3 +43,4 @@
 
 - name: "Push the final manifest"
   shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ container_push_extra }} {{ mfbc_multi_arch_output_image }}"
+  register: mfbc_rc

@@ -83,6 +83,8 @@
         check_verify_result: "{{ check_verify_result | default(true) }}"
         operator_suggested_namespace_default: test-operators
         bundle_index_fbc_postfix: "f"
+        bundle_index_fbc_multiarch_postfix: "m"
+        multiarch_tagged_fbc_is_needed: false
 
       tags:
         - always
