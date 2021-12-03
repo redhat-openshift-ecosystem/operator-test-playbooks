@@ -82,6 +82,7 @@
         operator_format: "bundle"
         check_verify_result: "{{ check_verify_result | default(true) }}"
         operator_suggested_namespace_default: test-operators
+        bundle_index_fbc_postfix: "f"
 
       tags:
         - always
