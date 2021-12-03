@@ -39,28 +39,7 @@
     loop_var: mfbc_architecture
 
 - name: "Create the final manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_actual_fbc_arch_image }} {{ mfbc_manifest_push_args }}"
-
-- name: "Parsing output image with login information"
-  no_log: true
-  set_fact:
-    ms_info: "{{ mi.split('|') }}"
-    ms_image_postfix: ""
-
-- name: "Failing when image is not defined"
-  fail:
-    msg: "Mirror image is not defined correctly !!!"
-  when:
-    - ms_info.0 is undefined
-
-- name: "Login to docker registry"
-  shell: "{{ container_tool }} login -u={{ ms_info[1] }} -p={{ ms_info[2] }} {{  ms_info[0].split('/')[0] }}"
-  no_log: true
-  when:
-    - ms_info.1 is defined
-    - ms_info.1|length > 0
-    - ms_info.2 is defined
-    - ms_info.2|length > 0
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }} {{ mfbc_manifest_push_args }}"
 
 - name: "Push the final manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ container_push_extra }} {{ mfbc_actual_fbc_arch_image }}"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ container_push_extra }} {{ mfbc_multi_arch_output_image }}"
