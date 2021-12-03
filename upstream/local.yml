@@ -36,7 +36,7 @@
     operator_sdk_version: v1.8.0
     operator_courier_version: 2.1.11
     olm_version: 0.19.1
-    opm_version: v1.19.1
+    opm_version: v1.19.5
     oc_version: 4.3.5
     go_version: 1.13.7
     jq_version: 1.6
