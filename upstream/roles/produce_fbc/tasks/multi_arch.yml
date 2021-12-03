@@ -1,0 +1,35 @@
+---
+#TODO: call multi_arch 2 times + rc's and error statuses
+#TODO: create a role to handle  ^
+
+
+- name: "Tweak Dockerfile to accept arch args part 1"
+  lineinfile:
+    path: "{{ pfbc_dockerfile_path }}"
+    insertbefore: BOF
+    line: 'ARG ARCH='
+
+- name: "Tweak Dockerfile to accept arch args part 2"
+  replace:
+    path: "{{ pfbc_dockerfile_path }}"
+    regexp: 'FROM '
+    replace: 'FROM ${ARCH}'
+
+
+- name: "Reset 'pfbc_manifest_push_args'"
+  set_fact:
+    pfbc_manifest_push_args: ""
+
+- name: "Create and push archs one by one"
+  include_tasks:
+    name: process_archs.yml
+  loop: "{{ multiarch_fbc_architectures }}|list"
+  loop_control:
+    loop_var: pfbc_architecture
+
+- name: "Create the final manifest"
+  shell: "cd {{ pfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ pfbc_actual_fbc_arch_image }} {{ pfbc_manifest_push_args }}"
+
+- name: "Push the final manifest"
+  shell: "cd {{ pfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ pfbc_actual_fbc_arch_image }}"
+

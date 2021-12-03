@@ -1,0 +1,19 @@
+---
+- name: "Set 'mfbc_actual_fbc_arch_image'"
+  set_fact:
+    mfbc_actual_fbc_arch_image: "{{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}"
+
+- name: "Set 'mfbc_manifest_push_args'"
+  set_fact:
+    mfbc_manifest_push_args: "{{ mfbc_manifest_push_args | default([]) + '--amend ' + mfbc_actual_fbc_arch_image + ' '}}"
+
+- name: "{{ container_tool }} build -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} build -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
+
+- name: "Push '{{ mfbc_actual_fbc_arch_image }}'"
+  include_role:
+    name: operator_push_image
+  vars:
+    fqp_image: "{{ mfbc_actual_fbc_arch_image }}"
+
+
