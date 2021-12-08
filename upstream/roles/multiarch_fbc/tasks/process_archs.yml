@@ -15,5 +15,3 @@
     name: operator_push_image
   vars:
     fqp_image: "{{ mfbc_actual_fbc_arch_image }}"
-
-

@@ -28,8 +28,7 @@
     var: multiarch_fbc_architectures
 
 - name: "Create and push archs one by one"
-  include_tasks:
-    name: process_archs.yml
+  include_tasks: process_archs.yml
   loop: "{{ multiarch_fbc_architectures }}"
   loop_control:
     loop_var: mfbc_architecture
