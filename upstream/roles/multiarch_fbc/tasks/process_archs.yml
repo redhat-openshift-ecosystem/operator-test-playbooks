@@ -7,8 +7,8 @@
   set_fact:
     mfbc_manifest_push_args: "{{ mfbc_manifest_push_args | default([]) + '--amend ' + mfbc_actual_fbc_arch_image + ' '}}"
 
-- name: "{{ container_tool }} build -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} build -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
+- name: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
 
 - name: "Push '{{ mfbc_actual_fbc_arch_image }}'"
   include_role:
