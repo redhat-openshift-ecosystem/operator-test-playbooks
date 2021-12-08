@@ -299,20 +299,20 @@
 
     - name: "Prints message that multiarch FBC image was updated"
       debug:
-        msg: "Multiarch FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}{{ bundle_index_fbc_multiarch_postfix }}' was updated and pushed : [OK]"
+        msg: "Multiarch FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was updated and pushed : [OK]"
       when:
         - result_rc|bool
 
     - name: "Print failing msg that multiarch FBC image was not updated"
       debug:
-        msg: "FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}{{ bundle_index_fbc_multiarch_postfix }}' was not updated : [FAIL]"
+        msg: "FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was not updated : [FAIL]"
       when:
         - not result_rc|bool
         - (strict_mode is undefined or not strict_mode|bool)
 
     - name: "Failing when multiarch FBC image was not updated"
       fail:
-        msg: "Multiarch FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}{{ bundle_index_fbc_multiarch_postfix }}' was not updated or pushed : [FAIL]"
+        msg: "Multiarch FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was not updated or pushed : [FAIL]"
       when:
         - not result_rc|bool
         - strict_mode is defined
