@@ -11,6 +11,9 @@
     regexp: 'FROM '
     replace: 'FROM ${ARCH}'
 
+- name: "Show Dockerfile"
+  shell: "cat {{ mfbc_dockerfile_path }}"
+
 - name: "Reset 'mfbc_manifest_push_args'"
   set_fact:
     mfbc_manifest_push_args: ""
@@ -26,6 +29,15 @@
 - name: "Prints archs list'"
   debug:
     var: multiarch_fbc_architectures
+
+- name: "Quay login"
+  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
+  no_log: true
+  when:
+    - quay_user is defined
+    - quay_password is defined
+    - quay_user|length > 0
+    - quay_password|length > 0
 
 - name: "Create and push archs one by one"
   include_tasks: process_archs.yml
