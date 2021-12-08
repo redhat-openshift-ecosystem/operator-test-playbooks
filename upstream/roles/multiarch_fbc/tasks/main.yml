@@ -1,8 +1,4 @@
 ---
-#TODO: call multi_arch 2 times + rc's and error statuses
-#TODO: create a role to handle  ^
-
-
 - name: "Tweak Dockerfile to accept arch args part 1"
   lineinfile:
     path: "{{ mfbc_dockerfile_path }}"

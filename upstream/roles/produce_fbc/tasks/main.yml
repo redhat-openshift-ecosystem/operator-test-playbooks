@@ -1,4 +1,8 @@
 ---
+- name: "Set pfbc_rc to false"
+  set_fact:
+    pfbc_rc: false
+
 - name: "Delete directory for fbc extraction"
   file:
     path: "{{ pfbc_extracted_fbc_location }}"
@@ -60,7 +64,8 @@
 
 - name: "Create dockerfile"
   shell: "cd {{ pfbc_extracted_fbc_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ pfbc_fbc_config_path }}"
-
-- name: "Build FBC"
-  shell: "cd {{ pfbc_extracted_fbc_location }}; {{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ pfbc_file_index }}"
   register: pfbc_rc
+
+#- name: "Build FBC"
+#  shell: "cd {{ pfbc_extracted_fbc_location }}; {{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ pfbc_file_index }}"
+#  register: pfbc_rc
