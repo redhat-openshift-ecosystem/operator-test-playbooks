@@ -281,7 +281,9 @@
         name: multiarch_fbc
       vars:
         mfbc_multi_arch_output_image: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
-      when: pfbc_rc|bool
+      when:
+        - pfbc_rc.rc is defined
+        - pfbc_rc.rc == 0
 
     - name: "Set 'result_rc' to false"
       set_fact:
