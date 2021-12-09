@@ -56,3 +56,21 @@
   when:
     - container_tool is defined
     - container_tool == 'podman'
+
+- name: "Push human readable temp dev tag"
+  block:
+    - name: "Prepare temp human readable tag to duplicate"
+      set_fact:
+        mfbc_multi_arch_output_image_dev_temp_human_readable: "{{ mfbc_multi_arch_output_image.split(':')[0] }}{{ mfbc_multi_arch_output_image_dev_temp_human_readable_tag }}"
+
+
+    - name: "Push 'FBC' tagged manifest for temp dev purposes"
+      shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image_dev_temp_human_readable }}"
+      register: mfbc_rc
+      when:
+        - container_tool is defined
+        - container_tool == 'podman'
+  when:
+    - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled is defined
+    - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled|length > 0
+    - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled|bool
