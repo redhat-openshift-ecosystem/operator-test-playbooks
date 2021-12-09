@@ -72,5 +72,4 @@
         - container_tool == 'podman'
   when:
     - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled is defined
-    - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled|length > 0
     - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled|bool
