@@ -61,7 +61,7 @@
   block:
     - name: "Prepare temp human readable tag to duplicate"
       set_fact:
-        mfbc_multi_arch_output_image_dev_temp_human_readable: "{{ mfbc_multi_arch_output_image.split(':')[0] }}{{ mfbc_multi_arch_output_image_dev_temp_human_readable_tag }}"
+        mfbc_multi_arch_output_image_dev_temp_human_readable: "{{ mfbc_multi_arch_output_image.split(':')[0] }}:{{ mfbc_multi_arch_output_image_dev_temp_human_readable_tag }}"
 
 
     - name: "Push 'FBC' tagged manifest for temp dev purposes"
