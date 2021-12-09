@@ -5,11 +5,17 @@
     insertbefore: BOF
     line: 'ARG ARCH='
 
+#- name: "Tweak Dockerfile to accept arch args part 2"
+#  replace:
+#    path: "{{ mfbc_dockerfile_path }}"
+#    regexp: 'FROM '
+#    replace: 'FROM ${ARCH}'
+
 - name: "Tweak Dockerfile to accept arch args part 2"
   replace:
     path: "{{ mfbc_dockerfile_path }}"
-    regexp: 'FROM '
-    replace: 'FROM ${ARCH}'
+    regexp: "FROM quay.io/operator-framework/opm:latest"
+    replace: "FROM quay.io/operator-framework/opm:{{ opm_version }}-${ARCH}"
 
 - name: "Show Dockerfile"
   shell: "cat {{ mfbc_dockerfile_path }}"
@@ -26,18 +32,20 @@
   set_fact:
     multiarch_fbc_architectures: "{{ mfbc_archs_inspect_result.stdout_lines | list }}"
 
-- name: "Prints archs list'"
+- name: "Print archs list'"
   debug:
     var: multiarch_fbc_architectures
 
-- name: "Quay login"
-  shell: "{{ container_tool }} login -u=\"{{ quay_user }}\" -p={{ quay_password }} quay.io"
-  no_log: true
-  when:
-    - quay_user is defined
-    - quay_password is defined
-    - quay_user|length > 0
-    - quay_password|length > 0
+- name: "Print mfbc_multi_arch_output_image"
+  debug:
+    var: mfbc_multi_arch_output_image
+
+- name: "Remove manifest '{{ mfbc_multi_arch_output_image }}' before creating a new one"
+  shell: "{{ container_tool }} rmi -f {{ mfbc_multi_arch_output_image }}"
+  failed_when: false
+
+- name: "Create the final manifest"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }}"
 
 - name: "Create and push archs one by one"
   include_tasks: process_archs.yml
@@ -45,9 +53,27 @@
   loop_control:
     loop_var: mfbc_architecture
 
-- name: "Create the final manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }} {{ mfbc_manifest_push_args }}"
+#- name: "Create the final manifest"
+#  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }} {{ mfbc_manifest_push_args }}"
+
+- name: "Print mfbc_multi_arch_output_image"
+  debug:
+    var: mfbc_multi_arch_output_image
+
+- name: "Print mfbc_multi_arch_output_image"
+  debug:
+    var: container_push_extra
 
 - name: "Push the final manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ container_push_extra }} {{ mfbc_multi_arch_output_image }}"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
   register: mfbc_rc
+  when:
+    - container_tool is defined
+    - container_tool == 'docker'
+
+- name: "Push the final manifest"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
+  register: mfbc_rc
+  when:
+    - container_tool is defined
+    - container_tool == 'podman'
