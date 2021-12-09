@@ -5,12 +5,6 @@
     insertbefore: BOF
     line: 'ARG ARCH='
 
-#- name: "Tweak Dockerfile to accept arch args part 2"
-#  replace:
-#    path: "{{ mfbc_dockerfile_path }}"
-#    regexp: 'FROM '
-#    replace: 'FROM ${ARCH}'
-
 - name: "Tweak Dockerfile to accept arch args part 2"
   replace:
     path: "{{ mfbc_dockerfile_path }}"
@@ -19,10 +13,6 @@
 
 - name: "Show Dockerfile"
   shell: "cat {{ mfbc_dockerfile_path }}"
-
-- name: "Reset 'mfbc_manifest_push_args'"
-  set_fact:
-    mfbc_manifest_push_args: ""
 
 - name: "Detect needed architectures from image '{{ mfbc_list_architectures_from }}'"
   shell: "{{ container_tool }} manifest inspect {{ mfbc_list_architectures_from }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
@@ -53,25 +43,14 @@
   loop_control:
     loop_var: mfbc_architecture
 
-#- name: "Create the final manifest"
-#  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }} {{ mfbc_manifest_push_args }}"
-
-- name: "Print mfbc_multi_arch_output_image"
-  debug:
-    var: mfbc_multi_arch_output_image
-
-- name: "Print mfbc_multi_arch_output_image"
-  debug:
-    var: container_push_extra
-
-- name: "Push the final manifest"
+- name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
   shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
   register: mfbc_rc
   when:
     - container_tool is defined
     - container_tool == 'docker'
 
-- name: "Push the final manifest"
+- name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
   shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
   register: mfbc_rc
   when:
