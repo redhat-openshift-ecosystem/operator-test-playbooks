@@ -5,7 +5,7 @@
     mi_input_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}{{ nonprod_sha_postfix }}"
     mi_output_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
   when:
-    - cluster_type==k8s
+    - cluster_type=="k8s"
     - bundle_index_image_version == "latest"
 
 - name: "Mirror fbc index for tmp purposes"
@@ -14,7 +14,7 @@
     mi_input_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}{{ nonprod_fbc_postfix }}"
     mi_output_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
   when:
-    - cluster_type==k8s
+    - cluster_type=="k8s"
     - bundle_index_image_version == "latest"
 
 - name: "Mirroring image to multiple locations"
