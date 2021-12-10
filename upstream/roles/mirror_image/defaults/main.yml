@@ -14,3 +14,4 @@ iib_converted_image_base: registry:8443/iib-build
 mi_tmp_postfix: "_tmp"
 nonprod_sha_postfix: "s"
 nonprod_fbc_postfix: "sf"
+nonprod_index_image_name: "catalog"
