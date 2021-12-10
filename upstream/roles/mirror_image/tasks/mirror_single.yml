@@ -1,4 +1,22 @@
 ---
+- name: "Mirror sql index for tmp purposes"
+  include_tasks: mirror_only.yml
+  vars:
+    mi_input_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}{{ nonprod_sha_postfix }}"
+    mi_output_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+  when:
+    - cluster_type==k8s
+    - bundle_index_image_version == "latest"
+
+- name: "Mirror fbc index for tmp purposes"
+  include_tasks: mirror_only.yml
+  vars:
+    mi_input_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}{{ nonprod_fbc_postfix }}"
+    mi_output_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
+  when:
+    - cluster_type==k8s
+    - bundle_index_image_version == "latest"
+
 - name: "Mirroring image to multiple locations"
   block:
     - name: "Parsing output image with login information"
@@ -61,7 +79,7 @@
       register: ms_pull_mirror_input_image_final
       failed_when: false
 
-    - name: "Mirroring multi arch index image '{{ mirror_multiarch_image }}' to mirror location '{{ ms_info[0] }}'"
+    - name: "Mirroring multi arch index image '{{ mirror_multiarch_image }}' to mirror location '{{ ms_info[0] }}' using IIB"
       block:
         - name: "Handle case when 'mirror_input_image' starts with 'kind-registry'"
           block:
