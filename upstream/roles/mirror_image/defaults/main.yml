@@ -18,3 +18,5 @@ nonprod_postfix: "fbc"
 nonprod_index_image_name: "catalog"
 mi_another_iib_needed: false
 mi_input_index_already_set: false
+mi_sql_mirror_input_default: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:latest"
+ms_index_prod_location: "{{ ms_info[4] }}"

@@ -26,53 +26,52 @@
         - name: "Set 'mi_general_mirror_input'"
           set_fact:
             mi_general_mirror_input: "{{ mirror_index_images.split(',')[0] }}"
-            nonprod_postfix: "fbc"
 
         - debug:
             var:
               - mi_general_mirror_input[-1:]
 
-        - name: "Guess FBC name, will be fixed on the fly if needed"
-          set_fact:
-            mi_fbc_mirror_input: "{{ mi_general_mirror_input }}f"
-          when: mi_general_mirror_input[-1:]!="f"
-
-        - name: "Decide if IIB is needed looking at suffix"
-          set_fact:
-            mi_another_iib_needed: true
-          when: mi_general_mirror_input[-1:]!="s"
-
-        - name: "Mirror single arch sql index with IIB"
+        - name: "Process multiarch arch sha index"
           block:
-            - name: "Set SQL single arch sha input image - trim f from sf tag"
-              set_fact:
-                mi_sql_mirror_input: "{{ mi_general_mirror_input[:-1] }}"
-                nonprod_postfix: "sql"
 
-            - name: "Setting nonprod mirror output"
+            - name: "Set input values"
+              set_fact:
+                mi_fbc_mirror_input: "{{ mi_general_mirror_input }}f"
+                mi_sql_mirror_input: "{{ mi_sql_mirror_input_default }}"
+
+            - name: "Mirror sql nonprod"
+              shell: "skopeo copy -a {{ image_protocol }}{{ mi_sql_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+
+          when: mi_general_mirror_input[-1:]=="s"
+
+        - name: "Process single arch sha index"
+          block:
+
+            - name: "Set input values"
+              set_fact:
+                mi_fbc_mirror_input: "{{ mi_general_mirror_input }}"
+                mi_sql_mirror_input: "{{ mi_general_mirror_input[:-1] }}"
+
+            - name: "Setting sql nonprod mirror output"
               set_fact:
                 mirror_multiarch_image_final: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_{{ nonprod_postfix }}"
 
-            - name: "Mirror nonprod 1/2"
+            - name: "Mirror nonprod sql"
               no_log: true
               include_tasks: mirror_single.yml
               loop: "{{ mi_mirrors }}"
               loop_control:
                 loop_var: mi
               vars:
+                ms_index_prod_location: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
                 mirror_input_image_final: "{{ mi_sql_mirror_input }}"
                 mi_input_index_already_set: true
 
-            - name: "Postfix"
-              set_fact:
-                nonprod_postfix: "fbc"
+          when: mi_general_mirror_input[-2:]!="sf"
 
-          when:
-            - mi_another_iib_needed is defined
-            - mi_another_iib_needed|bool
-
-        - name: "Mirror nonprod 2/2"
-          shell: "skopeo copy {{ image_protocol }}{{ mi_general_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_{{ nonprod_postfix }}"
+        - name: "Mirror fbc nonprod"
+          shell: "skopeo copy {{ image_protocol }}{{ mi_fbc_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
+          when: mi_general_mirror_input[-2:]!="sf" or mi_general_mirror_input[-1:]=="s"
 
       when:
         - cluster_type=="k8s"

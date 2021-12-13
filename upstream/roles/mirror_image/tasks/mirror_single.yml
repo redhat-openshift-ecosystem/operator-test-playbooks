@@ -222,8 +222,8 @@
                 - mi_tmp_postfix is defined
                 - mi_tmp_postfix|length > 0
 
-            - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[4] }}'"
-              shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[4] }} --src-tls-verify=false -f v2s2"
+            - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_index_prod_location }}'"
+              shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_index_prod_location }} --src-tls-verify=false -f v2s2"
               when:
                 - ms_info.4 is defined
           when:
