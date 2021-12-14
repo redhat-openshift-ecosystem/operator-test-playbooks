@@ -1,0 +1,7 @@
+- name: ""
+  set_fact:
+    mirror_index_images: "quay.io/community-operators-pipeline/catalog:latest|||s|quay.io/community-operators-pipeline/catalog:latest"
+
+- name: "Set 'mi_general_mirror_input'"
+  set_fact:
+    mi_general_mirror_input: "{{ mirror_index_images.split('|')[0] }}{{ mirror_index_images.split('|')[3] }}"
