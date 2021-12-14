@@ -37,7 +37,7 @@
 
             - name: "Set input values"
               set_fact:
-                mi_fbc_mirror_input: "{{ mi_general_mirror_input }}f"
+                mi_fbc_mirror_input: "{{ bundle_index_image }}sf"
                 mi_sql_mirror_input: "{{ mi_sql_mirror_input_default }}"
 
             - name: "Mirror sql nonprod {{ image_protocol }}{{ mi_sql_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
@@ -50,7 +50,7 @@
 
             - name: "Set input values"
               set_fact:
-                mi_fbc_mirror_input: "{{ mi_general_mirror_input }}"
+                mi_fbc_mirror_input: "{{ bundle_index_image }}sf"
                 mi_sql_mirror_input: "{{ mi_general_mirror_input[:-1] }}"
 
             - name: "Setting sql nonprod mirror output"
