@@ -37,7 +37,7 @@
                 mi_fbc_mirror_input: "{{ mi_general_mirror_input }}f"
                 mi_sql_mirror_input: "{{ mi_sql_mirror_input_default }}"
 
-            - name: "Mirror sql nonprod"
+            - name: "Mirror sql nonprod {{ image_protocol }}{{ mi_sql_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
               shell: "skopeo copy -a {{ image_protocol }}{{ mi_sql_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
 
           when: mi_general_mirror_input[-1:]=="s"
@@ -52,9 +52,9 @@
 
             - name: "Setting sql nonprod mirror output"
               set_fact:
-                mirror_multiarch_image_final: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_{{ nonprod_postfix }}"
+                mirror_multiarch_image_final: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
 
-            - name: "Mirror nonprod sql"
+            - name: "Mirror nonprod sql from {{ mirror_input_image_final }} to {{ mirror_multiarch_image_final }}"
               no_log: true
               include_tasks: mirror_single.yml
               loop: "{{ mi_mirrors }}"
@@ -67,8 +67,8 @@
 
           when: mi_general_mirror_input[-2:]=="sf"
 
-        - name: "Mirror fbc nonprod"
-          shell: "skopeo copy {{ image_protocol }}{{ mi_fbc_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
+        - name: "Mirror fbc nonprod {{ image_protocol }}{{ mi_fbc_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
+          shell: "skopeo copy -a {{ image_protocol }}{{ mi_fbc_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
           when: mi_general_mirror_input[-2:]!="sf" or mi_general_mirror_input[-1:]=="s"
 
       when:
