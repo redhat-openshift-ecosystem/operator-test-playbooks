@@ -17,19 +17,17 @@
     - name: "Nonprod index clone"
       block:
         - debug:
-            var:
-              - mirror_index_images
+            var: mirror_index_images
+
         - debug:
-            var:
-              - bundle_index_image
+            var: bundle_index_image
 
         - name: "Set 'mi_general_mirror_input'"
           set_fact:
             mi_general_mirror_input: "{{ mirror_index_images.split('|')[0] }}"
 
         - debug:
-            var:
-              - mi_general_mirror_input[-1:]
+            var: mi_general_mirror_input[-1:]
 
         - name: "Process multiarch arch sha index"
           block:
@@ -67,7 +65,7 @@
                 mirror_input_image_final: "{{ mi_sql_mirror_input }}"
                 mi_input_index_already_set: true
 
-          when: mi_general_mirror_input[-2:]!="sf"
+          when: mi_general_mirror_input[-2:]=="sf"
 
         - name: "Mirror fbc nonprod"
           shell: "skopeo copy {{ image_protocol }}{{ mi_fbc_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
