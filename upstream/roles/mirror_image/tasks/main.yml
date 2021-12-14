@@ -27,6 +27,9 @@
             mi_general_mirror_input: "{{ mirror_index_images.split('|')[0] }} + {{ mirror_index_images.split('|')[3] }}"
 
         - debug:
+            var: mi_general_mirror_input
+
+        - debug:
             var: mi_general_mirror_input[-1:]
 
         - name: "Process multiarch arch sha index"
@@ -69,7 +72,7 @@
 
         - name: "Mirror fbc nonprod {{ image_protocol }}{{ mi_fbc_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
           shell: "skopeo copy -a {{ image_protocol }}{{ mi_fbc_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
-          when: mi_general_mirror_input[-2:]!="sf" or mi_general_mirror_input[-1:]=="s"
+          when: mi_general_mirror_input[-2:]=="sf" or mi_general_mirror_input[-1:]=="s"
 
       when:
         - cluster_type=="k8s"
