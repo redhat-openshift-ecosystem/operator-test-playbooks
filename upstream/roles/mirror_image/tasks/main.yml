@@ -25,7 +25,7 @@
 
         - name: "Set 'mi_general_mirror_input'"
           set_fact:
-            mi_general_mirror_input: "{{ mirror_index_images.split(',')[0] }}"
+            mi_general_mirror_input: "{{ mirror_index_images.split('|')[0] }}"
 
         - debug:
             var:
