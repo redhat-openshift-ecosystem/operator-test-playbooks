@@ -1,10 +1,11 @@
 ---
 - name: "Mirroring image to multiple locations"
   block:
-    - name: "Setting list list of mirrors"
+    - name: "Setting list of mirrors"
       no_log: true
       set_fact:
         mi_mirrors: "{{ mirror_index_images.split(',') }}"
+        mirror_multiarch_image_final: "{{ mirror_multiarch_image }}"
 
     - name: "Loop over all mirror locations"
       no_log: true
@@ -12,6 +13,71 @@
       loop: "{{ mi_mirrors }}"
       loop_control:
         loop_var: mi
+
+    - name: "Nonprod index clone"
+      block:
+        - debug:
+            var: mirror_index_images
+
+        - debug:
+            var: bundle_index_image
+
+        - name: "Set 'mi_general_mirror_input'"
+          set_fact:
+            mi_general_mirror_input: "{{ mirror_index_images.split('|')[0] }}{{ mirror_index_images.split('|')[3] }}"
+
+        - debug:
+            var: mi_general_mirror_input
+
+        - debug:
+            var: mi_general_mirror_input[-1:]
+
+        - name: "Process multiarch arch sha index"
+          block:
+
+            - name: "Set input values"
+              set_fact:
+                mi_fbc_mirror_input: "{{ bundle_index_image }}sf"
+                mi_sql_mirror_input: "{{ mi_sql_mirror_input_default }}"
+
+            - name: "Mirror sql nonprod {{ image_protocol }}{{ mi_sql_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+              shell: "skopeo copy -a {{ image_protocol }}{{ mi_sql_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+
+          when: mi_general_mirror_input[-1:]=="s"
+
+        - name: "Process single arch sha index"
+          block:
+
+            - name: "Set input values"
+              set_fact:
+                mi_fbc_mirror_input: "{{ bundle_index_image }}sf"
+                mi_sql_mirror_input: "{{ mi_general_mirror_input[:-1] }}"
+
+            - name: "Setting sql nonprod mirror output"
+              set_fact:
+                mirror_multiarch_image_final: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+
+            - name: "Mirror nonprod sql from {{ mirror_input_image_final }} to {{ mirror_multiarch_image_final }}"
+              no_log: true
+              include_tasks: mirror_single.yml
+              loop: "{{ mi_mirrors }}"
+              loop_control:
+                loop_var: mi
+              vars:
+                ms_index_prod_location: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+                mirror_input_image_final: "{{ mi_sql_mirror_input }}"
+                mi_input_index_already_set: true
+
+          when: mi_general_mirror_input[-2:]=="sf"
+
+        - name: "Mirror fbc nonprod {{ image_protocol }}{{ mi_fbc_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
+          shell: "skopeo copy -a {{ image_protocol }}{{ mi_fbc_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_fbc"
+          when: mi_general_mirror_input[-2:]=="sf" or mi_general_mirror_input[-1:]=="s"
+
+      when:
+        - cluster_type=="k8s"
+        - bundle_index_image_version == "latest"
+
   tags:
     - mirror_index
     - deploy_bundles

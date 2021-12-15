@@ -1,0 +1,37 @@
+---
+- name: "Extract files from {{ effi_image }} image"
+  block:
+    - name: "Set container name"
+      set_fact:
+        effi_container_name: "container{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+        effi_unset_name_needed: true
+      when:
+        - effi_container_name is not defined or effi_container_name|length==0
+
+    - name: "Stop previous container"
+      shell: "{{ container_tool }} rm -f {{ effi_container_name }}"
+      failed_when: false
+      changed_when: false
+      no_log: true
+
+    - name: "Pull the image {{ effi_image }}"
+      shell: "{{ container_tool }} pull {{ effi_image }}"
+      register: rf_pull_opm_image
+
+    - name: "Create the image"
+      shell: "{{ container_tool }} create --name {{ effi_container_name }} {{ effi_image }}"
+      register: rf_pull_opm_image
+
+    - name: "Copy from {{ effi_container_name }}:/{{ effi_copy_source_path }}"
+      shell: "{{ container_tool }} cp {{ effi_container_name }}:/{{ effi_copy_source_path }} {{ effi_target_copy_path }}"
+      when:
+        - effi_copy_source_path is defined and effi_copy_source_path|length>0
+        - effi_target_copy_path is defined and effi_target_copy_path|length>0
+
+    - name: "Unset container name to prevent cross role issues"
+      set_fact:
+        effi_container_name: ""
+      when:
+        - effi_unset_name_needed|bool
+  when:
+    - effi_image is defined

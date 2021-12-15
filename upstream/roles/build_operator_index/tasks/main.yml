@@ -258,6 +258,57 @@
     - strict_mode is defined
     - strict_mode|bool
 
+- name: "Produce FBC files and Dockerfile"
+  include_role:
+    name: produce_fbc
+  vars:
+    pfbc_file_index: "{{ bundle_index_image }}{{ bundle_index_fbc_postfix }}"
+    pfbc_sql_index: "{{ bundle_index_image }}"
+  when: result_rc|bool
+
+- name: "Multiarch FBC"
+  block:
+    - name: "Convert FBC to multiarch"
+      include_role:
+        name: multiarch_fbc
+      vars:
+        mfbc_multi_arch_output_image: "{{ bundle_index_image }}{{ bundle_index_fbc_postfix }}"
+      when: pfbc_rc|bool
+
+    - name: "Set 'result_rc' to false"
+      set_fact:
+        result_rc: false
+
+    - name: "Set 'result_rc'"
+      set_fact:
+        result_rc: true
+      when:
+        - mfbc_rc.rc is defined
+        - mfbc_rc.rc == 0
+        - rc_last|bool
+
+    - name: "Prints message that multiarch FBC image was updated"
+      debug:
+        msg: "Multiarch FBC image '{{ bundle_index_image }}{{ bundle_index_fbc_postfix }}{{ bundle_index_fbc_multiarch_postfix }}' was updated and pushed : [OK]"
+      when:
+        - result_rc|bool
+
+    - name: "Print failing msg that multiarch FBC image was not updated"
+      debug:
+        msg: "FBC image '{{ bundle_index_image }}{{ bundle_index_fbc_postfix }}{{ bundle_index_fbc_multiarch_postfix }}' was not updated : [FAIL]"
+      when:
+        - not result_rc|bool
+        - (strict_mode is undefined or not strict_mode|bool)
+
+    - name: "Failing when multiarch FBC image was not updated"
+      fail:
+        msg: "Multiarch FBC image '{{ bundle_index_image }}{{ bundle_index_fbc_postfix }}{{ bundle_index_fbc_multiarch_postfix }}' was not updated or pushed : [FAIL]"
+      when:
+        - not result_rc|bool
+        - strict_mode is defined
+        - strict_mode|bool
+  when: multiarch_tagged_fbc_is_needed|bool
+
 - name: "Build operator '{{ ba_name }}' from '{{ bundle_index_image }}'' to sha index"
   include_role:
     name: build_operator_index_sha

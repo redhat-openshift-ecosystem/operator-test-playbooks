@@ -1,0 +1,75 @@
+---
+- name: "Tweak Dockerfile to accept arch args part 1"
+  lineinfile:
+    path: "{{ mfbc_dockerfile_path }}"
+    insertbefore: BOF
+    line: 'ARG ARCH='
+
+- name: "Tweak Dockerfile to accept arch args part 2"
+  replace:
+    path: "{{ mfbc_dockerfile_path }}"
+    regexp: "FROM quay.io/operator-framework/opm:latest"
+    replace: "FROM quay.io/operator-framework/opm:{{ opm_version }}-${ARCH}"
+
+- name: "Show Dockerfile"
+  shell: "cat {{ mfbc_dockerfile_path }}"
+
+- name: "Detect needed architectures from image '{{ mfbc_list_architectures_from }}'"
+  shell: "{{ container_tool }} manifest inspect {{ mfbc_list_architectures_from }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+  register: mfbc_archs_inspect_result
+
+- name: "Parse archs to list"
+  set_fact:
+    multiarch_fbc_architectures: "{{ mfbc_archs_inspect_result.stdout_lines | list }}"
+
+- name: "Print archs list'"
+  debug:
+    var: multiarch_fbc_architectures
+
+- name: "Print mfbc_multi_arch_output_image"
+  debug:
+    var: mfbc_multi_arch_output_image
+
+- name: "Remove manifest '{{ mfbc_multi_arch_output_image }}' before creating a new one"
+  shell: "{{ container_tool }} rmi -f {{ mfbc_multi_arch_output_image }}"
+  failed_when: false
+
+- name: "Create the final manifest"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }}"
+
+- name: "Create and push archs one by one"
+  include_tasks: process_archs.yml
+  loop: "{{ multiarch_fbc_architectures }}"
+  loop_control:
+    loop_var: mfbc_architecture
+
+- name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
+  register: mfbc_rc
+  when:
+    - container_tool is defined
+    - container_tool == 'docker'
+
+- name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
+  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
+  register: mfbc_rc
+  when:
+    - container_tool is defined
+    - container_tool == 'podman'
+
+#- name: "Push human readable temp dev tag"
+#  block:
+#    - name: "Prepare temp human readable tag to duplicate"
+#      set_fact:
+#        mfbc_multi_arch_output_image_dev_temp_human_readable: "{{ mfbc_multi_arch_output_image.split(':')[0] }}:{{ mfbc_multi_arch_output_image_dev_temp_human_readable_tag }}"
+#
+#
+#    - name: "Push 'FBC' tagged manifest for temp dev purposes"
+#      shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image_dev_temp_human_readable }}"
+#      register: mfbc_rc
+#      when:
+#        - container_tool is defined
+#        - container_tool == 'podman'
+#  when:
+#    - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled is defined
+#    - mfbc_multi_arch_output_image_dev_temp_human_readable_enabled|bool
