@@ -64,160 +64,190 @@
       register: ms_pull_mirror_input_image_final
       failed_when: false
 
-    - name: "Mirroring multi arch index image '{{ mirror_multiarch_image_final }}' to mirror location '{{ ms_info[0] }}' using IIB"
-      block:
-        - name: "Handle case when 'mirror_input_image' starts with 'kind-registry'"
-          block:
-            - name: "Retag iib local input image from '{{ mirror_input_image_final }}' to '{{ iib_input_local_host_image_base }}'"
-              shell: "{{ container_tool }} tag {{ mirror_input_image_final }} {{ iib_input_local_host_image_base }}"
 
-            - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
-              shell: "{{ container_tool }} push {{ iib_input_local_host_image_base }}"
-              when:
-                - container_tool is defined
-                - container_tool != 'podman'
+    - name: "Reset archs list"
+      set_fact:
+        mi_actual_architectures: "[]"
 
-            - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
-              shell: "{{ container_tool }} push --tls-verify=false {{ iib_input_local_host_image_base }}"
-              when:
-                - container_tool is defined
-                - container_tool == 'podman'
+    - name: "Detect architectures from image '{{ mirror_input_image }}{{ ms_image_postfix }}'"
+      shell: "{{ container_tool }} manifest inspect {{ mirror_input_image }}{{ ms_image_postfix }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+      register: mi_archs_inspect_result
+      failed_when: false
 
-            - name: "Set iib local input image"
-              set_fact:
-                mirror_input_image_final: "{{ iib_input_local_worker_image_base }}"
+    - name: "Parse archs to a list"
+      set_fact:
+        mi_actual_architectures: "{{ mi_archs_inspect_result.stdout_lines | list }}"
+      when: mi_archs_inspect_result.rc == 0
 
-          when: mirror_input_image.startswith('kind-registry')
+    # - name: "Pulling latest input image '{{ mirror_input_image }}{{ ms_image_postfix }}'"
+    #   shell: "{{ container_tool }} pull {{ mirror_input_image  }}{{ ms_image_postfix }}"
 
-        - name: "Login to quay to be able to read '{{ mirror_multiarch_image_final }}'"
-          include_role:
-            name: quay_login
-          vars:
-            ql_registry_user: "{{ quay_arch_input_user | default('') }}"
-            ql_registry_password: "{{ quay_arch_input_password | default('') }}"
-            ql_registry_api_token: ""
-            ql_registry_host: "{{ quay_arch_input_host | default('') }}"
-          when:
-            - quay_arch_input_user is defined
-            - quay_arch_input_password is defined
-            - quay_arch_input_host is defined
-            - quay_arch_input_user|length > 0
-            - quay_arch_input_password|length > 0
-            - quay_arch_input_host|length > 0
+#TODO: index safety check
 
-        - name: "Get list of arch from image '{{ mirror_multiarch_image_final }}'"
-          shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
-          register: archs_inspect_result
-
-        - name: "Prints 'archs'"
-          debug:
-            var: archs_inspect_result
-
-        - name: "Parse the image manifest json retrieved by skopeo"
-          set_fact:
-            add_arches: "{{ archs_inspect_result.stdout_lines | list }}"
-
-        - name: "Prints archs supportted by '{{ mirror_multiarch_image_final }}'"
-          debug:
-            var: add_arches
-
-        - name: "Triggering http request to build multiarch image "
-          uri:
-            url: "{{ iib_base_url }}/api/v1/builds/add"
-            method: POST
-            body_format: json
-            status_code: [200, 201, 202]
-            return_content: true
-            headers:
-              Content-Type: application/json
-            body:
-              add_arches: "{{ add_arches }}"
-              binary_image: "{{ mirror_multiarch_image_final }}"
-              from_index: "{{ mirror_input_image_final }}"
-          register: mi_ms_multiarch_request
-          # ignore_errors: true
-
-
-          # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
-          # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
-          # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": {{ archs }},"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
-          # register: mi_ms_multiarch_request
-        - name: "Print multi arch request"
-          debug:
-            var: mi_ms_multiarch_request
-
-        # - name: "Fail in when request was not succesfull"
-        #   fail:
-        #     msg: "Triggering http rquest to build multiarch image failed"
-        #   when: mi_ms_multiarch_request.status != 200
-
-
-        - name: "Parsing id from http response"
-          set_fact:
-            mi_ms_multiarch_response: "{{ mi_ms_multiarch_request.content | from_json }} "
-
-        - name: "Set input iib image"
-          set_fact:
-            mi_ms_iib_id: "{{ mi_ms_multiarch_response.id }}"
-
-        - name: "Set input iib image"
-          set_fact:
-            mi_ms_iib_image: "{{ iib_converted_image_base }}:{{ mi_ms_iib_id }}"
-
-        - name: "Waiting for iib to finish image creation. Image: '{{ mi_ms_iib_image }}'"
-          uri:
-            url: "{{ iib_base_url }}/api/v1/builds/{{ mi_ms_iib_id }}/logs"
-            method: GET
-            validate_certs: false
-            return_content: true
-          register: mi_ms_multiarch_response
-          until: "'complete' in mi_ms_multiarch_response.content"
-          retries: 50
-          delay: 10
-          ignore_errors: true
-
-        - name: "Failing when iib cannot create index image '{{ mi_ms_iib_image }}'"
-          fail:
-            msg: "Problem creating index image '{{ mi_ms_iib_image }}' in iib"
-          when:
-            - (mi_ms_multiarch_response.attempts is defined and mi_ms_multiarch_response.attempts == 50)
-            - (skip_iib_index is undefined or not skip_iib_index|bool)
-
-        - name: "Transfer image to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
-          block:
-
-            - name: "Set input iib image to localhost when using local iib service"
-              set_fact:
-                mi_ms_iib_image: "localhost:8443/iib-build:{{ mi_ms_iib_id }}"
-              when: iib_converted_image_base == "registry:8443/iib-build"
-
-            - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
-              shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} --src-tls-verify=false -f v2s2"
-              register: ms_skopeo_result
-              until: ms_skopeo_result.rc == 0
-              retries: 6
-              delay: 10
-
-            - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[0] }}'"
-              shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false -f v2s2"
-              when:
-                - mi_tmp_postfix is defined
-                - mi_tmp_postfix|length > 0
-
-            - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_index_prod_location }}'"
-              shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_index_prod_location }} --src-tls-verify=false -f v2s2"
-              when:
-                - ms_info.4 is defined
-          when:
-            - mi_ms_multiarch_response is defined
-            - mi_ms_multiarch_response.attempts < 50
+    - name: "Mirror multiarch {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} to {{ image_protocol }}{{ ms_info[0] }}"
+      shell: "skopeo copy -a {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} {{ image_protocol }}{{ ms_info[0] }}"
       when:
-        - mirror_input_image is defined
-        - mirror_input_image|length > 0
-        - mirror_multiarch_image_final is defined
-        - mirror_multiarch_image_final|length > 0
-        - ms_pull_mirror_input_image_final.rc is defined
-        - ms_pull_mirror_input_image_final.rc == 0
+        - mi_actual_architectures | length > 1
+
+    - name: "IIB needed"
+      block:
+          
+        - name: "Mirroring multi arch index image '{{ mirror_multiarch_image_final }}' to mirror location '{{ ms_info[0] }}' using IIB"
+          block:
+            - name: "Handle case when 'mirror_input_image' starts with 'kind-registry'"
+              block:
+                - name: "Retag iib local input image from '{{ mirror_input_image_final }}' to '{{ iib_input_local_host_image_base }}'"
+                  shell: "{{ container_tool }} tag {{ mirror_input_image_final }} {{ iib_input_local_host_image_base }}"
+
+                - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
+                  shell: "{{ container_tool }} push {{ iib_input_local_host_image_base }}"
+                  when:
+                    - container_tool is defined
+                    - container_tool != 'podman'
+
+                - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
+                  shell: "{{ container_tool }} push --tls-verify=false {{ iib_input_local_host_image_base }}"
+                  when:
+                    - container_tool is defined
+                    - container_tool == 'podman'
+
+                - name: "Set iib local input image"
+                  set_fact:
+                    mirror_input_image_final: "{{ iib_input_local_worker_image_base }}"
+
+              when: mirror_input_image.startswith('kind-registry')
+
+            - name: "Login to quay to be able to read '{{ mirror_multiarch_image_final }}'"
+              include_role:
+                name: quay_login
+              vars:
+                ql_registry_user: "{{ quay_arch_input_user | default('') }}"
+                ql_registry_password: "{{ quay_arch_input_password | default('') }}"
+                ql_registry_api_token: ""
+                ql_registry_host: "{{ quay_arch_input_host | default('') }}"
+              when:
+                - quay_arch_input_user is defined
+                - quay_arch_input_password is defined
+                - quay_arch_input_host is defined
+                - quay_arch_input_user|length > 0
+                - quay_arch_input_password|length > 0
+                - quay_arch_input_host|length > 0
+
+            - name: "Get list of arch from image '{{ mirror_multiarch_image_final }}'"
+              shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+              register: archs_inspect_result
+
+            - name: "Prints 'archs'"
+              debug:
+                var: archs_inspect_result
+
+            - name: "Parse the image manifest json retrieved by skopeo"
+              set_fact:
+                add_arches: "{{ archs_inspect_result.stdout_lines | list }}"
+
+            - name: "Prints archs supportted by '{{ mirror_multiarch_image_final }}'"
+              debug:
+                var: add_arches
+
+            - name: "Triggering http request to build multiarch image "
+              uri:
+                url: "{{ iib_base_url }}/api/v1/builds/add"
+                method: POST
+                body_format: json
+                status_code: [200, 201, 202]
+                return_content: true
+                headers:
+                  Content-Type: application/json
+                body:
+                  add_arches: "{{ add_arches }}"
+                  binary_image: "{{ mirror_multiarch_image_final }}"
+                  from_index: "{{ mirror_input_image_final }}"
+              register: mi_ms_multiarch_request
+              # ignore_errors: true
+
+
+              # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
+              # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
+              # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": {{ archs }},"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
+              # register: mi_ms_multiarch_request
+            - name: "Print multi arch request"
+              debug:
+                var: mi_ms_multiarch_request
+
+            # - name: "Fail in when request was not succesfull"
+            #   fail:
+            #     msg: "Triggering http rquest to build multiarch image failed"
+            #   when: mi_ms_multiarch_request.status != 200
+
+
+            - name: "Parsing id from http response"
+              set_fact:
+                mi_ms_multiarch_response: "{{ mi_ms_multiarch_request.content | from_json }} "
+
+            - name: "Set input iib image"
+              set_fact:
+                mi_ms_iib_id: "{{ mi_ms_multiarch_response.id }}"
+
+            - name: "Set input iib image"
+              set_fact:
+                mi_ms_iib_image: "{{ iib_converted_image_base }}:{{ mi_ms_iib_id }}"
+
+            - name: "Waiting for iib to finish image creation. Image: '{{ mi_ms_iib_image }}'"
+              uri:
+                url: "{{ iib_base_url }}/api/v1/builds/{{ mi_ms_iib_id }}/logs"
+                method: GET
+                validate_certs: false
+                return_content: true
+              register: mi_ms_multiarch_response
+              until: "'complete' in mi_ms_multiarch_response.content"
+              retries: 50
+              delay: 10
+              ignore_errors: true
+
+            - name: "Failing when iib cannot create index image '{{ mi_ms_iib_image }}'"
+              fail:
+                msg: "Problem creating index image '{{ mi_ms_iib_image }}' in iib"
+              when:
+                - (mi_ms_multiarch_response.attempts is defined and mi_ms_multiarch_response.attempts == 50)
+                - (skip_iib_index is undefined or not skip_iib_index|bool)
+
+            - name: "Transfer image to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
+              block:
+
+                - name: "Set input iib image to localhost when using local iib service"
+                  set_fact:
+                    mi_ms_iib_image: "localhost:8443/iib-build:{{ mi_ms_iib_id }}"
+                  when: iib_converted_image_base == "registry:8443/iib-build"
+
+                - name: "Transfer image from '{{ mi_ms_iib_image }}' to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
+                  shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} --src-tls-verify=false -f v2s2"
+                  register: ms_skopeo_result
+                  until: ms_skopeo_result.rc == 0
+                  retries: 6
+                  delay: 10
+
+                - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[0] }}'"
+                  shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false -f v2s2"
+                  when:
+                    - mi_tmp_postfix is defined
+                    - mi_tmp_postfix|length > 0
+
+                - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_index_prod_location }}'"
+                  shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_index_prod_location }} --src-tls-verify=false -f v2s2"
+                  when:
+                    - ms_info.4 is defined
+              when:
+                - mi_ms_multiarch_response is defined
+                - mi_ms_multiarch_response.attempts < 50
+          when:
+            - mirror_input_image is defined
+            - mirror_input_image|length > 0
+            - mirror_multiarch_image_final is defined
+            - mirror_multiarch_image_final|length > 0
+            - ms_pull_mirror_input_image_final.rc is defined
+            - ms_pull_mirror_input_image_final.rc == 0
+        when:
+          - mi_actual_architectures | length <= 1
   tags:
     - mirror_index
     - deploy_bundles
