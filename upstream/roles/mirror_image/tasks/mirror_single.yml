@@ -88,7 +88,7 @@
       debug:
         var: mi_actual_architectures
 
-        - name: ""
+    - name: ""
       debug:
         var: mi_actual_architectures | list |count
 
