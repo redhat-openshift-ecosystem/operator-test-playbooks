@@ -84,17 +84,17 @@
 
 #TODO: index safety check
 
-- name: ""
-  debug:
-    var: mi_actual_architectures | length
+    - name: ""
+      debug:
+        var: mi_actual_architectures | length
 
-- name: ""
-  debug:
-    var: mi_actual_architectures | count
+    - name: ""
+      debug:
+        var: mi_actual_architectures | count
 
-- name: ""
-  debug:
-    var: mi_actual_architectures
+    - name: ""
+      debug:
+        var: mi_actual_architectures
 
     - name: "Mirror multiarch {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} to {{ image_protocol }}{{ ms_info[0] }}"
       shell: "skopeo copy -a {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} {{ image_protocol }}{{ ms_info[0] }}"
