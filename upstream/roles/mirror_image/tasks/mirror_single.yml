@@ -246,8 +246,8 @@
             - mirror_multiarch_image_final|length > 0
             - ms_pull_mirror_input_image_final.rc is defined
             - ms_pull_mirror_input_image_final.rc == 0
-        when:
-          - mi_actual_architectures | length <= 1
+      when:
+        - mi_actual_architectures | length <= 1
   tags:
     - mirror_index
     - deploy_bundles
