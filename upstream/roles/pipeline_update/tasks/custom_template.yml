@@ -6,7 +6,7 @@
 - name: "Set custom variable"
   set_fact:
     puct_custom_var: "{{ puwes_item.split(':')[2] }}"
-  # when: puwes_item.split(':') | length > 2
+  when: puwes_item.split(':') | length > 2
 
 - debug:
     var: puct_custom_var
