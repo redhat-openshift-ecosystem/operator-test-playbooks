@@ -8,7 +8,8 @@
     puct_custom_var: "{{ puwes_item.split(':')[2] }}"
   when: puwes_item.split(':') | length > 2
 
-- debug:
+- name: "Print 'puct_custom_var'"
+  debug:
     var: puct_custom_var
 
 - name: "Print 'puct_custom_var'"
