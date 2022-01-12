@@ -4,3 +4,4 @@ workflow_config_path: ""
 pipeline_config_name: pipeline-config.yaml
 container_tool: docker
 versions_in_registry: []
+puct_custom_var: ""
