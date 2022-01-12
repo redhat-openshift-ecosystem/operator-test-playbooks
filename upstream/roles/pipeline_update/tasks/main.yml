@@ -1,5 +1,4 @@
 ---
-
 - name: "Check if file '{{ workflow_config_path }}/{{ pipeline_config_name }}' exists"
   stat:
     path: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
@@ -43,7 +42,7 @@
   block:
     - name: "Handle custom workflows"
       set_fact:
-        pu_workflow_extra_scripts: "{{ workflow_extra_scripts.split(',')"
+        pu_workflow_extra_scripts: "{{ workflow_extra_scripts.split(',') }}"
     - name: "Loop over all versions"
       include_tasks: custom_template.yml
       loop: "{{ pu_workflow_extra_scripts }}"
@@ -81,7 +80,6 @@
         - quay_api_token is defined
         - quay_api_token|length > 0
         - pu_prod_registry_versions.status != 200
-
 
     - name: "Setting all versions to 'versions_in_config' variable"
       set_fact:
