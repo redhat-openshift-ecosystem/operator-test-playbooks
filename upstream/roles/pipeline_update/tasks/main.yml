@@ -34,11 +34,24 @@
 - name: "Copy operator test file"
   template:
     src: "{{ item.path }}"
-    dest: '{{ workflow_output_path }}/{{ item.path.split("/")[-1].split(".js2")[0] }}'
+    dest: "{{ workflow_output_path }}/{{ item.path.split('/')[-1].split('.js2')[0] }}"
   loop: "{{ template_files.files|flatten(levels=1) }}"
   loop_control:
     label: "{{ item.path }}"
 
+- name: "Handle extra workflow scripts"
+  block:
+    - name: "Handle custom workflows"
+      set_fact:
+        pu_workflow_extra_scripts: "{{ workflow_extra_scripts.split(',')"
+    - name: "Loop over all versions"
+      include_tasks: custom_template.yml
+      loop: "{{ pu_workflow_extra_scripts }}"
+      loop_control:
+        loop_var: puwes_item
+  when:
+    - workflow_extra_scripts is defined
+    - workflow_extra_scripts|length > 0
 
 - name: "Init missing repos"
   block:
