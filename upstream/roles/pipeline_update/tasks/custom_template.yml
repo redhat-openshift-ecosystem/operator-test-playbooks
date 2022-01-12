@@ -1,4 +1,9 @@
 ---
+
+- name: "Set custom variable"
+  set_fact:
+    puct_custom_var: ""
+
 - name: "Set custom variable"
   set_fact:
     puct_custom_var: "{{ puwes_item.split(':')[2] }}"
