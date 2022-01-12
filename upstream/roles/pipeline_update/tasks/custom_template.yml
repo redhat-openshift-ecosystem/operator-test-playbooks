@@ -1,14 +1,15 @@
 ---
-- name: "Set custom variable"
+- name: "Reset 'puct_custom_var'"
   set_fact:
     puct_custom_var: ""
 
-- name: "Set custom variable"
+- name: "Set custom variable 'puct_custom_var'"
   set_fact:
     puct_custom_var: "{{ puwes_item.split(':')[2] }}"
   when: puwes_item.split(':') | length > 2
 
-- debug:
+- name: "Print 'puct_custom_var'"
+  debug:
     var: puct_custom_var
 
 - name: "Copy operator custom workflow file"
