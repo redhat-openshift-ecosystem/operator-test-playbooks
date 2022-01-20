@@ -1,0 +1,18 @@
+---
+- name: "Reset 'puct_custom_var'"
+  set_fact:
+    puct_custom_var: ""
+
+- name: "Set custom variable 'puct_custom_var'"
+  set_fact:
+    puct_custom_var: "{{ puwes_item.split(':')[2] }}"
+  when: puwes_item.split(':') | length > 2
+
+- name: "Print 'puct_custom_var'"
+  debug:
+    var: puct_custom_var
+
+- name: "Copy operator custom workflow file"
+  template:
+    src: "{{ workflow_templates_path }}/{{ puwes_item.split(':')[0] }}"
+    dest: "{{ workflow_output_path }}/{{ puwes_item.split(':')[1] }}"
