@@ -95,7 +95,9 @@
         - olm_maxOpenShiftVersion is defined
         - olm_maxOpenShiftVersion|length > 0
 
-  when: operator_vars.metadata.annotations['olm.properties'] is defined
+  when: 
+    - cluster_type == "ocp"
+    - operator_vars.metadata.annotations['olm.properties'] is defined
 
 - name: "Generate bundle '{{ oi_operator_name }}/{{ oi_operator_ver }}'"
   include_role:
@@ -115,7 +117,6 @@
     validate_api: true
     generate_label: true
     bundle_to_validate: "{{ current_bundle_path }}"
-  when: oi_supported_cluster_versions|length > 0
 
 - name: "Setting 'idx_versions' and 'idx_label'"
   set_fact:
@@ -130,7 +131,6 @@
     - versions_in_prod_registry.0 is defined
     - oi_operator_ver is in versions_in_prod_registry
 
-# - pause:
 # TODO: LABEL handle
 # - name: "Setting 'idx_versions' and 'idx_label'"
 #   set_fact:

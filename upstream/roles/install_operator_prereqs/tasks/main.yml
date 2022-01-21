@@ -71,6 +71,22 @@
     - host_build
     - reset_tools
 
+
+- name: "Install released k8s-community-bundle-validator ({{ k8s_community_bundle_validator_version }})"
+  get_url:
+    url: https://github.com/k8s-operatorhub/bundle-validator/releases/download/{{ k8s_community_bundle_validator_version }}/linux-amd64-k8s-community-bundle-validator
+    dest: "{{ k8s_community_bundle_validator_path }}"
+    mode: "0755"
+  register: k8s_community_bundle_validator_install_result
+  until: k8s_community_bundle_validator_install_result.status_code is undefined or k8s_community_bundle_validator_install_result.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: k8s_community_bundle_validator_install_result is failure
+  tags:
+    - install
+    - host_build
+    - reset_tools
+
 - name: "Install  opm from master"
   include_tasks: opm_special.yml
   when: opm_source == "master"

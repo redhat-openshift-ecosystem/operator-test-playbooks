@@ -83,7 +83,6 @@
     - name: "Print 'versions_in_prod_registrys'"
       debug:
         var: versions_in_prod_registry
-    # - pause:
 
     - name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
       file:
@@ -163,13 +162,13 @@
             loop_var: oii_index_version
       when: oi_supported_cluster_versions.0 is defined
 
-    - name: "Loop over all supported index versions"
+    - name: "Setting 'io_index' and 'io_index_dt'"
       set_fact:
         io_index: "{{ io_index | default({}) | combine({ supported_cluster_versions : io_versions_in_dir }) }}"
         io_index_dt: "{{ io_index_dt | default({}) | combine({ supported_cluster_versions : io_index_dt }) }}"
       when: oi_supported_cluster_versions.0 is undefined
 
-    - name: "Loop over all supported index versions"
+    - name: "Print 'io_index'"
       debug:
         var: io_index
       when: oi_supported_cluster_versions.0 is undefined

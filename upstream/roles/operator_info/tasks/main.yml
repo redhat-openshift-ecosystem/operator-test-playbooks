@@ -1,6 +1,12 @@
 ---
 - name: "Operator info"
   block:
+
+    - name: "Fail if 'cluster_type' is not defined"
+      fail:
+        msg: "Variable 'cluster_type' is mandatory."
+      when: cluster_type is undefined or cluster_type|length == 0
+
     - name: "Print operator dir"
       debug:
         var: operator_base_dir
@@ -58,6 +64,7 @@
       set_fact:
         op_info: []
         oi_failed_labels: []
+        oi_failed_k8s_bundles: []
         oi_auto_labels: []
         oi_auto_label_error_msg: ""
         oi_failed_label_error_msg: ""
@@ -90,9 +97,31 @@
         - oi_failed_labels.0 is defined
         - strict_cluster_version_labels|bool
 
+
+    - name: "Fail when 'oi_failed_k8s_bundles' is not empty in k8s case"
+      block:
+        - name: "Generate error file '{{ oi_failed_k8s_bundles_output_file }}'"
+          copy: content="operators:\n{{ oi_failed_k8s_bundles | to_nice_yaml }}" dest="{{ oi_failed_k8s_bundles_output_file }}"
+
+        - name: "Prints error message"
+          set_fact:
+            oi_failed_k8s_bundles_error_msg: |
+              Found label which is not supported.
+              {{ oi_failed_k8s_bundles }}
+
+        - name: "Printing error message"
+          fail:
+            msg: "{{ oi_failed_k8s_bundles_error_msg.split('\n') }}"
+
+      when:
+        - cluster_type == "k8s"
+        - oi_failed_k8s_bundles.0 is defined
+        - strict_k8s_bundles|bool
+
+
     - name: "Fail when automatic cluster version label is needed and 'automatic_cluster_version_label' is not set to True"
       block:
-        - name: "Generate error file"
+        - name: "Generate error file '{{ oi_auto_labels_output_file }}'"
           copy: content="operators:\n{{ oi_auto_labels | to_nice_yaml }}" dest="{{ oi_auto_labels_output_file }}"
 
         - name: "Prints error message"
