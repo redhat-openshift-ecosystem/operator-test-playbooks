@@ -94,8 +94,7 @@
       when:
         - olm_maxOpenShiftVersion is defined
         - olm_maxOpenShiftVersion|length > 0
-
-  when: 
+  when:
     - cluster_type == "ocp"
     - operator_vars.metadata.annotations['olm.properties'] is defined
 

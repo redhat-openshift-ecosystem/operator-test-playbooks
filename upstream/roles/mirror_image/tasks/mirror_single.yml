@@ -99,7 +99,6 @@
 
     - name: "IIB needed"
       block:
-          
         - name: "Mirroring multi arch index image '{{ mirror_multiarch_image_final }}' to mirror location '{{ ms_info[0] }}' using IIB"
           block:
             - name: "Handle case when 'mirror_input_image' starts with 'kind-registry'"

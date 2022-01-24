@@ -1,6 +1,6 @@
 ---
 - name: "Starting bundle validation filter"
-  block:    
+  block:
     - name: "Fail if 'cluster_type' is not defined"
       fail:
         msg: "Variable 'cluster_type' is mandatory."
