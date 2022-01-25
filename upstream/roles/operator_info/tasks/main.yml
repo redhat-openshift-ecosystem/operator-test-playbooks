@@ -106,7 +106,7 @@
         - name: "Prints error message"
           set_fact:
             oi_failed_k8s_bundles_error_msg: |
-              Found label which is not supported.
+              Found deprecated API and k8s max version is NOT set for following version.
               {{ oi_failed_k8s_bundles }}
 
         - name: "Printing error message"
