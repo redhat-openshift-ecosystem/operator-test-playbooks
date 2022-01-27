@@ -57,7 +57,7 @@
 
 - name: "Reset 'ocp_max' and 'ocp_k8s_max'"
   set_fact:
-    k8s_min: "{{ operator_vars.spec.miniKubeVersion | default('') }}"
+    k8s_min: "{{ operator_vars.spec.minKubeVersion | default('') }}"
     ocp_max: ""
     ocp_k8s_max: ""
     idx_versions: []
