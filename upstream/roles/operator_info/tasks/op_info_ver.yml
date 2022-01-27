@@ -55,9 +55,13 @@
     - annotations_vars is defined
     - annotations_vars|length > 0
 
+- name: "Setting 'k8s_min_orig'"
+  set_fact:
+    k8s_min_orig: "{{ operator_vars.spec.minKubeVersion | default('') }}"
+
 - name: "Reset 'ocp_max' and 'ocp_k8s_max'"
   set_fact:
-    k8s_min: "{{ operator_vars.spec.minKubeVersion | default('') }}"
+    k8s_min: "{{ k8s_min_orig.split('.')[0] }}.{{ k8s_min_orig.split('.')[1] }}"
     ocp_max: ""
     ocp_k8s_max: ""
     idx_versions: []
