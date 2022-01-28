@@ -63,7 +63,7 @@
 - name: "Setting 'k8s_min'"
   set_fact:
     k8s_min: "{{ k8s_min_orig.split('.')[0] }}.{{ k8s_min_orig.split('.')[1] }}"
-  when: 
+  when:
     - k8s_min_orig is defined
     - k8s_min_orig|length > 0
 
