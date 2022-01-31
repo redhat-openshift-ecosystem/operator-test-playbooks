@@ -43,7 +43,7 @@
             - name: "Mirror sql nonprod {{ image_protocol }}{{ mi_sql_mirror_input }} to {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
               shell: "skopeo copy -a {{ image_protocol }}{{ mi_sql_mirror_input }} {{ image_protocol }}{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
 
-          when: mi_general_mirror_input[-2:]=="sf" or mi_general_mirror_input[-1:]=="s"
+          when: mi_general_mirror_input[-1:]=="s"
 
         - name: "Process single arch sha index"
           block:
