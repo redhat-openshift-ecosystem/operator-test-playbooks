@@ -53,20 +53,21 @@
                 mi_fbc_mirror_input: "{{ bundle_index_image }}sf"
                 mi_sql_mirror_input: "{{ mi_general_mirror_input[:-1] }}"
 
-            - name: "Setting sql nonprod mirror output"
-              set_fact:
-                mirror_multiarch_image_final: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+            # - name: "Setting sql nonprod mirror output"
+            #   set_fact:
+            #     mi: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
 
             - name: "Mirror nonprod sql from {{ mirror_input_image_final }} to {{ mirror_multiarch_image_final }}"
               no_log: true
               include_tasks: mirror_single.yml
-              loop: "{{ mi_mirrors }}"
-              loop_control:
-                loop_var: mi
+              # loop: "{{ mi_mirrors }}"
+              # loop_control:
+              #   loop_var: mi
               vars:
-                ms_index_prod_location: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
-                mirror_input_image_final: "{{ mi_sql_mirror_input }}"
-                mi_input_index_already_set: true
+                mi: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql||s"
+                # ms_index_prod_location: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ nonprod_index_image_name }}:tmp_{{ bundle_index_image_version }}_sql"
+                # mirror_input_image_final: "{{ mi_sql_mirror_input }}"
+                # mi_input_index_already_set: true
 
           when: mi_general_mirror_input[-2:]=="sf"
 
