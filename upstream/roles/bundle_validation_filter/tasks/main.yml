@@ -55,12 +55,36 @@
         var: bvf_versions
       when:
         - validate_api|bool
+  when:
+    - cluster_type == "ocp"
+    - oi_supported_cluster_versions|length > 0
 
-  when: cluster_type == "ocp"
+- name: "Handle bundle validation for k8s"
+  block:
+    - debug:
+        var: bundle_to_validate
+    - name: "Validate via 'k8s-community-bundle-validator' for bundle '{{ bundle_to_validate }}'"
+      shell: "{{ k8s_community_bundle_validator_path }} {{ bundle_to_validate }}"
+      register: bvf_k8s_validate_result
+      ignore_errors: true
 
-- name: "Defaults for non OCP"
-  set_fact:
-    bvf_versions: []
-    bvf_label: ""
+    - name: "Defaults for k8s"
+      set_fact:
+        bvf_versions: []
+        bvf_label: ""
+
+    - name: "Collect failed k8s versions"
+      set_fact:
+        oi_failed_k8s_bundles: "{{ oi_failed_k8s_bundles + [ oi_operator_name+':v'+oi_operator_ver ] }}"
+      when:
+        - bvf_k8s_validate_result.rc is defined
+        - bvf_k8s_validate_result.rc != 0
+
+    - name: "Print when 'oi_failed_k8s_bundles' is not empty"
+      debug:
+        var: oi_failed_k8s_bundles
+      when: oi_failed_k8s_bundles.0 is defined
+    # - pause:
+
   when:
     - cluster_type == "k8s"

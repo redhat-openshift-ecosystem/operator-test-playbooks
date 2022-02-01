@@ -32,7 +32,6 @@
 
 - debug:
     var: oii_index
-# - pause:
 
 - name: "Adding current versuon to the 'io_versions_replaces'"
   set_fact:
@@ -44,4 +43,3 @@
 
 - debug:
     var: io_index_dt
-# - pause:

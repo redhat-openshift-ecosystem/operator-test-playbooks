@@ -8,10 +8,12 @@ jq_version: 1.6
 yq_version: 2.2.1
 umoci_version: v0.4.5
 opm_version: v1.14.2
+k8s_community_bundle_validator_version: v0.1.0
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 oc_bin_path: "{{ 'kubectl' if run_upstream else \"{{ testing_bin_path }}/oc\" }}"
 jq_bin_path: "{{ testing_bin_path }}/jq"
 yq_bin_path: "{{ testing_bin_path }}/yq"
 go_bin_path: "{{ testing_bin_path }}/go/bin/go"
 opm_bin_path: "{{ testing_bin_path }}/opm"
+k8s_community_bundle_validator_path: "{{ testing_bin_path }}/k8s-community-bundle-validator"
 opm_source: ""

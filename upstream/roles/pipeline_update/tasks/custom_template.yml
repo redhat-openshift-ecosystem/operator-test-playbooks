@@ -12,6 +12,10 @@
   debug:
     var: puct_custom_var
 
+- name: "Print 'puct_custom_var'"
+  debug:
+    var: puct_custom_var
+
 - name: "Copy operator custom workflow file"
   template:
     src: "{{ workflow_templates_path }}/{{ puwes_item.split(':')[0] }}"

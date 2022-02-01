@@ -29,12 +29,19 @@
       when:
         - ms_info.3 is defined
 
-    - name: "Mirroring index image '{{ mirror_input_image }}{{ ms_image_postfix }}' to mirror location '{{ ms_info[0] }}'"
+    - name: "Set 'mirror_input_image_final' to '{{ mirror_input_image }}{{ ms_image_postfix }}'"
+      set_fact:
+        mirror_input_image_final: "{{ mirror_input_image }}{{ ms_image_postfix }}"
+      when:
+        - mi_input_index_already_set is defined
+        - not mi_input_index_already_set
+
+    - name: "Mirroring index image '{{ mirror_input_image_final }}' to mirror location '{{ ms_info[0] }}'"
       block:
-        - name: "Pulling latest input image '{{ mirror_input_image }}{{ ms_image_postfix }}'"
+        - name: "Pulling latest input image '{{ mirror_input_image_final }}'"
           shell: "{{ container_tool }} pull {{ mirror_input_image  }}{{ ms_image_postfix }}"
 
-        - name: "Doing retag of '{{ mirror_input_image }}{{ ms_image_postfix }}' to '{{ ms_info[0] }}'"
+        - name: "Doing retag of '{{ mirror_input_image_final }}' to '{{ ms_info[0] }}'"
           shell: "{{ container_tool }} tag {{ mirror_input_image  }}{{ ms_image_postfix }} {{ ms_info[0] }}"
 
         - name: "Index safety check to avoid accidental overwrite"
@@ -52,13 +59,6 @@
         - mirror_input_image|length > 0
         - mirror_multiarch_image_final is undefined
 
-    - name: "Set 'mirror_input_image_final' to '{{ mirror_input_image }}{{ ms_image_postfix }}'"
-      set_fact:
-        mirror_input_image_final: "{{ mirror_input_image }}{{ ms_image_postfix }}"
-      when:
-        - mi_input_index_already_set is defined
-        - not mi_input_index_already_set
-
     - name: "Pull input image '{{ mirror_input_image_final }}'"
       shell: "{{ container_tool }} pull {{ mirror_input_image_final }}"
       register: ms_pull_mirror_input_image_final
@@ -69,8 +69,8 @@
       set_fact:
         mi_actual_architectures: []
 
-    - name: "Detect architectures from image '{{ mirror_input_image }}{{ ms_image_postfix }}'"
-      shell: "{{ container_tool }} manifest inspect {{ mirror_input_image }}{{ ms_image_postfix }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+    - name: "Detect architectures from image '{{ mirror_input_image_final }}'"
+      shell: "{{ container_tool }} manifest inspect {{ mirror_input_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
       register: mi_archs_inspect_result
       failed_when: false
 
@@ -79,7 +79,7 @@
         mi_actual_architectures: "{{ mi_archs_inspect_result.stdout_lines | list }}"
       when: mi_archs_inspect_result.rc == 0
 
-    # - name: "Pulling latest input image '{{ mirror_input_image }}{{ ms_image_postfix }}'"
+    # - name: "Pulling latest input image '{{ mirror_input_image_final }}'"
     #   shell: "{{ container_tool }} pull {{ mirror_input_image  }}{{ ms_image_postfix }}"
 
 #TODO: index safety check
@@ -99,7 +99,6 @@
 
     - name: "IIB needed"
       block:
-          
         - name: "Mirroring multi arch index image '{{ mirror_multiarch_image_final }}' to mirror location '{{ ms_info[0] }}' using IIB"
           block:
             - name: "Handle case when 'mirror_input_image' starts with 'kind-registry'"
