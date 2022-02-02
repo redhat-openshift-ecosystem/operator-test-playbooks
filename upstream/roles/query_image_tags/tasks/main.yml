@@ -6,10 +6,18 @@
       failed_when: false
       changed_when: false
 
+    - name: "Print list of tags"
+      debug:
+        var: qit_skopeo_inspect
+
     - name: "Setting result to 'qit_result' variable"
       set_fact:
         qit_result: []
         qit_rc: qit_skopeo_inspect.rc
+
+    - name: "Print list of tags"
+      debug:
+        var: qit_rc
 
     - name: "Handle results"
       block:
