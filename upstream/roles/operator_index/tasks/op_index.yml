@@ -15,11 +15,22 @@
       shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
       failed_when: false
 
-    - name: "Get list of tags for index image from registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
-      uri:
-        url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
-      register: boi_registry_versions
-      failed_when: false
+    # - name: "Get list of tags for index image from registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
+    #   uri:
+    #     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
+    #   register: boi_registry_versions
+    #   failed_when: false
+
+    - name: "Get list of versions_in_dir from bundle production registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
+      include_role:
+        name: query_image_tags
+      vars:
+        qit_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}"
+
+    - name: "Set results from 'query_image_tags'"
+      set_fact:
+        boi_registry_versions_rc: qit_rc
+        boi_registry_versions_tags: qit_result
 
     - name: "Create repo for index image with public visibility '{{ bundle_image_namespace }}/{{ bundle_index_image_name }}'"
       uri:
@@ -35,13 +46,13 @@
       when:
         - quay_api_token is defined
         - quay_api_token|length > 0
-        - boi_registry_versions.status != 200
+        - boi_registry_versions_rc != 0
 
     - name: "Setting all versions to 'index_versions_in_registry' variable"
       set_fact:
-        index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions }}"
+        index_versions_in_registry: "{{ boi_registry_versions_tags | sort_versions }}"
       when:
-        - boi_registry_versions.status == 200
+        - boi_registry_versions_tags.0 is defined 
 
     - name: "Setting opm index extra arguments"
       set_fact:

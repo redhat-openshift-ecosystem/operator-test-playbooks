@@ -58,24 +58,52 @@
       set_fact:
         oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
         oi_invalid_labels: []
-        versions_in_prod_registry_full: []
+        # versions_in_prod_registry_full: []
 
-    - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
-      include_tasks: op_info_prod_versions.yml
-      vars:
-        oipv_url: "/v2/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}/tags/list"
+
+    # - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
+    #   include_tasks: op_info_prod_versions.yml
+    #   vars:
+    #     oipv_url: "/v2/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}/tags/list"
+    #   when:
+    #     - production_registry_namespace is defined
+    #     - production_registry_namespace|length > 0
+
+    # - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
+    #   set_fact:
+    #     versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list | sort_versions }}"
+    #   when:
+    #     - versions_in_prod_registry_full.0 is defined
+
+    - name: "Reset before 'query_image_tags'"
+      set_fact:
+            versions_in_prod_registry_full_rc: 0
+            versions_in_prod_registry_full_tags: []
+
+    - name: "Query tags from prod"
+      block:
+        - name: "Query tags from '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}'"
+          include_role:
+            name: query_image_tags
+          vars:
+            qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}"
+
+        - name: "Set results from 'query_image_tags'"
+          set_fact:
+            versions_in_prod_registry_full_rc: qit_rc
+            versions_in_prod_registry_full_tags: qit_result
       when:
         - production_registry_namespace is defined
         - production_registry_namespace|length > 0
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
       set_fact:
-        versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list | sort_versions }}"
+        versions_in_prod_registry: "{{ versions_in_prod_registry_full_tags | reject('search', ignore_image_string) | list | sort_versions }}"
       when:
-        - versions_in_prod_registry_full.0 is defined
+        - versions_in_prod_registry_full_tags.0 is defined
 
 
-    - name: "Setting all versions to 'versions_in_prod_registry_full' variable"
+    - name: "Setting all versions to 'versions_in_prod_registry' variable"
       set_fact:
         versions_in_prod_registry: "{{ (versions_in_prod_registry | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
       when: versions_in_prod_registry.0 is defined

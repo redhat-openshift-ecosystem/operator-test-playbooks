@@ -1,0 +1,29 @@
+- name: "Query tags from image '{{ qit_image }}''"
+  block:
+    - name: "Query tags from image '{{ qit_image }}'"
+      shell: "skopeo inspect docker://{{ qit_image }}"
+      register: qit_skopeo_inspect
+      failed_when: false
+      changed_when: false
+
+    - name: "Setting result to 'qit_result' variable"
+      set_fact:
+        qit_result: []
+        qit_rc: qit_skopeo_inspect.rc
+
+    - name: "Handle results"
+      block:
+        - name: "Sets results from skopeo inspect 'qit_skopeo_inspect_json' variable"
+          set_fact:
+            qit_skopeo_inspect_json: "{{ qit_skopeo_inspect.stdout | from_json }}"
+
+        - name: "Setting result to 'qit_result' variable"
+          set_fact:
+            qit_result: "{{ qit_skopeo_inspect_json.RepoTags }}"
+      when: qit_rc == 0
+
+    - debug:
+        var: qit_result
+    - pause:
+  tags:
+    - always
