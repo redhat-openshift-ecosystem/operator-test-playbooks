@@ -22,8 +22,8 @@
             qit_result: "{{ qit_skopeo_inspect_json.RepoTags }}"
       when: qit_rc == 0
 
-    - debug:
+    - name: "Print list of tags"
+      debug:
         var: qit_result
-    - pause:
   tags:
     - always
