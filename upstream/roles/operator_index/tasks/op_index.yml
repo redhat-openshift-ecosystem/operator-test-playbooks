@@ -29,8 +29,8 @@
 
     - name: "Set results from 'query_image_tags'"
       set_fact:
-        boi_registry_versions_rc: qit_rc
-        boi_registry_versions_tags: qit_result
+        boi_registry_versions_rc: "{{ qit_rc }}"
+        boi_registry_versions_tags: "{{ qit_result }}"
 
     - name: "Create repo for index image with public visibility '{{ bundle_image_namespace }}/{{ bundle_index_image_name }}'"
       uri:

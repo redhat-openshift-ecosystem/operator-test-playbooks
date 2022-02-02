@@ -90,8 +90,8 @@
 
         - name: "Set results from 'query_image_tags'"
           set_fact:
-            versions_in_prod_registry_full_rc: qit_rc
-            versions_in_prod_registry_full_tags: qit_result
+            versions_in_prod_registry_full_rc: "{{ qit_rc }}"
+            versions_in_prod_registry_full_tags: "{{ qit_result }}"
       when:
         - production_registry_namespace is defined
         - production_registry_namespace|length > 0
@@ -101,8 +101,10 @@
         versions_in_prod_registry: "{{ versions_in_prod_registry_full_tags | reject('search', ignore_image_string) | list | sort_versions }}"
       when:
         - versions_in_prod_registry_full_tags.0 is defined
-
-
+    
+    - name: "Print 'versions_in_prod_registrys [0]'"
+      debug:
+        var: versions_in_prod_registry
     - name: "Setting all versions to 'versions_in_prod_registry' variable"
       set_fact:
         versions_in_prod_registry: "{{ (versions_in_prod_registry | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"

@@ -49,8 +49,8 @@
 
         - name: "Set results from 'query_image_tags'"
           set_fact:
-            rob_versions_rm_repo_rc: qit_rc
-            rob_versions_rm_repo_tags: qit_result
+            rob_versions_rm_repo_rc: "{{ qit_rc }}"
+            rob_versions_rm_repo_tags: "{{ qit_result }}"
 
 
         - name: "Setting all versions to 'rob_versions_rm_repo' variable without '{{ ignore_image_string }}' to avoid adding to an index"

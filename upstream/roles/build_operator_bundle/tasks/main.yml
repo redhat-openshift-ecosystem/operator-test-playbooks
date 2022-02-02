@@ -83,8 +83,8 @@
 
     - name: "Set results from 'query_image_tags'"
       set_fact:
-        bob_registry_versions_rc: qit_rc
-        bob_registry_versions_tags: qit_result
+        bob_registry_versions_rc: "{{ qit_rc }}"
+        bob_registry_versions_tags: "{{ qit_result }}"
 
     # - name: "Get list of tags from '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}'"
     #   uri:
@@ -108,8 +108,8 @@
 
         - name: "Set results from 'query_image_tags'"
           set_fact:
-            bob_prod_registry_versions_rc: qit_rc
-            bob_prod_registry_versions_tags: qit_result
+            bob_prod_registry_versions_rc: "{{ qit_rc }}"
+            bob_prod_registry_versions_tags: "{{ qit_result }}"
       when:
         - production_registry_namespace is defined
         - production_registry_namespace|length > 0
@@ -170,8 +170,8 @@
 
         - name: "Set results from 'query_image_tags'"
           set_fact:
-            bob_registry_versions_osr_rc: qit_rc
-            bob_registry_versions_osr_tags: qit_result
+            bob_registry_versions_osr_rc: "{{ qit_rc }}"
+            bob_registry_versions_osr_tags: "{{ qit_result }}"
       when:
         - openshift_robot_hash_array.1 is defined
         - openshift_robot_hash_array.1|length > 0

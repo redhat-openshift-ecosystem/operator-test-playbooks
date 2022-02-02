@@ -30,8 +30,8 @@
 
 - name: "Set results from 'query_image_tags'"
   set_fact:
-    cpb_prod_registry_versions_rc: qit_rc
-    cpb_prod_registry_versions_tags: qit_result
+    cpb_prod_registry_versions_rc: "{{ qit_rc }}"
+    cpb_prod_registry_versions_tags: "{{ qit_result }}"
 
 - name: "Setting all versions to 'cpb_versions' variable"
   set_fact:
