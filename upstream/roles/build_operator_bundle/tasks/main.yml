@@ -75,22 +75,55 @@
         df_operator_dir: "{{ bob_opbasedir }}/{{ bob_opname }}"
         op_version: "{{ versions_in_dir[0] }}"
 
-    - name: "Get list of versions_in_dir from bundle registry"
-      uri:
-        url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_package_name }}/tags/list"
-      register: bob_registry_versions
-      failed_when: false
-      changed_when: false
+    - name: "Query tags from '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}'"
+      include_role:
+        name: query_image_tags
+      vars:
+        qit_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}"
 
-    - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
-      uri:
-        url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}/tags/list"
-      register: bob_prod_registry_versions
-      failed_when: false
-      changed_when: false
+    - name: "Set results from 'query_image_tags'"
+      set_fact:
+        bob_registry_versions_rc: qit_rc
+        bob_registry_versions_tags: qit_result
+
+    # - name: "Get list of tags from '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}'"
+    #   uri:
+    #     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_image_namespace }}/{{ operator_package_name }}/tags/list"
+    #   register: bob_registry_versions
+    #   failed_when: false
+    #   changed_when: false
+
+    - name: "Reset before 'query_image_tags'"
+      set_fact:
+            bob_prod_registry_versions_rc: 0
+            bob_prod_registry_versions_tags: []
+
+    - name: "Query tags from prod"
+      block:
+        - name: "Query tags from '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}'"
+          include_role:
+            name: query_image_tags
+          vars:
+            qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}"
+
+        - name: "Set results from 'query_image_tags'"
+          set_fact:
+            bob_prod_registry_versions_rc: qit_rc
+            bob_prod_registry_versions_tags: qit_result
       when:
         - production_registry_namespace is defined
         - production_registry_namespace|length > 0
+
+
+    # - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
+    #   uri:
+    #     url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}/tags/list"
+    #   register: bob_prod_registry_versions
+    #   failed_when: false
+    #   changed_when: false
+    #   when:
+    #     - production_registry_namespace is defined
+    #     - production_registry_namespace|length > 0
 
     - name: "Create repo with public visibility"
       uri:
@@ -110,7 +143,7 @@
       when:
         - quay_api_token is defined
         - quay_api_token|length > 0
-        - bob_registry_versions.status != 200
+        - bob_registry_versions_rc != 0
 
     - name: "Get list of versions_in_dir from bundle registry"
       uri:
@@ -121,6 +154,28 @@
       when:
         - openshift_robot_hash_array.1 is defined
         - openshift_robot_hash_array.1|length > 0
+
+    - name: "Reset before 'query_image_tags'"
+      set_fact:
+            bob_registry_versions_osr_rc: 0
+            bob_registry_versions_osr_tags: []
+
+    - name: "Query tags from prod"
+      block:
+        - name: "Query tags from '{{ openshift_robot_hash_array[0] | dirname }}/{{ openshift_robot_hash_array[0] | basename }}/{{ operator_package_name }}'"
+          include_role:
+            name: query_image_tags
+          vars:
+            qit_image: "{{ openshift_robot_hash_array[0] | dirname }}/{{ openshift_robot_hash_array[0] | basename }}/{{ operator_package_name }}"
+
+        - name: "Set results from 'query_image_tags'"
+          set_fact:
+            bob_registry_versions_osr_rc: qit_rc
+            bob_registry_versions_osr_tags: qit_result
+      when:
+        - openshift_robot_hash_array.1 is defined
+        - openshift_robot_hash_array.1|length > 0
+
 
     - name: "Create repo with public visibility (openshift robot)"
       uri:
@@ -139,33 +194,26 @@
       when:
         - openshift_robot_hash_array.1 is defined
         - openshift_robot_hash_array.1|length > 0
-        - bob_registry_versions_osr.status != 200
+        - bob_registry_versions_osr_rc != 0
 
-    - name: "Reseting 'versions_in_registry' variable"
-      set_fact:
-        versions_in_registry: []
-        versions_in_prod_registry: []
+    # - name: "Reseting 'versions_in_registry' variable"
+    #   set_fact:
+    #     versions_in_registry: []
+    #     versions_in_prod_registry: []
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ (bob_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
-      when:
-        - bob_registry_versions.status is defined
-        - bob_registry_versions.status == 200
+        versions_in_registry: "{{ (bob_registry_versions_tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
 
     - name: "Setting all versions to 'versions_in_prod_registry_full' variable"
       set_fact:
-        versions_in_prod_registry_full: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
-      when:
-        - bob_prod_registry_versions.status is defined
-        - bob_prod_registry_versions.status == 200
+        versions_in_prod_registry_full: "{{ (bob_prod_registry_versions_tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
       set_fact:
         versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list }}"
       when:
-        - bob_prod_registry_versions.status is defined
-        - bob_prod_registry_versions.status == 200
+        - versions_in_prod_registry_full.0 is defined
 
     - name: "Filtering versions to add and remove without timestamps to avoid deletions"
       set_fact:
