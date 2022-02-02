@@ -8,19 +8,36 @@
   set_fact:
     operator_dir_name: "{{ operator_dir | basename }}"
 
-- name: "Get list of versions_in_dir from bundle production registry ('{{ production_registry_namespace }}')"
-  uri:
-    url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_dir_name }}/tags/list"
-  register: cpb_prod_registry_versions
-  failed_when: false
-  changed_when: false
+# - name: "Get list of versions_in_dir from bundle production registry ('{{ production_registry_namespace }}')"
+#   uri:
+#     url: "{{ registry_api_http_protocol | default('https') }}://{{ production_registry_namespace.split('/')[0] }}/v2/{{ production_registry_namespace.split('/')[1] }}/{{ operator_dir_name }}/tags/list"
+#   register: cpb_prod_registry_versions
+#   failed_when: false
+#   changed_when: false
+
+# - name: "Setting all versions to 'cpb_versions' variable"
+#   set_fact:
+#     cpb_versions: "{{ (cpb_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+#   when:
+#     - cpb_prod_registry_versions.status is defined
+#     - cpb_prod_registry_versions.status == 200
+
+- name: "Get list of versions_in_dir from bundle production registry '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_dir_name }}'"
+  include_role:
+    name: query_image_tags
+  vars:
+    qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_dir_name }}"
+
+- name: "Set results from 'query_image_tags'"
+  set_fact:
+    cpb_prod_registry_versions_rc: "{{ qit_rc }}"
+    cpb_prod_registry_versions_tags: "{{ qit_result }}"
 
 - name: "Setting all versions to 'cpb_versions' variable"
   set_fact:
-    cpb_versions: "{{ (cpb_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+    cpb_versions: "{{ (cpb_prod_registry_versions_tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when:
-    - cpb_prod_registry_versions.status is defined
-    - cpb_prod_registry_versions.status == 200
+    - cpb_prod_registry_versions_tags.0 is defined
 
 - name: "Converting 'operator_version' to list"
   set_fact:

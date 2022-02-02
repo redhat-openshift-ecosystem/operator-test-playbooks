@@ -1,0 +1,75 @@
+- name: "Query tags from image '{{ qit_image }}''"
+  block:
+
+    - name: "Get first tag '{{ qit_image.split('/')[0] }}/{{ qit_image.split('/')[1] }}/{{ qit_image.split('/')[2] }}'"
+      uri:
+        url: "{{ registry_api_http_protocol | default('https') }}://{{ qit_image.split('/')[0] }}/v2/{{ qit_image.split('/')[1] }}/{{ qit_image.split('/')[2] }}/tags/list"
+      register: qit_registry_versions
+      failed_when: false
+
+    - name: "Setting default values for 'qit_result' and 'qit_rc' variable"
+      set_fact:
+        qit_result: []
+        qit_rc: 1
+
+    - name: "Setting result to 'qit_rc' variable"
+      set_fact:
+        qit_rc: 0
+      when: qit_registry_versions.status == 200
+
+    - name: "Handle if one tag exists"
+      block:
+
+        - name: "Setting result to 'qit_result' variable"
+          set_fact:
+            qit_tag_tmp: "{{ qit_registry_versions.json.tags[0] }}"
+          
+        # - name: "Print 'qit_tag_tmp'"
+        #   debug:
+        #     var: qit_tag_tmp
+
+        - name: "Query tags from image '{{ qit_image }}:{{ qit_tag_tmp }}' via skopeo inspect "
+          shell: "skopeo inspect docker://{{ qit_image }}:{{ qit_tag_tmp }}"
+          register: qit_skopeo_inspect
+          failed_when: false
+          changed_when: false
+
+        # - name: "Print 'qit_skopeo_inspect'"
+        #   debug:
+        #     var: qit_skopeo_inspect
+
+        - name: "Setting result to 'qit_rc' variable"
+          set_fact:
+            qit_rc: 1
+          when: qit_skopeo_inspect.rc != 0
+
+        - name: "Print list of tags"
+          debug:
+            var: qit_rc
+
+        - name: "Handle results"
+          block:
+            - name: "Sets results from skopeo inspect 'qit_skopeo_inspect_json' variable"
+              set_fact:
+                qit_skopeo_inspect_json: "{{ qit_skopeo_inspect.stdout | from_json }}"
+
+            - name: "Setting result to 'qit_result' variable"
+              set_fact:
+                qit_result: "{{ qit_skopeo_inspect_json.RepoTags }}"
+              when: qit_skopeo_inspect_json.RepoTags is defined
+          when:
+            - qit_rc == 0
+
+      when:
+        - qit_rc == 0
+        - qit_registry_versions.json.tags.0 is defined
+
+    - name: "Print 'qit_rc'"
+      debug:
+        var: qit_rc
+
+    - name: "Print 'qit_result'"
+      debug:
+        var: qit_result
+  tags:
+    - always
