@@ -24,9 +24,9 @@
           set_fact:
             qit_tag_tmp: "{{ qit_registry_versions.json.tags[0] }}"
           
-        - name: "Print 'qit_tag_tmp'"
-          debug:
-            var: qit_tag_tmp
+        # - name: "Print 'qit_tag_tmp'"
+        #   debug:
+        #     var: qit_tag_tmp
 
         - name: "Query tags from image '{{ qit_image }}:{{ qit_tag_tmp }}' via skopeo inspect "
           shell: "skopeo inspect docker://{{ qit_image }}:{{ qit_tag_tmp }}"
@@ -34,9 +34,9 @@
           failed_when: false
           changed_when: false
 
-        - name: "Print 'qit_skopeo_inspect'"
-          debug:
-            var: qit_skopeo_inspect
+        # - name: "Print 'qit_skopeo_inspect'"
+        #   debug:
+        #     var: qit_skopeo_inspect
 
         - name: "Setting result to 'qit_rc' variable"
           set_fact:
