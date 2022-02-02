@@ -53,16 +53,16 @@
               set_fact:
                 qit_skopeo_inspect_json: "{{ qit_skopeo_inspect.stdout | from_json }}"
 
-            - debug:
-                var: qit_skopeo_inspect_json
-
             - name: "Setting result to 'qit_result' variable"
               set_fact:
                 qit_result: "{{ qit_skopeo_inspect_json.RepoTags }}"
-
+              when: qit_skopeo_inspect_json.RepoTags is defined
           when:
             - qit_rc == 0
 
+      when:
+        - qit_rc == 0
+        - qit_registry_versions.json.tags.0 is defined
 
     - name: "Print 'qit_rc'"
       debug:
