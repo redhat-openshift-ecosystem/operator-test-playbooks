@@ -82,11 +82,11 @@
 
     - name: "Query tags from prod"
       block:
-        - name: "Query tags from '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}'"
+        - name: "Query tags from '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}'"
           include_role:
             name: query_image_tags
           vars:
-            qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ operator_package_name }}"
+            qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}"
 
         - name: "Set results from 'query_image_tags'"
           set_fact:
