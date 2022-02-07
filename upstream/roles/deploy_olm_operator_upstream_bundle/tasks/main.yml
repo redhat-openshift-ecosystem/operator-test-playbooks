@@ -28,7 +28,7 @@
   file:
     path: "{{ olm_operator_files_path }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: "Copy namespace file"
   template:
@@ -42,12 +42,12 @@
 
 - name: "Process the operatorgroup template"
   template:
-    src: "{{ 'operatorgroup_upstream.yml.j2' if run_upstream else \"operatorgroup.yml.j2\" }}"
+    src: '{{ ''operatorgroup_upstream.yml.j2'' if run_upstream else "operatorgroup.yml.j2" }}'
     dest: "{{ olm_operator_files_path }}/operatorgroup.processed.yml"
 
 - name: "Process the subscription template"
   template:
-    src: "{{ 'subscription_upstream.yml.j2' if run_upstream else \"subscription.yml.j2\" }}"
+    src: '{{ ''subscription_upstream.yml.j2'' if run_upstream else "subscription.yml.j2" }}'
     dest: "{{ olm_operator_files_path }}/subscription.yml"
 
 - name: "Process the catalogsource template"
@@ -185,7 +185,7 @@
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod status of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
+  shell: '{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - "status"'
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -336,8 +336,8 @@
       Also check other debug outputs.
       -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   when:
-   - operator_result.rc is defined
-   - operator_result.rc != 0
+    - operator_result.rc is defined
+    - operator_result.rc != 0
 
 - name: "Report a brief installation summary"
   debug:
@@ -345,22 +345,21 @@
 
 - name: "Fail when operator is failing to deploy on kind cluster"
   block:
-
     - name: "Operator error status among packagemanifests"
       fail:
-        msg: 'Operator was not found among packagemanifests'
+        msg: "Operator was not found among packagemanifests"
       when:
         - packagemanifest_presence.rc != 0
         - run_upstream|bool
 
     - name: "Operator deployment with OLM error status"
       fail:
-        msg: 'Operator deployment with OLM failed, check the outputs above for more details'
+        msg: "Operator deployment with OLM failed, check the outputs above for more details"
       when: operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
     - name: "Stay healthy error status"
       fail:
-        msg: 'Operator was not capable to stay healthy for a specific time'
+        msg: "Operator was not capable to stay healthy for a specific time"
       when:
         - operator_uptime_raw_rc|int != 0
         - run_upstream|bool

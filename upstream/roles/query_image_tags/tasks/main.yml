@@ -23,7 +23,7 @@
         - name: "Setting result to 'qit_result' variable"
           set_fact:
             qit_tag_tmp: "{{ qit_registry_versions.json.tags[0] }}"
-          
+
         # - name: "Print 'qit_tag_tmp'"
         #   debug:
         #     var: qit_tag_tmp

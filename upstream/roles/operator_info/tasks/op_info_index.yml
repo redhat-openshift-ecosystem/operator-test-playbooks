@@ -30,7 +30,8 @@
   set_fact:
     oii_index: "{{ oii_index_dt | union(oii_index) }}"
 
-- debug:
+- name: "Show oii_index"
+  debug:
     var: oii_index
 
 - name: "Adding current versuon to the 'io_versions_replaces'"
@@ -38,8 +39,10 @@
     io_index: "{{ io_index | default({}) | combine({ oii_index_version : oii_index }) }}"
     io_index_dt: "{{ io_index_dt | default({}) | combine({ oii_index_version : oii_index_dt }) }}"
 
-- debug:
+- name: "Show io_index"
+  debug:
     var: io_index
 
-- debug:
+- name: "Show io_index_dt"
+  debug:
     var: io_index_dt

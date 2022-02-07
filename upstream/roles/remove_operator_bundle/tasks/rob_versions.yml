@@ -14,7 +14,8 @@
       when:
         - rob_versions_rm.status is defined
         - rob_versions_rm.status == 200
-    - debug:
+    - name: "Show rob_versions_rm_repo_curr"
+      debug:
         var: rob_versions_rm_repo_curr
 
     - name: "Adding versions to 'rob_versions_rm_repo_full' variable"

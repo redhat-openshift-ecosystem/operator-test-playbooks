@@ -84,11 +84,11 @@
 
 #TODO: index safety check
 
-    - name: ""
+    - name: "Show mi_actual_architectures"
       debug:
         var: mi_actual_architectures
 
-    - name: ""
+    - name: "Show mi_actual_architectures | list |count"
       debug:
         var: mi_actual_architectures | list |count
 

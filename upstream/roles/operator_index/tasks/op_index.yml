@@ -52,7 +52,7 @@
       set_fact:
         index_versions_in_registry: "{{ boi_registry_versions_tags | sort_versions }}"
       when:
-        - boi_registry_versions_tags.0 is defined 
+        - boi_registry_versions_tags.0 is defined
 
     - name: "Setting opm index extra arguments"
       set_fact:
