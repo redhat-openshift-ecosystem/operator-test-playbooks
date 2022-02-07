@@ -6,7 +6,8 @@
 - name: "Print operator name"
   debug:
     msg: "'{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_operator_ver }}'"
-- debug:
+- name: "Show oi_operator_format"
+  debug:
     var: oi_operator_format
 - name: "Export CSV variables"
   include_role:

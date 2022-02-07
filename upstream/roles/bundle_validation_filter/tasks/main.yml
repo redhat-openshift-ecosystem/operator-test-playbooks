@@ -61,7 +61,8 @@
 
 - name: "Handle bundle validation for k8s"
   block:
-    - debug:
+    - name: "Display bundle_to_validate"
+      debug:
         var: bundle_to_validate
     - name: "Validate via 'k8s-community-bundle-validator' for bundle '{{ bundle_to_validate }}'"
       shell: "{{ k8s_community_bundle_validator_path }} {{ bundle_to_validate }}"

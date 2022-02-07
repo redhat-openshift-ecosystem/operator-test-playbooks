@@ -56,7 +56,8 @@
         operator_dir_name: "{{ bob_opname }}"
       when: op_info is undefined
 
-    - debug:
+    - name: "Show op_info"
+      debug:
         var: op_info
 
     - name: "Setting list of versions from directory structre"
@@ -65,7 +66,8 @@
         operator_dir_name: "{{ bob_opname }}"
       when: op_info is defined
 
-    - debug:
+    - name: "Show versions_in_dir"
+      debug:
         var: versions_in_dir
 
     - name: "Detect format"
@@ -95,8 +97,8 @@
 
     - name: "Reset before 'query_image_tags'"
       set_fact:
-            bob_prod_registry_versions_rc: 0
-            bob_prod_registry_versions_tags: []
+        bob_prod_registry_versions_rc: 0
+        bob_prod_registry_versions_tags: []
 
     - name: "Query tags from prod"
       block:
@@ -113,7 +115,6 @@
       when:
         - production_registry_namespace is defined
         - production_registry_namespace|length > 0
-
 
     # - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
     #   uri:
@@ -157,8 +158,8 @@
 
     - name: "Reset before 'query_image_tags'"
       set_fact:
-            bob_registry_versions_osr_rc: 0
-            bob_registry_versions_osr_tags: []
+        bob_registry_versions_osr_rc: 0
+        bob_registry_versions_osr_tags: []
 
     - name: "Query tags from prod"
       block:
@@ -175,7 +176,6 @@
       when:
         - openshift_robot_hash_array.1 is defined
         - openshift_robot_hash_array.1|length > 0
-
 
     - name: "Create repo with public visibility (openshift robot)"
       uri:

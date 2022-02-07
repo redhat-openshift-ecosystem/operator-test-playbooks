@@ -176,6 +176,62 @@
             - not result_rc|bool
             - (strict_mode is defined and strict_mode|bool)
 
+        - name: "Delete operator from SHA index before adding again"
+          block:
+
+            - name: "Remove '{{ operator_dir_name }}' operator from index image {{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
+              shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}{{ bundle_index_sha_posfix }}  {{ opm_index_add_extra_args }}"
+              register: rob_rc1
+              ignore_errors: true
+
+            - name: "Index safety check to avoid accidental overwrite"
+              include_role:
+                name: export_list_of_packages_from_index
+              vars:
+                bundle_index_image_input: "{{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
+                index_pull_skip: true
+              when: min_operators_in_index_allowed is defined
+
+            - name: "Push index image '{{ bundle_index_image }}{{ bundle_index_sha_posfix }}'"
+              include_role:
+                name: operator_push_image
+              vars:
+                fqp_image: "{{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
+              when: rob_rc1.rc == 0
+
+            - name: "Set 'result_rc' to false"
+              set_fact:
+                result_rc: false
+
+            - name: "Set 'result_rc'"
+              set_fact:
+                result_rc: true
+              when: ((rob_rc1.rc is defined and rob_rc1.rc == 0) and rc_last|bool)
+
+            - name: "Prints message that bundles were added to catalog"
+              debug:
+                msg: "Operator '{{ operator_dir_name }}' were removed and push to catalog '{{ bundle_index_image }}{{ bundle_index_sha_posfix }}' : [OK]"
+              when:
+                - result_rc|bool
+
+            - name: "Print failing msg that bundle was not added to catalog or not pushed"
+              debug:
+                msg: "Operator '{{ operator_dir_name }}' were removed and push to catalog '{{ bundle_index_image }}{{ bundle_index_sha_posfix }}' : [FAIL]"
+              when:
+                - not result_rc|bool
+                - (strict_mode is undefined or not strict_mode|bool)
+
+            - name: "Failing when bundle was not added to catalog or not pushed"
+              fail:
+                msg: "Operator '{{ operator_dir_name }}' were removed and push to catalog '{{ bundle_index_image }}{{ bundle_index_sha_posfix }}' : : [FAIL]"
+              when:
+                - not result_rc|bool
+                - (strict_mode is defined and strict_mode|bool)
+
+          when:
+            - bundle_index_sha_posfix is defined
+            - bundle_index_sha_posfix | length > 0
+
         - name: "Remove temporary bundle export dir '{{ bundle_export_dir_remove }}'"
           file:
             path: "{{ bundle_export_dir_remove }}"
