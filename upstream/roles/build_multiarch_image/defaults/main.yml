@@ -1,0 +1,15 @@
+bmi_input_image: ""
+bmi_output_image: ""
+bmi_image_format: "fbc"
+bmi_source_index_tree_location: "configs"
+bmi_base_image: "quay.io/operator-framework/opm:{{ opm_version }}"
+bmi_hardcoded_architectures: ""
+bmi_extracted_index_location: "/tmp/index_extracted"
+
+mfbc_dockerfile_path: "{{ pfbc_dockerfile_path }}"
+mfbc_extracted_fbc_location: "{{ pfbc_extracted_fbc_location }}"
+mfbc_multi_arch_output_image: ""
+container_push_extra: ""
+pfbc_extracted_fbc_location: "/tmp/fbc_extracted"
+mfbc_multi_arch_output_image_dev_temp_human_readable_tag: "fbc"
+mfbc_multi_arch_output_image_dev_temp_human_readable_enabled: true

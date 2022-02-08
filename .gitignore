@@ -2,3 +2,10 @@
 filter_plugins/__pycache__
 filter_plugins/*.pyc
 .idea/
+.trunk/trunk.yaml
+.shellcheckrc
+.markdownlint.yaml
+.isort.cfg
+.hadolint.yaml
+.flake8
+.trunk/.gitignore
