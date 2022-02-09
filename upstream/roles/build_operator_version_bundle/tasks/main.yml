@@ -31,36 +31,6 @@
 
       when: op_info is defined
 
-
-    - name: "Check if 'alm-examples' is valid json"
-      block:
-
-        - name: "Print 'operator_vars.metadata.annotations'"
-          debug:
-            var: operator_vars.metadata.annotations
-
-        - name: "Check alm-examples"
-          set_fact:
-            bovb_alm_examples_test: "{{ operator_vars.metadata.annotations['alm-examples'] }}"
-          ignore_errors: true
-
-        - name: "Print 'bovb_alm_examples_test'"
-          debug:
-            var: bovb_alm_examples_test
-
-        - name: "Check alm-examples"
-          set_fact:
-            bovb_alm_examples: "{{ operator_vars.metadata.annotations['alm-examples'] | from_json }}"
-          register: bovb_alm_examples_result
-          ignore_errors: true
-
-        - name: "Fail when 'alm-examples' is not valid json object"
-          fail:
-            msg: "Error: [{{ operator_package_name }}/{{ operator_version }}] Value 'metadata.annotations.alm-examples' in CSV is not valid json object."
-          when: bovb_alm_examples_result.failed|bool
-
-      when: check_alm_examples|bool
-
     - name: "Setting 'bundle_image' and 'clusterserviceversion_bundle_file_path' in case of bundle format"
       set_fact:
         bundle_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ op_version }}"
