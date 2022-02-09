@@ -34,6 +34,16 @@
 
     - name: "Check if 'alm-examples' is valid json"
       block:
+
+        - name: "Check alm-examples"
+          set_fact:
+            bovb_alm_examples_test: "{{ operator_vars.metadata.annotations['alm-examples'] }}"
+          ignore_errors: true
+
+        - name: "Print 'bovb_alm_examples_test'"
+          debug:
+            var: bovb_alm_examples_test
+
         - name: "Check alm-examples"
           set_fact:
             bovb_alm_examples: "{{ operator_vars.metadata.annotations['alm-examples'] | from_json }}"
