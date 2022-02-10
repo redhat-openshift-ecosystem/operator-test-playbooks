@@ -1,16 +1,24 @@
 ---
-- name: "Set 'mfbc_actual_fbc_arch_image'"
+- name: "Set 'bmi_actual_fbc_arch_image'"
   set_fact:
-    mfbc_actual_fbc_arch_image: "{{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}"
+    bmi_actual_fbc_arch_image: "{{ bmi_output_image }}-{{ bmi_architecture }}"
 
-- name: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }} ."
+- name: "{{ container_tool }} build -f {{ bmi_dockerfile_path }} -t {{ bmi_actual_fbc_arch_image }} --build-arg ARCH={{ bmi_architecture }} {{ bmi_extracted_index_location }}"
+  shell: "{{ container_tool }} build -f {{ bmi_dockerfile_path }} -t {{ bmi_actual_fbc_arch_image }} --build-arg ARCH={{ bmi_architecture }} {{ bmi_extracted_index_location }}"
 
-- name: "Push '{{ mfbc_actual_fbc_arch_image }}'"
+- name: "Push '{{ bmi_actual_fbc_arch_image }}'"
   include_role:
     name: operator_push_image
   vars:
-    fqp_image: "{{ mfbc_actual_fbc_arch_image }}"
+    fqp_image: "{{ bmi_actual_fbc_arch_image }}"
 
-- name: "Add {{ mfbc_architecture }} arch to {{ mfbc_multi_arch_output_image }} manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest add {{ mfbc_multi_arch_output_image }} {{ mfbc_actual_fbc_arch_image }}"
+- name: "Add {{ bmi_architecture }} arch to {{ bmi_output_image }} manifest"
+  shell: "{{ container_tool }} manifest add {{ bmi_output_image }} {{ bmi_actual_fbc_arch_image }}"
+  when:
+  - container_tool == "podman"
+
+- name: ""
+  set_fact:
+    bmi_sub_images: "{{ bmi_sub_images }} {{ bmi_actual_fbc_arch_image }}"
+    when:
+      - container_tool == "docker"

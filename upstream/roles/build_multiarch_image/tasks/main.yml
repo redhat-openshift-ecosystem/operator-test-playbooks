@@ -25,7 +25,7 @@
   set_fact:
     bmi_source_index_tree_location: "configs"
     bmi_fbc_config_path: "{{ bmi_extracted_index_location }}/configs"
-    bmi_render_from: "index"
+    # bmi_render_from: "index"
   when:
     - bmi_image_format == "fbc"
 
@@ -33,35 +33,35 @@
   include_role:
     name: extract_files_from_image
   vars:
-    effi_image: "{{ bmi_file_index }}"
+    effi_image: "{{ bmi_input_image }}"
     effi_copy_source_path: "{{ bmi_source_index_tree_location }}"
     effi_target_copy_path: "{{ bmi_extracted_index_location }}"
     effi_image_format: "{{ bmi_image_format }}"
-  when: bmi_index_update|bool
+  when: pfbc_index_update|bool
 
-- name: "Render index from bundles"
-  include_role:
-    name: render_files
-  vars:
-    rf_render_output_dir: "{{ bmi_extracted_index_location }}"
-    rf_render_output_root: "{{ bmi_source_index_tree_location }}"
-    rf_render_from: "{{ bmi_render_from }}"
-  loop: "{{ bmi_bundles_to_process | list }}"
-  loop_control:
-    loop_var: rf_render_target
-  when: bmi_render_from == "bundle"
+# - name: "Render index from bundles"
+#   include_role:
+#     name: render_files
+#   vars:
+#     rf_render_output_dir: "{{ bmi_extracted_index_location }}"
+#     rf_render_output_root: "{{ bmi_source_index_tree_location }}"
+#     rf_render_from: "{{ bmi_render_from }}"
+#   loop: "{{ bmi_bundles_to_process | list }}"
+#   loop_control:
+#     loop_var: rf_render_target
+#   when: bmi_render_from == "bundle"
 
-- name: "Render index from temp index"
-  include_role:
-    name: render_files
-  vars:
-    rf_render_output_dir: "{{ bmi_extracted_index_location }}"
-    rf_render_output_root: "{{ bmi_source_index_tree_location }}"
-    rf_render_target: "{{ bmi_sql_index }}"
-    rf_render_from: "{{ bmi_render_from }}"
-  loop_control:
-    loop_var: rf_render_target
-  when: bmi_render_from == "index"
+# - name: "Render index from temp index"
+#   include_role:
+#     name: render_files
+#   vars:
+#     rf_render_output_dir: "{{ bmi_extracted_index_location }}"
+#     rf_render_output_root: "{{ bmi_source_index_tree_location }}"
+#     rf_render_target: "{{ bmi_sql_index }}"
+#     rf_render_from: "{{ bmi_render_from }}"
+#   loop_control:
+#     loop_var: rf_render_target
+#   when: bmi_render_from == "index"
 
 - name: "Set Dockerfile path to {{ bmi_fbc_config_path }}.Dockerfile"
   set_fact:
@@ -101,33 +101,78 @@
 - name: "Show Dockerfile"
   shell: "cat {{ bmi_dockerfile_path }}"
 
+- name: ""
+  set_fact:
+    bmi_container_tool_pre_command: "{{ bmi_docker_experimental }}"
+  when:
+    - container_tool == "docker"
+
 - name: "Detect needed architectures from image '{{ bmi_base_image }}'"
-  shell: "{{ container_tool }} manifest inspect {{ bmi_base_image }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+  shell: "{{bmi_container_tool_pre_command}} {{ container_tool }} manifest inspect {{ bmi_base_image }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
   register: bmi_archs_inspect_result
-  when: bmi_hardcoded_architectures == ""
+  when: 
+    - bmi_hardcoded_architectures is undefined or bmi_hardcoded_architectures|length == 0
 
-- name: "Parse archs to list"
-  set_fact:
-    bmi_tmp_architectures: "{{ bmi_archs_inspect_result.stdout_lines if bmi_hardcoded_architectures == '' | default(bmi_hardcoded_architectures.split(,))}}"
+- name: "Show bmi_archs_inspect_result.stdout_lines"
+  debug:
+    var: bmi_archs_inspect_result.stdout_lines
 
-- name: "Parse archs to list"
+- name: "Convert hardcoded archs to a list"
   set_fact:
-    bmi_architectures: "{{ bmi_tmp_architectures | list }}"
+    bmi_hardcoded_architectures_list: "{{ bmi_hardcoded_architectures.split(,)|list }}"
+  when:
+    - bmi_hardcoded_architectures|length != 0
+
+- name: "Convert detected archs to a list"
+  set_fact:
+    bmi_archs_inspect_list: "{{ bmi_archs_inspect_result.stdout_lines|list }}"
+
+- name: "Find difference between harcoded needed architectures and available"
+  set_fact: 
+    bmi_archs_not_available: "{{ bmi_hardcoded_architectures_list | reject('in', bmi_archs_inspect_list) }}"
+  when:
+    - bmi_hardcoded_architectures|length != 0
+
+- name: "Failing as some architectures are not available"
+  fail:
+    msg: "Cannot produce {{ bmi_archs_not_available | join(',') }} architecture(s)."
+  when: 
+    - bmi_archs_not_available is defined
+    - bmi_archs_not_available|length != 0
+
+- name: "Set bmi_architectures if not hardcoded"
+  set_fact:
+    bmi_architectures: "{{ bmi_archs_inspect_list }}"
+  when:
+    - bmi_hardcoded_architectures is undefined or bmi_hardcoded_architectures|length == 0
+
+- name: "Set bmi_architectures if hardcoded"
+  set_fact:
+    bmi_architectures: "{{ bmi_hardcoded_architectures }}"
+  when:
+    - bmi_archs_not_available is defined
+    - bmi_hardcoded_architectures|length != 0
 
 - name: "Print archs list'"
   debug:
     var: bmi_architectures
 
-- name: "Print bmi_multi_arch_output_image"
+- name: "Print bmi_output_image"
   debug:
-    var: bmi_multi_arch_output_image
+    var: bmi_output_image
 
-- name: "Remove manifest '{{ bmi_multi_arch_output_image }}' before creating a new one"
-  shell: "{{ container_tool }} rmi -f {{ bmi_multi_arch_output_image }}"
+- name: "Remove manifest '{{ bmi_output_image }}' before creating a new one"
+  shell: "{{ container_tool }} rmi -f {{ bmi_output_image }}"
   failed_when: false
 
 - name: "Create the final manifest"
-  shell: "cd {{ bmi_extracted_index_location }};{{ container_tool }} manifest create {{ bmi_multi_arch_output_image }}"
+  shell: "{{ container_tool }} manifest create {{ bmi_output_image }}"
+  when:
+    - container_tool == "podman"
+
+- name: "Prepare var for docker manifest command"
+  set_fact:
+    bmi_sub_images: ""
 
 - name: "Create and push archs one by one"
   include_tasks: process_archs.yml
@@ -135,15 +180,20 @@
   loop_control:
     loop_var: bmi_architecture
 
-- name: "Push final manifest '{{ bmi_multi_arch_output_image }}'"
-  shell: "{{ container_tool }} manifest push {{ bmi_multi_arch_output_image }}"
+- name: "Create the final manifest"
+  shell: "{{bmi_container_tool_pre_command}} {{ container_tool }} manifest create {{ bmi_output_image }} {{ bmi_sub_images }}"
+  when:
+    - container_tool == "docker"
+
+- name: "Push final manifest '{{ bmi_output_image }}'"
+  shell: "{{ container_tool }} manifest push {{ bmi_output_image }}"
   register: bmi_rc
   when:
     - container_tool is defined
     - container_tool == 'docker'
 
-- name: "Push final manifest '{{ bmi_multi_arch_output_image }}'"
-  shell: "{{ container_tool }} manifest push {{ bmi_multi_arch_output_image }} {{ image_protocol }}{{ bmi_multi_arch_output_image }}"
+- name: "Push final manifest '{{ bmi_output_image }}'"
+  shell: "{{ container_tool }} manifest push {{ bmi_output_image }} {{ image_protocol }}{{ bmi_output_image }}"
   register: bmi_rc
   when:
     - container_tool is defined
