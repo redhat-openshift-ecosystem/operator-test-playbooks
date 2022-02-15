@@ -16,18 +16,53 @@
 - name: "Set sql variables"
   set_fact:
     bmi_source_index_tree_location: "database/index.db"
-    bmi_fbc_config_path: "{{ bmi_extracted_index_location }}/index"
-    bmi_render_from: ""
   when:
-    - bmi_image_format == "sql"
+    - bmi_input_image_format == "sql"
 
 - name: "Set fbc variables"
   set_fact:
     bmi_source_index_tree_location: "configs"
-    bmi_fbc_config_path: "{{ bmi_extracted_index_location }}/configs"
-    # bmi_render_from: "index"
   when:
-    - bmi_image_format == "fbc"
+    - bmi_input_image_format == "fbc"
+
+- name: "Set sql variables"
+  set_fact:
+    bmi_fbc_config_path: "{{ bmi_extracted_index_location }}/index"
+  when:
+    - bmi_output_image_format == "sql"
+
+- name: "Set sql variables"
+  set_fact:
+    bmi_fbc_config_path: "{{ bmi_extracted_index_location }}/configs"
+  when:
+    - bmi_output_image_format == "fbc"
+
+- name: "Create configs directory"
+  file:
+    path: "{{ bmi_extracted_index_location }}/configs"
+    state: directory
+  when:
+    - bmi_output_image_format == "fbc"
+
+- name: "Activate rendering"
+  set_fact:
+    bmi_render_from: "index"
+  when:
+    - bmi_input_image_format == "sql"
+    - bmi_output_image_format == "fbc"
+    - bmi_render_from is not defined or bmi_render_from == ""
+
+- name: "Fail when asked to convert fbc to sql"
+  fail:
+    msg: "Conversion from FBC format to SQL is not allowed"
+  when:
+    - bmi_input_image_format == "fbc"
+    - bmi_output_image_format == "sql"
+
+- name: "Delete {{ pfbc_extracted_fbc_location }} content"
+  file:
+    state: absent
+    path: "{{ pfbc_extracted_fbc_location }}"
 
 - name: "Extract content from the index"
   include_role:
@@ -36,32 +71,34 @@
     effi_image: "{{ bmi_input_image }}"
     effi_copy_source_path: "{{ bmi_source_index_tree_location }}"
     effi_target_copy_path: "{{ bmi_extracted_index_location }}"
-    effi_image_format: "{{ bmi_image_format }}"
-  when: pfbc_index_update|bool
+    effi_image_format: "{{ bmi_input_image_format }}"
+  when: 
+    - pfbc_index_update|bool
+    - bmi_render_from|length==0
 
-# - name: "Render index from bundles"
-#   include_role:
-#     name: render_files
-#   vars:
-#     rf_render_output_dir: "{{ bmi_extracted_index_location }}"
-#     rf_render_output_root: "{{ bmi_source_index_tree_location }}"
-#     rf_render_from: "{{ bmi_render_from }}"
-#   loop: "{{ bmi_bundles_to_process | list }}"
-#   loop_control:
-#     loop_var: rf_render_target
-#   when: bmi_render_from == "bundle"
+- name: "Render index from bundles"
+  include_role:
+    name: render_files
+  vars:
+    rf_render_output_dir: "{{ bmi_extracted_index_location }}"
+    rf_render_output_root: "{{ bmi_source_index_tree_location }}"
+    rf_render_from: "{{ bmi_render_from }}"
+  loop: "{{ bmi_bundles_to_process | list }}"
+  loop_control:
+    loop_var: rf_render_target
+  when: bmi_render_from == "bundle"
 
-# - name: "Render index from temp index"
-#   include_role:
-#     name: render_files
-#   vars:
-#     rf_render_output_dir: "{{ bmi_extracted_index_location }}"
-#     rf_render_output_root: "{{ bmi_source_index_tree_location }}"
-#     rf_render_target: "{{ bmi_sql_index }}"
-#     rf_render_from: "{{ bmi_render_from }}"
-#   loop_control:
-#     loop_var: rf_render_target
-#   when: bmi_render_from == "index"
+- name: "Render index from index"
+  include_role:
+    name: render_files
+  vars:
+    rf_render_output_dir: "{{ bmi_extracted_index_location }}"
+    rf_render_output_root: "{{ bmi_source_index_tree_location }}"
+    rf_render_target: "{{ bmi_input_image }}"
+    rf_render_from: "{{ bmi_render_from }}"
+  loop_control:
+    loop_var: rf_render_target
+  when: bmi_render_from == "index"
 
 - name: "Set Dockerfile path to {{ bmi_fbc_config_path }}.Dockerfile"
   set_fact:
@@ -76,7 +113,7 @@
   shell: "cd {{ bmi_extracted_index_location }}; {{ opm_bin_path }} alpha generate dockerfile {{ bmi_fbc_config_path }}"
   register: bmi_rc
   when:
-    - bmi_image_format == "fbc"
+    - bmi_output_image_format == "fbc"
 
 - name: "Create SQL Dockerfile"
   template:
@@ -84,7 +121,7 @@
     dest: "{{ bmi_dockerfile_path }}"
   register: bmi_rc2
   when:
-    - bmi_image_format == "sql"
+    - bmi_output_image_format == "sql"
 
 - name: "Tweak Dockerfile to accept arch args part 1"
   lineinfile:

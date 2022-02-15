@@ -26,11 +26,19 @@
     path: "{{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}"
     state: directory
   failed_when: false
+  when: rf_opm_render == "render"
+
+- name: "Create a directory for opm migrate output"
+  file:
+    path: "{{ rf_render_output_dir }}/{{ rf_render_output_root }}"
+    state: directory
+  failed_when: false
+  when: rf_opm_render == "migrate"
 
 - name: "OPM render {{ rf_render_target }}"
   shell: "{{ opm_bin_path }} render {{ rf_render_target }} --output=yaml > {{ rf_render_output_dir }}/{{ rf_render_output_root }}/{{ rf_package }}/{{ rf_operator_version }}.yaml"
-  when: rf_opm_render=="render"
+  when: rf_opm_render == "render"
 
 - name: "OPM migrate {{ rf_render_target }}"
   shell: "{{ opm_bin_path }} migrate {{ rf_render_target }} {{ rf_render_output_dir }}/{{ rf_render_output_root }} --output=yaml"
-  when: rf_opm_render=="migrate"
+  when: rf_opm_render == "migrate"
