@@ -15,9 +15,9 @@
 - name: "Add {{ bmi_architecture }} arch to {{ bmi_output_image }} manifest"
   shell: "{{ container_tool }} manifest add {{ bmi_output_image }} {{ bmi_actual_fbc_arch_image }}"
   when:
-  - container_tool == "podman"
+    - container_tool == "podman"
 
-- name: ""
+- name: "Set bmi_sub_images"
   set_fact:
     bmi_sub_images: "{{ bmi_sub_images }} {{ bmi_actual_fbc_arch_image }}"
     when:
