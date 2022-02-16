@@ -1,0 +1,18 @@
+# The base image is expected to contain
+# /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
+FROM quay.io/operator-framework/opm:latest
+
+LABEL com.redhat.index.delivery.distribution_scope="prod"
+LABEL com.redhat.index.delivery.version="v4.5"
+# Configure the entrypoint and command
+
+CMD ["registry", "serve", "--database", "/database/index.db"]
+ENTRYPOINT ["/bin/opm"]
+EXPOSE 50051
+
+# Copy index file
+COPY index.db /database/
+
+# Set DC-specific label for the location of the DC root directory
+# in the image
+LABEL operators.operatorframework.io.index.database.v1=/database/index.db

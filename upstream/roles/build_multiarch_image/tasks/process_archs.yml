@@ -1,0 +1,24 @@
+---
+- name: "Set 'bmi_actual_fbc_arch_image'"
+  set_fact:
+    bmi_actual_fbc_arch_image: "{{ bmi_output_image }}-{{ bmi_architecture }}"
+
+- name: "{{ container_tool }} build -f {{ bmi_dockerfile_path }} -t {{ bmi_actual_fbc_arch_image }} --build-arg ARCH={{ bmi_architecture }} {{ bmi_extracted_index_location }}"
+  shell: "{{ container_tool }} build -f {{ bmi_dockerfile_path }} -t {{ bmi_actual_fbc_arch_image }} --build-arg ARCH={{ bmi_architecture }} {{ bmi_extracted_index_location }}"
+
+- name: "Push '{{ bmi_actual_fbc_arch_image }}'"
+  include_role:
+    name: operator_push_image
+  vars:
+    fqp_image: "{{ bmi_actual_fbc_arch_image }}"
+
+- name: "Add {{ bmi_architecture }} arch to {{ bmi_output_image }} manifest"
+  shell: "{{ container_tool }} manifest add {{ bmi_output_image }} {{ bmi_actual_fbc_arch_image }}"
+  when:
+    - container_tool == "podman"
+
+- name: "Set bmi_sub_images"
+  set_fact:
+    bmi_sub_images: "{{ bmi_sub_images }} {{ bmi_actual_fbc_arch_image }}"
+    when:
+      - container_tool == "docker"
