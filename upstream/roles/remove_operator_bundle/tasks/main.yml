@@ -45,7 +45,7 @@
           include_role:
             name: query_image_tags
           vars:
-            qit_image: "{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}"
+            qit_image: "{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_dir_name }}"
 
         - name: "Set results from 'query_image_tags'"
           set_fact:
