@@ -268,22 +268,14 @@
         - bundle_sha_images_dt is defined
         - bundle_sha_images_dt|length > 0
 
-    - name: "Produce FBC files and Dockerfile"
+    - name: "Build multiarch FBC image"
       include_role:
-        name: produce_fbc
+        name: build_multiarch_image
       vars:
-        pfbc_file_index: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
-        pfbc_sql_index: "{{ sis_index_image_output }}"
-      when: result_rc|bool
-
-    - name: "Convert FBC to multiarch"
-      include_role:
-        name: multiarch_fbc
-      vars:
-        mfbc_multi_arch_output_image: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
-      when:
-        - pfbc_rc.rc is defined
-        - pfbc_rc.rc == 0
+        bmi_output_image: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
+        bmi_output_image_format: "fbc"
+        bmi_input_image: "{{ sis_index_image_output }}"
+        bmi_input_image_format: "sql"
 
     - name: "Set 'result_rc' to false"
       set_fact:
@@ -293,8 +285,8 @@
       set_fact:
         result_rc: true
       when:
-        - mfbc_rc.rc is defined
-        - mfbc_rc.rc == 0
+        - bmi_rc.rc is defined
+        - bmi_rc.rc == 0
         - rc_last|bool
 
     - name: "Prints message that multiarch FBC image was updated"

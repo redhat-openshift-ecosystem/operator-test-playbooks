@@ -222,16 +222,20 @@
   when:
     - container_tool == "docker"
 
-- name: "Push final manifest '{{ bmi_output_image }}'"
-  shell: "{{ container_tool }} manifest push {{ bmi_output_image }}"
+- name: "Docker push tmp manifest '{{ bmi_output_image }}{{ bmi_tmp_postfix }}'"
+  shell: "{{ container_tool }} manifest push {{ bmi_output_image }}{{ bmi_tmp_postfix }}"
   register: bmi_rc
   when:
     - container_tool is defined
     - container_tool == 'docker'
 
-- name: "Push final manifest '{{ bmi_output_image }}'"
-  shell: "{{ container_tool }} manifest push {{ bmi_output_image }} {{ image_protocol }}{{ bmi_output_image }}"
+- name: "Podman push tmp manifest '{{ bmi_output_image }}{{ bmi_tmp_postfix }}'"
+  shell: "{{ container_tool }} manifest push {{ bmi_output_image }} {{ image_protocol }}{{ bmi_output_image }}{{ bmi_tmp_postfix }}"
   register: bmi_rc
   when:
     - container_tool is defined
     - container_tool == 'podman'
+
+- name: "Skopeo copy final manifest '{{ bmi_output_image }}"
+  shell: "skopeo copy -a {{ image_protocol }}{{ bmi_output_image }}{{ bmi_tmp_postfix }} {{ image_protocol }}{{ bmi_output_image }} --src-tls-verify=false -f v2s2"
+  register: bmi_rc
