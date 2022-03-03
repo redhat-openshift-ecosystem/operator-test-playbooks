@@ -118,7 +118,6 @@
         - name: "Setting bundle image name"
           set_fact:
             bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ rob_index_version }}"
-            opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ rob_index_version }}"
 
         - name: "Setting 'index rm' container option"
           set_fact:
@@ -128,7 +127,7 @@
             - opm_container_tool_index|length > 0
 
         - name: "Remove '{{ operator_dir_name }}' operator from index image {{ bundle_index_image }}"
-          shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}  {{ opm_index_add_extra_args }}"
+          shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }} --from-index {{ bundle_index_image }}"
           register: rob_rc
           ignore_errors: true
 
@@ -178,9 +177,8 @@
 
         - name: "Delete operator from SHA index before adding again"
           block:
-
             - name: "Remove '{{ operator_dir_name }}' operator from index image {{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
-              shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}{{ bundle_index_sha_posfix }}  {{ opm_index_add_extra_args }}"
+              shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}{{ bundle_index_sha_posfix }} --from-index {{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
               register: rob_rc1
               ignore_errors: true
 
