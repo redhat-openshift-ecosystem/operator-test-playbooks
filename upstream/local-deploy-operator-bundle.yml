@@ -289,6 +289,10 @@
       when:
         - index_skip is undefined or not index_skip|bool
 
+    - name: "Test operator upgrade"
+      include_role:
+        name: test_operator_update
+
     - name: "Push to Quay (old AppRegistry)"
       include_role:
         name: push_to_quay

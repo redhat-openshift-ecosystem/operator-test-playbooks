@@ -1,1 +1,72 @@
 ---
+- name: "Reset upgrade_test_possible"
+  set_fact:
+    upgrade_test_possible: false
+
+#TODO: fix brackets and the last-1 element from versions
+# run on test only
+# report [OK]
+- name: "Set 'upgrade_from' in case of replaces mode"
+  block:
+    - name: "Set 'upgrade_from' in case of replaces mode"
+      set_fact:
+        upgrade_from: "op_info.{{ operator_package_name }}.manifests.{{ operator_version }}.replaces"
+        upgrade_to: "{{ operator_version }}"
+        upgrade_test_possible: true
+      when: op_info.{{ operator_package_name }}.manifests.{{ operator_version }}.replaces|length != 0
+
+  when:  op_info.{{ operator_package_name }}.mode == "replaces"
+
+- name: "Set 'upgrade_from' in case of semver mode"
+  block:
+    - name: "Set 'pick_upgrade_version_from_list'"
+      set_fact:
+        pick_upgrade_version_from_list: "op_info.{{ operator_package_name }}.versions|list"
+
+    - name: "Set 'upgrade_from' in case of semver mode"
+      set_fact:
+        upgrade_from: "{{ pick_upgrade_version_from_list[-2] }}"
+        upgrade_to: "{{ pick_upgrade_version_from_list[-1] }}"
+        upgrade_test_possible: true
+      when: op_info.{{ operator_package_name }}.manifests.{{ operator_version }}.replaces|length != 0
+
+  when:  op_info.{{ operator_package_name }}.mode == "semver"
+
+- name: "Test operator upgrade"
+  block:
+
+  - name: "Set paths to bundles for upgrade process"
+    set_fact:
+      tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ upgrade_from }}"
+      tou_operator_bundle_for_upgrade: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ upgrade_to }}"
+
+  - name: "Check if OLM is needed"
+    shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
+    register: olm_needed
+    failed_when: false
+  - name: "Install OLM"
+    block:
+      - name: "Installing OLM"
+        shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
+        register: olm_install_rc
+        retries: 10
+        delay: 5
+        until: olm_install_rc.rc == 0
+
+      - name: "Delete catalogsource"
+        shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+        failed_when: false
+    when:
+      - olm_needed.stdout is not search('operatorgroup')
+
+  - name: "Installing {{ tou_operator_bundle_for_install }}"
+    shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
+
+  - name: "Testing operator upgrade from {{ tou_operator_bundle_to_install }} to  {{ tou_operator_bundle_for_upgrade }}"
+    shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
+
+  - name: "Cleanup {{ operator_name }}"
+    shell: "{{ operator_sdk_bin_path }} cleanup {{ operator_name }}"
+    failed_when: false
+
+  when: upgrade_test_possible|bool
