@@ -33,7 +33,7 @@
     - name: "Remove everything before '.v'"
       set_fact:
         ovi_replaces_ver: "{{ ovi_replaces_ver.split('.v')[-1] }}"
-      when: ovi_replaces_ver | search(".v")
+      when: ovi_replaces_ver is search(".v")
 
   when: operator_vars.spec.replaces is defined
 
