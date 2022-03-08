@@ -3,9 +3,6 @@
   set_fact:
     upgrade_test_possible: false
 
-#TODO: fix brackets and the last-1 element from versions
-# run on test only
-# report [OK]
 - name: "Set 'tou_upgrade_from' in case of replaces mode"
   block:
     - name: "Set 'tou_upgrade_from' in case of replaces mode"
