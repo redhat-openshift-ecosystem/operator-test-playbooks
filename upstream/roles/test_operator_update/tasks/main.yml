@@ -24,8 +24,13 @@
       set_fact:
         tou_upgrade_from: "{{ pick_upgrade_version_from_list[-2] }}"
         tou_upgrade_to: "{{ pick_upgrade_version_from_list[-1] }}"
+      when: op_info.{{ operator_package_name }}.manifests.{{ operator_bundle_version_for_upgrade }}.replaces|length == 0
+      failed_when: false
+
+    - name: "Set 'upgrade_test_possible'"
+      set_fact:
         upgrade_test_possible: true
-      when: op_info.{{ operator_package_name }}.manifests.{{ operator_bundle_version_for_upgrade }}.replaces|length != 0
+      when: pick_upgrade_version_from_list[-2] is defined
 
   when:  op_info.{{ operator_package_name }}.mode == "semver"
 
