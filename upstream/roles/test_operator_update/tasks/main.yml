@@ -52,7 +52,7 @@
     - name: "Set paths to bundles for upgrade process"
       set_fact:
         tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
-        tou_operator_bundle_for_upgrade: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
+        tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
 
     - name: "Check if OLM is needed"
       shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"

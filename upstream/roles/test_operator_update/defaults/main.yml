@@ -1,1 +1,2 @@
 operator_bundle_version_for_upgrade: "NotDefined"
+tou_local_registry_namespace: "kind-registry:5000"
