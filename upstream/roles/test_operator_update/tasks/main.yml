@@ -2,7 +2,6 @@
 - name: "Reset upgrade_test_possible"
   set_fact:
     upgrade_test_possible: false
-    tou_mode: 
 
 - name: "Set 'tou_upgrade_from' in case of replaces mode"
   block:
