@@ -289,6 +289,13 @@
       when:
         - index_skip is undefined or not index_skip|bool
 
+    - name: "Test operator upgrade"
+      include_role:
+        name: test_operator_update
+      when:
+        - operator_bundle_version_for_upgrade is defined
+        - operator_bundle_version_for_upgrade|length != 0
+
     - name: "Push to Quay (old AppRegistry)"
       include_role:
         name: push_to_quay
