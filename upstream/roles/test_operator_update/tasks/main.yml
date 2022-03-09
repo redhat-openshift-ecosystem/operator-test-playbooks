@@ -11,7 +11,7 @@
 
     - name: "Set 'tou_upgrade_from' in case of replaces mode"
       set_fact:
-        tou_upgrade_from: "op_info.{{ operator_package_name }}.manifests.{{ operator_bundle_version_for_upgrade }}.replaces"
+        tou_upgrade_from: "{{ op_info[operator_package_name].manifests[operator_bundle_version_for_upgrade].replaces }}"
         tou_upgrade_to: "{{ operator_bundle_version_for_upgrade }}"
         upgrade_test_possible: true
       when: tou_replaces|length != 0
@@ -68,13 +68,13 @@
     - name: "Installing {{ tou_operator_bundle_for_install }}"
       shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
 
-    - name: "Testing operator upgrade from {{ tou_operator_bundle_to_install }} to  {{ tou_operator_bundle_for_upgrade }}"
+    - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}"
       shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
       register: tou_upgrade_rc
 
     - name: "Update status"
       debug:
-        msg: "Upgraded operator from {{ tou_operator_bundle_to_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
+        msg: "Upgraded operator from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
       when: tou_upgrade_rc.rc == 0
 
     - name: "Cleanup {{ operator_name }}"
