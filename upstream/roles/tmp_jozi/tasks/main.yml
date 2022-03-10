@@ -1,0 +1,4 @@
+---
+- name: "Find current_operator_index_in_list"
+  set_fact:
+    tou_current_operator_index_in_list: "{{ lookup('ansible.utils.index_of', pick_upgrade_version_from_list, 'eq', operator_bundle_version_for_upgrade) }}"
