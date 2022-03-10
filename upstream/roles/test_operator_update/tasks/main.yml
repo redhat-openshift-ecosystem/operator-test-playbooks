@@ -58,6 +58,7 @@
       shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
       register: olm_needed
       failed_when: false
+      
     - name: "Install OLM"
       block:
         - name: "Installing OLM"
