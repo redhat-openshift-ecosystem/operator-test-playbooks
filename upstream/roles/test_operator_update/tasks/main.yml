@@ -22,7 +22,7 @@
   block:
     - name: "Set 'pick_upgrade_version_from_list'"
       set_fact:
-        pick_upgrade_version_from_list: "{{ op_info[operator_package_name]versions|list }}"
+        pick_upgrade_version_from_list: "{{ op_info[operator_package_name].versions|list }}"
 
     - name: "debug 01"
       debug:
