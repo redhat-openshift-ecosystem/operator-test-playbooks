@@ -22,7 +22,7 @@
   block:
     - name: "Set 'pick_upgrade_version_from_list'"
       set_fact:
-        pick_upgrade_version_from_list: "op_info[operator_package_name]versions|list"
+        pick_upgrade_version_from_list: "{{ op_info[operator_package_name]versions|list }}"
 
     - name: "debug 01"
       debug:
@@ -78,7 +78,7 @@
     - name: "xxxxxxx"
       set_fact:
         # tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
-        tou_operator_bundle_for_upgrade: "quay.io/openshift-community-operators/aqua:v6.5.2"
+        tou_operator_bundle_for_upgrade: "quay.io/operatorhubio/aqua:v6.5.2"
       when: op_info[operator_package_name].mode == "replaces"
 
 
