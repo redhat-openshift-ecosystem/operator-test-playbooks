@@ -39,6 +39,9 @@
     - debug:
         var: tou_current_operator_index_in_list
 
+    - debug:
+        var: tou_current_operator_index_in_list[0]
+
     - name: "Find previous_operator_index_in_list"
       set_fact:
         tou_previous_operator_index_in_list: "{{ tou_current_operator_index_in_list[0]|int - 1 }}"
