@@ -169,6 +169,23 @@
     - debug:
         var: tou_cs
 
+    - name: "Get pods"
+      shell: "kubectl get pods kind-registry-5000-test-operator-aqua-v6-5-2 -n default -o=yaml"
+      register: tou_pod_out
+
+    - debug:
+        var: tou_pod_out
+
+
+    - name: "Logs"
+      shell: "kubectl logs kind-registry-5000-test-operator-aqua-v6-5-2 -n default"
+      register: tou_pod_log
+
+    - debug:
+        var: tou_pod_log
+
+    
+
     - name: "Update status"
       debug:
         msg: "Upgraded operator from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
