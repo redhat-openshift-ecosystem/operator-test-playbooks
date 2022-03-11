@@ -89,16 +89,16 @@
 
 
 # #TODO: remove it
-    - name: "Installing {{ tou_operator_bundle_for_install }}"
-      shell: "podman pull {{ tou_operator_bundle_for_upgrade }}"
-      ignore_errors: true
+    # - name: "pull"
+    #   shell: "podman pull {{ tou_operator_bundle_for_upgrade }}"
+    #   ignore_errors: true
 
 
-    - name: "xxxxxxx Overwrite operator_bundle_for_upgrade"
-      set_fact:
-        tou_operator_bundle_for_install: "quay.io/operatorhubio/aqua:v9.9.9"
-        # tou_operator_bundle_for_upgrade: "quay.io/operatorhubio/aqua:v6.5.2"
-      # when: op_info[operator_package_name].mode == "replaces"
+    # - name: "xxxxxxx Overwrite operator_bundle_for_upgrade"
+    #   set_fact:
+    #     tou_operator_bundle_for_install: "quay.io/operatorhubio/aqua:v9.9.9"
+    #     # tou_operator_bundle_for_upgrade: "quay.io/operatorhubio/aqua:v6.5.2"
+    #   # when: op_info[operator_package_name].mode == "replaces"
 
 
 #     - name: "Installing {{ tou_operator_bundle_for_install }}"
@@ -148,10 +148,10 @@
         - olm_needed.stdout is not search('operatorgroup')
 
     - name: "Installing {{ tou_operator_bundle_for_install }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
+      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }} --verbose"
 
     # - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to {{ tou_operator_bundle_for_upgrade }}"
-    #   shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
+    #   shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }} --verbose"
     #   register: tou_upgrade_rc
 
     - name: "Update status"
