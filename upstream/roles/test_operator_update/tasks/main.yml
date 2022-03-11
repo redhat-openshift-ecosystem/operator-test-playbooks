@@ -49,6 +49,15 @@
     - debug:
         var: tou_previous_operator_index_in_list
 
+    - debug:
+        var: pick_upgrade_version_from_list
+
+    - debug:
+        var: pick_upgrade_version_from_list|length
+
+    - debug:
+        var: pick_upgrade_version_from_list[tou_previous_operator_index_in_list]
+
     - name: "Set 'tou_upgrade_from' in case of semver mode"
       set_fact:
         tou_upgrade_from: "{{ pick_upgrade_version_from_list[tou_previous_operator_index_in_list] }}"
