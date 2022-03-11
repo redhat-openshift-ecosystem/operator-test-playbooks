@@ -157,6 +157,10 @@
 
     - name: "Get pods"
       shell: "kubectl get pods --all-namespaces"
+      register: tou_pods
+
+    - debug:
+        var: tou_pods
 
     - name: "Update status"
       debug:
