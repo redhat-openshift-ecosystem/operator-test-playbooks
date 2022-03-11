@@ -67,7 +67,7 @@
     - name: "Set 'upgrade_test_possible'"
       set_fact:
         upgrade_test_possible: true
-      when: pick_upgrade_version_from_list[tou_previous_operator_index_in_list] is defined
+      when: pick_upgrade_version_from_list[tou_previous_operator_index_in_list|int] is defined
 
   when: op_info[operator_package_name].mode == "semver"
 
