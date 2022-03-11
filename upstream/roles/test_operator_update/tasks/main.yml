@@ -153,6 +153,10 @@
     - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to {{ tou_operator_bundle_for_upgrade }}"
       shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }} --verbose"
       register: tou_upgrade_rc
+      ignore_errors: true
+
+    - name: "Get pods"
+      shell: "kubectl get pods --all-namespaces"
 
     - name: "Update status"
       debug:
