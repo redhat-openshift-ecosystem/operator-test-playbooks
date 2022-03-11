@@ -162,6 +162,13 @@
     - debug:
         var: tou_pods
 
+    - name: "Get cs"
+      shell: "kubectl get CatalogSource aqua-catalog -n default -o=yaml"
+      register: tou_cs
+
+    - debug:
+        var: tou_cs
+
     - name: "Update status"
       debug:
         msg: "Upgraded operator from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
