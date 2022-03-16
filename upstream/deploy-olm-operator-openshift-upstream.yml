@@ -9,6 +9,8 @@
     - name: "Load operator info from file"
       include_role:
         name: operator_info_load
+      vars:
+        operator_info_file: "/tmp/op_info.yaml"
 
     - name: "Deploy on OCP"
       include_role:
