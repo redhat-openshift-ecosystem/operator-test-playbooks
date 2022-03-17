@@ -87,6 +87,19 @@
     - host_build
     - reset_tools
 
+
+- name: "Install grpcurl {{ grpcurl_version }}"
+  unarchive:
+    src: "https://github.com/fullstorydev/grpcurl/releases/download/v{{ grpcurl_version }}/grpcurl_{{ grpcurl_version }}_linux_x86_64.tar.gz"
+    dest: "{{ testing_bin_path }}"
+    remote_src: true
+  retries: 10
+  delay: 15
+  tags:
+    - install
+    - host_build
+    - reset_tools
+
 - name: "Install  opm from master"
   include_tasks: opm_special.yml
   when: opm_source == "master"
@@ -175,12 +188,14 @@
       shell: "operator-courier -v"
       register: operator_courier_version_result
       failed_when: false
+      when: not run_upstream|bool
 
     - name: "Install operator-courier ({{ operator_courier_version }}) if not already installed"
       shell: "pip3 install --upgrade operator-courier=={{ operator_courier_version }}"
       when:
         - operator_courier_version_result.rc is defined
         - operator_courier_version_result.rc != 0
+        - not run_upstream|bool
 
     - name: "Check if offline-cataloger is installed"
       shell: "offline-cataloger -h"
