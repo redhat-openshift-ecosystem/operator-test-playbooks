@@ -36,7 +36,9 @@
     - name: " Handle 'supported_cluster_versions'"
       set_fact:
         oi_supported_cluster_versions: []
-      when: supported_cluster_versions == "latest"
+      when: 
+        - not fast_op_info|bool
+        - supported_cluster_versions == "latest"
 
   when:
     - operator_info_file is defined
