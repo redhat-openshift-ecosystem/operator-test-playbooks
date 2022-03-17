@@ -50,14 +50,19 @@
     operator_format: "bundle"
   when:
     - op_info is defined
+    - not fast_op_info|bool
 
 - name: "Print final 'operator_base_dir'"
   debug:
     var: operator_base_dir
+  when:
+    - not fast_op_info|bool
 
 - name: "Print final 'operators'"
   debug:
     var: operators
+  when:
+    - not fast_op_info|bool
 
 - name: "Print final 'op_info'"
   debug:
