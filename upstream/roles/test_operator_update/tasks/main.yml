@@ -76,10 +76,17 @@
 - name: "Test operator upgrade"
   block:
 
-    - name: "Set paths to bundles for upgrade process"
+    - name: "Set paths to bundles for upgrade process - k8s"
       set_fact:
         tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
         tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
+      when: oc_bin_path is not defined
+
+    - name: "Set paths to bundles for upgrade process - Openshift"
+      set_fact:
+        tou_operator_bundle_for_install: "{{ external_production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
+        tou_operator_bundle_for_upgrade: "quay.io/{{ test_quay_namespace }}/{{ operator_package_name }}:{{ commit_tag }}"
+      when: oc_bin_path is defined
 
     - name: "Check if OLM is needed"
       shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
