@@ -1,8 +1,6 @@
 ---
 #TODO: test edge cases
 
-
-
 - name: "Reset upgrade_test_possible"
   set_fact:
     upgrade_test_possible: false
@@ -82,50 +80,6 @@
       set_fact:
         tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
         tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
-
-
-
-
-
-
-# #TODO: remove it
-    # - name: "pull"
-    #   shell: "podman pull {{ tou_operator_bundle_for_upgrade }}"
-    #   ignore_errors: true
-
-
-    # - name: "xxxxxxx Overwrite operator_bundle_for_upgrade"
-    #   set_fact:
-    #     tou_operator_bundle_for_install: "quay.io/operatorhubio/aqua:v9.9.9"
-    #     # tou_operator_bundle_for_upgrade: "quay.io/operatorhubio/aqua:v6.5.2"
-    #   # when: op_info[operator_package_name].mode == "replaces"
-
-
-#     - name: "Installing {{ tou_operator_bundle_for_install }}"
-#       shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
-
-#     - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}"
-#       shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
-#       register: tou_upgrade_rc
-
-#     - name: "Update status"
-#       debug:
-#         msg: "Upgraded operator from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
-#       when: tou_upgrade_rc.rc == 0
-
-#     - name: "Cleanup {{ operator_name }}"
-#       shell: "{{ operator_sdk_bin_path }} cleanup {{ operator_name }}"
-#       failed_when: false
-
-#     - name: "Set CORRECT paths to bundles for upgrade process"
-#       set_fact:
-#         tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
-
-
-
-
-
-
 
     - name: "Check if OLM is needed"
       shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
