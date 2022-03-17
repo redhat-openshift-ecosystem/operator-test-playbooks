@@ -184,8 +184,6 @@
     - debug:
         var: tou_pod_log
 
-    
-
     - name: "Update status"
       debug:
         msg: "Upgraded operator from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
