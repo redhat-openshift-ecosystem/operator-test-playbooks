@@ -104,12 +104,13 @@
     set_fact:
       csv_vars: "{{ csv_data.stdout }}"
 
-  - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
+  - name: "Determine and set fact for operator specific information - name, pod name, container name, capabilities, and subscription"
     set_fact:
       current_csv: "{{ (csv_vars | from_yaml).metadata.name }}"
       operator_pod_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].name }}"
       operator_container_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
       operator_capabilities: "{{ (csv_vars | from_yaml).metadata.annotations.capabilities }}"
+      operator_valid_subscription: "{{ ((csv_vars | from_yaml).metadata.annotations['operators.openshift.io/valid-subscription'] | default('[]')) | from_json }}"
 
   - name: "Determine operator_allnamespaces_support"
     set_fact:
@@ -147,6 +148,14 @@
       src: "parsed_operator_data.yml.j2"
       dest: "{{ work_dir }}/parsed_operator_data.yml"
       mode: 0644
+
+  - name: "Cat parsed_operator_data.yml"
+    shell: "cat {{ work_dir }}/parsed_operator_data.yml"
+    register: parsed_data_file
+
+  - name: "Print contents of parsed_operator_data.yml"
+    debug:
+      msg: "{{ parsed_data_file.stdout_lines }}"
 
   - name: "Sanity check the operator bundle's information"
     include_tasks: bundle_sanity_checks.yml

@@ -165,6 +165,60 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         self.assertIn("Invalid semver in ocpfournine", playbook_command.stdout.decode("utf-8"))
         self.assertIn("Error collecting OCP version range from Pyxis", playbook_command.stdout.decode("utf-8"))
 
+    def test_extract_operator_bundle_no_subscription(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_no_subscription".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:test-430-channel-positive-v1"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertIn('operator_valid_subscription: []', parsed_output)
+
+    def test_extract_operator_bundle_with_subscription(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_with_subscription".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:with-subscription"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertIn('operator_valid_subscription:\n  - "Test Subscription One"\n  - "Test Subscription Two"', parsed_output)
+
 
 if __name__ == '__main__':
     unittest.main()
