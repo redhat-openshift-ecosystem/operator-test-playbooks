@@ -109,10 +109,10 @@
         - olm_needed.stdout is not search('operatorgroup')
 
     - name: "Installing {{ tou_operator_bundle_for_install }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }} --verbose"
+      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
 
     - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to {{ tou_operator_bundle_for_upgrade }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }} --verbose"
+      shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
       register: tou_upgrade_rc
       ignore_errors: true
 
@@ -123,23 +123,27 @@
     - debug:
         var: tou_pods
 
-    - name: "Get cs"
-      shell: "kubectl get CatalogSource aqua-catalog -n default -o=yaml"
-      register: tou_cs
-
-    - debug:
-        var: tou_cs
-
     - name: "Get pods"
-      shell: "kubectl get pods kind-registry-5000-test-operator-aqua-v6-5-2 -n default -o=yaml"
-      register: tou_pod_out
+      shell: "kubectl get pods --all-namespaces|grep {{ bundle_registry_source_without_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
+      register: tou_registry_pod
 
-    - debug:
-        var: tou_pod_out
+    # - name: "Get cs"
+    #   shell: "kubectl get CatalogSource aqua-catalog -n default -o=yaml"
+    #   register: tou_cs
+
+    # - debug:
+    #     var: tou_cs
+
+    # - name: "Get pods"
+    #   shell: "kubectl get pods kind-registry-5000-test-operator-aqua-v6-5-2 -n default -o=yaml"
+    #   register: tou_pod_out
+
+    # - debug:
+    #     var: tou_pod_out
 
 
     - name: "Logs"
-      shell: "kubectl logs kind-registry-5000-test-operator-aqua-v6-5-2 -n default"
+      shell: "kubectl logs {{ tou_registry_pod }} -n default"
       register: tou_pod_log
 
     - debug:
