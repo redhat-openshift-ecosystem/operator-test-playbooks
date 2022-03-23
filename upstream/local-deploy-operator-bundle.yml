@@ -45,6 +45,7 @@
         oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
         # mirror_apply: true
         doic_skip_file_check: false
+        operator_upgrade_testing_disabled: true # disable in prod by 'if' before enabling this line
 
     - name: "Load operator info from file"
       include_role:
