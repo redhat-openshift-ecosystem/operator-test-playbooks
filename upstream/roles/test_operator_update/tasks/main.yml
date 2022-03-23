@@ -80,15 +80,9 @@
       set_fact:
         tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
         tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
-      when: 
+      when:
         - cluster_type is defined
         - cluster_type == "k8s"
-
-    - debug:
-        var: oc_bin_path
-
-    - debug:
-        var: cluster_type
 
     - name: "Set paths to bundles for upgrade process - Openshift"
       set_fact:
