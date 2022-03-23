@@ -85,11 +85,14 @@
     - debug:
         var: oc_bin_path
 
+    - debug:
+        var: cluster_type
+
     - name: "Set paths to bundles for upgrade process - Openshift"
       set_fact:
         tou_operator_bundle_for_install: "{{ external_production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
         tou_operator_bundle_for_upgrade: "quay.io/{{ test_quay_namespace }}/{{ operator_package_name }}:{{ commit_tag }}"
-      when: oc_bin_path is defined
+      when: (cluster_type is not defined) or (cluster_type != "k8s")
 
     - name: "Check if OLM is needed"
       shell: "{{ oc_bin_path }} api-resources | grep -o operatorgroup"
