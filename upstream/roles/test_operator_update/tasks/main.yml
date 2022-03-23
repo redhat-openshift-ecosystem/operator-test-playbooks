@@ -82,6 +82,9 @@
         tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
       when: oc_bin_path is not defined
 
+    - debug:
+        var: oc_bin_path
+
     - name: "Set paths to bundles for upgrade process - Openshift"
       set_fact:
         tou_operator_bundle_for_install: "{{ external_production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
