@@ -1,8 +1,0 @@
-operator_bundle_version_for_upgrade: "1.1"
-pick_upgrade_version_from_list:
-- "0.1"
-- "0.2"
-- "0.3"
-- "0.4"
-- "1.1"
-- "1.2"
