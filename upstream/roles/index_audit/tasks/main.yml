@@ -47,52 +47,57 @@
   set_fact:
     ia_index_tags_all: "{{ ia_list_shas_cmd.stdout.split('\n') }}"
 
-- name: "Set 'ia_index_tags'"
-  set_fact:
-    ia_index_tags: "{{ ia_index_tags_all | reject('search', '@') | list | unique | sort }}"
-
-- name: "Set 'ia_index_shas'"
-  set_fact:
-    ia_index_shas: "{{ ia_index_tags_all | difference(ia_index_tags) | unique | sort }}"
-
-- name: "Print index statistics for '{{ ia_index_image }}'"
-  debug:
-    msg: "Index : '{{ ia_index_image }}' type={{ ia_index_type }} tags={{ ia_index_tags|length }} shas={{ ia_index_shas|length }}"
-
-- name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
-  fail:
-    msg: "Error: Index '{{ ia_index_image }}' ({{ ia_index_type }}) is not same as requested '{{ ia_request_index_type }}' type"
-  when:
-    - ia_request_index_type is defined
-    - ia_request_index_type|length > 0
-    - ia_request_index_type != ia_index_type
-
-- name: "Fail when index '{{ ia_index_image }}' should be 'sha' type but it has entries with 'non sha tags'"
+- name: "Handle situation when there is at least one version in index"
   block:
-    - name: "Print db versions"
-      debug:
-        var: ia_index_tags
+    - name: "Set 'ia_index_tags'"
+      set_fact:
+        ia_index_tags: "{{ ia_index_tags_all | reject('search', '@') | list | unique | sort }}"
 
-    - name: "Fail when index '{{ ia_index_image }}' should be 'sha' type but it has entries with 'non sha tags'"
-      fail:
-        msg: "Error: Index '{{ ia_index_image }}' type={{ ia_request_index_tag_type }} has operators in with type=tag n={{ ia_index_tags|length }} !!!"
-  when:
-    - ia_request_index_tag_type is defined
-    - ia_request_index_tag_type|length > 0
-    - ia_request_index_tag_type == "sha"
-    - ia_index_tags|length > 0
+    - name: "Set 'ia_index_shas'"
+      set_fact:
+        ia_index_shas: "{{ ia_index_tags_all | difference(ia_index_tags) | unique | sort }}"
 
-- name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
-  block:
-    - name: "Print sha versions"
+    - name: "Print index statistics for '{{ ia_index_image }}'"
       debug:
-        var: ia_index_shas
+        msg: "Index : '{{ ia_index_image }}' type={{ ia_index_type }} tags={{ ia_index_tags|length }} shas={{ ia_index_shas|length }}"
 
     - name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
       fail:
-        msg: "Error: Index '{{ ia_index_image }}' type={{ ia_request_index_tag_type }} has operators in with type=sha n={{ ia_index_shas|length }} !!!"
+        msg: "Error: Index '{{ ia_index_image }}' ({{ ia_index_type }}) is not same as requested '{{ ia_request_index_type }}' type"
+      when:
+        - ia_request_index_type is defined
+        - ia_request_index_type|length > 0
+        - ia_request_index_type != ia_index_type
+
+    - name: "Fail when index '{{ ia_index_image }}' should be 'sha' type but it has entries with 'non sha tags'"
+      block:
+        - name: "Print db versions"
+          debug:
+            var: ia_index_tags
+
+        - name: "Fail when index '{{ ia_index_image }}' should be 'sha' type but it has entries with 'non sha tags'"
+          fail:
+            msg: "Error: Index '{{ ia_index_image }}' type={{ ia_request_index_tag_type }} has operators in with type=tag n={{ ia_index_tags|length }} !!!"
+      when:
+        - ia_request_index_tag_type is defined
+        - ia_request_index_tag_type|length > 0
+        - ia_request_index_tag_type == "sha"
+        - ia_index_tags|length > 0
+
+    - name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
+      block:
+        - name: "Print sha versions"
+          debug:
+            var: ia_index_shas
+
+        - name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
+          fail:
+            msg: "Error: Index '{{ ia_index_image }}' type={{ ia_request_index_tag_type }} has operators in with type=sha n={{ ia_index_shas|length }} !!!"
+      when:
+        - ia_request_index_tag_type is defined
+        - ia_request_index_tag_type|length > 0
+        - ia_request_index_tag_type == "tag"
+        - ia_index_shas|length > 0
   when:
-    - ia_request_index_tag_type is defined
-    - ia_request_index_tag_type|length > 0
-    - ia_request_index_tag_type == "tag"
-    - ia_index_shas|length > 0
+    - ia_index_tags_all.0 is defined
+    - ia_index_tags_all.0|length > 0
