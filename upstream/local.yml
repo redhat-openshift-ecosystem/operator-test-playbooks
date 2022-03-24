@@ -32,11 +32,12 @@
     opm_bin_path: "{{ testing_bin_path }}/opm"
     k8s_community_bundle_validator_path: "{{ testing_bin_path }}/k8s-community-bundle-validator"
     offline_cataloger_bin_path: "offline-cataloger"
-    kind_version: v0.9.0
+    kind_version: v0.12.0
     kind_kube_version: v1.21.1
-    operator_sdk_version: v1.17.0
+    # kind_kube_version: v1.23.4
+    operator_sdk_version: v1.18.0
     operator_courier_version: 2.1.11
-    olm_version: 0.19.1
+    olm_version: 0.20.0
     opm_version: v1.19.5
     k8s_community_bundle_validator_version: v0.1.0
     oc_version: 4.3.5
@@ -138,6 +139,7 @@
         - always
 
   roles:
+
     - {role: install_base_packages, tags: ["base"], when: run_host_init|bool}
     - {role: install_docker, tags: ["docker"], when: run_host_init|bool}
     - {role: install_kubectl, tags: ["kubectl"], when: run_host_init|bool}
@@ -145,6 +147,7 @@
     - {role: install_iib, tags: ["never", "iib"], when: run_upstream|bool}
     - {role: install_operator_prereqs, tags: ["never", "host_build"], when: run_upstream|bool}
     - {role: extract_tool_info, tags: ["always", "host_build"], when: run_upstream|bool}
+    - {role: index_audit, tags: ["never", "index_audit"], when: run_upstream|bool}
     - {role: prepare_catalog_repo_upstream, tags: ["always"], when: (run_upstream|bool and run_prepare_catalog_repo_upstream|bool)}
     - {role: quay_login, tags: ["always"], when: run_upstream|bool}
     - {role: loop_all_tests, tags: [never, "test_all", "pure_test_all"], when: run_upstream|bool}
@@ -152,6 +155,7 @@
     - {role: build_app_registry, tags: [never, "app_registry"], when: run_upstream|bool}
     - {role: operator_info, tags: ["always", "operator_info"], when: (operator_dir is defined and operator_dir|length > 0 and operator_dir != "dummy") or (operators_config is defined and operators_config|length > 0) or ( operator_base_dir is defined and operator_base_dir|length > 0 and operators is defined and operators|length > 0)}
     - {role: operator_index, tags: ["never", "operator_index"], when: run_upstream|bool}
+
     - {role: operator_ignore_list_to_index, tags: ["never", "operator_ignore_list_to_index"], when: run_upstream|bool}
     - {role: sync_index_sha, tags: ["sync_index_sha"], when: run_upstream|bool}
 

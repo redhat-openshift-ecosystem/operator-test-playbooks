@@ -1,0 +1,3 @@
+operator_bundle_version_for_upgrade: "NotDefined"
+tou_local_registry_namespace: "kind-registry:5000/test-operator"
+bundle_registry_source_without_domain: "quay"

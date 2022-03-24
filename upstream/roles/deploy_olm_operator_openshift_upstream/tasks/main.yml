@@ -742,6 +742,12 @@
   debug:
     var: prow_summary
 
+- name: "Test operator upgrade"
+  include_role:
+    name: test_operator_update
+  when:
+    - (operator_upgrade_testing_disabled is not defined) or  (operator_upgrade_testing_disabled == "false")
+
 - name: "Fail when Operator deployment with OLM failed"
   fail:
     msg: 'Operator deployment with OLM failed, expand log and check logs from the bottom to the top ^'

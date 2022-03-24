@@ -1,0 +1,8 @@
+container_tool: "docker"
+ia_container_name: "ia_image_audit"
+ia_index_image: ""
+ia_request_index_type: "" # db or fbc
+ia_request_index_tag_type: "" # tag or sha
+ia_index_type: ""
+ia_index_tags: []
+ia_index_shas: []

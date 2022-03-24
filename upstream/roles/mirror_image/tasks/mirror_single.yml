@@ -29,6 +29,29 @@
       when:
         - ms_info.3 is defined
 
+    - name: "Detect type"
+      set_fact:
+        ms_request_index_type: "db"
+        ms_request_index_tag_type: "tag"
+
+    - name: "Detect type fbc"
+      set_fact:
+        ms_request_index_type: "fbc"
+      when: ms_image_postfix[-1:]=="f"
+
+    - name: "Detect type sha"
+      set_fact:
+        ms_request_index_tag_type: "sha"
+      when: ms_image_postfix[-1:]=="s" or ms_image_postfix[-2:]=="sf"
+
+    - name: "Verify index '{{ mirror_input_image }}{{ ms_image_postfix }}' '{{ ms_request_index_type }}' '{{ ms_request_index_tag_type }}'"
+      include_role:
+        name: index_audit
+      vars:
+        ia_index_image: "{{ mirror_input_image }}{{ ms_image_postfix }}"
+        ia_request_index_type: "{{ ms_request_index_type }}" # db or fbc
+        ia_request_index_tag_type: "{{ ms_request_index_tag_type }}" # tag or sha
+
     - name: "Set 'mirror_input_image_final' to '{{ mirror_input_image }}{{ ms_image_postfix }}'"
       set_fact:
         mirror_input_image_final: "{{ mirror_input_image }}{{ ms_image_postfix }}"
@@ -64,7 +87,6 @@
       register: ms_pull_mirror_input_image_final
       failed_when: false
 
-
     - name: "Reset archs list"
       set_fact:
         mi_actual_architectures: []
@@ -82,7 +104,7 @@
     # - name: "Pulling latest input image '{{ mirror_input_image_final }}'"
     #   shell: "{{ container_tool }} pull {{ mirror_input_image  }}{{ ms_image_postfix }}"
 
-#TODO: index safety check
+    #TODO: index safety check
 
     - name: "Show mi_actual_architectures"
       debug:
@@ -177,7 +199,6 @@
               register: mi_ms_multiarch_request
               # ignore_errors: true
 
-
               # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
               # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
               # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": {{ archs }},"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
@@ -190,7 +211,6 @@
             #   fail:
             #     msg: "Triggering http rquest to build multiarch image failed"
             #   when: mi_ms_multiarch_request.status != 200
-
 
             - name: "Parsing id from http response"
               set_fact:
@@ -225,7 +245,6 @@
 
             - name: "Transfer image to '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
               block:
-
                 - name: "Set input iib image to localhost when using local iib service"
                   set_fact:
                     mi_ms_iib_image: "localhost:8443/iib-build:{{ mi_ms_iib_id }}"
@@ -260,6 +279,14 @@
             - ms_pull_mirror_input_image_final.rc == 0
       when:
         - mi_actual_architectures |list | count <= 1
+
+    - name: "Verify index '{{  ms_info[0] }}' '{{ ms_request_index_type }}' '{{ ms_request_index_tag_type }}'"
+      include_role:
+        name: index_audit
+      vars:
+        ia_index_image: "{{  ms_info[0] }}"
+        ia_request_index_type: "{{ ms_request_index_type }}" # db or fbc
+        ia_request_index_tag_type: "{{ ms_request_index_tag_type }}" # tag or sha
   tags:
     - mirror_index
     - deploy_bundles
