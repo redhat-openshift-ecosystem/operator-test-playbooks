@@ -26,14 +26,6 @@
       set_fact:
         pick_upgrade_version_from_list: "{{ op_info[operator_package_name].versions|list }}"
 
-    - name: "debug 01"
-      debug:
-        var: pick_upgrade_version_from_list
-
-    - name: "debug 02"
-      debug:
-        var: operator_bundle_version_for_upgrade
-
     - name: "Find current_operator_index_in_list"
       set_fact:
         tou_current_operator_index_in_list: "{{ lookup('ansible.utils.index_of', pick_upgrade_version_from_list, 'eq', operator_bundle_version_for_upgrade) }}"
