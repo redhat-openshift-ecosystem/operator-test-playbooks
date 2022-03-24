@@ -56,9 +56,9 @@ $CONTAINER_CMD run -d \
    -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
    -p ${reg_port}:5000 \
    registry:2
-if [[ $(id -u) -eq 0 ]];then
-  sh -c "sed -i 's/^127.0.0.1.*/127.0.0.1 localhost kind-registry/g' /etc/hosts"
-fi
+#if [[ $(id -u) -eq 0 ]];then
+sudo sh -c "sed -i 's/^127.0.0.1.*/127.0.0.1 localhost kind-registry/g' /etc/hosts"
+#fi
 {% endif %}
 
 # Remove existing cluster if it exists
