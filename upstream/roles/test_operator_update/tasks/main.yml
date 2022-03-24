@@ -116,6 +116,11 @@
         msg: "Upgraded operator from {{ tou_operator_bundle_for_install }} to  {{ tou_operator_bundle_for_upgrade }}  [OK]"
       when: tou_upgrade_rc.rc == 0
 
+    - name: "Update status if wrong"
+      debug:
+        msg: "Operator upgrade failed, try locally: 'operator sdk run bundle {{ tou_operator_bundle_for_install }}; operator-sdk run bundle-upgrade  {{ tou_operator_bundle_for_upgrade }}'  [FAIL]"
+      when: tou_upgrade_rc.rc != 0
+
     - name: "Cleanup {{ operator_name }}"
       shell: "{{ operator_sdk_bin_path }} cleanup {{ operator_name }}"
       failed_when: false
