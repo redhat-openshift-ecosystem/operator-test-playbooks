@@ -38,33 +38,15 @@
       set_fact:
         tou_current_operator_index_in_list: "{{ lookup('ansible.utils.index_of', pick_upgrade_version_from_list, 'eq', operator_bundle_version_for_upgrade) }}"
 
-    - debug:
-        var: tou_current_operator_index_in_list
-
     - name: "Find previous_operator_index_in_list"
       set_fact:
         tou_previous_operator_index_in_list: "{{ tou_current_operator_index_in_list|int - 1 }}"
-
-    - debug:
-        var: tou_previous_operator_index_in_list
-
-    - debug:
-        var: pick_upgrade_version_from_list
-
-    - debug:
-        var: pick_upgrade_version_from_list|length
-
-    - debug:
-        var: pick_upgrade_version_from_list[tou_previous_operator_index_in_list|int]
 
     - name: "Set 'tou_upgrade_from' in case of semver mode"
       set_fact:
         tou_upgrade_from: "{{ pick_upgrade_version_from_list[tou_previous_operator_index_in_list|int] }}"
         tou_upgrade_to: "{{ operator_bundle_version_for_upgrade }}"
       failed_when: false
-
-    - debug:
-        var: tou_upgrade_from
 
     - name: "Set 'upgrade_test_possible'"
       set_fact:
@@ -118,38 +100,24 @@
       register: tou_upgrade_rc
       ignore_errors: true
 
-    - name: "Get pods"
-      shell: "kubectl get pods --all-namespaces"
-      register: tou_pods
-
-    - debug:
-        var: tou_pods
-
-    - name: "Get pods"
-      shell: "kubectl get pods --all-namespaces|grep {{ bundle_registry_source_without_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
-      register: tou_registry_pod
-
-    # - name: "Get cs"
-    #   shell: "kubectl get CatalogSource aqua-catalog -n default -o=yaml"
-    #   register: tou_cs
+    # - name: "Get pods"
+    #   shell: "kubectl get pods --all-namespaces"
+    #   register: tou_pods
+    #   when: tou_upgrade_rc.rc != 0
 
     # - debug:
-    #     var: tou_cs
+    #     var: tou_pods
 
     # - name: "Get pods"
-    #   shell: "kubectl get pods kind-registry-5000-test-operator-aqua-v6-5-2 -n default -o=yaml"
-    #   register: tou_pod_out
+    #   shell: "kubectl get pods --all-namespaces|grep {{ bundle_registry_source_without_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
+    #   register: tou_registry_pod
+
+    # - name: "Logs"
+    #   shell: "kubectl logs {{ tou_registry_pod }} -n default"
+    #   register: tou_pod_log
 
     # - debug:
-    #     var: tou_pod_out
-
-
-    - name: "Logs"
-      shell: "kubectl logs {{ tou_registry_pod }} -n default"
-      register: tou_pod_log
-
-    - debug:
-        var: tou_pod_log
+    #     var: tou_pod_log
 
     - name: "Update status"
       debug:
