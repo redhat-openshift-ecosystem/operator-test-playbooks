@@ -9,16 +9,16 @@ CERT_EXPIRED_IN=${CERT_EXPIRED_IN-86400}
 # create registry container unless it already exists
 reg_name='kind-registry'
 reg_port='5000'
-# running="$($CONTAINER_CMD inspect -f '{{ '{{' }}.State.Running{{ '}}' }}' "${reg_name}" 2>/dev/null || true)"
-# if [ "${running}" == 'true' ]; then
+
+# Remove existing registry
 $CONTAINER_CMD rm -f "${reg_name}" || true
-# fi
 
 {% if kind_registry_ssl|bool == false %}
 $CONTAINER_CMD run \
     -d --restart=always -p ${reg_port}:5000 --name "${reg_name}" \
     registry:2
 {% else %}
+
 # [ -d $CERTS_DIR ] && rm -rf $CERTS_DIR || true
 
 # check if certificate will expire in 1 day
@@ -27,17 +27,26 @@ if [ ! -f $CERTS_DIR/domain.crt ] || [ ! openssl x509 -checkend $CERT_EXPIRED_IN
   rm -rf $CERTS_DIR > /dev/null 2>&1 || true
   mkdir -p $CERTS_DIR
 
-  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN=kind-registry' -addext "subjectAltName=DNS:kind-registry,DNS:localhost" -out $CERTS_DIR/domain.crt -batch
+  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $CERTS_DIR/domain.key -x509 -days 365 -subj '/CN=${reg_name}' -addext "subjectAltName=DNS:${reg_name},DNS:localhost,DNS:host.containers.internal" -out $CERTS_DIR/domain.crt -batch
   cd $CERTS_DIR
   ln -snf domain.crt ca.crt
   cd -
 
-  # Working for ubuntu
-  # TODO handle CentOS also
+{% if ansible_facts['os_family'] == "Debian" %}
+  # For ubuntu
   sudo cp -f $CERTS_DIR/domain.crt /etc/ssl/certs/
   sudo update-ca-certificates --fresh
-  #sudo update-ca-certificates
+{% elif ansible_facts['os_family'] == "RedHat" %}
+  # For redhat family
+  sudo cp $CERTS_DIR/domain.crt /etc/pki/ca-trust/source/anchors/
+  sudo update-ca-trust
+{% else %}
+  echo "Error: Unsuported version for handling certificates for registry !!!"
+  exit 1
+{% endif %}
+
 fi
+
 $CONTAINER_CMD run -d \
    --restart=always \
    --name "${reg_name}" \
@@ -47,9 +56,9 @@ $CONTAINER_CMD run -d \
    -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
    -p ${reg_port}:5000 \
    registry:2
-
-sudo sh -c "sed -i 's/^127.0.0.1.*/127.0.0.1 localhost kind-registry/g' /etc/hosts"
-
+if [[ $(id -u) -eq 0 ]];then
+  sh -c "sed -i 's/^127.0.0.1.*/127.0.0.1 localhost kind-registry/g' /etc/hosts"
+fi
 {% endif %}
 
 # Remove existing cluster if it exists
@@ -69,23 +78,38 @@ apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]
+{% if ansible_facts['os_family'] == "Debian" %}
 {% if kind_registry_ssl|bool == false %}
     endpoint = ["http://${reg_name}:${reg_port}"]
 {% else %}
     endpoint = ["https://${reg_name}:${reg_port}"]
 {% endif %}
-
+{% elif ansible_facts['os_family'] == "RedHat" %}
+{% if kind_registry_ssl|bool == false %}
+    endpoint = ["http://host.containers.internal:${reg_port}"]
+{% else %}
+    endpoint = ["https://host.containers.internal:${reg_port}"]
+{% endif %}
+{% endif %}
 EOF
 
 # connect the registry to the cluster network
-[ "$CONTAINER_CMD" = "docker" ] && $CONTAINER_CMD network connect "kind" "${reg_name}"
+$CONTAINER_CMD network connect "kind" "${reg_name}"
 
-# tell https://tilt.dev to use the registry
-# https://docs.tilt.dev/choosing_clusters.html#discovering-the-registry
 for node in $(kind get nodes --name {{ kind_cluster_name }}); do
-  kubectl annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
   $CONTAINER_CMD cp $CERTS_DIR/domain.crt ${node}:/usr/local/share/ca-certificates/ca.crt
   $CONTAINER_CMD exec ${node} update-ca-certificates --fresh
   $CONTAINER_CMD exec ${node} systemctl restart containerd
 done
 
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-registry-hosting
+  namespace: kube-public
+data:
+  localRegistryHosting.v1: |
+    host: "localhost:${reg_port}"
+    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
+EOF

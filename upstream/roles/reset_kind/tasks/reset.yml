@@ -24,7 +24,7 @@
           template:
             src: kind-with-registry.sh.j2
             dest: "{{ kind_tmp_dir }}/kind-with-registry.sh"
-            mode: '0755'
+            mode: "0755"
 
         - name: "Configuring Kind with registry"
           shell: "{{ kind_tmp_dir }}/kind-with-registry.sh"
