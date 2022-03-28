@@ -171,16 +171,25 @@
     - cosmetics_install
 
 - name: "Download dyff"
-  shell: "curl --silent --location https://git.io/JYfAY | bash"
+  unarchive:
+    src: "https://github.com/homeport/dyff/releases/download/v{{ dyff_version }}/dyff_{{ dyff_version }}_linux_amd64.tar.gz"
+    dest: "{{ testing_bin_path }}"
+    remote_src: true
   register: dyff_install_result
-  failed_when: dyff_install_result is failure
+  until: dyff_install_result is succeeded
+  retries: 10
+  delay: 15
   environment:
-    HOME: "{{ work_dir }}"
     PATH: "{{ testing_bin_path }}:{{ ansible_env.PATH }}"
   tags:
     - install
     - reset_tools
     - cosmetics_install
+
+- name: "Set permissions on dyff"
+  file:
+    path: "{{ testing_bin_path }}/dyff"
+    mode: "0755"
 
 - name: "Install prerequisites specific to legacy operator manifest testing"
   block:
