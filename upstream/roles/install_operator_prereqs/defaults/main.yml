@@ -10,6 +10,7 @@ umoci_version: v0.4.5
 opm_version: v1.14.2
 k8s_community_bundle_validator_version: v0.1.0
 grpcurl_version: 1.8.6
+dyff_version: 1.5.1
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 oc_bin_path: "{{ 'kubectl' if run_upstream else \"{{ testing_bin_path }}/oc\" }}"
 jq_bin_path: "{{ testing_bin_path }}/jq"
