@@ -125,6 +125,7 @@
     - name: "Set 'result_rc' to false"
       set_fact:
         result_rc: false
+        index_skip: false
 
     - name: "Set 'result_rc'"
       set_fact:
