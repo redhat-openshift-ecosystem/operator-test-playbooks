@@ -352,6 +352,7 @@
     - name: "Setting 'oiatil_versions'"
       set_fact:
         oiatil_versions: "{{ op_info[oi_op_name].versions }}"
+        index_skip: true
 
     - name: "Generating ingore list"
       include_tasks: op_index_add_to_ignore_list.yml
