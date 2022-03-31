@@ -50,6 +50,13 @@
         - skopeo_inspect_json.Labels['com.redhat.openshift.versions']|length > 0
         - oi_supported_cluster_versions.0 is defined
 
+    - name: "Set cluster version from bundle label - openshift-ci"
+      set_fact:
+        ocp_version_annotation_stdout: "{{ op_info[operator_package_name].manifests[op_version].idx_label }}"
+      when:
+        - current_openshift_run is defined
+        - current_openshift_run |length > 0
+
     - name: "No cluster version defined on label, version is supported. Do not run for clean_index_check in check_index, run only for release in deploy_bundles."
       include_tasks: version_found.yml
       when:
