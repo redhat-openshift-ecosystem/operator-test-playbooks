@@ -1,4 +1,12 @@
 ---
+- name: "Debug"
+  debug: 
+    var: doic_final_list
+
+- name: "Debug"
+  debug: 
+    var: doic_versions_from_bundle
+
 - name: "Task #5: Adding current {{ doic_supported_index_from_api_parsed_version }} to target {{ dov_cluster_ver }}"
   set_fact:
     doic_final_list: "{{ doic_final_list | default([]) + [doic_versions_from_bundle] }}"
