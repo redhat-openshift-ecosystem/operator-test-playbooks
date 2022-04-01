@@ -8,9 +8,20 @@
     op_info: "{{ operator_info_data.stdout | from_yaml }}"
   when: operator_info_data.rc == 0
 
+# - name: "Set cluster version from bundle label - openshift-ci"
+#   set_fact:
+#     ocp_version_annotation_stdout: "{{ op_info[operator_package_name].manifests[op_version].idx_label|string }}"
+
 - name: "Set cluster version from bundle label - openshift-ci"
   set_fact:
-    ocp_version_annotation_stdout: "{{ op_info[operator_package_name].manifests[op_version].idx_label|string }}"
+    skopeo_inspect_json: 
+      Labels:
+        "com.redhat.openshift.versions": "{{ op_info[operator_package_name].manifests[op_version].idx_label }}"
+
+- name: "Set cluster version from bundle label"
+  set_fact:
+    ocp_version_annotation_stdout: "{{ skopeo_inspect_json.Labels['com.redhat.openshift.versions'] }}"
+    # ocp_version_annotation_stdout: "{{ skopeo_inspect_json.Labels }}"
 
 - debug:
     var: ocp_version_annotation_stdout
