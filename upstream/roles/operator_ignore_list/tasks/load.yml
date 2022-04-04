@@ -5,8 +5,10 @@
 
 - name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
   shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
-  # ignore_errors: true
-  failed_when: false
+  # failed_when: false
+  until: oil_image_exists.rc == 0
+  retries: "{{ pull_retry }}"
+  delay: 10
   register: oil_image_exists
 
 - name: "Load ignore list from '{{ oil_index_image }}{{ oil_index_image_postfix }}' if it exists"
@@ -14,7 +16,6 @@
     - name: "Set 'oil_temp'"
       set_fact:
         oil_temp: "ignore_list"
-        # ignore_list: []
 
     - name: "Rm the {{ oil_temp }} container"
       shell: "{{ container_tool }} rm -f {{ oil_temp }}"
