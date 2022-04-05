@@ -10,7 +10,6 @@ oil_index_image: ""
 oil_index_image_postfix: "i"
 oil_external_file_action: "add"
 oil_build_extra_args: ""
-pull_retry: 5
 pull_existing_ignore_list: true
 #ignore_list:
 #  - aqua:v0.0.1

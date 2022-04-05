@@ -6,21 +6,19 @@
 
 - name: "Pull ignore list"
   block:
+    - name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
+      until: oil_image_exists.rc == 0
+      retries: "{{ registry_action_retry | default(5) }}"
+      delay: "{{ registry_action_delay | default(10) }}"
+      register: oil_image_exists
 
-  - name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
-    shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
-    until: oil_image_exists.rc == 0
-    retries: "{{ pull_retry }}"
-    delay: 10
-    register: oil_image_exists
-
-  - name: "Set pull output"
-    set_fact:
-      oil_image_exists_rc: "{{ oil_image_exists.rc }}"
-  
-  when: 
+    - name: "Set pull output"
+      set_fact:
+        oil_image_exists_rc: "{{ oil_image_exists.rc }}"
+  when:
     - pull_existing_ignore_list is defined
-    - pull_existing_ignore_list|true
+    - pull_existing_ignore_list|bool
 
 - name: "Load ignore list from '{{ oil_index_image }}{{ oil_index_image_postfix }}' if it exists"
   block:
