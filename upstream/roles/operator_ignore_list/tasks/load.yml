@@ -25,7 +25,7 @@
 
     - name: "Cp ignore list"
       shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}"
-      failed_when: false
+      # failed_when: false
 
     - name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
       stat:
