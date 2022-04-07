@@ -2,19 +2,29 @@
 - name: "Reset 'oil_ignore_list_external_data'"
   set_fact:
     oil_ignore_list_external_data: ""
+    oil_image_exists_rc: 1
 
-- name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
-  shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
-  # ignore_errors: true
-  failed_when: false
-  register: oil_image_exists
+- name: "Pull ignore list"
+  block:
+    - name: "Pull index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
+      until: oil_image_exists.rc == 0
+      retries: "{{ registry_action_retry | default(5) }}"
+      delay: "{{ registry_action_delay | default(10) }}"
+      register: oil_image_exists
+
+    - name: "Set pull output"
+      set_fact:
+        oil_image_exists_rc: "{{ oil_image_exists.rc }}"
+  when:
+    - pull_existing_ignore_list is defined
+    - pull_existing_ignore_list|bool
 
 - name: "Load ignore list from '{{ oil_index_image }}{{ oil_index_image_postfix }}' if it exists"
   block:
     - name: "Set 'oil_temp'"
       set_fact:
         oil_temp: "ignore_list"
-        # ignore_list: []
 
     - name: "Rm the {{ oil_temp }} container"
       shell: "{{ container_tool }} rm -f {{ oil_temp }}"
@@ -25,7 +35,7 @@
 
     - name: "Cp ignore list"
       shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}"
-      failed_when: false
+      # failed_when: false
 
     - name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
       stat:
@@ -53,8 +63,8 @@
         ignore_list: "{{ ignore_list | union(ignore_list_from_file) }}"
       when: ignore_list_from_file.0 is defined
   when:
-    - oil_image_exists.rc is defined
-    - oil_image_exists.rc == 0
+    - oil_image_exists_rc is defined
+    - oil_image_exists_rc == 0
 
 - name: "Add/remove ignore list entries according external file"
   block:
