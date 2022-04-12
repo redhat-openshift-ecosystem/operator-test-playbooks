@@ -2,16 +2,16 @@
 - name: "Handle Operator index (new)"
   block:
     - name: "Prepare operator info for loop"
-      set_facts:
+      set_fact:
         oi_operators: "{{ op_info.keys() | list }}"
 
     # - name: "Prepare operators from file for loop"
-    #   set_facts:
+    #   set_fact:
     #     oi_operators: "{{ operators }}"
     #   when: operators is defined
 
     - name: ""
-      set_facts:
+      set_fact:
         oi_operators: "{{ operator_index_operators.split(',') | list }}"
       when: 
         - operator_index_operators is defined
