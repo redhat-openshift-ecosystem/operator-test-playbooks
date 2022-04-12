@@ -130,6 +130,7 @@
           set_fact:
             operators: "{{ (operators_config_vars.operators | join(',')) | default('') }}"
             operator_base_dir: "{{ operators_config_vars.operator_base_dir | default('') }}"
+            operator_index_operators: "{{ (operators_config_vars.operators | join(',')) | default('') }}"
 
         - name: "Failing when 'operator base dir' is not found in '{{ operators_config }}'"
           fail:
