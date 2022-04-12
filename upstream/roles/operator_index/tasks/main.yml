@@ -1,26 +1,42 @@
 ---
 - name: "Handle Operator index (new)"
   block:
-    - name: "Loop over all versions"
-      include_tasks: op_index.yml
-      vars:
-        io_index_ver: "{{ bundle_index_image_version }}"
-      loop: "{{ op_info.keys() | list }}"
-      loop_control:
-        loop_var: oi_op_name
-      when:
-        - operator_index_operators is undefined or operator_index_operators|length == 0
+    - name: "Prepare operator info for loop"
+      set_facts:
+        oi_operators: "{{ op_info.keys() | list }}"
+
+    # - name: "Prepare operators from file for loop"
+    #   set_facts:
+    #     oi_operators: "{{ operators }}"
+    #   when: operators is defined
+
+    - name: ""
+      set_facts:
+        oi_operators: "{{ operator_index_operators.split(',') | list }}"
+      when: 
+        - operator_index_operators is defined
+        - operator_index_operators|length > 0
 
     - name: "Loop over all versions"
       include_tasks: op_index.yml
       vars:
         io_index_ver: "{{ bundle_index_image_version }}"
-      loop: "{{ operator_index_operators.split(',') | list }}"
+      loop: "{{ oi_operators }}"
       loop_control:
         loop_var: oi_op_name
-      when:
-        - operator_index_operators is defined
-        - operator_index_operators|length > 0
+      # when:
+      #   - operator_index_operators is undefined or operator_index_operators|length == 0
+
+    # - name: "Loop over all versions"
+    #   include_tasks: op_index.yml
+    #   vars:
+    #     io_index_ver: "{{ bundle_index_image_version }}"
+    #   loop: "{{ operator_index_operators.split(',') | list }}"
+    #   loop_control:
+    #     loop_var: oi_op_name
+    #   when:
+    #     - operator_index_operators is defined
+    #     - operator_index_operators|length > 0
 
     - name: "Print failed 'oi_failed_index_add'"
       debug:
