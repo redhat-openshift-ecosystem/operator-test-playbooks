@@ -13,7 +13,7 @@
     - name: ""
       set_fact:
         oi_operators: "{{ operator_index_operators.split(',') | list }}"
-      when: 
+      when:
         - operator_index_operators is defined
         - operator_index_operators|length > 0
 

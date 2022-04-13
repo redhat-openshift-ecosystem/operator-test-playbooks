@@ -44,7 +44,7 @@
 
     - name: "Set cluster version from bundle label - openshift-ci"
       set_fact:
-        skopeo_inspect_json: 
+        skopeo_inspect_json:
           Labels:
             "com.redhat.openshift.versions": "{{ op_info[operator_package_name].manifests[op_version].idx_label }}"
       when:
@@ -92,7 +92,6 @@
     - block:
         - name: "Data is empty"
           block:
-
             - name: "Create chi_git_not_index_operators_not_needed line"
               set_fact:
                 chi_git_not_index_operators_not_needed_line: "{{ dov_op_name }}:v{{ doic_versions_processing }}"
