@@ -13,14 +13,6 @@ operator_allnamespaces_support: {{ operator_allnamespaces_support }}
 operator_ownnamespace_support: {{ operator_ownnamespace_support }}
 operator_singlenamespace_support: {{ operator_singlenamespace_support }}
 operator_multinamespace_support: {{ operator_multinamespace_support }}
-{% if operator_valid_subscription|length < 1 %}
-operator_valid_subscription: []
-{% else %}
-operator_valid_subscription:
-{% for valid_subscription in operator_valid_subscription %}
-  - {{ valid_subscription }}
-{% endfor %}
-{% endif %}
 {% if crd_paths|length < 1 %}
 crd_paths: []
 {% else %}
