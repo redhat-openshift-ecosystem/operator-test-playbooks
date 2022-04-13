@@ -104,13 +104,12 @@
     set_fact:
       csv_vars: "{{ csv_data.stdout }}"
 
-  - name: "Determine and set fact for operator specific information - name, pod name, container name, capabilities, and subscription"
+  - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
     set_fact:
       current_csv: "{{ (csv_vars | from_yaml).metadata.name }}"
       operator_pod_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].name }}"
       operator_container_name: "{{ (csv_vars | from_yaml).spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
       operator_capabilities: "{{ (csv_vars | from_yaml).metadata.annotations.capabilities }}"
-      operator_valid_subscription: "{{ (csv_vars | from_yaml).metadata.annotations['operators.openshift.io/valid-subscription'] | default([]) }}"
 
   - name: "Determine operator_allnamespaces_support"
     set_fact:
