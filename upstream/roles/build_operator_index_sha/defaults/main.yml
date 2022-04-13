@@ -7,3 +7,5 @@ sis_bundles_str: ""
 sis_bundles_dt_str: ""
 boi_index_args: ""
 bundle_index_fbc_postfix: "f"
+default_retries: 5
+default_delay: 10

@@ -103,6 +103,8 @@
             force_basic_auth: true
             headers:
               Authorization: "Bearer {{ quay_api_token }}"
+          retries: "{{ default_retries }}"
+          delay: "{{ default_delay }}"
           register: chi_list_bundles_in_quay
           no_log: true
 

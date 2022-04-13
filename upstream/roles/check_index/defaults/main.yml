@@ -5,3 +5,5 @@ sanity_check_container_name: "sanity_check_index"
 sqlite_db_file: "/tmp/index.db"
 max_missing_operators_allowed: 0
 ci_operator_base_dir: ""
+default_retries: 5
+default_delay: 10

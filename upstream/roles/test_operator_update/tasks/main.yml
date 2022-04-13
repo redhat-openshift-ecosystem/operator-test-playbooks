@@ -74,8 +74,8 @@
         - name: "Installing OLM"
           shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
           register: olm_install_rc
-          retries: 10
-          delay: 5
+          retries: "{{ default_retries }}"
+          delay: "{{ default_delay }}"
           until: olm_install_rc.rc == 0
 
         - name: "Delete catalogsource"

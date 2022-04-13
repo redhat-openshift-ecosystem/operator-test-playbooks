@@ -16,6 +16,8 @@
 
   vars:
     run_upstream: false
+    default_retries: 5
+    default_delay: 10
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"
     jq_bin_path: "{{ testing_bin_path }}/jq"

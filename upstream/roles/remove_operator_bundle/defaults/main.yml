@@ -9,3 +9,5 @@ opm_container_tool_index: "docker"
 container_push_extra: ""
 boi_index_args: ""
 ignore_image_string: "--"
+default_retries: 5
+default_delay: 10

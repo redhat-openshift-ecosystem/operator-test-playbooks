@@ -1,5 +1,7 @@
 - name: "Getting sha from operator bundle version '{{ item }}'"
   shell: "skopeo inspect docker://{{ item }}"
+  retries: "{{ default_retries }}"
+  delay: "{{ default_delay }}"
   register: bs_skopeo_inspect
 
 - name: "Reseting bs_skopeo_inspect_info"
@@ -10,7 +12,6 @@
   set_fact:
     bs_skopeo_inspect_info: "{{ bs_skopeo_inspect.stdout | from_json }}"
   when: bs_skopeo_inspect.rc == 0
-
 
 - name: "Parsing output image with login information"
   no_log: true

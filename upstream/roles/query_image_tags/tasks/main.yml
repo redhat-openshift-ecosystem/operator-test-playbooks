@@ -4,6 +4,8 @@
     - name: "Get first tag '{{ qit_image.split('/')[0] }}/{{ qit_image.split('/')[1] }}/{{ qit_image.split('/')[2] }}'"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ qit_image.split('/')[0] }}/v2/{{ qit_image.split('/')[1] }}/{{ qit_image.split('/')[2] }}/tags/list"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       register: qit_registry_versions
       failed_when: false
 
@@ -30,6 +32,8 @@
 
         - name: "Query tags from image '{{ qit_image }}:{{ qit_tag_tmp }}' via skopeo inspect "
           shell: "skopeo inspect docker://{{ qit_image }}:{{ qit_tag_tmp }}"
+          retries: "{{ default_retries }}"
+          delay: "{{ default_delay }}"
           register: qit_skopeo_inspect
           failed_when: false
           changed_when: false

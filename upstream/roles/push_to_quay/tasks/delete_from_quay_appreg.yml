@@ -4,6 +4,8 @@
     url: "https://quay.io/cnr/api/v1/packages/{{ ptq_namespace }}/{{ ptq_operator_dir_name }}"
     headers:
       Authorization: "basic {{ quay_appregistry_api_token }}"
+  retries: "{{ default_retries }}"
+  delay: "{{ default_delay }}"
   register: ptq_dir_existence
   failed_when: false
 
@@ -16,3 +18,5 @@
       Authorization: "Bearer {{ quay_appregistry_api_token }}"
     status_code: 204
     return_content: true
+  retries: "{{ default_retries }}"
+  delay: "{{ default_delay }}"
