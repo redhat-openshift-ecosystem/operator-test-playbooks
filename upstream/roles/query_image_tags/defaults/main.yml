@@ -1,2 +1,4 @@
 qit_image: ""
 qit_result: []
+default_retries: 5
+default_delay: 10

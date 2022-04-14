@@ -1,5 +1,7 @@
 - name: "Copy '{{ opi_source_dir }}' to final destination '{{ opi_operator_image }}{{ bovb_timestamp }}'"
   shell: "skopeo copy dir:{{ opi_source_dir }} {{ image_protocol }}{{ opi_operator_image }}{{ bovb_timestamp }}"
+  retries: "{{ default_retries }}"
+  delay: "{{ default_delay }}"
   when:
     - opi_operator_image is defined
     - opi_operator_image|length > 0

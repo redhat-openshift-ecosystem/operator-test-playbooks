@@ -1,3 +1,5 @@
 container_tool: "docker"
 fqp_image_dir: /tmp/operator-test/fqp_image_dir
 container_push_extra: ""
+default_retries: 5
+default_delay: 10

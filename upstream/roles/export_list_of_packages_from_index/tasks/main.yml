@@ -9,6 +9,8 @@
 
     - name: "Pulling index container {{ bundle_index_image_input }}"
       shell: "{{ container_tool }} pull {{ bundle_index_image_input }}"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       when: not index_pull_skip
 
     - name: "Start index container {{ bundle_index_image_input }}"

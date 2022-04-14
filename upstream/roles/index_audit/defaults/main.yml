@@ -6,3 +6,5 @@ ia_request_index_tag_type: "" # tag or sha
 ia_index_type: ""
 ia_index_tags: []
 ia_index_shas: []
+default_retries: 5
+default_delay: 10
