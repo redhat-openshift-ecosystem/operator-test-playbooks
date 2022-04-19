@@ -63,6 +63,8 @@
       block:
         - name: "Pulling latest input image '{{ mirror_input_image_final }}'"
           shell: "{{ container_tool }} pull {{ mirror_input_image  }}{{ ms_image_postfix }}"
+          retries: "{{ default_retries }}"
+          delay: "{{ default_delay }}"
 
         - name: "Doing retag of '{{ mirror_input_image_final }}' to '{{ ms_info[0] }}'"
           shell: "{{ container_tool }} tag {{ mirror_input_image  }}{{ ms_image_postfix }} {{ ms_info[0] }}"
@@ -84,6 +86,8 @@
 
     - name: "Pull input image '{{ mirror_input_image_final }}'"
       shell: "{{ container_tool }} pull {{ mirror_input_image_final }}"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       register: ms_pull_mirror_input_image_final
       failed_when: false
 
@@ -93,6 +97,8 @@
 
     - name: "Detect architectures from image '{{ mirror_input_image_final }}'"
       shell: "{{ container_tool }} manifest inspect {{ mirror_input_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       register: mi_archs_inspect_result
       failed_when: false
 
@@ -116,11 +122,15 @@
 
     - name: "Mirror multiarch phase I temp {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} to {{ image_protocol }}{{ ms_info[0] }}_tmp"
       shell: "skopeo copy -a {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} {{ image_protocol }}{{ ms_info[0] }}_tmp"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       when:
         - mi_actual_architectures | list |count > 1
 
     - name: "Mirror multiarch final {{ image_protocol }}{{ ms_info[0] }}_tmp to {{ image_protocol }}{{ ms_info[0] }}"
       shell: "skopeo copy -a {{ image_protocol }}{{ ms_info[0] }}_tmp {{ image_protocol }}{{ ms_info[0] }}"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       when:
         - mi_actual_architectures | list |count > 1
 
@@ -135,12 +145,16 @@
 
                 - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
                   shell: "{{ container_tool }} push {{ iib_input_local_host_image_base }}"
+                  retries: "{{ default_retries }}"
+                  delay: "{{ default_delay }}"
                   when:
                     - container_tool is defined
                     - container_tool != 'podman'
 
                 - name: "Push iib local input image '{{ iib_input_local_host_image_base }}'"
                   shell: "{{ container_tool }} push --tls-verify=false {{ iib_input_local_host_image_base }}"
+                  retries: "{{ default_retries }}"
+                  delay: "{{ default_delay }}"
                   when:
                     - container_tool is defined
                     - container_tool == 'podman'
@@ -169,6 +183,8 @@
 
             - name: "Get list of arch from image '{{ mirror_multiarch_image_final }}'"
               shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+              retries: "{{ default_retries }}"
+              delay: "{{ default_delay }}"
               register: archs_inspect_result
 
             - name: "Prints 'archs'"
@@ -196,6 +212,8 @@
                   add_arches: "{{ add_arches }}"
                   binary_image: "{{ mirror_multiarch_image_final }}"
                   from_index: "{{ mirror_input_image_final }}"
+              retries: "{{ default_retries }}"
+              delay: "{{ default_delay }}"
               register: mi_ms_multiarch_request
               # ignore_errors: true
 
@@ -254,17 +272,21 @@
                   shell: "skopeo copy -a docker://{{ mi_ms_iib_image }} docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} --src-tls-verify=false -f v2s2"
                   register: ms_skopeo_result
                   until: ms_skopeo_result.rc == 0
-                  retries: 6
-                  delay: 10
+                  retries: "{{ default_retries }}"
+                  delay: "{{ default_delay }}"
 
                 - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[0] }}'"
                   shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false -f v2s2"
+                  retries: "{{ default_retries }}"
+                  delay: "{{ default_delay }}"
                   when:
                     - mi_tmp_postfix is defined
                     - mi_tmp_postfix|length > 0
 
                 - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_index_prod_location }}'"
                   shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_index_prod_location }} --src-tls-verify=false -f v2s2"
+                  retries: "{{ default_retries }}"
+                  delay: "{{ default_delay }}"
                   when:
                     - ms_info.4 is defined
               when:

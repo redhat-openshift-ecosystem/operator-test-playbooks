@@ -5,3 +5,5 @@ bundle_registry: kind-registry:5000
 bundle_image_namespace: test-operator
 supported_cluster_versions: "dummy"
 ignore_image_string: "--"
+default_retries: 5
+default_delay: 10

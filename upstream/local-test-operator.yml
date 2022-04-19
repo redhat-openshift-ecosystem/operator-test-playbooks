@@ -16,6 +16,8 @@
     run_remove_catalog_repo: true
     run_manifest_test: false
     scorecard_first_cr: true
+    default_retries: 5
+    default_delay: 10
     openshift_namespace: "test-operator"
     work_dir: "/tmp/operator-test"
     testing_bin_path: "{{ work_dir }}/bin"

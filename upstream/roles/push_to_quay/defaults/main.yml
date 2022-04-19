@@ -12,3 +12,5 @@ bundle_index_image_name: "catalog"
 bundle_index_image_version: "latest"
 bundle_index_image: "{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ bundle_index_image_version }}"
 ptq_cluster_version_support: false
+default_retries: 5
+default_delay: 10

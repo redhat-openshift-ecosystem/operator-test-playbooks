@@ -17,6 +17,8 @@
     run_manifest_test: false
     run_bundle_test: true
     run_prepare_catalog_repo_upstream: true
+    default_retries: 5
+    default_delay: 10
     work_dir: "/tmp/operator-test"
     operator_dir: "dummy" # so operator-courier will be installed
     image_protocol: "docker://"
@@ -82,6 +84,8 @@
         run_imagesource: "{{ run_imagesource | default(true) }}"
         run_cleanup: "{{ run_cleanup | default(true) }}"
         run_remove_catalog_repo: "{{ run_remove_catalog_repo | default(true) }}"
+        default_retries: "{{ default_retries | default(5) }}"
+        default_delay: "{{ default_delay | default(10) }}"
         operator_format: "bundle"
         check_verify_result: "{{ check_verify_result | default(true) }}"
         operator_suggested_namespace_default: test-operators

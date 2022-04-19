@@ -7,6 +7,8 @@
 
 - name: "Pull index image '{{ ia_index_image }}'"
   shell: "{{ container_tool }} pull {{ ia_index_image }}"
+  retries: "{{ default_retries }}"
+  delay: "{{ default_delay }}"
 
 - name: "Delete previous container '{{ ia_container_name }}'"
   shell: "{{ container_tool }} rm -f {{ ia_container_name }}"

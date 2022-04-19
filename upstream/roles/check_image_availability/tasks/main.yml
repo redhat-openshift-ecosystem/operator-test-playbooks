@@ -21,8 +21,8 @@
         mode: "0755"
       register: yq_install_result
       until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
-      retries: 10
-      delay: 15
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       failed_when: yq_install_result is failure
 
   when: not run_upstream|bool

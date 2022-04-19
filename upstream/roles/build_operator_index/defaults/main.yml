@@ -18,3 +18,5 @@ opm_index_ci_filename: "ci.yaml"
 opm_index_add_mode: "semver"
 index_git_check: true
 bundle_index_fbc_postfix: "f"
+default_retries: 5
+default_delay: 10

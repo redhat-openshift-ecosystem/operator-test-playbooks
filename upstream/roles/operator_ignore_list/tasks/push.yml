@@ -39,7 +39,7 @@
 
     - name: "Squash when podman"
       set_fact:
-        oil_build_extra_args: "--squash"
+        oil_build_extra_args: "--squash-all"
       when: container_tool == "podman"
 
     - name: "Build index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"

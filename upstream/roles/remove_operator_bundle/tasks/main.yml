@@ -71,6 +71,8 @@
             headers:
               Authorization: "Bearer {{ quay_api_token }}"
             status_code: 204
+          retries: "{{ default_retries }}"
+          delay: "{{ default_delay }}"
           failed_when: false
           loop: "{{ rob_versions_rm_repo }}"
           loop_control:
@@ -100,6 +102,8 @@
         headers:
           Authorization: "Bearer {{ quay_api_token }}"
         status_code: 204
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       failed_when: false
       when:
         - quay_api_token is defined
@@ -110,6 +114,8 @@
     - name: "Get list of tags for index image from bundle registry"
       uri:
         url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       register: rob_registry_versions
       failed_when: false
 
