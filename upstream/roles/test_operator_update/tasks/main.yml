@@ -85,10 +85,10 @@
         - olm_needed.stdout is not search('operatorgroup')
 
     - name: "Installing {{ tou_operator_bundle_for_install }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
+      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }} --skip-tls-verify"
 
     - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to {{ tou_operator_bundle_for_upgrade }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
+      shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }} --skip-tls-verify"
       register: tou_upgrade_rc
       ignore_errors: true
 
