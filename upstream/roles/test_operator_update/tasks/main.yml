@@ -4,6 +4,7 @@
 - name: "Reset upgrade_test_possible"
   set_fact:
     upgrade_test_possible: false
+    operator_sdk_bin_path: "{{ local_operator_sdk_bin_path }}"
 
 - name: "Set 'tou_upgrade_from' in case of replaces mode"
   block:

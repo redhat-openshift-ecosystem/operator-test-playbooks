@@ -38,3 +38,4 @@ pod_start_retries: 90
 current_openshift_run: "4.7"
 oc_version_max: "4.8"
 operator_upgrade_testing_on_openshift_disabled: false
+local_operator_sdk_bin_path: "/tmp/opertor-sdk"
