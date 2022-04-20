@@ -69,9 +69,48 @@
         - operator_sdk_container_tool == "none"
 
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
-      shell: "OPERATOR_BUNDLE_CATEGORIES={{ catalog_repo_dir }}/categories.json {{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }} {{ operator_sdk_validate_extra_args }}"
+      shell: "OPERATOR_BUNDLE_CATEGORIES={{ catalog_repo_dir }}/categories.json {{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }} {{ operator_sdk_validate_extra_args }} --output=json-alpha1"
       register: sdk_validation_upstream_result
       ignore_errors: true
+
+    - name: "Get output"
+      set_fact:
+        vob_bundle_validate_error: "{{ sdk_validation_upstream_result.stdout | from_json }}"
+
+    - name: "Print bundle validate errors"
+      debug:
+        var: vob_bundle_validate_error
+
+    - name: "Generate file '{{ vob_error_file }}'"
+      block:
+        - name: "Create header '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "| Type | Message |"
+            create: yes
+
+        - name: "Create header 2 '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "|---|---|"
+
+        - name: "Add errors to file '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
+          loop: "{{ vob_bundle_validate_error.outputs }}"
+          when: item.type == "error"
+
+        - name: "Add errors to file '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
+          loop: "{{ vob_bundle_validate_error.outputs }}"
+          when: item.type == "warning"
+
+      when:
+        - vob_bundle_validate_error.passed is defined
+        - not vob_bundle_validate_error.passed|bool
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:

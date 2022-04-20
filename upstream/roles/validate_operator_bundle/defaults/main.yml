@@ -5,3 +5,4 @@ operator_sdk_container_tool: docker
 operator_sdk_validate_extra_args: "--select-optional suite=operatorframework"
 check_validation_result: true
 catalog_repo_dir: /tmp/community-operators-for-catalog
+vob_error_file: "{{ operator_work_dir }}/operator_sdk_bundle_validate_warnings_and_errors.txt"
