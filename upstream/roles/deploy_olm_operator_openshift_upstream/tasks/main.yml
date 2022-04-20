@@ -746,6 +746,10 @@
   debug:
     var: operator_upgrade_testing_disabled
 
+- name: "Debug"
+  debug:
+    var: operator_upgrade_testing_on_openshift_disabled
+
 - name: "Test operator upgrade"
   include_role:
     name: test_operator_update
