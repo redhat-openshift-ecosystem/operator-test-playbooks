@@ -84,6 +84,9 @@
       when:
         - olm_needed.stdout is not search('operatorgroup')
 
+    - name: "Show sdk version"
+      shell: "{{ operator_sdk_bin_path }} version"
+
     - name: "Installing {{ tou_operator_bundle_for_install }}"
       shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }} --skip-tls-verify"
 
