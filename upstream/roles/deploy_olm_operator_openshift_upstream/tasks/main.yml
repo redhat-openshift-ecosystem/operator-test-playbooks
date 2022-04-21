@@ -745,7 +745,7 @@
 - name: "Debug"
   debug:
     var: operator_upgrade_testing_disabled
-
+    
 - name: "Debug"
   debug:
     var: operator_upgrade_testing_on_openshift_disabled

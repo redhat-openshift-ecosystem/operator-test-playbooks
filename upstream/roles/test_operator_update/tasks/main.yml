@@ -88,31 +88,72 @@
       shell: "{{ operator_sdk_bin_path }} version"
 
     - name: "Installing {{ tou_operator_bundle_for_install }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }} --skip-tls-verify"
+      shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
+      register: tou_n-1_rc
+      ignore_errors: true
 
     - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to {{ tou_operator_bundle_for_upgrade }}"
-      shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }} --skip-tls-verify"
+      shell: "{{ operator_sdk_bin_path }} run bundle-upgrade {{ tou_operator_bundle_for_upgrade }}"
       register: tou_upgrade_rc
       ignore_errors: true
 
-    # - name: "Get pods"
-    #   shell: "kubectl get pods --all-namespaces"
-    #   register: tou_pods
-    #   when: tou_upgrade_rc.rc != 0
+    - name: "Debug"
+      block:
+      - name: "Determine source name"
+        set_fact:
+          bundle_registry_source_domain: "kind-registry"
+        when: tou_operator_bundle_for_upgrade.startswith('kind-registry')
+          
 
-    # - debug:
-    #     var: tou_pods
+      - name: "Get pods"
+        shell: "kubectl get pods --all-namespaces"
+        register: tou_pods
 
-    # - name: "Get pods"
-    #   shell: "kubectl get pods --all-namespaces|grep {{ bundle_registry_source_without_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
-    #   register: tou_registry_pod
+      - name: "Show logs"
+        debug:
+          var: tou_pods
 
-    # - name: "Logs"
-    #   shell: "kubectl logs {{ tou_registry_pod }} -n default"
-    #   register: tou_pod_log
+      - name: "Get pod name"
+        shell: "kubectl get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
+        register: tou_registry_pod
 
-    # - debug:
-    #     var: tou_pod_log
+      - name: "Logs"
+        shell: "kubectl logs {{ tou_registry_pod }} -n default"
+        register: tou_pod_log
+
+      - name: "Show logs"
+        debug:
+          var: tou_pod_log
+  
+      - name: "Get catalog-operator pod name"
+        shell: "kubectl get pods --all-namespaces|grep catalog-operator| awk '{print $2}'"
+        register: tou_catalog_pod
+
+      - name: "Logs"
+        shell: "kubectl logs {{ tou_catalog_pod }} -n olm"
+        register: tou_catlog_pod_log
+
+      - name: "Show logs"
+        debug:
+          var: tou_catlog_pod_log
+
+      - name: "Get olm pod name"
+        shell: "kubectl get pods --all-namespaces|grep olm-operator| awk '{print $2}'"
+        register: tou_olm_pod
+
+      - name: "Logs"
+        shell: "kubectl logs {{ tou_olm_pod }} -n olm"
+        register: tou_olm_pod_log
+
+      - name: "Show logs"
+        debug:
+          var: tou_olm_pod_log
+      when: tou_upgrade_rc.rc != 0
+
+    - name: "Report unable to install N-1"
+      fail:
+        msg: "Unable to test operator upgrade due to failed installation on N-1 bundle. Debug by running 'operator sdk run bundle {{ tou_operator_bundle_for_install }}'  [FAIL]"
+      when: tou_n-1_rc.rc != 0
 
     - name: "Update status"
       debug:
