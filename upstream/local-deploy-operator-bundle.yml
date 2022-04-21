@@ -293,6 +293,15 @@
       when:
         - index_skip is undefined or not index_skip|bool
 
+    - debug:
+        var: operator_upgrade_testing_disabled
+
+    - debug:
+        var: cluster_type
+
+    - debug:
+        var: operator_bundle_version_for_upgrade
+
     - name: "Test operator upgrade"
       include_role:
         name: test_operator_update
