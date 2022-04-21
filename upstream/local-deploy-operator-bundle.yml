@@ -301,7 +301,7 @@
         - operator_bundle_version_for_upgrade|length != 0
         - cluster_type is defined
         - cluster_type == "k8s"
-        - (operator_upgrade_testing_disabled is not defined) or  (operator_upgrade_testing_disabled == "false")
+        - (operator_upgrade_testing_disabled is not defined) or (operator_upgrade_testing_disabled == "false")
 
     - name: "Push to Quay (old AppRegistry)"
       include_role:
