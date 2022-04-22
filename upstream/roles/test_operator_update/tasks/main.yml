@@ -89,7 +89,7 @@
 
     - name: "Installing {{ tou_operator_bundle_for_install }}"
       shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }}"
-      register: tou_n-1_rc
+      register: tou_n_1_rc
       ignore_errors: true
 
     - name: "Testing operator upgrade from {{ tou_operator_bundle_for_install }} to {{ tou_operator_bundle_for_upgrade }}"
@@ -153,7 +153,7 @@
     - name: "Report unable to install N-1"
       fail:
         msg: "Unable to test operator upgrade due to failed installation on N-1 bundle. Debug by running 'operator sdk run bundle {{ tou_operator_bundle_for_install }}'  [FAIL]"
-      when: tou_n-1_rc.rc != 0
+      when: tou_n_1_rc.rc != 0
 
     - name: "Update status"
       debug:
