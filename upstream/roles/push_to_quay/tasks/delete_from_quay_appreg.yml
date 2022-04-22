@@ -20,4 +20,3 @@
     return_content: true
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
-  

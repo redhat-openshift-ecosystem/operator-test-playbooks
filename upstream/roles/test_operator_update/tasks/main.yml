@@ -100,54 +100,54 @@
 
     - name: "Debug"
       block:
-      - name: "Determine source name"
-        set_fact:
-          bundle_registry_source_domain: "kind-registry"
-        when: tou_operator_bundle_for_upgrade.startswith('kind-registry')
-          
-      - name: "Get catalog-operator pod name"
-        shell: "{{ oc_bin_path }} get pods --all-namespaces|grep catalog-operator| awk '{print $2}'"
-        register: tou_catalog_pod
+        - name: "Determine source name"
+          set_fact:
+            bundle_registry_source_domain: "kind-registry"
+          when: tou_operator_bundle_for_upgrade.startswith('kind-registry')
 
-      - name: "Logs"
-        shell: "{{ oc_bin_path }} logs {{ tou_catalog_pod.stdout }} -n olm"
-        register: tou_catlog_pod_log
+        - name: "Get catalog-operator pod name"
+          shell: "{{ oc_bin_path }} get pods --all-namespaces|grep catalog-operator| awk '{print $2}'"
+          register: tou_catalog_pod
 
-      - name: "Show logs"
-        debug:
-          var: tou_catlog_pod_log
+        - name: "Logs"
+          shell: "{{ oc_bin_path }} logs {{ tou_catalog_pod.stdout }} -n olm"
+          register: tou_catlog_pod_log
 
-      - name: "Get olm pod name"
-        shell: "{{ oc_bin_path }} get pods --all-namespaces|grep olm-operator| awk '{print $2}'"
-        register: tou_olm_pod
+        - name: "Show logs"
+          debug:
+            var: tou_catlog_pod_log
 
-      - name: "Logs"
-        shell: "{{ oc_bin_path }} logs {{ tou_olm_pod.stdout }} -n olm"
-        register: tou_olm_pod_log
+        - name: "Get olm pod name"
+          shell: "{{ oc_bin_path }} get pods --all-namespaces|grep olm-operator| awk '{print $2}'"
+          register: tou_olm_pod
 
-      - name: "Show logs"
-        debug:
-          var: tou_olm_pod_log
+        - name: "Logs"
+          shell: "{{ oc_bin_path }} logs {{ tou_olm_pod.stdout }} -n olm"
+          register: tou_olm_pod_log
 
-            - name: "Get pods"
-        shell: "{{ oc_bin_path }} get pods --all-namespaces"
-        register: tou_pods
+        - name: "Show logs"
+          debug:
+            var: tou_olm_pod_log
 
-      - name: "Show logs"
-        debug:
-          var: tou_pods
+        - name: "Get pods"
+          shell: "{{ oc_bin_path }} get pods --all-namespaces"
+          register: tou_pods
 
-      - name: "Get pod name"
-        shell: "{{ oc_bin_path }} get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
-        register: tou_registry_pod
+        - name: "Show logs"
+          debug:
+            var: tou_pods
 
-      - name: "Logs"
-        shell: "{{ oc_bin_path }} logs {{ tou_registry_pod.stdout }} -n default"
-        register: tou_pod_log
+        - name: "Get pod name"
+          shell: "{{ oc_bin_path }} get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
+          register: tou_registry_pod
 
-      - name: "Show logs"
-        debug:
-          var: tou_pod_log
+        - name: "Logs"
+          shell: "{{ oc_bin_path }} logs {{ tou_registry_pod.stdout }} -n default"
+          register: tou_pod_log
+
+        - name: "Show logs"
+          debug:
+            var: tou_pod_log
 
       when: tou_upgrade_rc.rc != 0
 
