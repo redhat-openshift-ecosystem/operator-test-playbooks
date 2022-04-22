@@ -105,27 +105,6 @@
           bundle_registry_source_domain: "kind-registry"
         when: tou_operator_bundle_for_upgrade.startswith('kind-registry')
           
-
-      - name: "Get pods"
-        shell: "{{ oc_bin_path }} get pods --all-namespaces"
-        register: tou_pods
-
-      - name: "Show logs"
-        debug:
-          var: tou_pods
-
-      - name: "Get pod name"
-        shell: "{{ oc_bin_path }} get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
-        register: tou_registry_pod
-
-      - name: "Logs"
-        shell: "{{ oc_bin_path }} logs {{ tou_registry_pod.stdout }} -n default"
-        register: tou_pod_log
-
-      - name: "Show logs"
-        debug:
-          var: tou_pod_log
-  
       - name: "Get catalog-operator pod name"
         shell: "{{ oc_bin_path }} get pods --all-namespaces|grep catalog-operator| awk '{print $2}'"
         register: tou_catalog_pod
@@ -149,6 +128,27 @@
       - name: "Show logs"
         debug:
           var: tou_olm_pod_log
+
+            - name: "Get pods"
+        shell: "{{ oc_bin_path }} get pods --all-namespaces"
+        register: tou_pods
+
+      - name: "Show logs"
+        debug:
+          var: tou_pods
+
+      - name: "Get pod name"
+        shell: "{{ oc_bin_path }} get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
+        register: tou_registry_pod
+
+      - name: "Logs"
+        shell: "{{ oc_bin_path }} logs {{ tou_registry_pod.stdout }} -n default"
+        register: tou_pod_log
+
+      - name: "Show logs"
+        debug:
+          var: tou_pod_log
+
       when: tou_upgrade_rc.rc != 0
 
     - name: "Report unable to install N-1"
@@ -162,7 +162,7 @@
       when: tou_upgrade_rc.rc == 0
 
     - name: "Update status if wrong"
-      debug:
+      fail:
         msg: "Operator upgrade failed, you can debug locally by 2 commands: 'operator sdk run bundle BUNDLE_N-1; operator-sdk run bundle-upgrade BUNDLE_N'  [FAIL]"
       when: tou_upgrade_rc.rc != 0
 
