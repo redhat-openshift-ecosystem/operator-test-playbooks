@@ -80,7 +80,7 @@
           until: olm_install_rc.rc == 0
 
         - name: "Delete catalogsource"
-          shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n olm"
+          shell: "{{ oc_bin_path }} delete catalogsource operatorhubio-catalog -n {{ tou_olm_namespace }}"
           failed_when: false
       when:
         - olm_needed.stdout is not search('operatorgroup')
@@ -110,7 +110,7 @@
           register: tou_catalog_pod
 
         - name: "Logs"
-          shell: "{{ oc_bin_path }} logs {{ tou_catalog_pod.stdout }} -n olm"
+          shell: "{{ oc_bin_path }} logs {{ tou_catalog_pod.stdout }} -n {{ tou_olm_namespace }}"
           register: tou_catlog_pod_log
 
         - name: "Show logs"
@@ -122,7 +122,7 @@
           register: tou_olm_pod
 
         - name: "Logs"
-          shell: "{{ oc_bin_path }} logs {{ tou_olm_pod.stdout }} -n olm"
+          shell: "{{ oc_bin_path }} logs {{ tou_olm_pod.stdout }} -n {{ tou_olm_namespace }}"
           register: tou_olm_pod_log
 
         - name: "Show logs"
