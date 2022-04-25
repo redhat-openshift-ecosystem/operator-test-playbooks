@@ -742,11 +742,19 @@
   debug:
     var: prow_summary
 
+- name: "Debug"
+  debug:
+    var: operator_upgrade_testing_disabled
+
+- name: "Debug"
+  debug:
+    var: operator_upgrade_testing_on_openshift_disabled
+
 - name: "Test operator upgrade"
   include_role:
     name: test_operator_update
   when:
-    - (operator_upgrade_testing_disabled is not defined) or  (operator_upgrade_testing_disabled == "false")
+    - (operator_upgrade_testing_on_openshift_disabled is not defined) or (operator_upgrade_testing_on_openshift_disabled|bool==false)
 
 - name: "Fail when Operator deployment with OLM failed"
   fail:

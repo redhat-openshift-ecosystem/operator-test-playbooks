@@ -12,9 +12,9 @@ opm_bin_path: "{{ testing_bin_path }}/opm"
 offline_cataloger_bin_path: "offline-cataloger"
 kind_version: v0.9.0
 kind_kube_version: v1.19.1
-operator_sdk_version: v0.18.2
-olm_version: 0.15.1
-opm_version: v1.14.2
+operator_sdk_version: v0.19.1
+olm_version: 0.20.0
+opm_version: v1.21.0
 yq_version: 2.2.1
 operator_allnamespaces_support: false
 operator_ownnamespace_support: false
@@ -37,4 +37,4 @@ operator_suggested_namespace_default: test-operators
 pod_start_retries: 90
 current_openshift_run: "4.7"
 oc_version_max: "4.8"
-operator_upgrade_testing_disabled: true
+operator_upgrade_testing_on_openshift_disabled: false

@@ -1,5 +1,6 @@
 operator_bundle_version_for_upgrade: "NotDefined"
 tou_local_registry_namespace: "kind-registry:5000/test-operator"
-bundle_registry_source_without_domain: "quay"
+bundle_registry_source_domain: "quay"
 default_retries: 5
 default_delay: 10
+tou_olm_namespace: "olm"

@@ -47,7 +47,7 @@
         oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
         # mirror_apply: true
         doic_skip_file_check: false
-        operator_upgrade_testing_disabled: true # disable in prod by 'if' before enabling this line
+        operator_upgrade_testing_disabled: false
 
     - name: "Load operator info from file"
       include_role:
@@ -293,6 +293,15 @@
       when:
         - index_skip is undefined or not index_skip|bool
 
+    - debug:
+        var: operator_upgrade_testing_disabled
+
+    - debug:
+        var: cluster_type
+
+    - debug:
+        var: operator_bundle_version_for_upgrade
+
     - name: "Test operator upgrade"
       include_role:
         name: test_operator_update
@@ -301,7 +310,7 @@
         - operator_bundle_version_for_upgrade|length != 0
         - cluster_type is defined
         - cluster_type == "k8s"
-        - (operator_upgrade_testing_disabled is not defined) or  (operator_upgrade_testing_disabled == "false")
+        - (operator_upgrade_testing_disabled is not defined) or (operator_upgrade_testing_disabled|bool == false)
 
     - name: "Push to Quay (old AppRegistry)"
       include_role:
