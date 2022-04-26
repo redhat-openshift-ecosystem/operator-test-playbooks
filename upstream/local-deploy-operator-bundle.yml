@@ -168,6 +168,50 @@
       set_fact:
         operators_for_index: "{{ operators_for_index }}"
 
+
+    - name: "Test 'force_skip_mirror' to true"
+      set_fact:
+        force_skip_mirror: true
+        vvv: "{{ bundle_index_image_version[1:] }}"
+
+    - name: "Deploy operators bundle images"
+      set_fact:
+        force_skip_mirror: false
+      loop: "{{ operators.split(',') }}"
+      loop_control:
+        loop_var: op_item
+      when:
+        - run_upstream|bool
+        - op_info.0 is defined
+        - op_info[op_item]['index'][bundle_index_image_version[1:]].0 is defined
+
+    - name: "XXXXXXXXXXXXX"
+      debug:
+        var: op_info[op_item].index[vvv]
+      loop: "{{ operators.split(',') }}"
+      loop_control:
+        loop_var: op_item
+      when:
+        - run_upstream|bool
+
+
+    - name: "Deploy operators bundle images"
+      debug:
+        var: "{{ op_info[op_item].index[vvv] }}"
+      loop: "{{ operators.split(',') }}"
+      loop_control:
+        loop_var: op_item
+      when:
+        - run_upstream|bool
+
+
+
+
+
+    - debug:
+        var: force_skip_mirror
+    - pause:
+        
     - name: "Deploy operators bundle images"
       include_role:
         name: build_operator_bundle
