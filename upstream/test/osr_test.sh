@@ -29,4 +29,5 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e cluster_type=ocp \
 -e automatic_cluster_version_label=true \
 -e image_protocol="docker://" \
+-e force_skip_mirror=false \
 $OP_ANSIBLE_EXTRA
