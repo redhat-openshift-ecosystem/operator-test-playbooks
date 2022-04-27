@@ -177,8 +177,14 @@
     - name: "Test 'force_skip_mirror' to true"
       set_fact:
         force_skip_mirror: true
-        vvv: "{{ bundle_index_image_version[1:] }}"
+        vvv: "latest"
+      when: bundle_index_image_version is undefined
 
+    - name: "Test 'force_skip_mirror' to true"
+      set_fact:
+        force_skip_mirror: true
+        vvv: "{{ bundle_index_image_version[1:] }}"
+      when: bundle_index_image_version is defined
 
     - name: "Deploy operators bundle images"
       set_fact:
