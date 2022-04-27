@@ -68,6 +68,11 @@
       no_log: true
       when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and openshift_robot_hash_array.1 is defined and openshift_robot_hash_array.1|length > 0
 
+
+    - name: "Set 'force_skip_mirror' to false"
+      set_fact:
+        force_skip_mirror: false
+
     - name: "Generate Operators config file from all operators"
       block:
         - name: "Search for all operators '{{ regenerate_operators_path | basename }}'"
