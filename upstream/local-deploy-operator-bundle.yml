@@ -340,7 +340,7 @@
 
       when:
         - index_skip is undefined or not index_skip|bool
-        - not force_skip_mirror|bool
+        - force_skip_mirror is not defined or not force_skip_mirror|bool
 
 
 
