@@ -174,6 +174,7 @@
         force_skip_mirror: true
         vvv: "{{ bundle_index_image_version[1:] }}"
 
+
     - name: "Deploy operators bundle images"
       set_fact:
         force_skip_mirror: false
@@ -182,35 +183,12 @@
         loop_var: op_item
       when:
         - run_upstream|bool
-        - op_info.0 is defined
-        - op_info[op_item]['index'][bundle_index_image_version[1:]].0 is defined
+        - op_info[op_item].index[vvv] is defined
+        - op_info[op_item].index[vvv]|length > 0
 
-    - name: "XXXXXXXXXXXXX"
+    - name: "Print 'force_skip_mirror'"
       debug:
-        var: op_info[op_item].index[vvv]
-      loop: "{{ operators.split(',') }}"
-      loop_control:
-        loop_var: op_item
-      when:
-        - run_upstream|bool
-
-
-    - name: "Deploy operators bundle images"
-      debug:
-        var: "{{ op_info[op_item].index[vvv] }}"
-      loop: "{{ operators.split(',') }}"
-      loop_control:
-        loop_var: op_item
-      when:
-        - run_upstream|bool
-
-
-
-
-
-    - debug:
         var: force_skip_mirror
-    - pause:
         
     - name: "Deploy operators bundle images"
       include_role:
@@ -222,6 +200,7 @@
         loop_var: op_item
       when:
         - run_upstream|bool
+        - not force_skip_mirror|bool
 
     - name: Handle index changes
       block:
@@ -334,27 +313,31 @@
           when:
             - run_upstream|bool
             - (openshift_robot_hash is undefined or openshift_robot_hash|length == 0)
+
+        - debug:
+            var: operator_upgrade_testing_disabled
+
+        - debug:
+            var: cluster_type
+
+        - debug:
+            var: operator_bundle_version_for_upgrade
+
+        - name: "Test operator upgrade"
+          include_role:
+            name: test_operator_update
+          when:
+            - operator_bundle_version_for_upgrade is defined
+            - operator_bundle_version_for_upgrade|length != 0
+            - cluster_type is defined
+            - cluster_type == "k8s"
+            - (operator_upgrade_testing_disabled is not defined) or (operator_upgrade_testing_disabled|bool == false)
+
       when:
         - index_skip is undefined or not index_skip|bool
+        - not force_skip_mirror|bool
 
-    - debug:
-        var: operator_upgrade_testing_disabled
 
-    - debug:
-        var: cluster_type
-
-    - debug:
-        var: operator_bundle_version_for_upgrade
-
-    - name: "Test operator upgrade"
-      include_role:
-        name: test_operator_update
-      when:
-        - operator_bundle_version_for_upgrade is defined
-        - operator_bundle_version_for_upgrade|length != 0
-        - cluster_type is defined
-        - cluster_type == "k8s"
-        - (operator_upgrade_testing_disabled is not defined) or (operator_upgrade_testing_disabled|bool == false)
 
     - name: "Push to Quay (old AppRegistry)"
       include_role:
