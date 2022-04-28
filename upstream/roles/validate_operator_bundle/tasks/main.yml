@@ -101,7 +101,7 @@
           loop: "{{ vob_bundle_validate_error.outputs }}"
           when: item.type == "error"
 
-        - name: "Add errors to file '{{ vob_error_file }}'"
+        - name: "Add warnings to file '{{ vob_error_file }}'"
           lineinfile:
             path: "{{ vob_error_file }}"
             line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
@@ -109,8 +109,9 @@
           when: item.type == "warning"
 
       when:
-        - vob_bundle_validate_error.passed is defined
-        - not vob_bundle_validate_error.passed|bool
+        - sdk_validation_upstream_result.rc != 0
+        # - vob_bundle_validate_error.passed is defined
+        # - not vob_bundle_validate_error.passed|bool
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
