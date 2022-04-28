@@ -81,6 +81,10 @@
       debug:
         var: vob_bundle_validate_error
 
+    - name: "Print 'vob_bundle_validate_error.passed'"
+      debug:
+        var: vob_bundle_validate_error.passed
+
     - name: "Generate file '{{ vob_error_file }}'"
       block:
         - name: "Create header '{{ vob_error_file }}'"
