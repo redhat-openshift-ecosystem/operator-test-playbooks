@@ -8,7 +8,7 @@
   register: cor_all_yml
 
 - name: "Delete all processed resources in the deploy directory"
-  shell: "{{ oc_bin_path }} delete -f {{ cor_all_yml_item }} --ignore-not-found=true --timeout=60s"
+  shell: "{{ oc_bin_path }} delete -f {{ cor_all_yml_item }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   with_items: "{{ cor_all_yml.files | default([]) | map(attribute='path' ) | list }}"
@@ -16,7 +16,7 @@
     loop_var: cor_all_yml_item
 
 - name: "Delete the operator owned CRDs if any"
-  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout=60s"
+  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   with_items: "{{ crd_paths|default([]) }}"
