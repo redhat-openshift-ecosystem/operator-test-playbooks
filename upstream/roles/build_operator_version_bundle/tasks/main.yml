@@ -319,8 +319,25 @@
 
             - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
               shell:
-                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community {{ bovb_dockerfile_arg }}"
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community {{ bovb_dockerfile_arg }} --output=json-alpha1"
                 chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
+              register: sdk_validation_for_openshift_bundle_result
+              failed_when: false
+
+            - name: "Handle operator-sdk bundle validate output"
+              include_role:
+                name: handle_operator_bundle_validate_output
+              vars:
+                hobvo_result: "{{ sdk_validation_for_openshift_bundle_result }}"
+
+            - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
+              fail:
+                msg: 'Operator sdk validation test failed for more details'
+              when:
+                # - permisive is not defined or not permisive|bool
+                # - check_validation_result|bool
+                - sdk_validation_for_openshift_bundle_result.rc != 0
+
           when:
             - stream_kind is defined
             - stream_kind == "openshift_upstream"
@@ -423,8 +440,25 @@
 
             - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
               shell:
-                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_dir_name }}/ --select-optional name=community {{ bovb_dockerfile_arg }}"
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ operator_dir_name }}/ --select-optional name=community {{ bovb_dockerfile_arg }} --output=json-alpha1"
                 chdir: "{{ operator_bundle_src_dir }}"
+              register: sdk_validation_for_openshift_manifest_result
+              failed_when: false
+
+            - name: "Handle operator-sdk bundle validate output"
+              include_role:
+                name: handle_operator_bundle_validate_output
+              vars:
+                hobvo_result: "{{ sdk_validation_for_openshift_manifest_result }}"
+
+            - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
+              fail:
+                msg: 'Operator sdk validation test failed for more details'
+              when:
+                # - permisive is not defined or not permisive|bool
+                # - check_validation_result|bool
+                - sdk_validation_for_openshift_manifest_result.rc != 0
+
           when:
             - stream_kind is defined
             - stream_kind == "openshift_upstream"

@@ -71,7 +71,8 @@
     - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate from image {{ bundle_image }}"
       shell: "OPERATOR_BUNDLE_CATEGORIES={{ catalog_repo_dir }}/categories.json {{ operator_sdk_bin_path }} bundle validate --verbose {{ bundle_image }} -b {{ operator_sdk_container_tool }} {{ operator_sdk_validate_extra_args }} --output=json-alpha1"
       register: sdk_validation_upstream_result
-      ignore_errors: true
+      # ignore_errors: true
+      failed_when: false
 
     - name: "Handle operator-sdk bundle validate output"
       include_role:
@@ -81,7 +82,7 @@
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
-        msg: 'Operator sdk validation test failed, check validation-output.txt for more details'
+        msg: 'Operator sdk validation test failed for more details'
       when:
         - permisive is not defined or not permisive|bool
         - check_validation_result|bool
