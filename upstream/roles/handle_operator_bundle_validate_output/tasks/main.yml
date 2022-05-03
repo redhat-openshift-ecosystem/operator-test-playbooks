@@ -1,0 +1,51 @@
+---
+
+- debug:
+    var: hobvo_result
+- name: "Get output"
+  set_fact:
+    hobvo_bundle_validate_error: "{{ hobvo_result.stdout | from_json }}"
+
+- name: "Print 'hobvo_bundle_validate_error.outputs'"
+  debug:
+    var: hobvo_bundle_validate_error.outputs|type_debug
+
+- name: "Reset 'hobvo_bundle_validate_error_outputs'"
+  set_fact:
+    hobvo_bundle_validate_error_outputs: []
+
+- name: "Set 'hobvo_bundle_validate_error_outputs"
+  set_fact:
+    hobvo_bundle_validate_error_outputs: "{{ hobvo_bundle_validate_error.outputs }}"
+  when: hobvo_bundle_validate_error.outputs|type_debug != "NoneType"
+
+- name: "Print bundle validate errors"
+  debug:
+    var: hobvo_bundle_validate_error
+
+- name: "Generate file '{{ hobvo_error_file }}'"
+  block:
+    - name: "Create header '{{ hobvo_error_file }}'"
+      lineinfile:
+        path: "{{ hobvo_error_file }}"
+        line: "| Type | Message |"
+        create: yes
+    - name: "Create header 2 '{{ hobvo_error_file }}'"
+      lineinfile:
+        path: "{{ hobvo_error_file }}"
+        line: "|---|---|"
+    - name: "Add errors to file '{{ hobvo_error_file }}'"
+      lineinfile:
+        path: "{{ hobvo_error_file }}"
+        line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
+      loop: "{{ hobvo_bundle_validate_error_outputs }}"
+      when: item.type == "error"
+    - name: "Add warnings to file '{{ hobvo_error_file }}'"
+      lineinfile:
+        path: "{{ hobvo_error_file }}"
+        line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
+      loop: "{{ hobvo_bundle_validate_error_outputs }}"
+      when: item.type == "warning"
+  when:
+    - hobvo_bundle_validate_error_outputs.0 is defined
+    - run_upstream|bool
