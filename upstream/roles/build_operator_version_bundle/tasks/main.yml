@@ -326,9 +326,9 @@
 
             - name: "Handle operator-sdk bundle validate output"
               include_role:
-                name: sdk_validation_for_openshift_bundle_result
+                name: handle_operator_bundle_validate_output
               vars:
-                hobvo_result: "{{ sdk_validation_upstream_result }}"
+                hobvo_result: "{{ sdk_validation_for_openshift_bundle_result }}"
 
             - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
               fail:
@@ -447,9 +447,9 @@
 
             - name: "Handle operator-sdk bundle validate output"
               include_role:
-                name: sdk_validation_for_openshift_manifest_result
+                name: handle_operator_bundle_validate_output
               vars:
-                hobvo_result: "{{ sdk_validation_upstream_result }}"
+                hobvo_result: "{{ sdk_validation_for_openshift_manifest_result }}"
 
             - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
               fail:
