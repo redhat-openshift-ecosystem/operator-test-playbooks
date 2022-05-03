@@ -319,7 +319,7 @@
 
             - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
               shell:
-                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community {{ bovb_dockerfile_arg }}"
+                cmd: "{{ operator_sdk_bin_path }} bundle validate --verbose {{ op_version }} --select-optional name=community {{ bovb_dockerfile_arg }} --output=json-alpha1"
                 chdir: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}"
               register: sdk_validation_for_openshift_bundle_result
               failed_when: false
