@@ -404,7 +404,7 @@
 
         - name: "Validate bundle for openshift"
           block:
-            - name: "Validate the operator bundle manifest and metadata with operator-sdk bundle validate"
+            - name: "Copy '{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/' to '{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/manifests/'"
               copy:
                 src: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/{{ op_version }}/"
                 dest: "{{ operator_bundle_src_dir }}/{{ operator_dir_name }}/manifests/"
