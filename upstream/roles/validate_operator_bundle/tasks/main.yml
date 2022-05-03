@@ -94,19 +94,6 @@
       debug:
         var: vob_bundle_validate_error
 
-    - name: "Print 'vob_bundle_validate_error.passed'"
-      debug:
-        var: vob_bundle_validate_error.passed
-
-    - name: "Print 'vob_bundle_validate_error.outputs'"
-      debug:
-        var: vob_bundle_validate_error_outputs
-    
-    - name: "Print 'sdk_validation_upstream_result.rc'"
-      debug:
-        var: sdk_validation_upstream_result.rc
-
-
     - name: "Generate file '{{ vob_error_file }}'"
       block:
         - name: "Create header '{{ vob_error_file }}'"
@@ -135,10 +122,7 @@
           when: item.type == "warning"
 
       when:
-        - sdk_validation_upstream_result.rc is defined
-        - sdk_validation_upstream_result.rc != 0
-        # - vob_bundle_validate_error.passed is defined
-        # - not vob_bundle_validate_error.passed|bool
+        - vob_bundle_validate_error_outputs.0 is defined
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
