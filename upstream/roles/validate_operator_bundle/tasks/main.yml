@@ -77,7 +77,9 @@
       set_fact:
         vob_bundle_validate_error: "{{ sdk_validation_upstream_result.stdout | from_json }}"
 
-
+    - name: "Print 'vob_bundle_validate_error.outputs'"
+      debug:
+        var: vob_bundle_validate_error.outputs|type_debug
 
     - name: "Reset 'vob_bundle_validate_error_outputs'"
       set_fact:
@@ -86,52 +88,41 @@
     - name: "Set 'vob_bundle_validate_error_outputs"
       set_fact:
         vob_bundle_validate_error_outputs: "{{ vob_bundle_validate_error.outputs }}"
-      when: vob_bundle_validate_error.outputs != ''
+      when: vob_bundle_validate_error.outputs|type_debug != "NoneType"
 
     - name: "Print bundle validate errors"
       debug:
         var: vob_bundle_validate_error
 
-    - name: "Print 'vob_bundle_validate_error.passed'"
-      debug:
-        var: vob_bundle_validate_error.passed
+    - name: "Generate file '{{ vob_error_file }}'"
+      block:
+        - name: "Create header '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "| Type | Message |"
+            create: yes
 
-    - name: "Print 'vob_bundle_validate_error.outputs'"
-      debug:
-        var: vob_bundle_validate_error_outputs
+        - name: "Create header 2 '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "|---|---|"
 
-    # - name: "Generate file '{{ vob_error_file }}'"
-    #   block:
-    #     - name: "Create header '{{ vob_error_file }}'"
-    #       lineinfile:
-    #         path: "{{ vob_error_file }}"
-    #         line: "| Type | Message |"
-    #         create: yes
+        - name: "Add errors to file '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
+          loop: "{{ vob_bundle_validate_error_outputs }}"
+          when: item.type == "error"
 
-    #     - name: "Create header 2 '{{ vob_error_file }}'"
-    #       lineinfile:
-    #         path: "{{ vob_error_file }}"
-    #         line: "|---|---|"
+        - name: "Add warnings to file '{{ vob_error_file }}'"
+          lineinfile:
+            path: "{{ vob_error_file }}"
+            line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
+          loop: "{{ vob_bundle_validate_error_outputs }}"
+          when: item.type == "warning"
 
-    #     - name: "Add errors to file '{{ vob_error_file }}'"
-    #       lineinfile:
-    #         path: "{{ vob_error_file }}"
-    #         line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
-    #       loop: "{{ vob_bundle_validate_error_outputs }}"
-    #       when: item.type == "error"
-
-    #     - name: "Add warnings to file '{{ vob_error_file }}'"
-    #       lineinfile:
-    #         path: "{{ vob_error_file }}"
-    #         line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
-    #       loop: "{{ vob_bundle_validate_error_outputs }}"
-    #       when: item.type == "warning"
-
-    #   when:
-    #     - sdk_validation_upstream_result.rc is defined
-    #     - sdk_validation_upstream_result.rc != 0
-    #     # - vob_bundle_validate_error.passed is defined
-    #     # - not vob_bundle_validate_error.passed|bool
+      when:
+        - vob_bundle_validate_error_outputs.0 is defined
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
@@ -140,6 +131,8 @@
         - permisive is not defined or not permisive|bool
         - check_validation_result|bool
         - sdk_validation_upstream_result.rc != 0
+
+    - pause: 
 
     - name: "Getting categories content from csv '{{ csv_file_path | basename }}'"
       shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t metadata.annotations.categories"
