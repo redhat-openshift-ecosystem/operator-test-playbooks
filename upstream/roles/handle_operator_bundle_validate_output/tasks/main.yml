@@ -61,6 +61,11 @@
 
     - name: "Cat content of '{{ hobvo_error_file }}'"
       shell: "cat {{ hobvo_error_file }}"
+      register: hobvo_error_file_result
+
+    - name: "Print content"
+      debug:
+        var: hobvo_error_file_result
 
   when:
     - hobvo_bundle_validate_error_outputs.0 is defined
