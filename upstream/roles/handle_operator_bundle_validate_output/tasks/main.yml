@@ -1,5 +1,4 @@
 ---
-
 - debug:
     var: hobvo_result
 - name: "Get output"
@@ -25,27 +24,44 @@
 
 - name: "Generate file '{{ hobvo_error_file }}'"
   block:
+    - name: "Make sure that '{{ operator_work_dir }}' exits"
+      file:
+        path: "{{ operator_work_dir }}"
+        state: directory
+
+    - name: "Remove '{{ hobvo_error_file }}'"
+      file:
+        path: "{{ hobvo_error_file }}"
+        state: absent
+
     - name: "Create header '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
         line: "| Type | Message |"
         create: yes
+
     - name: "Create header 2 '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
         line: "|---|---|"
+
     - name: "Add errors to file '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
         line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "error"
+
     - name: "Add warnings to file '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
         line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "warning"
+
+    - name: "Cat content of '{{ hobvo_error_file }}'"  
+      shell: "cat {{ hobvo_error_file }}"
+
   when:
     - hobvo_bundle_validate_error_outputs.0 is defined
     - run_upstream|bool
