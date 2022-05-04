@@ -59,7 +59,7 @@
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "warning"
 
-    - name: "Cat content of '{{ hobvo_error_file }}'"  
+    - name: "Cat content of '{{ hobvo_error_file }}'"
       shell: "cat {{ hobvo_error_file }}"
 
   when:

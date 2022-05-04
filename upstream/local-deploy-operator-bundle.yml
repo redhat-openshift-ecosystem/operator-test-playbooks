@@ -68,7 +68,6 @@
       no_log: true
       when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and openshift_robot_hash_array.1 is defined and openshift_robot_hash_array.1|length > 0
 
-
     - name: "Set 'force_skip_mirror' to false"
       set_fact:
         force_skip_mirror: false
@@ -173,7 +172,6 @@
       set_fact:
         operators_for_index: "{{ operators_for_index }}"
 
-
     - name: "Test 'force_skip_mirror' to true"
       set_fact:
         force_skip_mirror: true
@@ -200,7 +198,7 @@
     - name: "Print 'force_skip_mirror'"
       debug:
         var: force_skip_mirror
-        
+
     - name: "Deploy operators bundle images"
       include_role:
         name: build_operator_bundle
@@ -347,8 +345,6 @@
       when:
         - index_skip is undefined or not index_skip|bool
         - force_skip_mirror is not defined or not force_skip_mirror|bool
-
-
 
     - name: "Push to Quay (old AppRegistry)"
       include_role:
