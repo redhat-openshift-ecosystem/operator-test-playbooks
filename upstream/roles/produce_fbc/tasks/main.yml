@@ -62,7 +62,7 @@
     path: "{{ pfbc_dockerfile_path }}"
     state: absent
 
-- name: "Create dockerfile"
+- name: "Create dockerfile '{{ pfbc_fbc_config_path }}s'"
   shell: 
     cmd: "{{ opm_bin_path }} generate dockerfile {{ pfbc_fbc_config_path }}"
     chdir: "{{ pfbc_extracted_fbc_location }}"
