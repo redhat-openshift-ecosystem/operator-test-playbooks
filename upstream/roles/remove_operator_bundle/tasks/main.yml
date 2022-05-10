@@ -133,7 +133,7 @@
             - opm_container_tool_index|length > 0
 
         - name: "Remove '{{ operator_dir_name }}' operator from index image {{ bundle_index_image }}"
-          shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }} --from-index {{ bundle_index_image }}"
+          shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }} --from-index {{ bundle_index_image }} --permissive"
           register: rob_rc
           ignore_errors: true
 
@@ -184,7 +184,7 @@
         - name: "Delete operator from SHA index before adding again"
           block:
             - name: "Remove '{{ operator_dir_name }}' operator from index image {{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
-              shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}{{ bundle_index_sha_posfix }} --from-index {{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
+              shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ operator_dir_name }} --tag {{ bundle_index_image }}{{ bundle_index_sha_posfix }} --from-index {{ bundle_index_image }}{{ bundle_index_sha_posfix }} --permissive"
               register: rob_rc1
               ignore_errors: true
 
