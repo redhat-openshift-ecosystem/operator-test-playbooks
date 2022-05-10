@@ -104,7 +104,7 @@
 - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
   block:
     - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
-      shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} {{ opm_index_add_extra_args }}"
+      shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} --permissive {{ opm_index_add_extra_args }}"
       register: oi_index_rm
 
     - name: "Index safety check to avoid accidental overwrite"
