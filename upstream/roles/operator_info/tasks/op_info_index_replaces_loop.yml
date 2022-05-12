@@ -1,8 +1,10 @@
 ---
+
 - name: "Setting '{{ oi_index_replaces_ver_current }}' for '{{ oii_index_version }}'"
   set_fact:
     oiirl_ver: "{{ oi_index_replaces_ver_current }}"
-  when: oiirl_ver is undefined or oiirl_ver|length == 0
+  when: 
+    - oiirl_ver is undefined or oiirl_ver|length == 0
 
 - name: "Adding '{{ oiirl_ver }}' to 'oii_index_checked'"
   set_fact:
@@ -25,6 +27,16 @@
     - oiirl_ver|length > 0
 
   always:
+
+    - name: "Making unique 'oii_index_checked'"
+      set_fact:
+        oii_index_checked: "{{ oii_index_checked | unique }}"
+
+    - name: "Setting '{{ oiirl_ver }}' when {{ oiirl_ver }} in 'oii_index_checked'"
+      set_fact:
+        oiirl_ver: "{{ io_versions_manifests[oiirl_ver].replaces | default('') }}"
+      when:
+        - oiirl_ver in oii_index_checked
 
     - include_tasks: op_info_index_replaces_loop.yml
       when:
