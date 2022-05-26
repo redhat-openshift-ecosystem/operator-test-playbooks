@@ -26,10 +26,10 @@
   set_fact:
     operator_package_name: "{{ operator_dir | basename }}"
 
-- name: "Extract operator tool info"
-  include_role:
-    name: extract_tool_info
-  when: run_upstream|bool
+# - name: "Extract operator tool info"
+#   include_role:
+#     name: extract_tool_info
+#   when: run_upstream|bool
 
 - name: "Build bundle image"
   include_role:
