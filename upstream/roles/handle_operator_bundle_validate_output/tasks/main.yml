@@ -64,14 +64,14 @@
     - name: "Add errors to file '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
-        line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
+        line: "| :bug: | {{ item.message | replace('Error: ','')}} |"
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "error"
 
     - name: "Add warnings to file '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
-        line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
+        line: "| :warning: | {{ item.message | replace('Warning: ','')}} |"
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "warning"
 
