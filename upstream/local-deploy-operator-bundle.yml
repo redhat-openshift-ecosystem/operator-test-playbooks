@@ -187,6 +187,12 @@
         - bundle_index_image_version|length > 0
         - bundle_index_image_version != "latest"
 
+
+    - debug: 
+        var: vvv
+    - debug: 
+        var: op_info[aqua].index[vvv]
+
     - name: "Deploy operators bundle images"
       set_fact:
         force_skip_mirror: false
