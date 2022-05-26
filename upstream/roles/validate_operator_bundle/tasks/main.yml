@@ -79,6 +79,8 @@
         name: handle_operator_bundle_validate_output
       vars:
         hobvo_result: "{{ sdk_validation_upstream_result }}"
+        hobvo_version: "{{ operator_sdk_version }}"
+        hobvo_args: "{{ operator_sdk_validate_extra_args }}"
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
