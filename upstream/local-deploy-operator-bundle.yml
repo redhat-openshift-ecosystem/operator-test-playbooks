@@ -190,8 +190,11 @@
 
     - debug: 
         var: vvv
+
+    - set_fact:
+        xxx: "aqua"
     - debug: 
-        var: op_info[aqua].index[vvv]
+        var: op_info[xxx].index[vvv]
 
     - name: "Deploy operators bundle images"
       set_fact:
