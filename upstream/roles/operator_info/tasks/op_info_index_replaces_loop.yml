@@ -3,7 +3,7 @@
 - name: "Setting '{{ oi_index_replaces_ver_current }}' for '{{ oii_index_version }}'"
   set_fact:
     oiirl_ver: "{{ oi_index_replaces_ver_current }}"
-  when: 
+  when:
     - oiirl_ver is undefined or oiirl_ver|length == 0
 
 - name: "Adding '{{ oiirl_ver }}' to 'oii_index_checked'"

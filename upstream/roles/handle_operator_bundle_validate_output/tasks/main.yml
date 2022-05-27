@@ -29,6 +29,22 @@
         path: "{{ operator_work_dir }}"
         state: directory
 
+    - name: "Remove '{{ hobvo_info_file }}'"
+      file:
+        path: "{{ hobvo_info_file }}"
+        state: absent
+
+    - name: "Add version '{{ hobvo_info_file }}'"
+      lineinfile:
+        path: "{{ hobvo_info_file }}"
+        line: "{{ hobvo_version }}"
+        create: yes
+
+    - name: "Add operator-sdk arguments '{{ hobvo_info_file }}'"
+      lineinfile:
+        path: "{{ hobvo_info_file }}"
+        line: "{{ hobvo_args }}"
+
     - name: "Remove '{{ hobvo_error_file }}'"
       file:
         path: "{{ hobvo_error_file }}"
@@ -48,14 +64,14 @@
     - name: "Add errors to file '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
-        line: "| {{ item.type }} | {{ item.message | replace('Error: ','')}} |"
+        line: "| :bug: | {{ item.message | replace('Error: ','')}} |"
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "error"
 
     - name: "Add warnings to file '{{ hobvo_error_file }}'"
       lineinfile:
         path: "{{ hobvo_error_file }}"
-        line: "| {{ item.type }} | {{ item.message | replace('Warning: ','')}} |"
+        line: "| :warning: | {{ item.message | replace('Warning: ','')}} |"
       loop: "{{ hobvo_bundle_validate_error_outputs }}"
       when: item.type == "warning"
 

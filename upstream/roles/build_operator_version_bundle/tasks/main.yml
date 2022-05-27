@@ -329,6 +329,8 @@
                 name: handle_operator_bundle_validate_output
               vars:
                 hobvo_result: "{{ sdk_validation_for_openshift_bundle_result }}"
+                hobvo_version: "{{ operator_tools_info.versions.operator_sdk }}"
+                hobvo_args: "--select-optional name=community"
 
             - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
               fail:
@@ -450,6 +452,8 @@
                 name: handle_operator_bundle_validate_output
               vars:
                 hobvo_result: "{{ sdk_validation_for_openshift_manifest_result }}"
+                hobvo_version: "{{ operator_tools_info.versions.operator_sdk }}"
+                hobvo_args: "--select-optional name=community"
 
             - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
               fail:
