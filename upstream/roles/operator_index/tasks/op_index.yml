@@ -15,6 +15,15 @@
       shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
       failed_when: false
 
+
+    - name: "Copy production index '{{ production_index }}:{{ io_index_ver }}' to local catalog '{{ bundle_index_image }}'"
+      shell: "skopeo copy dir:{{ production_index }}:{{ io_index_ver }} {{ bundle_index_image }}"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
+      when:
+        - production_index is defined
+        - production_index|length > 0
+
     # - name: "Get list of tags for index image from registry '{{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}'"
     #   uri:
     #     url: "{{ registry_api_http_protocol | default('https') }}://{{ bundle_registry }}/v2/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}/tags/list"
@@ -61,6 +70,9 @@
         opm_index_add_extra_args: "--from-index {{ bundle_registry }}/{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}:{{ io_index_ver }}"
       when:
         - io_index_ver in index_versions_in_registry
+
+    - debug:
+        var: opm_index_add_extra_args
 
   when:
     - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
