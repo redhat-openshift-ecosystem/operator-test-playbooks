@@ -71,7 +71,8 @@
       when:
         - io_index_ver in index_versions_in_registry
 
-    - debug:
+    - name: "Print 'opm_index_add_extra_args'"
+      debug:
         var: opm_index_add_extra_args
 
   when:
