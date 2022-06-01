@@ -17,7 +17,7 @@
 
 
     - name: "Copy production index '{{ production_index }}:{{ io_index_ver }}' to local catalog '{{ bundle_index_image }}'"
-      shell: "skopeo copy dir:{{ production_index }}:{{ io_index_ver }} {{ bundle_index_image }}"
+      shell: "skopeo copy docker://{{ production_index }}:{{ io_index_ver }} docker://{{ bundle_index_image }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       when:
