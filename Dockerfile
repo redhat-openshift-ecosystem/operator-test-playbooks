@@ -1,4 +1,4 @@
-FROM fedora:33
+FROM fedora:36
 RUN dnf install -y git podman buildah python3-libselinux python3-pip
 RUN pip3 install ansible==2.10.5 jmespath
 RUN mkdir -p /playbooks
