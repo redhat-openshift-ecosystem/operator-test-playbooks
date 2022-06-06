@@ -1,3 +1,5 @@
 kind_version: v0.9.0
 kind_kube_version: v1.19.1
-kind_bin_path: "/usr/local/bin/kind"
+work_dir: "/tmp/operator-test"
+testing_bin_path: "{{ work_dir }}/bin"
+kind_bin_path: "{{ testing_bin_path }}/kind"
