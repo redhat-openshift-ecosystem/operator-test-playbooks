@@ -5,6 +5,7 @@ KIND_CMD=${1-{{ kind_bin_path }}}
 CONTAINER_CMD="{{ container_tool }}"
 CERTS_DIR=${CERTS_DIR-"$HOME/.optest/certs"}
 CERT_EXPIRED_IN=${CERT_EXPIRED_IN-86400}
+kind --version
 
 # create registry container unless it already exists
 reg_name='kind-registry'
