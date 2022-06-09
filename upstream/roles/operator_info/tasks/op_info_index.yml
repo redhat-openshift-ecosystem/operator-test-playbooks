@@ -24,11 +24,11 @@
 
 - name: "Adds 'oii_index_dt' to 'oii_index'"
   set_fact:
-    oii_index_dt: "{{ oii_index_dt | reverse | list | unique }}"
+    oii_index_dt: "{{ oii_index_dt | reverse | list | unique | sort_versions }}"
 
 - name: "Adds 'oii_index_dt' to 'oii_index'"
   set_fact:
-    oii_index: "{{ oii_index_dt | union(oii_index) }}"
+    oii_index: "{{ oii_index_dt | union(oii_index) | sort_versions }}"
 
 - name: "Show oii_index"
   debug:
