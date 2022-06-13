@@ -1,6 +1,6 @@
 FROM fedora:36
 RUN dnf install -y git podman buildah python3-libselinux python3-pip
-RUN pip3 install ansible==2.10.5 jmespath
+RUN pip3 install ansible==5.9.0 jmespath
 RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
