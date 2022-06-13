@@ -16,6 +16,12 @@
         path: "{{ kind_bin_path }}"
       register: rc_kind
 
+    - name: Create a directory for kind if it does not exist
+      ansible.builtin.file:
+        path: "{{ testing_bin_path }}"
+        state: directory
+        mode: '0755'
+
     - name: "Install kind binary"
       get_url:
         url: "https://github.com/kubernetes-sigs/kind/releases/download/{{ kind_version }}/kind-linux-amd64"
