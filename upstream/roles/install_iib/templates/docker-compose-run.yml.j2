@@ -39,7 +39,7 @@ services:
       - 8081:15672
 
   iib-api:
-    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
+    image: quay.io/exd-guild-hello-operator/iib-api:{{ iib_version }}
     # build:
     #   context: .
     #   dockerfile: ./docker/Dockerfile-api
@@ -72,7 +72,7 @@ services:
       - message-broker
 
   iib-worker:
-    image: quay.io/operator_testing/iib_iib-worker:{{ iib_version }}
+    image: quay.io/exd-guild-hello-operator/iib-worker:{{ iib_version }}
     command:
       - /bin/bash
       - -c
@@ -104,7 +104,7 @@ services:
 
   # This is an external message broker used to publish messages about state changes
   message-broker:
-    image: quay.io/operator_testing/iib_message-broker:{{ iib_version }}
+    image: quay.io/exd-guild-hello-operator/iib-message-broker:{{ iib_version }}
     volumes:
       - message-broker-volume:/opt/activemq/data:z
       - ./docker/message_broker/certs:/broker-certs:ro,z
