@@ -67,6 +67,12 @@
   include_role:
     name: validate_operator_bundle
 
+- name: "Check operator external image availability"
+  include_role:
+    name: check_image_availability
+  when:
+    - (check_image_availability_force is defined) and (check_image_availability_force|true)
+
 - name: "Deploy operator test"
   block:
     - name: "Set versions to current version as array"
