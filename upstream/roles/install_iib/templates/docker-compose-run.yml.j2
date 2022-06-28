@@ -1,17 +1,40 @@
 ---
 version: '3'
 services:
+  # This "service" generates the certificate for the registry. Then,
+  # it exits with status code 0.
+  minica:
+    image: registry.access.redhat.com/ubi8/go-toolset:latest
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        go install github.com/jsha/minica@latest &&
+        cd /opt/app-root/certs &&
+        /opt/app-root/src/bin/minica --domains registry
+    environment:
+      GOPATH: /opt/app-root/src
+    volumes:
+      - registry-certs-volume:/opt/app-root/certs:z
+
   registry:
     image: registry:2
     ports:
       - 8443:8443
     environment:
       REGISTRY_HTTP_ADDR: 0.0.0.0:8443
-      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry.crt
-      REGISTRY_HTTP_TLS_KEY: /certs/registry.key
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry/cert.pem
+      REGISTRY_HTTP_TLS_KEY: /certs/registry/key.pem
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
     volumes:
       - ./iib_data/registry:/var/lib/registry:z
-      - ./docker/registry/certs:/certs:z
+      - registry-certs-volume:/certs:z
+      - ./docker/registry/auth:/auth:z
+    depends_on:
+      - minica
+
   db:
     image: postgres:9.6
     environment:
@@ -39,10 +62,7 @@ services:
       - 8081:15672
 
   iib-api:
-    image: quay.io/operator_testing/iib_iib-api:{{ iib_version }}
-    # build:
-    #   context: .
-    #   dockerfile: ./docker/Dockerfile-api
+    image: quay.io/exd-guild-hello-operator/iib-api:{{ iib_version }}
     command:
       - /bin/sh
       - -c
@@ -72,13 +92,13 @@ services:
       - message-broker
 
   iib-worker:
-    image: quay.io/operator_testing/iib_iib-worker:{{ iib_version }}
+    image: quay.io/exd-guild-hello-operator/iib-worker:{{ iib_version }}
     command:
       - /bin/bash
       - -c
       - >-
         cp /host-ca-bundle.crt /etc/pki/tls/certs/ca-bundle.crt &&
-        cat /registry-certs/root_ca.crt >> /etc/pki/tls/certs/ca-bundle.crt &&
+        cat /registry-certs/minica.pem >> /etc/pki/tls/certs/ca-bundle.crt &&
         podman login --authfile ~/.docker/config.json.template -u iib \
           -p iibpassword registry:8443 &&
         pip3 install watchdog[watchmedo] &&
@@ -86,25 +106,26 @@ services:
           -- celery -A iib.workers.tasks worker --loglevel=info
     environment:
       IIB_DEV: 'true'
+      REGISTRY_AUTH_FILE: '/root/.docker/config.json'
       REQUESTS_CA_BUNDLE: /etc/pki/tls/certs/ca-bundle.crt
-      GODEBUG: x509ignoreCN=0
     # Make this privileged to be able to build container images
     privileged: true
     volumes:
       - ./:/src:z
       - worker_container_storage:/var/lib/containers:z
-      - ./docker/registry/certs:/registry-certs:ro,z
+      - registry-certs-volume:/registry-certs:ro,z
       - ./ca-bundle.crt:/host-ca-bundle.crt:ro
       - request-logs-volume:/var/log/iib/requests:z
       - request-related-bundles-volume:/var/lib/requests/related_bundles:z
     depends_on:
       - rabbitmq
       - registry
+      - minica
       - memcached
 
   # This is an external message broker used to publish messages about state changes
   message-broker:
-    image: quay.io/operator_testing/iib_message-broker:{{ iib_version }}
+    image: quay.io/exd-guild-hello-operator/iib-message-broker:{{ iib_version }}
     volumes:
       - message-broker-volume:/opt/activemq/data:z
       - ./docker/message_broker/certs:/broker-certs:ro,z
@@ -114,6 +135,7 @@ services:
       - 8161:8161   # web console
 
 volumes:
+  registry-certs-volume:
   message-broker-volume:
   request-logs-volume:
   request-related-bundles-volume:

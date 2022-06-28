@@ -1,5 +1,4 @@
-# iib_version: v3.9.2
-iib_version: v4.4.1
+iib_version: v6.3.0
 iib_project_dir: /tmp/iib
 iib_repo: https://github.com/release-engineering/iib.git
 run_remove_iib_repo: true
