@@ -60,7 +60,7 @@
 
     - name: "Building and starting iib {{ iib_version }} 'make up'"
       shell:
-        cmd: "make up"
+        cmd: "docker-compose up minica ;make up"
         chdir: "{{ iib_project_dir }}"
   tags:
     - never

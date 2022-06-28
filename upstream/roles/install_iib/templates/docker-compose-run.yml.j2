@@ -5,12 +5,13 @@ services:
   # it exits with status code 0.
   minica:
     image: registry.access.redhat.com/ubi8/go-toolset:latest
+    user: 0:0
     command:
       - /bin/sh
       - -c
       - >-
-        go install github.com/jsha/minica@latest && chown 777 /opt/app-root/certs &&
-        cd /opt/app-root/certs && ls -al &&
+        go install github.com/jsha/minica@latest &&
+        cd /opt/app-root/certs &&
         /opt/app-root/src/bin/minica --domains registry
     environment:
       GOPATH: /opt/app-root/src
