@@ -9,9 +9,9 @@ services:
       - /bin/sh
       - -c
       - >-
-        go install github.com/jsha/minica@latest &&
+        go install github.com/jsha/minica@latest && chown 777 /opt/app-root/certs &&
         cd /opt/app-root/certs && ls -al &&
-        /opt/app-root/src/go/bin/minica --domains registry
+        /opt/app-root/src/bin/minica --domains registry
     environment:
       GOPATH: /opt/app-root/src
     volumes:
