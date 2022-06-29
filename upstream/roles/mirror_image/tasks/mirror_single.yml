@@ -257,6 +257,10 @@
               delay: 10
               ignore_errors: true
 
+            - name: "Print response"
+              debug:
+                var: mi_ms_multiarch_response
+
             - name: "Failing when iib cannot create index image '{{ mi_ms_iib_image }}'"
               fail:
                 msg: "Problem creating index image '{{ mi_ms_iib_image }}' in iib"
