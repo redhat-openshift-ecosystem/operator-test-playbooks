@@ -250,8 +250,7 @@
                 return_content: true
               register: mi_ms_multiarch_response
               # until: "'complete' in mi_ms_multiarch_response.content"
-              until: mi_ms_multiarch_response.status == 200 or 'complete' in mi_ms_multiarch_response.content
-
+              until: mi_ms_multiarch_response.status == 200 and 'complete' in mi_ms_multiarch_response.content
               retries: 50
               delay: 10
               ignore_errors: true
