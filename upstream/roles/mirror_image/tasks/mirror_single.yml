@@ -250,11 +250,12 @@
                 return_content: true
                 status_code: [200, 400]
               register: mi_ms_multiarch_response
-              until: "'complete' in mi_ms_multiarch_response.content"
-              # until: mi_ms_multiarch_response.status == 200 and 'complete' in mi_ms_multiarch_response.content
+              # until: "'complete' in mi_ms_multiarch_response.content"
+              # until: "mi_ms_multiarch_response.status == 200 and 'complete' in mi_ms_multiarch_response.content"
+              until: mi_ms_multiarch_response.status == 200
               retries: 50
               delay: 10
-              # ignore_errors: true
+              ignore_errors: true
 
             - name: "Failing when iib cannot create index image '{{ mi_ms_iib_image }}'"
               fail:
