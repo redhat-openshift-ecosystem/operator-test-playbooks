@@ -24,6 +24,7 @@
       loop: "{{ oi_operators }}"
       loop_control:
         loop_var: oi_op_name
+      when: op_info[oi_op_name] is defined
       # when:
       #   - operator_index_operators is undefined or operator_index_operators|length == 0
 
