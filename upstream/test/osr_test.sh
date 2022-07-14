@@ -31,5 +31,5 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e image_protocol="docker://" \
 -e force_skip_mirror=false \
 # -e triggered_by_temp_index=true \
-# -e multiarch_tagged_fbc_is_needed=true \
+-e multiarch_tagged_fbc_is_needed=true \
 $OP_ANSIBLE_EXTRA
