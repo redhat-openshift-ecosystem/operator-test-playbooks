@@ -1,4 +1,14 @@
 ---
+- name: "Pull the base image {{ container_tool }} pull --arch={{ mfbc_architecture }} {{ mirror_multiarch_image }}"
+  shell: "{{ container_tool }} pull --arch={{ mfbc_architecture }} {{ mirror_multiarch_image }}"
+
+- name: "Retag the base image"
+  docker_image:
+    name: "{{ mirror_multiarch_image }}"     # Original tag
+    repository: "{{ mirror_multiarch_image }}-{{ mfbc_architecture }}"  # New tag
+    pull: no
+    state: present
+
 - name: "Set 'mfbc_actual_fbc_arch_image'"
   set_fact:
     mfbc_actual_fbc_arch_image: "{{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}"
