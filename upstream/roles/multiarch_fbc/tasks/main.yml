@@ -9,7 +9,7 @@
   replace:
     path: "{{ mfbc_dockerfile_path }}"
     regexp: "FROM quay.io/operator-framework/opm:latest"
-    replace: "{{ mirror_multiarch_image }}-${ARCH}"
+    replace: "FROM {{ mirror_multiarch_image }}-${ARCH}"
 
 - name: "Show Dockerfile"
   shell: "cat {{ mfbc_dockerfile_path }}"
