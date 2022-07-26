@@ -1,6 +1,7 @@
 ---
 - name: "Pull the base image {{ container_tool }} pull --arch={{ mfbc_architecture }} {{ mirror_multiarch_image }}"
-  shell: "{{ container_tool }} pull --arch={{ mfbc_architecture }} {{ mirror_multiarch_image }}"
+  shell: "{{ container_tool }} pull --arch={{ mfbc_architecture }} --creds '{{ registry_redhat_io_user }}:{{ registry_redhat_io_token }}' {{ mirror_multiarch_image }}"
+  when: registry_redhat_io_user is defined and registry_redhat_io_token is defined
 
 - name: "Retag the base image"
   docker_image:
