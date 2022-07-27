@@ -65,6 +65,7 @@
 
     - name: "Quay login via auth token"
       shell: "{{ container_tool }} login -u=\\$oauthtoken -p={{ openshift_robot_hash_array[1] }} quay.io"
+      # shell: "{{ container_tool }} login -u='$oauthtoken' -p={{ openshift_robot_hash_array[1] }} quay.io"
       no_log: true
       when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and openshift_robot_hash_array.1 is defined and openshift_robot_hash_array.1|length > 0
 
