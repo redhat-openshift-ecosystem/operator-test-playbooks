@@ -63,13 +63,8 @@
         - openshift_robot_hash is defined
         - openshift_robot_hash|length > 0
 
-    - name: "Hello"
-      shell: "ls"
-      no_log: true
-      when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and openshift_robot_hash_array.1 is defined and openshift_robot_hash_array.1|length > 0
-
     - name: "Quay login via auth token"
-      shell: "{{ container_tool }} login -u=jbreza -p={{ openshift_robot_hash_array[1] }} quay.io"
+      shell: "podman login -u=jbreza -p='{{ openshift_robot_hash_array[1] }}' quay.io"
       # no_log: true
       when: (quay_user is undefined or quay_password is undefined or quay_user|length == 0 or quay_password|length == 0) and openshift_robot_hash_array.1 is defined and openshift_robot_hash_array.1|length > 0
 
