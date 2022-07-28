@@ -32,6 +32,6 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e automatic_cluster_version_label=true \
 -e image_protocol="docker://" \
 -e force_skip_mirror=false \
-$OP_ANSIBLE_EXTRA
+#$OP_ANSIBLE_EXTRA
 # -e triggered_by_temp_index=true \
 # -e multiarch_tagged_fbc_is_needed=true \
