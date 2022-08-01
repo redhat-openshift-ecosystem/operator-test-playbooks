@@ -10,3 +10,5 @@ eo_index_args: ""
 index_export_parallel: false
 app_registry_build_dir: "{{ catalog_repo_dir }}"
 app_registry_build_file: "upstream.Dockerfile"
+default_retries: 5
+default_delay: 10
