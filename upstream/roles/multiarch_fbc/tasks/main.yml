@@ -22,10 +22,6 @@
 - name: "Show Dockerfile"
   shell: "cat {{ mfbc_dockerfile_path }}"
 
-#fail if not cred and begins redhat.io
-#login if cred
-#remove --creds
-
 - name: "Fail on registry.redhat.io login "
   fail:
     msg: "Unable to login to registry.redhat.io with user '{{ registry_redhat_io_user }}'"
@@ -63,6 +59,7 @@
 
 - name: "Create the final manifest"
   shell: "{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }}"
+  args:
     chdir: "{{ mfbc_extracted_fbc_location }}"
 
 - name: "Create and push archs one by one"
@@ -73,6 +70,7 @@
 
 - name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
   shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
+  args:
     chdir: "{{ mfbc_extracted_fbc_location }}"
   register: mfbc_rc
   when:
@@ -81,6 +79,7 @@
 
 - name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
   shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
+  args:
     chdir: "{{ mfbc_extracted_fbc_location }}"
   register: mfbc_rc
   when:
