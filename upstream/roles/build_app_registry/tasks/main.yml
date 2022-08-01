@@ -63,6 +63,8 @@
 
     - name: "Push app registry image '{{ app_registry_image }}'"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
   when:
     - app_registry_build_dir is defined
     - app_registry_build_dir|length > 0
