@@ -63,6 +63,8 @@
 
     - name: "Push app registry image '{{ app_registry_image }}'"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
+      register: bar_push_rc
+      until: "bar_push_rc is not failed"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
   when:
