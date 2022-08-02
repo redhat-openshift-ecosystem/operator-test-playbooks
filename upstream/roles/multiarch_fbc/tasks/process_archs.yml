@@ -1,6 +1,6 @@
 ---
 - name: "Pull the base image {{ container_tool }} pull --arch={{ mfbc_architecture }} {{ mirror_multiarch_image }}"
-  shell: "{{ container_tool }} pull --arch={{ mfbc_architecture }} --creds '{{ registry_redhat_io_user }}:{{ registry_redhat_io_token }}' {{ mirror_multiarch_image }}"
+  shell: "{{ container_tool }} pull --arch={{ mfbc_architecture }} {{ mirror_multiarch_image }}"
   when: registry_redhat_io_user is defined and registry_redhat_io_token is defined
 
 - name: "Retag the base image"
@@ -11,7 +11,9 @@
     mfbc_actual_fbc_arch_image: "{{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}"
 
 - name: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }} ."
+  shell: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }} ."
+  args:
+    chdir: "{{ mfbc_extracted_fbc_location }}"
 
 - name: "Push '{{ mfbc_actual_fbc_arch_image }}'"
   include_role:
@@ -20,4 +22,6 @@
     fqp_image: "{{ mfbc_actual_fbc_arch_image }}"
 
 - name: "Add {{ mfbc_architecture }} arch to {{ mfbc_multi_arch_output_image }} manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest add {{ mfbc_multi_arch_output_image }} {{ mfbc_actual_fbc_arch_image }}"
+  shell: "{{ container_tool }} manifest add {{ mfbc_multi_arch_output_image }} {{ mfbc_actual_fbc_arch_image }}"
+  args:
+    chdir: "{{ mfbc_extracted_fbc_location }}"
