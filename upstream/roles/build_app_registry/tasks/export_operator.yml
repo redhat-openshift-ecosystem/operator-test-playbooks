@@ -39,3 +39,5 @@
 - name: "Exporting operator(s) from index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index export {{ eo_index_args }} --package {{ bar_operator_package }} --index {{ bundle_index_image }} --download-folder {{ bar_download_folder }}"
   register: bar_export_rc
+  retries: "{{ default_retries }}"
+  delay: "{{ default_delay }}"

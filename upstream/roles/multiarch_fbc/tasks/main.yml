@@ -1,4 +1,12 @@
 ---
+- name: "Set multiarch base"
+  set_fact:
+    multiarch_base: "{{ mirror_multiarch_image }}"
+
+- name: "Set multiarch base"
+  set_fact:
+    mfbc_list_architectures_from: "{{ multiarch_base }}"
+
 - name: "Tweak Dockerfile to accept arch args part 1"
   lineinfile:
     path: "{{ mfbc_dockerfile_path }}"
@@ -9,10 +17,25 @@
   replace:
     path: "{{ mfbc_dockerfile_path }}"
     regexp: "FROM quay.io/operator-framework/opm:latest"
-    replace: "FROM quay.io/operator-framework/opm:{{ opm_version }}-${ARCH}"
+    replace: "FROM {{ multiarch_base }}-${ARCH}"
 
 - name: "Show Dockerfile"
   shell: "cat {{ mfbc_dockerfile_path }}"
+
+- name: "Fail on registry.redhat.io login "
+  fail:
+    msg: "Unable to login to registry.redhat.io with user '{{ registry_redhat_io_user }}'"
+  when: 
+    - mfbc_list_architectures_from.startswith('registry.redhat.io')
+    - (registry_redhat_io_user is undefined and registry_redhat_io_token is undefined) or (registry_redhat_io_user|length == 0 or registry_redhat_io_token|length == 0)
+
+- name: "Login to registry.redhat.io"
+  shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
+  # no_log: true
+  when: 
+    - registry_redhat_io_user is defined and registry_redhat_io_token is defined 
+    - registry_redhat_io_user|length > 0 or registry_redhat_io_token|length > 0
+    - mfbc_list_architectures_from.startswith('registry.redhat.io')
 
 - name: "Detect needed architectures from image '{{ mfbc_list_architectures_from }}'"
   shell: "{{ container_tool }} manifest inspect {{ mfbc_list_architectures_from }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
@@ -35,7 +58,9 @@
   failed_when: false
 
 - name: "Create the final manifest"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }}"
+  shell: "{{ container_tool }} manifest create {{ mfbc_multi_arch_output_image }}"
+  args:
+    chdir: "{{ mfbc_extracted_fbc_location }}"
 
 - name: "Create and push archs one by one"
   include_tasks: process_archs.yml
@@ -44,14 +69,18 @@
     loop_var: mfbc_architecture
 
 - name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
+  shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
+  args:
+    chdir: "{{ mfbc_extracted_fbc_location }}"
   register: mfbc_rc
   when:
     - container_tool is defined
     - container_tool == 'docker'
 
 - name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
-  shell: "cd {{ mfbc_extracted_fbc_location }};{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
+  shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
+  args:
+    chdir: "{{ mfbc_extracted_fbc_location }}"
   register: mfbc_rc
   when:
     - container_tool is defined

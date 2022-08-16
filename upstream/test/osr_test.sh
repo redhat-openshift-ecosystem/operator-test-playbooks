@@ -15,6 +15,9 @@ OP_ANSIBLE_EXTRA=${OP_ANSIBLE_EXTRA-"-e opm_container_tool=podman -e container_t
 
 [[ $OP_DEBUG -ge 1 ]] && OP_ANSIBLE_EXTRA="$OP_ANSIBLE_EXTRA -vv"
 
+OP_ANSIBLE_EXTRA2=${OP_ANSIBLE_EXTRA/-e opm_container_tool_index=/""}
+echo "OP_ANSIBLE_EXTRA2=$OP_ANSIBLE_EXTRA2"
+
 ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 --tags deploy_bundles \
 -e operator_info_file="" \
@@ -30,6 +33,5 @@ ansible-playbook -i localhost, -e ansible_connection=local upstream/local.yml \
 -e automatic_cluster_version_label=true \
 -e image_protocol="docker://" \
 -e force_skip_mirror=false \
-# -e triggered_by_temp_index=true \
 -e multiarch_tagged_fbc_is_needed=true \
-$OP_ANSIBLE_EXTRA
+$OP_ANSIBLE_EXTRA2
