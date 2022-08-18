@@ -28,8 +28,8 @@
     oc_version: "{{ oc_version_max }}"
   when: current_openshift_run is version(oc_version_max, '>')
 
-- name: "Download oc {{ current_openshift_run }}"
-  shell: "curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-{{ oc_version }}/openshift-client-linux.tar.gz | tar xvzf - -C /tmp/oc-{{ dir_suffix_part }}/bin oc --skip-old-files"
+- name: "Download oc {{ current_openshift_run }} if smaller than {{ oc_version_max }}"
+  shell: "curl --connect-timeout 10 --max-time 300 --retry 5 --retry-delay 0 --retry-max-time 650 https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-{{ oc_version }}/openshift-client-linux.tar.gz | tar xvzf - -C /tmp/oc-{{ dir_suffix_part }}/bin oc --skip-old-files"
   when:
     - dir_suffix_part is defined
     - dir_suffix_part|length > 0
