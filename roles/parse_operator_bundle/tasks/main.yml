@@ -52,7 +52,7 @@
 
   - name: "Set the current channel to the first value from the operators.operatorframework.io.bundle.channels.v1 label"
     set_fact:
-      current_channel: "{{ channels[0] }}"
+      current_channel: "{{ channels[0] | string }}"
 
   - name: "Set is_backport according to the com.redhat.delivery.backport label, if it's missing, an empty is_backport means not set."
     set_fact:
