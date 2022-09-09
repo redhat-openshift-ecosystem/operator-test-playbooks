@@ -210,8 +210,21 @@
     msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
   when: opm_index_add_mode is undefined or opm_index_add_mode|length == 0
 
+- name: "Login to registry.redhat.io"
+  shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
+  # no_log: true
+  when: 
+    - bundle_sha_images|length > 0
+    - index_binary_image.startswith('registry.redhat.io')
+
+  - name: "Pull index binary image"
+    shell: "{{ opm_container_tool }} pull {{ index_binary_image }}"
+    retries: "{{ default_retries }}"
+    delay: "{{ default_delay }}"
+    when: bundle_sha_images|length > 0
+
 - name: "Add '{{ ba_name }}' operator to index image {{ bundle_index_image }}"
-  shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
+  shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} --binary-image {{ index_binary_image }} {{ opm_index_add_extra_args }}"
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
   ignore_errors: true
