@@ -137,12 +137,12 @@
 
 - name: "Add operator to index"
   block:
-  - name: "Login to registry.redhat.io"
-    shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
-    # no_log: true
-    when: 
-      - bundle_sha_images|length > 0
-      - index_binary_image.startswith('registry.redhat.io')
+    - name: "Login to registry.redhat.io"
+      shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
+      # no_log: true
+      when: 
+        - bundle_sha_images|length > 0
+        - index_binary_image.startswith('registry.redhat.io')
 
     - name: "Pull index binary image"
       shell: "{{ opm_container_tool }} pull {{ index_binary_image }}"
