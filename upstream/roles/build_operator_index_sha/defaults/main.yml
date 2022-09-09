@@ -9,3 +9,4 @@ boi_index_args: ""
 bundle_index_fbc_postfix: "f"
 default_retries: 5
 default_delay: 10
+index_binary_image: "registry.redhat.io/openshift4/ose-operator-registry:{{ bundle_index_image_version }}"
