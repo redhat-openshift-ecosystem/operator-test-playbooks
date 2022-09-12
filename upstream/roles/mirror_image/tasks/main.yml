@@ -7,6 +7,15 @@
         mi_mirrors: "{{ mirror_index_images.split(',') }}"
         mirror_multiarch_image_final: "{{ mirror_multiarch_image }}"
 
+    - name: "Setting 'mirror_multiarch_image_final' for non ocp : '{{ mirror_multiarch_image_k8s_ose }}'"
+      set_fact:
+        mirror_multiarch_image_final: "{{ mirror_multiarch_image_k8s_ose }}"
+      when: (stream_kind is undefined or stream_kind != "openshift_upstream")
+
+    - name: "Print 'mirror_multiarch_image_final'"
+      debug:
+        var: mirror_multiarch_image_final
+
     - name: "Loop over all mirror locations"
       no_log: true
       include_tasks: mirror_single.yml

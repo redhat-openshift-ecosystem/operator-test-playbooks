@@ -6,6 +6,7 @@ testing_bin_path: "{{ work_dir }}/bin"
 jq_bin_path: "{{ testing_bin_path }}/jq"
 mirror_input_image: "kind-registry:5000/test-operator/catalog"
 mirror_index_images: "kind-registry:5000/test-operator/catalog_mirror_auth|user|password,kind-registry:5000/test-operator/catalog_mirror_no_auth"
+mirror_multiarch_image_k8s_ose: "registry.redhat.io/openshift4/ose-operator-registry:v4.9"
 iib_base_url: http://localhost:8080
 iib_url_options: ""
 iib_input_local_host_image_base: kind-registry:8443/test-operator/catalog:latest
