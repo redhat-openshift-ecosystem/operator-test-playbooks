@@ -3,7 +3,6 @@
   set_fact:
     multiarch_base: "{{ mirror_multiarch_image }}"
 
-
 - name: "Print 'multiarch_base'"
   debug:
     var: multiarch_base
