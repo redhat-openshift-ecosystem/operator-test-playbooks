@@ -12,7 +12,7 @@
         mirror_multiarch_image_final: "{{ mirror_multiarch_image_k8s_ose }}"
       when: (stream_kind is undefined or stream_kind != "openshift_upstream")
 
-    - name: "Print 'mirror_multiarch_image_final' : '{{ mirror_multiarch_image_final }}'"
+    - name: "Print 'mirror_multiarch_image_final'"
       debug:
         var: mirror_multiarch_image_final
 

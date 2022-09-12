@@ -3,6 +3,11 @@
   set_fact:
     multiarch_base: "{{ mirror_multiarch_image }}"
 
+
+- name: "Print 'multiarch_base'"
+  debug:
+    var: multiarch_base
+
 - name: "Set multiarch base"
   set_fact:
     mfbc_list_architectures_from: "{{ multiarch_base }}"
