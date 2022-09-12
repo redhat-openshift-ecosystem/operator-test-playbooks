@@ -11,3 +11,7 @@
 
 - name: "Push bundle image {{ bundle_index_image }}"
   shell: "{{ opm_container_tool }} push {{ bundle_index_image }}"
+
+- name: "Test change, do not merge"
+  debug:
+    msg: "Test change, do not merge"
