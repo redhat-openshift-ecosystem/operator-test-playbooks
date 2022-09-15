@@ -325,7 +325,7 @@
     - name: "Cleanup local images 'sha'"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
       failed_when: false
-      loop: "{{ bob_bundles_sha_arr }}"
+      loop: "{{ bundle_sha_images.split(',') }}"
       loop_control:
         loop_var: image_item
 
