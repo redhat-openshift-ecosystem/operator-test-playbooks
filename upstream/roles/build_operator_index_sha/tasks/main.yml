@@ -272,9 +272,6 @@
         - bundle_sha_images_dt is defined
         - bundle_sha_images_dt|length > 0
 
-
-      # TODO Remove bundles (bundle_sha_images)
-
     - name: "Produce FBC files and Dockerfile"
       include_role:
         name: produce_fbc
@@ -328,7 +325,7 @@
     - name: "Cleanup local images 'sha'"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
       failed_when: false
-      loop: "{{ bundle_sha_images }}"
+      loop: "{{ bob_bundles_sha_arr }}"
       loop_control:
         loop_var: image_item
 

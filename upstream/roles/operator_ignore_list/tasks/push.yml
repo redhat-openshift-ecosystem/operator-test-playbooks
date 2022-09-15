@@ -18,9 +18,9 @@
 
 - name: "Build and push"
   block:
-    - name: "Build index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+    - name: "Pulling ignore list image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
       shell: "{{ container_tool }} pull {{ oil_index_image }}{{ oil_index_image_postfix }}"
-      ignore_errors: true
+      failed_when: false
       register: oil_push_image_exists
 
     - name: "Sets 'oil_index_image_in'"
@@ -42,7 +42,7 @@
         oil_build_extra_args: "--squash-all"
       when: container_tool == "podman"
 
-    - name: "Build index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+    - name: "Build ignore list image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
       shell: "{{ container_tool }} build --no-cache {{ oil_build_extra_args }} -t {{ oil_index_image }}{{ oil_index_image_postfix }} {{ oil_dir }}"
 
     - name: "Push index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
