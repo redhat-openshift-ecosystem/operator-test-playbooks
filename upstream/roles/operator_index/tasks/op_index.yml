@@ -329,7 +329,7 @@
     - name: "Cleanup local images"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
       failed_when: false
-      loop: "{{ oibs_bundles }}"
+      loop: "{{ oi_bundles_str.split(',') }}"
       loop_control:
         loop_var: image_item
 
