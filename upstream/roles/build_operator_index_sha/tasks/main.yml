@@ -322,6 +322,13 @@
         - strict_mode is defined
         - strict_mode|bool
 
+    - name: "Cleanup local images 'sha'"
+      shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
+      failed_when: false
+      loop: "{{ bundle_sha_images.split(',') }}"
+      loop_control:
+        loop_var: image_item
+
     - name: "Cleanup local images"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
       failed_when: false

@@ -15,7 +15,6 @@
       shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}"
       failed_when: false
 
-
     - name: "Copy production index '{{ production_index }}:{{ io_index_ver }}' to local catalog '{{ bundle_index_image }}'"
       shell: "skopeo copy docker://{{ production_index }}:{{ io_index_ver }} docker://{{ bundle_index_image }}"
       retries: "{{ default_retries }}"
@@ -326,6 +325,13 @@
       when:
         - oi_bundles_dt_str is defined
         - oi_bundles_dt_str|length > 0
+
+    - name: "Cleanup local images"
+      shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"
+      failed_when: false
+      loop: "{{ oi_bundles_str.split(',') }}"
+      loop_control:
+        loop_var: image_item
 
     - name: "Setting 'oiatil_versions'"
       set_fact:
