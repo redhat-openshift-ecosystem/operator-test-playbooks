@@ -51,7 +51,7 @@
         ia_index_image: "{{ mirror_input_image }}{{ ms_image_postfix }}"
         ia_request_index_type: "{{ ms_request_index_type }}" # db or fbc
         ia_request_index_tag_type: "{{ ms_request_index_tag_type }}" # tag or sha
-        
+
     # TODO Put fbc multiarch here
 
     - name: "Set 'mirror_input_image_final' to '{{ mirror_input_image }}{{ ms_image_postfix }}'"

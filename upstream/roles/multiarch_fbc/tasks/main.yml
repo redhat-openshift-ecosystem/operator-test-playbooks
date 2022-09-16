@@ -15,7 +15,7 @@
   lineinfile:
     path: "{{ mfbc_dockerfile_path }}"
     insertbefore: BOF
-    line: 'ARG ARCH='
+    line: "ARG ARCH="
 
 - name: "Tweak Dockerfile to accept arch args part 2"
   replace:
@@ -29,15 +29,15 @@
 - name: "Fail on registry.redhat.io login "
   fail:
     msg: "Unable to login to registry.redhat.io with user '{{ registry_redhat_io_user }}'"
-  when: 
+  when:
     - mfbc_list_architectures_from.startswith('registry.redhat.io')
     - (registry_redhat_io_user is undefined and registry_redhat_io_token is undefined) or (registry_redhat_io_user|length == 0 or registry_redhat_io_token|length == 0)
 
 - name: "Login to registry.redhat.io"
   shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
   # no_log: true
-  when: 
-    - registry_redhat_io_user is defined and registry_redhat_io_token is defined 
+  when:
+    - registry_redhat_io_user is defined and registry_redhat_io_token is defined
     - registry_redhat_io_user|length > 0 or registry_redhat_io_token|length > 0
     - mfbc_list_architectures_from.startswith('registry.redhat.io')
 
