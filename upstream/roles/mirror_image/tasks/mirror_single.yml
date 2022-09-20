@@ -54,6 +54,14 @@
 
     # TODO Put fbc multiarch here
 
+    - name: "Build fbc '{{ mirror_input_image }}{{ ms_image_postfix }}'"
+      include_role:
+        name: build_fbc_multiarch
+      vars:
+        bfbc_image_intput: "{{ mirror_input_image }}{{ ms_image_postfix }}"
+        bfbc_image_output: "{{ mirror_input_image }}{{ ms_image_postfix[-1:] }}"
+      when: ms_request_index_type == "fbc"
+
     - name: "Set 'mirror_input_image_final' to '{{ mirror_input_image }}{{ ms_image_postfix }}'"
       set_fact:
         mirror_input_image_final: "{{ mirror_input_image }}{{ ms_image_postfix }}"
