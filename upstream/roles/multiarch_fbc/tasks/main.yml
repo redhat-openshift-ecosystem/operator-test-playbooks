@@ -95,3 +95,6 @@
   loop: "{{ multiarch_fbc_architectures }}"
   loop_control:
     loop_var: mfbc_architecture
+
+- name: "Removing base image without arch '{{ mirror_multiarch_image }}'"
+  shell: "{{ container_tool }} rmi -f {{ mirror_multiarch_image }}"

@@ -132,6 +132,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ oi_index }}"
+        fqp_cleanup: true
       when:
         - oi_index_rm.rc is defined
         - oi_index_rm.rc == 0
@@ -227,6 +228,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ oi_index }}"
+        fqp_cleanup: true
       when:
         - oi_index_add.rc is defined
         - oi_index_add.rc == 0

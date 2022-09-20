@@ -71,5 +71,11 @@
 
       when: not (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
 
+    - name: "Removing image after push '{{ fqp_image }}'"
+      shell: "{{ container_tool }} rmi -f {{ fqp_image }}"
+      when:
+        - fqp_cleanup is defined
+        - fqp_cleanup|bool
+
   when:
     - (fqp_image is defined and fqp_image|length > 0)
