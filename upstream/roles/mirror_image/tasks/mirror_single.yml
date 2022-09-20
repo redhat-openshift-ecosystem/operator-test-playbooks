@@ -58,7 +58,7 @@
       include_role:
         name: build_fbc_multiarch
       vars:
-        bfbc_image_intput: "{{ mirror_input_image }}{{ ms_image_postfix[-1:] }}"
+        bfbc_image_intput: "{{ mirror_input_image }}{{ ms_image_postfix[-2:-1] }}"
         bfbc_image_output: "{{ mirror_input_image }}{{ ms_image_postfix }}"
       when: ms_request_index_type == "fbc"
 
