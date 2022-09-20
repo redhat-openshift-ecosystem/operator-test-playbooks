@@ -53,12 +53,12 @@
         ignore_list_from_file: "{{ oil_ignore_list_data.stdout | from_yaml }}"
       when: oil_ignore_list_data.stdout is defined
 
-    - name: "Print 'ignore_list_from_file'"
-      debug:
-        var: ignore_list_from_file
-    - name: "Print 'ignore_list'"
-      debug:
-        var: ignore_list
+    # - name: "Print 'ignore_list_from_file'"
+    #   debug:
+    #     var: ignore_list_from_file
+    # - name: "Print 'ignore_list'"
+    #   debug:
+    #     var: ignore_list
     - name: "Add 'ignore_list_from_file' to 'ignore_list'"
       set_fact:
         ignore_list: "{{ ignore_list | union(ignore_list_from_file) }}"
@@ -106,8 +106,8 @@
     - oil_ignore_list_external_file is defined
     - oil_ignore_list_external_file|length>0
 
-- name: "Print 'ignore_list'"
-  debug:
-    var: ignore_list
+# - name: "Print 'ignore_list'"
+#   debug:
+#     var: ignore_list
 # - debug:
 #     var: oil_temp
