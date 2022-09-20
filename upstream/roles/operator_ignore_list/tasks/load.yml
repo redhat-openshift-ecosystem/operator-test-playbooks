@@ -38,6 +38,9 @@
       shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}"
       # failed_when: false
 
+    - name: "Remove local index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oil_index_image }}{{ oil_index_image_postfix }}"
+
     - name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
       stat:
         path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
