@@ -74,6 +74,7 @@
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
   register: sis_pull_result
+  until: sis_pull_result is not failed
   failed_when: false
 
 - name: "Setting bundle image names index add mode"
@@ -144,6 +145,7 @@
       delay: "{{ default_delay }}"
       ignore_errors: true
       register: sis_ia_rc
+      until: sis_ia_rc is not failed
       when: bundle_sha_images|length > 0
 
     - name: "Debug"

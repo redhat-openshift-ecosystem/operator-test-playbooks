@@ -11,6 +11,8 @@
       shell: "{{ container_tool }} pull {{ bundle_index_image_input }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: elopfi_pull_action_result
+      until: elopfi_pull_action_result is not failed
       when: not index_pull_skip
 
     - name: "Start index container {{ bundle_index_image_input }}"
