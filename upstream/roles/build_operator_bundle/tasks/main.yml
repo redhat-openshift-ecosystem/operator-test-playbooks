@@ -56,9 +56,9 @@
         operator_dir_name: "{{ bob_opname }}"
       when: op_info is undefined
 
-    - name: "Show op_info"
-      debug:
-        var: op_info
+    # - name: "Show op_info"
+    #   debug:
+    #     var: op_info
 
     - name: "Setting list of versions from directory structre"
       set_fact:

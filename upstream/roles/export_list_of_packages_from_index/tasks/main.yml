@@ -41,6 +41,9 @@
     - name: "Stop index container '{{ sanity_check_container_name }}'"
       shell: "{{ container_tool }} rm -f {{ sanity_check_container_name }}"
 
+    - name: "Remove image '{{ bundle_index_image_input }}'"
+      shell: "{{ container_tool }} rmi -f {{ bundle_index_image_input }}"
+
     - name: "Set list of all operators (versions) in index"
       set_fact:
         elopfi_index_operators: "{{ elopfi_index_operators_out.stdout.split(',') }}"
