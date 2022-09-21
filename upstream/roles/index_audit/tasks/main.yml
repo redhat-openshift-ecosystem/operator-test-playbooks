@@ -27,6 +27,10 @@
   register: ia_check_fbc
   failed_when: false
 
+- name: "Delete image '{{ ia_index_image }}' for '{{ ia_container_name }}'"
+  shell: "{{ container_tool }} rmi -f {{ ia_index_image }}"
+  failed_when: false
+
 - name: "Set 'ia_index_image_type' to 'db'"
   set_fact:
     ia_index_type: "db"
