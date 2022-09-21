@@ -283,6 +283,7 @@
             name: operator_push_image
           vars:
             fqp_image: "{{ oi_index }}"
+            fqp_cleanup: true
           when:
             - oi_index_dt.rc is defined
             - oi_index_dt.rc == 0

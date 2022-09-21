@@ -234,6 +234,7 @@
             name: operator_push_image
           vars:
             fqp_image: "{{ sis_index_image_output }}"
+            fqp_cleanup: true
           when:
             - sis_ia_rc.rc is defined
             - sis_ia_rc.rc == 0

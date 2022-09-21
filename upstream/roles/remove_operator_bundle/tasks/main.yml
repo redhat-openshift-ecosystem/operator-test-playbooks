@@ -150,6 +150,7 @@
             name: operator_push_image
           vars:
             fqp_image: "{{ bundle_index_image }}"
+            fqp_cleanup: true
           when: rob_rc.rc == 0
 
         - name: "Set 'result_rc' to false"
@@ -201,6 +202,7 @@
                 name: operator_push_image
               vars:
                 fqp_image: "{{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
+                fqp_cleanup: true
               when: rob_rc1.rc == 0
 
             - name: "Set 'result_rc' to false"

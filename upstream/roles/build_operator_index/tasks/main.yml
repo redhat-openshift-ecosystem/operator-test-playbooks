@@ -121,6 +121,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ bundle_index_image }}"
+        fqp_cleanup: true
       when: bio_index_rm_rc.rc == 0
 
     - name: "Set 'result_rc' to false"
@@ -231,6 +232,7 @@
     name: operator_push_image
   vars:
     fqp_image: "{{ bundle_index_image }}"
+    fqp_cleanup: true
   when: boi_ia_rc.rc == 0
 
 - name: "Set 'result_rc' to false"
@@ -362,6 +364,7 @@
                 name: operator_push_image
               vars:
                 fqp_image: "{{ boi_bundle_latest_index_image }}"
+                fqp_cleanup: true
 
             - name: "Retag index to latest "
               block:
@@ -373,6 +376,7 @@
                     name: operator_push_image
                   vars:
                     fqp_image: "{{ boi_bundle_latest_index_image }}{{ bundle_index_sha_posfix }}"
+                    fqp_cleanup: true
               when:
                 - bundle_index_sha_posfix is defined
                 - bundle_index_sha_posfix|length > 0
