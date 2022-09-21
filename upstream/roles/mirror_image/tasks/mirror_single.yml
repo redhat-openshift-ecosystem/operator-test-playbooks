@@ -306,6 +306,15 @@
                   delay: "{{ default_delay }}"
                   when:
                     - ms_info.4 is defined
+
+                - name: "Delete image '{{ mi_ms_iib_image }}'"
+                  shell: "{{ container_tool }} rmi -f {{ mi_ms_iib_image }}"
+                  failed_when: false
+
+                - name: "Delete image '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
+                  shell: "{{ container_tool }} rmi -f {{ ms_info[0] }}{{ mi_tmp_postfix }}"
+                  failed_when: false
+
               when:
                 - mi_ms_multiarch_response is defined
                 - mi_ms_multiarch_response.attempts < 50
