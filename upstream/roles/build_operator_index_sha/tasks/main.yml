@@ -146,13 +146,13 @@
       register: sis_ia_rc
       when: bundle_sha_images|length > 0
 
-    - name: "Debug"
-      debug:
-        var: bundle_sha_images
+    # - name: "Debug"
+    #   debug:
+    #     var: bundle_sha_images
 
-    - name: "Debug"
-      debug:
-        var: sis_ia_rc
+    # - name: "Debug"
+    #   debug:
+    #     var: sis_ia_rc
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -213,13 +213,13 @@
           register: sis_ia_rc
           when: bundle_sha_images|length > 0
 
-        - name: "Debug"
-          debug:
-            var: bundle_sha_images
+        # - name: "Debug"
+        #   debug:
+        #     var: bundle_sha_images
 
-        - name: "Debug"
-          debug:
-            var: sis_ia_rc
+        # - name: "Debug"
+        #   debug:
+        #     var: sis_ia_rc
 
         - name: "Index safety check to avoid accidental overwrite"
           include_role:
