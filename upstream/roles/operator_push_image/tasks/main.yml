@@ -29,6 +29,12 @@
           ignore_errors: true
           register: opi_push_quay_convert_rc
 
+        - name: "Removing image after push '{{ fqp_image }}'"
+          shell: "{{ container_tool }} rmi -f {{ fqp_image }}"
+          when:
+            - fqp_cleanup is defined
+            - fqp_cleanup|bool
+
         - name: "Copy '{{ fqp_image_dir }}' to final destination '{{ fqp_image }}'"
           shell: "skopeo copy dir:{{ fqp_image_dir }} {{ image_protocol }}{{ fqp_image }}"
           retries: "{{ default_retries }}"
