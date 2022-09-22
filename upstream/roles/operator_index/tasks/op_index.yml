@@ -127,7 +127,7 @@
       shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} --permissive {{ opm_index_add_extra_args }}"
       register: oi_index_rm
 
-    - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+    - name: "Removing local image '{{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
       failed_when: false
 
@@ -232,7 +232,7 @@
       until: oi_index_add is not failed
       ignore_errors: true
 
-    - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+    - name: "Removing local image '{{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
       failed_when: false
 
@@ -303,7 +303,7 @@
           register: oi_index_dt
           ignore_errors: true
 
-        - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+        - name: "Removing local image '{{ oi_index }}{{ io_image_postfix }}'"
           shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
           failed_when: false
 
