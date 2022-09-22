@@ -332,13 +332,19 @@
                   when:
                     - ms_info.4 is defined
 
-                - name: "Delete image '{{ mi_ms_iib_image }}'"
+                - name: "Delete local image '{{ mi_ms_iib_image }}'"
                   shell: "{{ container_tool }} rmi -f {{ mi_ms_iib_image }}"
                   failed_when: false
 
-                - name: "Delete image '{{ mi_ms_iib_image }}'"
+                - name: "Delete local image '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
                   shell: "{{ container_tool }} rmi -f {{ ms_info[0] }}{{ mi_tmp_postfix }}"
                   failed_when: false
+                
+                - name: "Delete local image '{{ ms_index_prod_location }}'"
+                  shell: "{{ container_tool }} rmi -f {{ ms_index_prod_location }}"
+                  failed_when: false
+                  when:
+                    - ms_info.4 is defined
 
               when:
                 - mi_ms_multiarch_response is defined
@@ -357,9 +363,14 @@
       include_role:
         name: index_audit
       vars:
-        ia_index_image: "{{  ms_info[0] }}"
+        ia_index_image: "{{ ms_info[0] }}"
         ia_request_index_type: "{{ ms_request_index_type }}" # db or fbc
         ia_request_index_tag_type: "{{ ms_request_index_tag_type }}" # tag or sha
+
+    - name: "Delete local image '{{ ms_info[0] }}'"
+      shell: "{{ container_tool }} rmi -f {{ ms_info[0] }}"
+      failed_when: false
+
   tags:
     - mirror_index
     - deploy_bundles
