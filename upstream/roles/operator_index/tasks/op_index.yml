@@ -115,10 +115,16 @@
 
 - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
   block:
+    - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+
     - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} --permissive {{ opm_index_add_extra_args }}"
       register: oi_index_rm
-
+    
+    - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+    
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
         name: export_list_of_packages_from_index
@@ -208,12 +214,18 @@
       debug:
         var: oi_bundles_dt_str
 
+    - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: oi_index_add
       ignore_errors: true
+
+    - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -273,10 +285,18 @@
 
     - name: "Handle deprecatetruncate"
       block:
+
+
+        - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
+          shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+
         - name: "Index deprecatetruncate '{{ oi_op_name }}' operator to index image {{ oi_index }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -c {{ opm_container_tool }} --bundles {{ oi_bundles_dt_str }} --tag {{ oi_index }} --from-index {{ oi_index }}"
           register: oi_index_dt
           ignore_errors: true
+
+        - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+          shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
 
         - name: "Push index image {{ oi_index }}"
           include_role:
