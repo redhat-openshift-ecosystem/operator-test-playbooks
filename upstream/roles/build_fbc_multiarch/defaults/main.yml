@@ -1,0 +1,2 @@
+bfbc_image_intput: "{{ sis_index_image_output }}"
+bfbc_image_output: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"

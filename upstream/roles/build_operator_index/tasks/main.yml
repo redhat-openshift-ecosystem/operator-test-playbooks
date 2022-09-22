@@ -31,6 +31,8 @@
     return_content: true
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
+  register: boi_create_action_result
+  until: boi_create_action_result is not failed
   when:
     - quay_api_token is defined
     - quay_api_token|length > 0
@@ -59,6 +61,8 @@
     return_content: true
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
+  register: boi_create_action2_result
+  until: boi_create_action2_result is not failed
   when:
     - openshift_robot_hash_array.2 is defined
     - openshift_robot_hash_array.2|length > 0
@@ -102,11 +106,19 @@
       shell: "{{ container_tool }} pull {{ bundle_index_image }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: boi_pull_action_result
+      until: boi_pull_action_result is not failed
       when: (opm_container_tool_index is undefined or opm_container_tool_index|length == 0)
+
+    - name: "Retaging '{{ bundle_index_image }}' to ' {{ bundle_index_image }}{{ boi_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ bundle_index_image }}{{ boi_image_postfix }}"
 
     - name: "Remove previous versions of '{{ ba_name }}' operator from index image {{ bundle_index_image }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ ba_name }} --tag {{ bundle_index_image }} --permissive {{ opm_index_add_extra_args }}"
       register: bio_index_rm_rc
+
+    - name: "Removing image '{{ bundle_index_image }}{{ boi_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}{{ boi_image_postfix }}"
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -121,6 +133,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ bundle_index_image }}"
+        fqp_cleanup: true
       when: bio_index_rm_rc.rc == 0
 
     - name: "Set 'result_rc' to false"
@@ -210,13 +223,20 @@
     msg: "opm index add mode has to be set to following values: [replaces, semver, semver-skippatch] (default  replaces)"
   when: opm_index_add_mode is undefined or opm_index_add_mode|length == 0
 
+- name: "Retaging '{{ bundle_index_image }}' to ' {{ bundle_index_image }}{{ boi_image_postfix }}'"
+  shell: "{{ container_tool }} tag {{ bundle_index_image }} {{ bundle_index_image }}{{ boi_image_postfix }}"
+
 - name: "Add '{{ ba_name }}' operator to index image {{ bundle_index_image }}"
   shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_images }} --tag {{ bundle_index_image }} --mode {{ opm_index_add_mode }} {{ opm_index_add_extra_args }}"
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
   ignore_errors: true
   register: boi_ia_rc
+  until: boi_ia_rc is not failed
   when: bundle_images|length > 0
+
+- name: "Removing image '{{ bundle_index_image }}{{ boi_image_postfix }}'"
+  shell: "{{ container_tool }} rmi -f {{ bundle_index_image }}{{ boi_image_postfix }}"
 
 - name: "Index safety check to avoid accidental overwrite"
   include_role:
@@ -231,6 +251,7 @@
     name: operator_push_image
   vars:
     fqp_image: "{{ bundle_index_image }}"
+    fqp_cleanup: true
   when: boi_ia_rc.rc == 0
 
 - name: "Set 'result_rc' to false"
@@ -362,6 +383,7 @@
                 name: operator_push_image
               vars:
                 fqp_image: "{{ boi_bundle_latest_index_image }}"
+                fqp_cleanup: true
 
             - name: "Retag index to latest "
               block:
@@ -373,6 +395,7 @@
                     name: operator_push_image
                   vars:
                     fqp_image: "{{ boi_bundle_latest_index_image }}{{ bundle_index_sha_posfix }}"
+                    fqp_cleanup: true
               when:
                 - bundle_index_sha_posfix is defined
                 - bundle_index_sha_posfix|length > 0

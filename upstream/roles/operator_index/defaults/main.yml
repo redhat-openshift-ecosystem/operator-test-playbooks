@@ -6,5 +6,6 @@ bundle_index_image_name: "catalog"
 bundle_index_image_version: "latest"
 oi_failed_index_add: []
 oi_failed_index_dt: []
+io_image_postfix: "_src"
 default_retries: 5
 default_delay: 10

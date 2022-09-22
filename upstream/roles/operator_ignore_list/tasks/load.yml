@@ -38,6 +38,9 @@
       shell: "{{ container_tool }} cp {{ oil_temp }}:/{{ oil_ignore_list_file }} {{ oil_dir }}"
       # failed_when: false
 
+    - name: "Remove local index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oil_index_image }}{{ oil_index_image_postfix }}"
+
     - name: "Check for file '{{ oil_dir }}/{{ oil_ignore_list_file }}'"
       stat:
         path: "{{ oil_dir }}/{{ oil_ignore_list_file }}"
@@ -53,12 +56,12 @@
         ignore_list_from_file: "{{ oil_ignore_list_data.stdout | from_yaml }}"
       when: oil_ignore_list_data.stdout is defined
 
-    - name: "Print 'ignore_list_from_file'"
-      debug:
-        var: ignore_list_from_file
-    - name: "Print 'ignore_list'"
-      debug:
-        var: ignore_list
+    # - name: "Print 'ignore_list_from_file'"
+    #   debug:
+    #     var: ignore_list_from_file
+    # - name: "Print 'ignore_list'"
+    #   debug:
+    #     var: ignore_list
     - name: "Add 'ignore_list_from_file' to 'ignore_list'"
       set_fact:
         ignore_list: "{{ ignore_list | union(ignore_list_from_file) }}"
@@ -106,8 +109,8 @@
     - oil_ignore_list_external_file is defined
     - oil_ignore_list_external_file|length>0
 
-- name: "Print 'ignore_list'"
-  debug:
-    var: ignore_list
+# - name: "Print 'ignore_list'"
+#   debug:
+#     var: ignore_list
 # - debug:
 #     var: oil_temp

@@ -67,6 +67,7 @@
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: ptq_dir_existence
+      until: ptq_dir_existence is not failed
       failed_when: false
 
     - name: "Create repo for {{ ptq_operator_dir_name }} with public visibility"
@@ -82,6 +83,8 @@
         return_content: true
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: ptq_create_action_result
+      until: ptq_create_action_result is not failed
       when:
         - quay_appregistry_api_token|length > 0
         - ptq_dir_existence.status != 200

@@ -8,6 +8,8 @@
 - name: "Pull index image '{{ ia_index_image }}'"
   shell: "{{ container_tool }} pull {{ ia_index_image }}"
   retries: "{{ default_retries }}"
+  register: ia_pull_action_result
+  until: ia_pull_action_result is not failed
   delay: "{{ default_delay }}"
 
 - name: "Delete previous container '{{ ia_container_name }}'"
@@ -25,6 +27,10 @@
 - name: "Check if index '{{ ia_index_image }}' is 'fbc' type"
   shell: "{{ container_tool }} exec {{ ia_container_name }} ls /configs"
   register: ia_check_fbc
+  failed_when: false
+
+- name: "Delete image '{{ ia_index_image }}' for '{{ ia_container_name }}'"
+  shell: "{{ container_tool }} rmi -f {{ ia_index_image }}"
   failed_when: false
 
 - name: "Set 'ia_index_image_type' to 'db'"
