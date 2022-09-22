@@ -30,7 +30,7 @@
           register: opi_push_quay_convert_rc
           until: opi_push_quay_convert_rc is not failed
 
-        - name: "Removing image after push '{{ fqp_image }}'"
+        - name: "Removing local image after push '{{ fqp_image }}'"
           shell: "{{ container_tool }} rmi -f {{ fqp_image }}"
           when:
             - fqp_cleanup is defined
@@ -80,7 +80,7 @@
 
       when: not (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
 
-    - name: "Removing image after push '{{ fqp_image }}'"
+    - name: "Removing local image after push '{{ fqp_image }}'"
       shell: "{{ container_tool }} rmi -f {{ fqp_image }}"
       when:
         - fqp_cleanup is defined
