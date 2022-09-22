@@ -159,6 +159,10 @@
       when:
         - mi_actual_architectures | list |count > 1
 
+    - name: "Removing src image '{{ ms_info[0] }}_tmp'"
+      shell: "{{ container_tool }} rmi -f {{ ms_info[0] }}_tmp"
+      failed_when: false
+
     - name: "IIB needed"
       block:
         - name: "Mirroring multi arch index image '{{ mirror_multiarch_image_final }}' to mirror location '{{ ms_info[0] }}' using IIB"
@@ -339,7 +343,7 @@
                 - name: "Delete local image '{{ ms_info[0] }}{{ mi_tmp_postfix }}'"
                   shell: "{{ container_tool }} rmi -f {{ ms_info[0] }}{{ mi_tmp_postfix }}"
                   failed_when: false
-                
+
                 - name: "Delete local image '{{ ms_index_prod_location }}'"
                   shell: "{{ container_tool }} rmi -f {{ ms_index_prod_location }}"
                   failed_when: false
