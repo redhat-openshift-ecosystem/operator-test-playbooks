@@ -305,7 +305,6 @@
                   until: ms_skopeo_result.rc == 0
                   retries: "{{ default_retries }}"
                   delay: "{{ default_delay }}"
-                  until: ms_skopeo_result is not failed
 
                 - name: "Transfer image from '{{ ms_info[0] }}{{ mi_tmp_postfix }}' to '{{ ms_info[0] }}'"
                   shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false -f v2s2"
