@@ -117,6 +117,7 @@
   block:
     - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
 
     - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} --permissive {{ opm_index_add_extra_args }}"
@@ -124,6 +125,7 @@
     
     - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
     
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -216,6 +218,7 @@
 
     - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
 
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
@@ -226,6 +229,7 @@
 
     - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -289,6 +293,7 @@
 
         - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
           shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+          failed_when: false
 
         - name: "Index deprecatetruncate '{{ oi_op_name }}' operator to index image {{ oi_index }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -c {{ opm_container_tool }} --bundles {{ oi_bundles_dt_str }} --tag {{ oi_index }} --from-index {{ oi_index }}"
@@ -297,6 +302,7 @@
 
         - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
           shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+          failed_when: false
 
         - name: "Push index image {{ oi_index }}"
           include_role:

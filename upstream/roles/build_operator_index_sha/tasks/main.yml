@@ -93,6 +93,7 @@
 
     - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
 
     - name: "Remove previous versions of '{{ sis_package_name }}' operator from index image {{ sis_index_image_output }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ sis_package_name }} --tag {{ sis_index_image_output }} --permissive {{ sis_opm_extra_args }}"
@@ -100,6 +101,7 @@
 
     - name: "Removing image '{{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
 
     - name: "Push index image {{ sis_index_image_output }}"
       include_role:
@@ -148,6 +150,7 @@
 
     - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
 
     - name: "Add '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
       shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_sha_images }} --tag {{ sis_index_image_output }} --mode {{ opm_index_add_mode }} {{ sis_opm_extra_args }}"
@@ -159,6 +162,7 @@
 
     - name: "Removing image '{{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
 
     # - name: "Debug"
     #   debug:
@@ -224,6 +228,7 @@
 
         - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
           shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
+          failed_when: false
 
         - name: "Deprecate truncate '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -u {{ opm_container_tool }} --bundles {{ bundle_sha_images_dt }} --tag {{ sis_index_image_output }} {{ sis_opm_extra_args }}"
@@ -233,6 +238,7 @@
 
         - name: "Removing image '{{ sis_index_image_output }}{{ bois_image_postfix }}'"
           shell: "{{ container_tool }} rmi -f {{ sis_index_image_output }}{{ bois_image_postfix }}"
+          failed_when: false
 
         # - name: "Debug"
         #   debug:
