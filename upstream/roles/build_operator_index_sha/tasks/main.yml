@@ -90,7 +90,6 @@
 
 - name: "Remove operator from idnex"
   block:
-
     - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
       failed_when: false
@@ -147,7 +146,6 @@
 
 - name: "Add operator to index"
   block:
-
     - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
       failed_when: false
@@ -225,7 +223,6 @@
 
     - name: "Doing deprecate truncate on index image '{{ sis_index_image_output }}'"
       block:
-
         - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
           shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
           failed_when: false

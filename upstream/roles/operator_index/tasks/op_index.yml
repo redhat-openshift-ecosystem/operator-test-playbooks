@@ -122,11 +122,11 @@
     - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} --permissive {{ opm_index_add_extra_args }}"
       register: oi_index_rm
-    
+
     - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
       failed_when: false
-    
+
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
         name: export_list_of_packages_from_index
@@ -289,8 +289,6 @@
 
     - name: "Handle deprecatetruncate"
       block:
-
-
         - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
           shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
           failed_when: false
