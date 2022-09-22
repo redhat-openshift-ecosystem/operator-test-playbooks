@@ -42,11 +42,17 @@
         oil_build_extra_args: "--squash-all"
       when: container_tool == "podman"
 
+    - name: "Retag index image '{{ oil_index_image }}{{ oil_index_image_postfix }}' to '{{ oil_index_image }}{{ oil_index_image_postfix }}{{ oil_src_postfix }}'"
+      shell: "{{ container_tool }} tag {{ oil_index_image }}{{ oil_index_image_postfix }} {{ oil_index_image }}{{ oil_index_image_postfix }}{{ oil_src_postfix }}"
+
     - name: "Build ignore list image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
       shell: "{{ container_tool }} build --no-cache {{ oil_build_extra_args }} -t {{ oil_index_image }}{{ oil_index_image_postfix }} {{ oil_dir }}"
 
     - name: "Push index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
       shell: "{{ container_tool }} push {{ oil_index_image }}{{ oil_index_image_postfix }}"
+
+    - name: "Remove local index image '{{ oil_index_image }}{{ oil_index_image_postfix }}{{ oil_src_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oil_index_image }}{{ oil_index_image_postfix }}{{ oil_src_postfix }}"
 
     - name: "Remove local index image '{{ oil_index_image }}{{ oil_index_image_postfix }}'"
       shell: "{{ container_tool }} rmi -f {{ oil_index_image }}{{ oil_index_image_postfix }}"
