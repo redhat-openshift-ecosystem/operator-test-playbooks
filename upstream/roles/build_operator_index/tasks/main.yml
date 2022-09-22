@@ -31,6 +31,8 @@
     return_content: true
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
+  register: boi_create_action_result
+  until: boi_create_action_result is not failed
   when:
     - quay_api_token is defined
     - quay_api_token|length > 0
@@ -59,6 +61,8 @@
     return_content: true
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
+  register: boi_create_action2_result
+  until: boi_create_action2_result is not failed
   when:
     - openshift_robot_hash_array.2 is defined
     - openshift_robot_hash_array.2|length > 0
@@ -102,6 +106,8 @@
       shell: "{{ container_tool }} pull {{ bundle_index_image }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: boi_pull_action_result
+      until: boi_pull_action_result is not failed
       when: (opm_container_tool_index is undefined or opm_container_tool_index|length == 0)
 
     - name: "Retaging '{{ bundle_index_image }}' to ' {{ bundle_index_image }}{{ boi_image_postfix }}'"
@@ -226,6 +232,7 @@
   delay: "{{ default_delay }}"
   ignore_errors: true
   register: boi_ia_rc
+  until: boi_ia_rc is not failed
   when: bundle_images|length > 0
 
 - name: "Removing image '{{ bundle_index_image }}{{ boi_image_postfix }}'"

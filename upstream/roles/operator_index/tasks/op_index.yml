@@ -19,6 +19,8 @@
       shell: "skopeo copy docker://{{ production_index }}:{{ io_index_ver }} docker://{{ bundle_index_image }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: oi_copy_action_result
+      until: oi_copy_action_result is not failed
       when:
         - production_index is defined
         - production_index|length > 0
@@ -53,6 +55,8 @@
         return_content: true
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: oi_repo_action_result
+      until: oi_repo_action_result is not failed
       when:
         - quay_api_token is defined
         - quay_api_token|length > 0
@@ -225,6 +229,7 @@
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: oi_index_add
+      until: oi_index_add is not failed
       ignore_errors: true
 
     - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"

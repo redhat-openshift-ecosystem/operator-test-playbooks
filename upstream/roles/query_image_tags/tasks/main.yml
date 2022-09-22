@@ -7,6 +7,7 @@
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: qit_registry_versions
+      until: qit_registry_versions is not failed
       failed_when: false
 
     - name: "Setting default values for 'qit_result' and 'qit_rc' variable"
@@ -35,6 +36,7 @@
           retries: "{{ default_retries }}"
           delay: "{{ default_delay }}"
           register: qit_skopeo_inspect
+          until: qit_skopeo_inspect is not failed
           failed_when: false
           changed_when: false
 

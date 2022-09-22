@@ -75,6 +75,8 @@
           shell: "{{ container_tool }} pull {{ mirror_input_image_final }}"
           retries: "{{ default_retries }}"
           delay: "{{ default_delay }}"
+          register: mi_pull_action_result
+          until: mi_pull_action_result is not failed
 
         - name: "Doing retag of '{{ mirror_input_image_final }}' to '{{ ms_info[0] }}'"
           shell: "{{ container_tool }} tag {{ mirror_input_image_final }} {{ ms_info[0] }}"
@@ -103,6 +105,7 @@
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: ms_pull_mirror_input_image_final
+      until: ms_pull_mirror_input_image_final is not failed
       failed_when: false
 
     - name: "Reset archs list"
@@ -115,6 +118,7 @@
       delay: "{{ default_delay }}"
       register: mi_archs_inspect_result
       failed_when: false
+      until: mi_archs_inspect_result is success
 
     - name: "Parse archs to a list"
       set_fact:
@@ -138,6 +142,8 @@
       shell: "skopeo copy -a {{ image_protocol }}{{ mirror_input_image  }}{{ ms_image_postfix }} {{ image_protocol }}{{ ms_info[0] }}_tmp"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: mi_mirror_action_result
+      until: mi_mirror_action_result is not failed
       when:
         - mi_actual_architectures | list |count > 1
 
@@ -148,6 +154,8 @@
       shell: "skopeo copy -a {{ image_protocol }}{{ ms_info[0] }}_tmp {{ image_protocol }}{{ ms_info[0] }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: mi_mirror_action2_result
+      until: mi_mirror_action2_result is not failed
       when:
         - mi_actual_architectures | list |count > 1
 
@@ -164,6 +172,8 @@
                   shell: "{{ container_tool }} push {{ iib_input_local_host_image_base }}"
                   retries: "{{ default_retries }}"
                   delay: "{{ default_delay }}"
+                  register: mi_push_action_result
+                  until: mi_push_action_result is not failed
                   when:
                     - container_tool is defined
                     - container_tool != 'podman'
@@ -172,6 +182,8 @@
                   shell: "{{ container_tool }} push --tls-verify=false {{ iib_input_local_host_image_base }}"
                   retries: "{{ default_retries }}"
                   delay: "{{ default_delay }}"
+                  register: mi_push_action2_result
+                  until: mi_push_action2_result is not failed
                   when:
                     - container_tool is defined
                     - container_tool == 'podman'
@@ -202,6 +214,7 @@
               shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
               retries: "{{ default_retries }}"
               delay: "{{ default_delay }}"
+              until: archs_inspect_result is not failed
               register: archs_inspect_result
 
             - name: "Prints 'archs'"
@@ -232,6 +245,7 @@
               retries: "{{ default_retries }}"
               delay: "{{ default_delay }}"
               register: mi_ms_multiarch_request
+              until: mi_ms_multiarch_request is not failed
               # ignore_errors: true
 
               # # shell: 'curl -s {{ iib_url_options }} --request POST --url {{ iib_base_url }}/api/v1/builds/add --header ''content-type: application/json'' --data ''{"add_arches": ["amd64", "s390x", "ppc64le", "arm64"],"binary_image": "{{ mirror_multiarch_image_final }}","from_index": "{{ mirror_input_image_final }}"}'''
@@ -303,6 +317,8 @@
                   shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_info[0] }} --src-tls-verify=false -f v2s2"
                   retries: "{{ default_retries }}"
                   delay: "{{ default_delay }}"
+                  register: mi_transfer_action_result
+                  until: mi_transfer_action_result is not failed
                   when:
                     - mi_tmp_postfix is defined
                     - mi_tmp_postfix|length > 0
@@ -311,6 +327,8 @@
                   shell: "skopeo copy -a docker://{{ ms_info[0] }}{{ mi_tmp_postfix }} docker://{{ ms_index_prod_location }} --src-tls-verify=false -f v2s2"
                   retries: "{{ default_retries }}"
                   delay: "{{ default_delay }}"
+                  register: mi_transfer_action2_result
+                  until: mi_transfer_action2_result is not failed
                   when:
                     - ms_info.4 is defined
 
