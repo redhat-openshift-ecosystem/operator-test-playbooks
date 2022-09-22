@@ -119,6 +119,11 @@
 
 - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
   block:
+
+    - name: "Pull image '{{ oi_index }}'"
+      shell: "{{ container_tool }} pull {{ oi_index }}"
+      failed_when: false
+
     - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
       failed_when: false
@@ -220,6 +225,10 @@
       debug:
         var: oi_bundles_dt_str
 
+    - name: "Pull image '{{ oi_index }}'"
+      shell: "{{ container_tool }} pull {{ oi_index }}"
+      failed_when: false
+
     - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
       failed_when: false
@@ -294,6 +303,10 @@
 
     - name: "Handle deprecatetruncate"
       block:
+        - name: "Pull image '{{ oi_index }}'"
+          shell: "{{ container_tool }} pull {{ oi_index }}"
+          failed_when: false
+
         - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
           shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
           failed_when: false
