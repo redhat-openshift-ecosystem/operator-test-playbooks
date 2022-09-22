@@ -251,9 +251,9 @@
                   set_fact:
                     annotations_vars: "{{ bovb_annotation_data.stdout | from_yaml }}"
 
-                - name: "Print 'annotations_vars' before bundle docker file is created"
-                  debug:
-                    var: annotations_vars
+                # - name: "Print 'annotations_vars' before bundle docker file is created"
+                #   debug:
+                #     var: annotations_vars
               when: bovb_bundle_annotations_file.stat.exists
 
             - name: "Checking for presence of '{{ df_operator_dir }}/{{ op_version }}/metadata/labels.yaml'"

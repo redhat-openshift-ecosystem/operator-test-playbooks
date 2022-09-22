@@ -72,8 +72,8 @@
       debug:
         var: qit_rc
 
-    - name: "Print 'qit_result'"
-      debug:
-        var: qit_result
+    # - name: "Print 'qit_result'"
+    #   debug:
+    #     var: qit_result
   tags:
     - always

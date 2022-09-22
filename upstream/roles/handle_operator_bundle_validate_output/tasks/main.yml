@@ -1,6 +1,6 @@
 ---
-- debug:
-    var: hobvo_result
+# - debug:
+#     var: hobvo_result
 - name: "Get output"
   set_fact:
     hobvo_bundle_validate_error: "{{ hobvo_result.stdout | from_json }}"

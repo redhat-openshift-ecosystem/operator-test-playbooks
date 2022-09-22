@@ -189,9 +189,9 @@
               delay: "{{ default_delay }}"
               register: archs_inspect_result
 
-            - name: "Prints 'archs'"
-              debug:
-                var: archs_inspect_result
+            # - name: "Prints 'archs'"
+            #   debug:
+            #     var: archs_inspect_result
 
             - name: "Parse the image manifest json retrieved by skopeo"
               set_fact:
