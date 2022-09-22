@@ -73,6 +73,8 @@
             status_code: 204
           retries: "{{ default_retries }}"
           delay: "{{ default_delay }}"
+          register: rob_delete_action_result
+          until: rob_delete_action_result is not failed
           failed_when: false
           loop: "{{ rob_versions_rm_repo }}"
           loop_control:
@@ -104,6 +106,8 @@
         status_code: 204
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: rob_delete_tags_action_result
+      until: rob_delete_tags_action_result is not failed
       failed_when: false
       when:
         - quay_api_token is defined
@@ -117,6 +121,7 @@
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: rob_registry_versions
+      until: rob_registry_versions is not failed
       failed_when: false
 
     - name: "Removed operator '{{ operator_dir_name }}' from index '{{ bundle_registry }}{{ bundle_index_image_namespace }}/{{ bundle_index_image_name }}' when index exists"
@@ -150,6 +155,7 @@
             name: operator_push_image
           vars:
             fqp_image: "{{ bundle_index_image }}"
+            fqp_cleanup: true
           when: rob_rc.rc == 0
 
         - name: "Set 'result_rc' to false"
@@ -201,6 +207,7 @@
                 name: operator_push_image
               vars:
                 fqp_image: "{{ bundle_index_image }}{{ bundle_index_sha_posfix }}"
+                fqp_cleanup: true
               when: rob_rc1.rc == 0
 
             - name: "Set 'result_rc' to false"

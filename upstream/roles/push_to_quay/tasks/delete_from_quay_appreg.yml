@@ -7,6 +7,7 @@
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
   register: ptq_dir_existence
+  until: ptq_dir_existence is not failed
   failed_when: false
 
 - name: "Delete {{ ptq_operator_dir_name }} from {{ ptq_namespace }} appregistry"
@@ -20,3 +21,5 @@
     return_content: true
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
+  register: ptq_delete_action_result
+  until: ptq_delete_action_result is not failed

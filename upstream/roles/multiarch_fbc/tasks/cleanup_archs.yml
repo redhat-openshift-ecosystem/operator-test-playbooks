@@ -1,0 +1,7 @@
+---
+
+- name: "Removing base image '{{ mirror_multiarch_image }}-{{ mfbc_architecture }}'"
+  shell: "{{ container_tool }} rmi -f {{ mirror_multiarch_image }}-{{ mfbc_architecture }}"
+
+- name: "Removing output image '{{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}'"
+  shell: "{{ container_tool }} rmi -f {{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}"

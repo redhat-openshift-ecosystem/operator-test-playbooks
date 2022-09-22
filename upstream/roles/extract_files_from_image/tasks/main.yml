@@ -14,11 +14,11 @@
       changed_when: false
       no_log: true
 
-    - name: "Pull the image {{ effi_image }}"
+    - name: "Pull the image '{{ effi_image }}'"
       shell: "{{ container_tool }} pull {{ effi_image }}"
       register: rf_pull_opm_image
 
-    - name: "Create the image"
+    - name: "Create container '{{ effi_container_name }}' from image '{{ effi_image }}'"
       shell: "{{ container_tool }} create --name {{ effi_container_name }} {{ effi_image }}"
       register: rf_pull_opm_image
 
@@ -27,6 +27,10 @@
       when:
         - effi_copy_source_path is defined and effi_copy_source_path|length>0
         - effi_target_copy_path is defined and effi_target_copy_path|length>0
+
+    - name: "Image cleanup {{ effi_image }}"
+      shell: "{{ container_tool }} rmi -f {{ effi_image }}"
+      register: rf_pull_opm_image
 
     - name: "Unset container name to prevent cross role issues"
       set_fact:

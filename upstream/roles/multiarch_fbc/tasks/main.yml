@@ -89,3 +89,12 @@
   when:
     - container_tool is defined
     - container_tool == 'podman'
+
+- name: "Create and push archs one by one"
+  include_tasks: cleanup_archs.yml
+  loop: "{{ multiarch_fbc_architectures }}"
+  loop_control:
+    loop_var: mfbc_architecture
+
+- name: "Removing base image without arch '{{ mirror_multiarch_image }}'"
+  shell: "{{ container_tool }} rmi -f {{ mirror_multiarch_image }}"

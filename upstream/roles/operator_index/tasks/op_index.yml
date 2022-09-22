@@ -19,6 +19,8 @@
       shell: "skopeo copy docker://{{ production_index }}:{{ io_index_ver }} docker://{{ bundle_index_image }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: oi_copy_action_result
+      until: oi_copy_action_result is not failed
       when:
         - production_index is defined
         - production_index|length > 0
@@ -53,6 +55,8 @@
         return_content: true
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: oi_repo_action_result
+      until: oi_repo_action_result is not failed
       when:
         - quay_api_token is defined
         - quay_api_token|length > 0
@@ -115,9 +119,17 @@
 
 - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
   block:
+    - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
+
     - name: "Remove '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index rm -c {{ opm_container_tool }} --operators {{ oi_op_name }} --tag {{ oi_index }} --permissive {{ opm_index_add_extra_args }}"
       register: oi_index_rm
+
+    - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -132,6 +144,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ oi_index }}"
+        fqp_cleanup: true
       when:
         - oi_index_rm.rc is defined
         - oi_index_rm.rc == 0
@@ -207,12 +220,21 @@
       debug:
         var: oi_bundles_dt_str
 
+    - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
+
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
       shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: oi_index_add
+      until: oi_index_add is not failed
       ignore_errors: true
+
+    - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+      failed_when: false
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -227,6 +249,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ oi_index }}"
+        fqp_cleanup: true
       when:
         - oi_index_add.rc is defined
         - oi_index_add.rc == 0
@@ -271,16 +294,25 @@
 
     - name: "Handle deprecatetruncate"
       block:
+        - name: "Retaging '{{ oi_index }}' to ' {{ oi_index }}{{ io_image_postfix }}'"
+          shell: "{{ container_tool }} tag {{ oi_index }} {{ oi_index }}{{ io_image_postfix }}"
+          failed_when: false
+
         - name: "Index deprecatetruncate '{{ oi_op_name }}' operator to index image {{ oi_index }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -c {{ opm_container_tool }} --bundles {{ oi_bundles_dt_str }} --tag {{ oi_index }} --from-index {{ oi_index }}"
           register: oi_index_dt
           ignore_errors: true
+
+        - name: "Removing image '{{ oi_index }}{{ io_image_postfix }}'"
+          shell: "{{ container_tool }} rmi -f {{ oi_index }}{{ io_image_postfix }}"
+          failed_when: false
 
         - name: "Push index image {{ oi_index }}"
           include_role:
             name: operator_push_image
           vars:
             fqp_image: "{{ oi_index }}"
+            fqp_cleanup: true
           when:
             - oi_index_dt.rc is defined
             - oi_index_dt.rc == 0

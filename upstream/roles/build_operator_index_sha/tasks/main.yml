@@ -74,6 +74,7 @@
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
   register: sis_pull_result
+  until: sis_pull_result is not failed
   failed_when: false
 
 - name: "Setting bundle image names index add mode"
@@ -90,15 +91,24 @@
 
 - name: "Remove operator from idnex"
   block:
+    - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
+
     - name: "Remove previous versions of '{{ sis_package_name }}' operator from index image {{ sis_index_image_output }}"
       shell: "{{ opm_bin_path }} index rm {{ boi_index_args }} --operators {{ sis_package_name }} --tag {{ sis_index_image_output }} --permissive {{ sis_opm_extra_args }}"
       register: sis_index_rm_rc
+
+    - name: "Removing image '{{ sis_index_image_output }}{{ bois_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
 
     - name: "Push index image {{ sis_index_image_output }}"
       include_role:
         name: operator_push_image
       vars:
         fqp_image: "{{ sis_index_image_output }}"
+        fqp_cleanup: true
       when: sis_index_rm_rc.rc == 0
 
     - name: "Set 'result_rc' to false"
@@ -137,21 +147,30 @@
 
 - name: "Add operator to index"
   block:
+    - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
+      shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
+
     - name: "Add '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
       shell: "{{ opm_bin_path }} index add -u {{ opm_container_tool }} --bundles {{ bundle_sha_images }} --tag {{ sis_index_image_output }} --mode {{ opm_index_add_mode }} {{ sis_opm_extra_args }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       ignore_errors: true
       register: sis_ia_rc
+      until: sis_ia_rc is not failed
       when: bundle_sha_images|length > 0
 
-    - name: "Debug"
-      debug:
-        var: bundle_sha_images
+    - name: "Removing image '{{ sis_index_image_output }}{{ bois_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ sis_index_image_output }}{{ bois_image_postfix }}"
+      failed_when: false
 
-    - name: "Debug"
-      debug:
-        var: sis_ia_rc
+    # - name: "Debug"
+    #   debug:
+    #     var: bundle_sha_images
+
+    # - name: "Debug"
+    #   debug:
+    #     var: sis_ia_rc
 
     - name: "Index safety check to avoid accidental overwrite"
       include_role:
@@ -166,6 +185,7 @@
         name: operator_push_image
       vars:
         fqp_image: "{{ sis_index_image_output }}"
+        fqp_cleanup: true
       when:
         - sis_ia_rc.rc is defined
         - sis_ia_rc.rc == 0
@@ -205,19 +225,27 @@
 
     - name: "Doing deprecate truncate on index image '{{ sis_index_image_output }}'"
       block:
+        - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
+          shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
+          failed_when: false
+
         - name: "Deprecate truncate '{{ sis_package_name }}' operator to index image {{ sis_index_image_output }}"
           shell: "{{ opm_bin_path }} index deprecatetruncate -u {{ opm_container_tool }} --bundles {{ bundle_sha_images_dt }} --tag {{ sis_index_image_output }} {{ sis_opm_extra_args }}"
           ignore_errors: true
           register: sis_ia_rc
           when: bundle_sha_images|length > 0
 
-        - name: "Debug"
-          debug:
-            var: bundle_sha_images
+        - name: "Removing image '{{ sis_index_image_output }}{{ bois_image_postfix }}'"
+          shell: "{{ container_tool }} rmi -f {{ sis_index_image_output }}{{ bois_image_postfix }}"
+          failed_when: false
 
-        - name: "Debug"
-          debug:
-            var: sis_ia_rc
+        # - name: "Debug"
+        #   debug:
+        #     var: bundle_sha_images
+
+        # - name: "Debug"
+        #   debug:
+        #     var: sis_ia_rc
 
         - name: "Index safety check to avoid accidental overwrite"
           include_role:
@@ -232,6 +260,7 @@
             name: operator_push_image
           vars:
             fqp_image: "{{ sis_index_image_output }}"
+            fqp_cleanup: true
           when:
             - sis_ia_rc.rc is defined
             - sis_ia_rc.rc == 0
@@ -271,56 +300,6 @@
       when:
         - bundle_sha_images_dt is defined
         - bundle_sha_images_dt|length > 0
-
-    - name: "Produce FBC files and Dockerfile"
-      include_role:
-        name: produce_fbc
-      vars:
-        pfbc_file_index: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
-        pfbc_sql_index: "{{ sis_index_image_output }}"
-      when: result_rc|bool
-
-    - name: "Convert FBC to multiarch"
-      include_role:
-        name: multiarch_fbc
-      vars:
-        mfbc_multi_arch_output_image: "{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}"
-      when:
-        - pfbc_rc.rc is defined
-        - pfbc_rc.rc == 0
-
-    - name: "Set 'result_rc' to false"
-      set_fact:
-        result_rc: false
-
-    - name: "Set 'result_rc'"
-      set_fact:
-        result_rc: true
-      when:
-        - mfbc_rc.rc is defined
-        - mfbc_rc.rc == 0
-        - rc_last|bool
-
-    - name: "Prints message that multiarch FBC image was updated"
-      debug:
-        msg: "Multiarch FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was updated and pushed : [OK]"
-      when:
-        - result_rc|bool
-
-    - name: "Print failing msg that multiarch FBC image was not updated"
-      debug:
-        msg: "FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was not updated : [FAIL]"
-      when:
-        - not result_rc|bool
-        - (strict_mode is undefined or not strict_mode|bool)
-
-    - name: "Failing when multiarch FBC image was not updated"
-      fail:
-        msg: "Multiarch FBC image '{{ sis_index_image_output }}{{ bundle_index_fbc_postfix }}' was not updated or pushed : [FAIL]"
-      when:
-        - not result_rc|bool
-        - strict_mode is defined
-        - strict_mode|bool
 
     - name: "Cleanup local images 'sha'"
       shell: "{{ opm_container_tool }} rmi -f {{ image_item }}"

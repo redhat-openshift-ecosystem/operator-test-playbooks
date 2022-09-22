@@ -106,6 +106,7 @@
           retries: "{{ default_retries }}"
           delay: "{{ default_delay }}"
           register: chi_list_bundles_in_quay
+          until: chi_list_bundles_in_quay is not failed
           no_log: true
 
         - name: "Setting list of repositories"
