@@ -141,6 +141,9 @@
       when:
         - mi_actual_architectures | list |count > 1
 
+    - name: "Removing src image '{{ mirror_input_image  }}{{ ms_image_postfix }}'"
+      shell: "{{ container_tool }} rmi -f {{ mirror_input_image  }}{{ ms_image_postfix }}"
+
     - name: "Mirror multiarch final {{ image_protocol }}{{ ms_info[0] }}_tmp to {{ image_protocol }}{{ ms_info[0] }}"
       shell: "skopeo copy -a {{ image_protocol }}{{ ms_info[0] }}_tmp {{ image_protocol }}{{ ms_info[0] }}"
       retries: "{{ default_retries }}"
