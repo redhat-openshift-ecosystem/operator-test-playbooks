@@ -156,7 +156,7 @@
     - name: "Pull image '{{ sis_index_image_output }}'"
       shell: "{{ container_tool }} pull {{ sis_index_image_output }}"
       failed_when: false
-  
+
     - name: "Retaging '{{ sis_index_image_output }}' to ' {{ sis_index_image_output }}{{ bois_image_postfix }}'"
       shell: "{{ container_tool }} tag {{ sis_index_image_output }} {{ sis_index_image_output }}{{ bois_image_postfix }}"
       failed_when: false
