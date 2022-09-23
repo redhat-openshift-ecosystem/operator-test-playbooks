@@ -44,13 +44,6 @@
         ms_request_index_tag_type: "sha"
       when: ms_image_postfix[-1:]=="s" or ms_image_postfix[-2:]=="sf"
 
-    - name: "Verify index '{{ mirror_input_image }}{{ ms_image_postfix }}' '{{ ms_request_index_type }}' '{{ ms_request_index_tag_type }}'"
-      include_role:
-        name: index_audit
-      vars:
-        ia_index_image: "{{ mirror_input_image }}{{ ms_image_postfix }}"
-        ia_request_index_type: "{{ ms_request_index_type }}" # db or fbc
-        ia_request_index_tag_type: "{{ ms_request_index_tag_type }}" # tag or sha
 
     # TODO Put fbc multiarch here
 
@@ -61,6 +54,14 @@
         bfbc_image_intput: "{{ mirror_input_image }}{{ ms_image_postfix[-2:-1] }}"
         bfbc_image_output: "{{ mirror_input_image }}{{ ms_image_postfix }}"
       when: ms_request_index_type == "fbc"
+
+    - name: "Verify index '{{ mirror_input_image }}{{ ms_image_postfix }}' '{{ ms_request_index_type }}' '{{ ms_request_index_tag_type }}'"
+      include_role:
+        name: index_audit
+      vars:
+        ia_index_image: "{{ mirror_input_image }}{{ ms_image_postfix }}"
+        ia_request_index_type: "{{ ms_request_index_type }}" # db or fbc
+        ia_request_index_tag_type: "{{ ms_request_index_tag_type }}" # tag or sha
 
     - name: "Set 'mirror_input_image_final' to '{{ mirror_input_image }}{{ ms_image_postfix }}'"
       set_fact:
