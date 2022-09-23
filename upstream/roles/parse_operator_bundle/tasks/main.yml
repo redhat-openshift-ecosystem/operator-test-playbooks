@@ -16,6 +16,7 @@
   - name: "Include the skopeo inspect result vars"
     set_fact:
       skopeo_inspect_json: "{{ skopeo_inspect_result.stdout | from_json }}"
+    no_log: true
 
   - name: "Verify required labels"
     block:

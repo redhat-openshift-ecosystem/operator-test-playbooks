@@ -21,11 +21,13 @@
       shell: "cat {{ operator_info_file }}"
       register: operator_info_data
       ignore_errors: true
+      no_log: true
 
     - name: "Sets operator info variables from '{{ operator_info_file }}'"
       set_fact:
         op_info: "{{ operator_info_data.stdout | from_yaml }}"
       when: operator_info_data.rc == 0
+      no_log: true
 
     - name: "Artifacts consistency check"
       include_tasks: op_info_consistency.yml
@@ -50,6 +52,7 @@
     operator_base_dir: "{{ operator_bundle_src_dir }}"
     operators: "{{ op_info.keys() | list | join(',') }}"
     operator_format: "bundle"
+  no_log: true
   when:
     - op_info is defined
     - not fast_op_info|bool
