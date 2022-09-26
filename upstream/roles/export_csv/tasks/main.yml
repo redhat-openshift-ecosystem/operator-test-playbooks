@@ -90,5 +90,5 @@
             annotations: "{{ csv_data_metadata_annotations.stdout | from_yaml }}"
             name: "{{ csv_data_metadata_name.stdout | from_yaml }}"
           spec: "{{ csv_data_spec.stdout | from_yaml }}"
-      no_log: "{{ prow_verbosity }}"
+      # no_log: "{{ prow_verbosity }}"
   when: run_upstream|bool
