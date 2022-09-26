@@ -22,11 +22,11 @@
   loop_control:
     loop_var: oi_index_replaces_ver_current
 
-- name: "Adds 'oii_index_dt' to 'oii_index'"
+- name: "Sort and unique list 'oii_index_dt'"
   set_fact:
     oii_index_dt: "{{ oii_index_dt | reverse | list | unique | sort_versions }}"
 
-- name: "Adds 'oii_index_dt' to 'oii_index'"
+- name: "Union '{{ oii_index }}' 'oii_index_dt'"
   set_fact:
     oii_index: "{{ oii_index_dt | union(oii_index) | sort_versions }}"
 
