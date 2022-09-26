@@ -5,6 +5,9 @@
   gather_facts: false
 
   tasks:
+    - name: "Set variable 'no_log' to shorten prow verbose output"
+      set_fact:
+        prow_verbosity: true
 
     - name: "Load operator info from file"
       include_role:
