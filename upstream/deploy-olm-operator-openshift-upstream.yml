@@ -7,7 +7,7 @@
   tasks:
     - name: "Set variable 'no_log' to shorten prow verbose output"
       set_fact:
-        prow_verbosity: true
+        prow_verbosity: false
 
     - name: "Load operator info from file"
       include_role:
