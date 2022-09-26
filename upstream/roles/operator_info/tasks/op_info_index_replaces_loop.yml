@@ -21,7 +21,7 @@
         oii_index_dt: "{{ (oii_index_dt| default([])) + [ oiirl_ver ] }}"
       when:
         - oiirl_ver|length > 0
-        - oiirl_ver not in oii_index
+        - ((oiirl_ver not in oii_index) or (oiirl_ver in oii_index and oii_index_dt|lenght > 0))
   when:
     - oiirl_ver is defined
     - oiirl_ver|length > 0
