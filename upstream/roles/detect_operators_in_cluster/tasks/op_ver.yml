@@ -85,7 +85,7 @@
     - name: "Convert output to json"
       set_fact:
         doic_supported_indexes_json: "{{ doic_supported_indexes.content | from_json }}"
-      no_log: "{{ prow_verbosity }}"
+      # no_log: "{{ prow_verbosity }}"
       when:
         - doic_supported_indexes is defined
         - doic_supported_indexes|length > 0
