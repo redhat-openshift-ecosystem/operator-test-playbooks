@@ -10,13 +10,13 @@
     - operator_version is defined
     - operator_version == oi_ver
 
-- name: "Debug 'operator_version'"
-  debug:
-    var: operator_version
+# - name: "Debug 'operator_version'"
+#   debug:
+#     var: operator_version
 
-- name: "Debug 'is_operator_version'"
-  debug:
-    var: is_operator_version
+# - name: "Debug 'is_operator_version'"
+#   debug:
+#     var: is_operator_version
 
 - name: "Add bundle from 'production_registry_namespace' is defined"
   set_fact:
@@ -27,7 +27,7 @@
     - op_info[oi_op_name].manifests[oi_ver].in_prod|bool
     - not is_operator_version|bool
 
-- name: "Add bundle"
+- name: "Add bundle '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ oi_op_name }}:v{{ oi_ver }}'"
   set_fact:
     oibs_bundles: "{{ oibs_bundles | default([]) + [ bundle_registry+'/'+bundle_image_namespace+'/'+ oi_op_name + ':v' + oi_ver ] }}"
   when:

@@ -28,6 +28,13 @@
           delay: "{{ default_delay }}"
           ignore_errors: true
           register: opi_push_quay_convert_rc
+          until: opi_push_quay_convert_rc is not failed
+
+        - name: "Removing local image after push '{{ fqp_image }}'"
+          shell: "{{ container_tool }} rmi -f {{ fqp_image }}"
+          when:
+            - fqp_cleanup is defined
+            - fqp_cleanup|bool
 
         - name: "Copy '{{ fqp_image_dir }}' to final destination '{{ fqp_image }}'"
           shell: "skopeo copy dir:{{ fqp_image_dir }} {{ image_protocol }}{{ fqp_image }}"
@@ -35,6 +42,12 @@
           delay: "{{ default_delay }}"
           ignore_errors: true
           register: opi_push_quay_skopeo_copy_rc
+          until: opi_push_quay_skopeo_copy_rc is not failed
+
+        - name: "Ensure that the temporary image dir '{{ fqp_image_dir }}' is removed"
+          file:
+            state: absent
+            path: "{{ fqp_image_dir }}"
 
         - name: "Export variables"
           set_fact:
@@ -56,6 +69,7 @@
           delay: "{{ default_delay }}"
           ignore_errors: true
           register: opi_push_rc
+          until: opi_push_rc is not failed
 
         - name: "Set 'rc_last' to tasks rc"
           set_fact:
@@ -65,6 +79,12 @@
             - opi_push_rc.rc == 0
 
       when: not (opm_container_tool == "podman" and (fqp_image is search("quay.io/.*")))
+
+    - name: "Removing local image after push '{{ fqp_image }}'"
+      shell: "{{ container_tool }} rmi -f {{ fqp_image }}"
+      when:
+        - fqp_cleanup is defined
+        - fqp_cleanup|bool
 
   when:
     - (fqp_image is defined and fqp_image|length > 0)

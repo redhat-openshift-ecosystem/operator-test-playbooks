@@ -2,6 +2,8 @@
   shell: "skopeo copy dir:{{ opi_source_dir }} {{ image_protocol }}{{ opi_operator_image }}{{ bovb_timestamp }}"
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
+  register: bovb_copy_action_result
+  until: bovb_copy_action_result is not failed
   when:
     - opi_operator_image is defined
     - opi_operator_image|length > 0

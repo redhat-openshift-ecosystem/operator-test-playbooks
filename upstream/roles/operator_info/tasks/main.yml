@@ -75,9 +75,9 @@
       loop_control:
         loop_var: oi_operator_name
 
-    - name: "Print 'op_info'"
-      debug:
-        var: op_info
+    # - name: "Print 'op_info'"
+    #   debug:
+    #     var: op_info
 
     - name: "Generate operators info config file"
       copy: content="{{ op_info | to_nice_yaml }}" dest="{{ operator_info_output_file }}"

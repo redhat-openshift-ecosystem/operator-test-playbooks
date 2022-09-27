@@ -5,7 +5,6 @@
   gather_facts: false
 
   tasks:
-
     - name: "Load operator info from file"
       include_role:
         name: operator_info_load

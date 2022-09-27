@@ -56,9 +56,9 @@
         operator_dir_name: "{{ bob_opname }}"
       when: op_info is undefined
 
-    - name: "Show op_info"
-      debug:
-        var: op_info
+    # - name: "Show op_info"
+    #   debug:
+    #     var: op_info
 
     - name: "Setting list of versions from directory structre"
       set_fact:
@@ -151,6 +151,7 @@
         url: "{{ registry_api_http_protocol | default('https') }}://{{ openshift_robot_hash_array[0] | dirname }}/v2/{{ openshift_robot_hash_array[0] | basename }}/{{ operator_package_name }}/tags/list"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      until: bob_registry_versions_osr is not failed
       register: bob_registry_versions_osr
       failed_when: false
       changed_when: false
@@ -274,6 +275,8 @@
         status_code: 204
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: bob_delete_action_result
+      until: bob_delete_action_result is not failed
       ignore_errors: true
       with_items: "{{ versions_remove }}"
       when:

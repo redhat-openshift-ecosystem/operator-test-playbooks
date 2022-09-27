@@ -11,6 +11,8 @@
       shell: "{{ container_tool }} pull {{ bundle_index_image_input }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
+      register: elopfi_pull_action_result
+      until: elopfi_pull_action_result is not failed
       when: not index_pull_skip
 
     - name: "Start index container {{ bundle_index_image_input }}"
@@ -40,6 +42,10 @@
 
     - name: "Stop index container '{{ sanity_check_container_name }}'"
       shell: "{{ container_tool }} rm -f {{ sanity_check_container_name }}"
+
+    - name: "Remove image '{{ bundle_index_image_input }}'"
+      shell: "{{ container_tool }} rmi -f {{ bundle_index_image_input }}"
+      when: not index_pull_skip
 
     - name: "Set list of all operators (versions) in index"
       set_fact:

@@ -1,7 +1,7 @@
 ---
-- name: "Print Index"
-  debug:
-    msg: "Running index '{{ oii_index_version }}'"
+# - name: "Print Index"
+#   debug:
+#     msg: "Running index '{{ oii_index_version }}'"
 
 - name: "Reset 'oii_index_dt'"
   set_fact:
@@ -22,27 +22,27 @@
   loop_control:
     loop_var: oi_index_replaces_ver_current
 
-- name: "Adds 'oii_index_dt' to 'oii_index'"
+- name: "Sort and unique list 'oii_index_dt'"
   set_fact:
     oii_index_dt: "{{ oii_index_dt | reverse | list | unique | sort_versions }}"
 
-- name: "Adds 'oii_index_dt' to 'oii_index'"
+- name: "Union '{{ oii_index }}' 'oii_index_dt'"
   set_fact:
     oii_index: "{{ oii_index_dt | union(oii_index) | sort_versions }}"
 
-- name: "Show oii_index"
-  debug:
-    var: oii_index
+# - name: "Show oii_index"
+#   debug:
+#     var: oii_index
 
 - name: "Adding current versuon to the 'io_versions_replaces'"
   set_fact:
     io_index: "{{ io_index | default({}) | combine({ oii_index_version : oii_index }) }}"
     io_index_dt: "{{ io_index_dt | default({}) | combine({ oii_index_version : oii_index_dt }) }}"
 
-- name: "Show io_index"
-  debug:
-    var: io_index
+# - name: "Show io_index"
+#   debug:
+#     var: io_index
 
-- name: "Show io_index_dt"
-  debug:
-    var: io_index_dt
+# - name: "Show io_index_dt"
+#   debug:
+#     var: io_index_dt

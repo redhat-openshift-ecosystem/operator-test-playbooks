@@ -3,6 +3,7 @@
   retries: "{{ default_retries }}"
   delay: "{{ default_delay }}"
   register: bs_skopeo_inspect
+  until: bs_skopeo_inspect is not failed
 
 - name: "Reseting bs_skopeo_inspect_info"
   set_fact:

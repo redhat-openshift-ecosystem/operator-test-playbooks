@@ -69,3 +69,8 @@
 - name: "Print final 'op_info'"
   debug:
     var: op_info
+  when: not op_info_printed_already|bool
+
+- name: "Silen further op_info print"
+  set_fact:
+    op_info_printed_already: true
