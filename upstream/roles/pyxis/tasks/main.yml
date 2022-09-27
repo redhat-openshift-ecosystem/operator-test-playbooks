@@ -36,7 +36,6 @@
     - name: "Convert output to json"
       set_fact:
         doic_supported_indexes_json: "{{ p_pyxis_respond.content | from_json }}"
-      # no_log: "{{ prow_verbosity }}"
 
     - name: "Data has some content"
       block:

@@ -75,7 +75,6 @@
     - name: "Getting spec content from csv '{{ csv_file_path | basename }}'"
       shell: "{{ yq_bin_path }} r {{ csv_file_path }} -t spec"
       register: csv_data_spec
-      # no_log: "{{ prow_verbosity }}"
       ignore_errors: true
 
     - name: "Fail if 'spec' was not parsed from csv file '{{ csv_file_path }}'"
@@ -90,5 +89,4 @@
             annotations: "{{ csv_data_metadata_annotations.stdout | from_yaml }}"
             name: "{{ csv_data_metadata_name.stdout | from_yaml }}"
           spec: "{{ csv_data_spec.stdout | from_yaml }}"
-      # no_log: "{{ prow_verbosity }}"
   when: run_upstream|bool
