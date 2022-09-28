@@ -28,3 +28,4 @@ oi_supported_cluster_versions:
   - "4.9"
   - "4.10"
   - "4.11"
+  - "4.12"
