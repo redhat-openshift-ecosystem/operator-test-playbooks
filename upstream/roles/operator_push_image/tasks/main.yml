@@ -44,10 +44,10 @@
           register: opi_push_quay_skopeo_copy_rc
           until: opi_push_quay_skopeo_copy_rc is not failed
 
-        - name: "Ensure that the temporary image dir '{{ fqp_image_dir }}' is removed"
-          file:
-            state: absent
-            path: "{{ fqp_image_dir }}"
+        # - name: "Ensure that the temporary image dir '{{ fqp_image_dir }}' is removed"
+        #   file:
+        #     state: absent
+        #     path: "{{ fqp_image_dir }}"
 
         - name: "Export variables"
           set_fact:
