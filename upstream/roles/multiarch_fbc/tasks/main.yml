@@ -72,6 +72,9 @@
   loop_control:
     loop_var: mfbc_architecture
 
+- name: "Retag the base image"
+  shell: "{{ container_tool }} tag {{ mfbc_multi_arch_output_image }} {{ mfbc_multi_arch_output_image }}{{ mfbc_multi_arch_output_image_postfix }}"
+
 - name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
   shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}"
   args:
@@ -82,13 +85,19 @@
     - container_tool == 'docker'
 
 - name: "Push final manifest '{{ mfbc_multi_arch_output_image }}'"
-  shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
+  shell: "{{ container_tool }} manifest push {{ mfbc_multi_arch_output_image }}{{ mfbc_multi_arch_output_image_postfix }} {{ image_protocol }}{{ mfbc_multi_arch_output_image }}"
   args:
     chdir: "{{ mfbc_extracted_fbc_location }}"
   register: mfbc_rc
   when:
     - container_tool is defined
     - container_tool == 'podman'
+
+- name: "Removing image '{{ mfbc_multi_arch_output_image }}{{ mfbc_multi_arch_output_image_postfix }}'"
+  shell: "{{ container_tool }} rmi -f {{ mfbc_multi_arch_output_image }}{{ mfbc_multi_arch_output_image_postfix }}"
+
+- name: "Removing image '{{ mfbc_multi_arch_output_image }}'"
+  shell: "{{ container_tool }} rmi -f {{ mfbc_multi_arch_output_image }}"
 
 - name: "Create and push archs one by one"
   include_tasks: cleanup_archs.yml
