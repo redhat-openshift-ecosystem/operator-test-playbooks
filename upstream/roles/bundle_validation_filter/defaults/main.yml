@@ -8,9 +8,11 @@ bvf_supported_cluster_versions:
   - "4.9"
   - "4.10"
   - "4.11"
+  - "4.12"
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 testable_k8s_clusters:
   - "1.22"
+  - "1.25"
 k8s2ocp:
   "1.13": "4.0"
   "1.14": "4.1"
