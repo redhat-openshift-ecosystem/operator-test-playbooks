@@ -46,9 +46,9 @@
         dest: "{{ operator_sdk_bin_path }}"
         mode: "0755"
       register: operator_sdk_install_result
-      until: operator_sdk_install_result.status_code is undefined or operator_sdk_install_result.status_code == 200
-      retries: 10
-      delay: 15
+      until: operator_sdk_install_result.status_code is defined and operator_sdk_install_result.status_code == 200
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       failed_when: operator_sdk_install_result is failure
       when:
         - not rkr_osdk.stat.exists
@@ -60,9 +60,9 @@
         dest: "{{ operator_sdk_bin_path }}"
         mode: "0755"
       register: operator_sdk_install_result
-      until: operator_sdk_install_result.status_code is undefined or operator_sdk_install_result.status_code == 200
-      retries: 10
-      delay: 15
+      until: operator_sdk_install_result.status_code is defined and operator_sdk_install_result.status_code == 200
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
       failed_when: operator_sdk_install_result is failure
       when:
         - not rkr_osdk.stat.exists
