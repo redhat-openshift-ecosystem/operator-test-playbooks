@@ -16,16 +16,16 @@
       set_fact:
         oiirl_ver: "{{ io_versions_manifests[oiirl_ver].replaces | default('') }}"
 
-    # - name: "Debug check if '{{ oiirl_ver }}' is in 'oii_index' for 'oii_index_dt'"
-    #   debug:
-    #     var: oii_index
+    - name: "Debug check if '{{ oiirl_ver }}' is in 'oii_index' for 'oii_index_dt'"
+      debug:
+        var: oii_index
 
     - name: "Adding '{{ oiirl_ver }}' to 'oii_index_dt'"
       set_fact:
         oii_index_dt: "{{ (oii_index_dt| default([])) + [ oiirl_ver ] }}"
       when:
         - oiirl_ver|length > 0
-        - ((oiirl_ver not in oii_index) or (oiirl_ver in oii_index and oii_index_dt|length > 0))
+        - ((oiirl_ver not in oii_index) or (oiirl_ver in oii_index and oii_index_dt|length > 0 and oiirl_ver not in oii_index_checked))
   when:
     - oiirl_ver is defined
     - oiirl_ver|length > 0
