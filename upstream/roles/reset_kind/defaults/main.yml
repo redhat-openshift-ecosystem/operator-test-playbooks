@@ -4,3 +4,5 @@ kind_bin_path: "/usr/local/bin/kind"
 kind_cluster_name: operator-test
 kind_tmp_dir: /tmp
 kind_registry_ssl: true
+retries: 10
+delay: 15
