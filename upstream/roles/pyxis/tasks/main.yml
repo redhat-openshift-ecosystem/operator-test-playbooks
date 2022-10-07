@@ -17,7 +17,7 @@
     - p_pyxis_cache is defined
     - p_range in p_pyxis_cache.keys()
 
-- name: "Get cluster info from Pyxis"
+- name: "Get cluster info from Pyxis; range '{{ p_range }}'"
   block:
     # curl -v -H "Accept: application/json" 'https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.ocp_version&ocp_versions_range=v4.5&organization=community-operators'
     - name: "Pyxis"
