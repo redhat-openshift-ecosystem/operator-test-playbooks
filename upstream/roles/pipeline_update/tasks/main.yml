@@ -22,6 +22,11 @@
     file: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
     name: default_config
 
+- name: "Generate file '{{ output_project_directory }}/{{ output_project_directory }}'"
+  template:
+    src: "{{ output_project_directory }}.j2"
+    dest: "{{ output_project_directory }}/{{ output_project_directory }}"
+
 - name: "Find template files"
   find:
     paths: "{{ workflow_templates_path }}/"
