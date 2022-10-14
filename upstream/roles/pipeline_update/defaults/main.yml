@@ -7,4 +7,4 @@ operators_pipeline_config_name: config.yaml
 container_tool: docker
 versions_in_registry: []
 puct_custom_var: ""
-organization_name: community-operators
+operators_pipeline_organization_name: community-operators
