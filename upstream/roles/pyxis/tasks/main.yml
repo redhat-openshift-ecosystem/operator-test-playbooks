@@ -22,7 +22,7 @@
     # curl -v -H "Accept: application/json" 'https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.ocp_version&ocp_versions_range=v4.5&organization=community-operators'
     - name: "Pyxis"
       uri:
-        url: "https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.{{ p_version }}&{{ p_version_range }}={{ p_range }}&organization={{ p_organization }}"
+        url: "https://catalog.redhat.com/api/containers/v1/operators/indices?{{ p_version_range }}={{ p_range }}&organization={{ p_organization }}"
         method: GET
         headers:
           Accept: "application/json"
