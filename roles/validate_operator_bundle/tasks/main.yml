@@ -47,7 +47,7 @@
 
     - name: "Determine OCP version range"
       uri:
-        url: "https://catalog.redhat.com/api/containers/v1/operators/indices?sort_by=data.ocp_version&ocp_versions_range={{ ocp_version_annotation }}&organization=redhat-operators"
+        url: "https://catalog.redhat.com/api/containers/v1/operators/indices?ocp_versions_range={{ ocp_version_annotation }}&organization=redhat-operators"
         method: GET
         headers:
           Accept: "application/json"
