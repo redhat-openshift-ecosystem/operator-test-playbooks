@@ -90,6 +90,15 @@
 
     - name: "Openshift"
       block:
+        - name: "Check sopeo presence"
+          shell: "which skopeo"
+          ignore_errors: true
+
+        - name: "Install skopeo"
+          ansible.builtin.dnf:
+            name: skopeo
+            state: present
+
         - name: "Namespace"
           shell: "{{ oc_bin_path }} create namespace testimagepull"
           register: vob_pull_external_image_oc
