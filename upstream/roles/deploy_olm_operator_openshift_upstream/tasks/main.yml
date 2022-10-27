@@ -732,7 +732,7 @@
       -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
       Operator is unable to start.
       We were unable to 'grep Running' the operator from 'oc get pods' in related namespace.
-      See 'Wait for the operator openebs-operator pod to start up' step above.
+      See 'Wait for the operator {{ operator_pod_name }} pod to start up' step above.
       Also check, that the operator is not listed in running containers in 'Check all containers' step.
       In some cases step 'Output debug - catalog operator' can be helpful. Also check other debug outputs.
       -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
