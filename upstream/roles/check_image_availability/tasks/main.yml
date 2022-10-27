@@ -95,7 +95,7 @@
           ignore_errors: true
 
         - name: "Install skopeo"
-          package:
+          dnf:
             name: skopeo
             state: present
           become: true
