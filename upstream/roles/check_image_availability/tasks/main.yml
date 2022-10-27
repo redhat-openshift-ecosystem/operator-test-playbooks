@@ -90,16 +90,6 @@
 
     - name: "Openshift"
       block:
-        - name: "Check sopeo presence"
-          shell: "whatprovides skopeo"
-          ignore_errors: true
-
-        - name: "Install skopeo"
-          dnf:
-            name: skopeo
-            state: present
-          become: true
-
         - name: "Namespace"
           shell: "{{ oc_bin_path }} create namespace testimagepull"
           register: vob_pull_external_image_oc
@@ -110,14 +100,16 @@
           register: vob_pull_external_image_oc
           ignore_errors: true
 
-      when: not run_upstream|bool
+        - name: "Print err message on Openshift"
+          fail:
+            msg: "Unable to pull/run {{ operator_external_image }}, please check permissions or path."
+          when:
+            - vob_pull_external_image_oc.rc|int!=0
 
-    - name: "Print err message on Openshift"
-      fail:
-        msg: "Unable to pull/run {{ operator_external_image }}, please check permissions or path."
-      when:
+      when: 
         - not run_upstream|bool
-        - vob_pull_external_image_oc.rc|int!=0
+        - current_openshift_run is defined and current_openshift_run != "4.12"
+        - current_openshift_run is defined and current_openshift_run != "4.13"
 
   when:
     - operator_external_image is defined
