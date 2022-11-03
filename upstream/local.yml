@@ -37,7 +37,7 @@
     kind_version: v0.12.0
     kind_kube_version: v1.21.1
     # kind_kube_version: v1.23.4
-    operator_sdk_version: v1.19.1
+    operator_sdk_version: v1.25.0
     operator_courier_version: 2.1.11
     olm_version: 0.20.0
     opm_version: v1.21.0
