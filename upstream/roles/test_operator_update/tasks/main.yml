@@ -177,7 +177,7 @@
       when: tou_n_1_rc.rc != 0
 
     - name: "Cleanup {{ operator_name }}"
-      shell: "{{ operator_sdk_bin_path }} cleanup {{ operator_name }}"
+      shell: "{{ operator_sdk_bin_path }} cleanup {{ operator_name }} -n {{ tou_namespace_for_upgrades }}"
       failed_when: false
 
   when: upgrade_test_possible|bool
