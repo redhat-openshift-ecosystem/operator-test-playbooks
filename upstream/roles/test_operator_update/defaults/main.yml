@@ -4,3 +4,4 @@ bundle_registry_source_domain: "quay"
 default_retries: 5
 default_delay: 10
 tou_olm_namespace: "olm"
+tou_namespace_for_upgrades: "testupgrade"
