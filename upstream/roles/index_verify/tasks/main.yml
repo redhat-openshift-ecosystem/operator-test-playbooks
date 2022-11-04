@@ -1,0 +1,17 @@
+---
+
+- name: "Set list of indexes"
+  ansible.builtin.set_fact:
+    iv_indexes:
+      - quay.io/openshift-community-operators/catalog_tmp:v4.10
+      - quay.io/openshift-community-operators/catalog_tmp:v4.11
+
+- name: "Index query"
+  # vars:
+    # durations: "{{ item }}"
+  ansible.builtin.include_tasks:
+    file: single_index_query.yml
+  loop: "{{ iv_indexes }}"
+  loop_control:
+    loop_var: iv_index_item
+    index_var: iv_index_idx
