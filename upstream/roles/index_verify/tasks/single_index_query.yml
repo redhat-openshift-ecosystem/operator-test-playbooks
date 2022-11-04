@@ -3,18 +3,13 @@
   ansible.builtin.debug:
     var: iv_index_item
 
-
-- name: "Reseting values for iv_* variables"
-  set_fact:
-    iv_container_name: "iv_index"
-    iv_container_port: "50051"
+# - name: "Reseting values for iv_* variables"
+#   set_fact:
+#     iv_container_name: "iv_index"
+#     iv_container_port: "50051"
 #     ia_index_type: ""
 #     ia_index_tags: []
 #     ia_index_shas: []
-
-- name: "Processing single index '{{ iv_index_item }}'"
-  ansible.builtin.debug:
-    var: iv_container_port
 
 - name: "Pull index image '{{ iv_index_item }}'"
   shell: "{{ container_tool }} pull {{ iv_index_item }}"
@@ -52,15 +47,14 @@
   set_fact:
     iv_index_versions: "{{ iv_list_versions.stdout.split('\n') | unique }}"
 
-
 - name: "Print 'iv_index_versions'"
   ansible.builtin.debug:
     var: iv_index_versions
 
-
 - name: "Parsing operator versions"
   set_fact:
     iv_index_operator_versions: "{{ iv_index_operator_versions | default([]) | union( [{'name': op_ver_item, 'versions': iv_index_versions | select('search', op_ver_item) | list | join(',') | replace(op_ver_item+':','') | split(',') | sort_versions }]) }}"
+    iv_index_operator_ana: "{{ iv_index_operator_ana | default({}) | combine({op_ver_item: iv_index_operator_ana[op_ver_item] | default([]) + [ iv_index_versions | select('search', op_ver_item) | length ]}) }}"
   loop: "{{ iv_index_operators }}"
   loop_control:
     loop_var: op_ver_item
@@ -69,6 +63,10 @@
 - name: "Print 'iv_index_operator_versions'"
   ansible.builtin.debug:
     var: iv_index_operator_versions
+
+- name: "Print 'iv_index_operator_ana'"
+  ansible.builtin.debug:
+    var: iv_index_operator_ana
 
 # - pause:
 
@@ -80,88 +78,13 @@
 #   shell: "{{ container_tool }} rmi -f {{ iv_index_item }}"
 #   failed_when: false
 
+# - name: "Parsing operator versions"
+#   set_fact:
+#     io_index_dt: "{{ io_index_dt | default({}) | combine({ iv_index_item : oii_index_dt }) }}"
+
+
 
 - name: "Parsing operator versions"
   set_fact:
     iv_index_all: "{{ iv_index_all | default([]) | union( [{'name': iv_index_item, 'operators': iv_index_operator_versions }]) }}"
 
-- name: "Print 'iv_index_all'"
-  ansible.builtin.debug:
-    var: iv_index_all
-
-# - name: "Set 'ia_index_image_type' to 'db'"
-#   set_fact:
-#     ia_index_type: "db"
-#   when:
-#     - ia_check_db.rc is defined
-#     - ia_check_db.rc == 0
-
-# - name: "Set 'ia_index_image_type' to 'fbc'"
-#   set_fact:
-#     ia_index_type: "fbc"
-#   when:
-#     - ia_check_fbc.rc is defined
-#     - ia_check_fbc.rc == 0
-
-# - name: "Getting list of shas"
-#   shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:50051 api.Registry.ListBundles| {{ jq_bin_path }} -r '.bundlePath'"
-#   register: ia_list_shas_cmd
-
-# - name: "Set 'ia_index_tags_all'"
-#   set_fact:
-#     ia_index_tags_all: "{{ ia_list_shas_cmd.stdout.split('\n') }}"
-
-# - name: "Handle situation when there is at least one version in index"
-#   block:
-#     - name: "Set 'ia_index_tags'"
-#       set_fact:
-#         ia_index_tags: "{{ ia_index_tags_all | reject('search', '@') | list | unique | sort }}"
-
-#     - name: "Set 'ia_index_shas'"
-#       set_fact:
-#         ia_index_shas: "{{ ia_index_tags_all | difference(ia_index_tags) | unique | sort }}"
-
-#     - name: "Print index statistics for '{{ ia_index_image }}'"
-#       debug:
-#         msg: "Index : '{{ ia_index_image }}' type={{ ia_index_type }} tags={{ ia_index_tags|length }} shas={{ ia_index_shas|length }}"
-
-#     - name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
-#       fail:
-#         msg: "Error: Index '{{ ia_index_image }}' ({{ ia_index_type }}) is not same as requested '{{ ia_request_index_type }}' type"
-#       when:
-#         - ia_request_index_type is defined
-#         - ia_request_index_type|length > 0
-#         - ia_request_index_type != ia_index_type
-
-#     - name: "Fail when index '{{ ia_index_image }}' should be 'sha' type but it has entries with 'non sha tags'"
-#       block:
-#         - name: "Print db versions"
-#           debug:
-#             var: ia_index_tags
-
-#         - name: "Fail when index '{{ ia_index_image }}' should be 'sha' type but it has entries with 'non sha tags'"
-#           fail:
-#             msg: "Error: Index '{{ ia_index_image }}' type={{ ia_request_index_tag_type }} has operators in with type=tag n={{ ia_index_tags|length }} !!!"
-#       when:
-#         - ia_request_index_tag_type is defined
-#         - ia_request_index_tag_type|length > 0
-#         - ia_request_index_tag_type == "sha"
-#         - ia_index_tags|length > 0
-
-#     - name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
-#       block:
-#         - name: "Print sha versions"
-#           debug:
-#             var: ia_index_shas
-
-#         - name: "Fail when index '{{ ia_index_image }}' is not '{{ ia_request_index_type }}'"
-#           fail:
-#             msg: "Error: Index '{{ ia_index_image }}' type={{ ia_request_index_tag_type }} has operators in with type=sha n={{ ia_index_shas|length }} !!!"
-#       when:
-#         - ia_request_index_tag_type is defined
-#         - ia_request_index_tag_type|length > 0
-#         - ia_request_index_tag_type == "tag"
-#         - ia_index_shas|length > 0
-#   when:
-#     - ia_index_tags_all.0 is defined
-#     - ia_index_tags_all.0|length > 0

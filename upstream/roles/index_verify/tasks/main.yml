@@ -6,12 +6,35 @@
       - quay.io/openshift-community-operators/catalog_tmp:v4.10
       - quay.io/openshift-community-operators/catalog_tmp:v4.11
 
+- name: "Reset operators"
+  set_fact:
+    iv_index_all: []
+    iv_index_ana_all: []
+
 - name: "Index query"
-  # vars:
-    # durations: "{{ item }}"
   ansible.builtin.include_tasks:
     file: single_index_query.yml
   loop: "{{ iv_indexes }}"
   loop_control:
     loop_var: iv_index_item
     index_var: iv_index_idx
+
+
+- name: "Print 'iv_index_all'"
+  ansible.builtin.debug:
+    var: iv_index_all
+
+- name: "Index query"
+  ansible.builtin.include_tasks:
+    file: single_index_ana.yml
+  loop: "{{ iv_index_operator_ana.keys() }}"
+  loop_control:
+    loop_var: iv_index_item
+    index_var: iv_index_idx
+
+
+- name: "Print 'iv_index_ana'"
+  ansible.builtin.debug:
+    var: iv_index_ana
+
+

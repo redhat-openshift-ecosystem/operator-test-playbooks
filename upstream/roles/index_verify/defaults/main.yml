@@ -1,4 +1,6 @@
 container_tool: "docker"
+iv_container_name: "iv_index"
+iv_container_port: "50051"
 # iv_index_image: ""
 # iv_request_index_type: "" # db or fbc
 # iv_request_index_tag_type: "" # tag or sha

@@ -1,0 +1,10 @@
+---
+- name: "Processing single index '{{ iv_index_idx }}'"
+  ansible.builtin.debug:
+    var: iv_index_item | unique | length == 1
+
+
+# - name: "Parsing operator versions"
+#   set_fact:
+#     iv_index_ana: "{{ iv_index_ana | default([]) | union( [{'name': iv_index_item, 'operators': iv_index_operator_versions }]) }}"
+
