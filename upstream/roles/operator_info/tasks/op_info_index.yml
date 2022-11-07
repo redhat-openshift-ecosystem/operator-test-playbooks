@@ -34,7 +34,7 @@
 #   debug:
 #     var: oii_index
 
-- name: "Adding current versuon to the 'io_versions_replaces'"
+- name: "Adding current version to the 'io_versions_replaces'"
   set_fact:
     io_index: "{{ io_index | default({}) | combine({ oii_index_version : oii_index }) }}"
     io_index_dt: "{{ io_index_dt | default({}) | combine({ oii_index_version : oii_index_dt }) }}"

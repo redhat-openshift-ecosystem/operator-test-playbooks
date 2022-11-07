@@ -14,7 +14,7 @@
     - name: "Update channels"
       include_tasks: op_info_chanels_pkg_loop.yml
 
-    - name: "Adding current versuon to the 'io_versions_replaces'"
+    - name: "Adding current version to the 'io_versions_replaces'"
       set_fact:
         io_pkg_channels: "{{ io_pkg_channels | default({}) | combine({ oi_pkg_channel_name : oicpl_current_channel }) }}"
 
