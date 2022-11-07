@@ -155,6 +155,8 @@
       idx_versions: "{{ idx_versions | default('') }}"
       idx_label: "{{ idx_label | default([]) }}"
       in_prod: "{{ in_prod | default(false) }}"
+      replaces_name: "{{ operator_vars.spec.replaces | default('') }}"
+      csv_name: "{{ operator_vars.metadata.name | default('') }}"
 
 - name: "Add label when manifest format"
   lineinfile:
