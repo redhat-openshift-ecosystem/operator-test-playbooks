@@ -1,10 +1,21 @@
 ---
-
 - name: "Set list of indexes"
   ansible.builtin.set_fact:
     iv_indexes:
-      - quay.io/openshift-community-operators/catalog_tmp:v4.10
-      - quay.io/openshift-community-operators/catalog_tmp:v4.11
+      - quay.io/openshift-community-operators/catalog_tmp:v4.8
+      # - quay.io/openshift-community-operators/catalog_tmp:v4.9
+      # - quay.io/openshift-community-operators/catalog_tmp:v4.10
+      # - quay.io/openshift-community-operators/catalog_tmp:v4.11
+      - quay.io/openshift-community-operators/catalog_tmp:v4.11s
+
+
+- name: "Seting list of versions"
+  ansible.builtin.set_fact:
+    iv_indexes_versions: "{{ iv_indexes_versions | default([]) + [ iv_index_item.split(':')[1] ] }}"
+  loop: "{{ iv_indexes }}"
+  loop_control:
+    loop_var: iv_index_item
+    index_var: iv_index_idx
 
 - name: "Reset operators"
   set_fact:
@@ -19,22 +30,45 @@
     loop_var: iv_index_item
     index_var: iv_index_idx
 
-
 - name: "Print 'iv_index_all'"
   ansible.builtin.debug:
     var: iv_index_all
 
-- name: "Index query"
+- name: "Print 'iv_index_operator_ana'"
+  ansible.builtin.debug:
+    var: iv_index_operator_ana
+
+- name: "Analysis"
   ansible.builtin.include_tasks:
     file: single_index_ana.yml
   loop: "{{ iv_index_operator_ana.keys() }}"
   loop_control:
     loop_var: iv_index_item
-    index_var: iv_index_idx
+    extended: yes
 
-
-- name: "Print 'iv_index_ana'"
+- name: "Processing single index '{{ iv_index_operator_ana }}'"
   ansible.builtin.debug:
-    var: iv_index_ana
+    var: iv_index_operator_ana
+
+- name: "Remove '{{ iv_output_file }}'"
+  ansible.builtin.file:
+    path: "{{ iv_output_file }}"
+    state: "{{ iv_state }}"
+  loop:
+    - absent
+    - touch
+  loop_control:
+    loop_var: iv_state
 
 
+- name: "Summary"
+  ansible.builtin.include_tasks:
+    file: single_index_summary.yml
+  loop: "{{ iv_index_operator_ana.keys() }}"
+  loop_control:
+    loop_var: iv_index_item
+    extended: yes
+
+- name: "Print 'iv_operators_failed'"
+  ansible.builtin.debug:
+    var: iv_operators_failed

@@ -29,12 +29,14 @@
 
 
 - name: "Getting list of operators"
-  shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -sd: -f 1 "
+  # shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -sd: -f 1 "
+  shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
   register: iv_list_operators
 
 - name: "Set 'ia_index_tags_all'"
   set_fact:
     iv_index_operators: "{{ iv_list_operators.stdout.split('\n') | unique }}"
+
 - name: "Print 'iv_index_operators'"
   ansible.builtin.debug:
     var: iv_index_operators
@@ -53,20 +55,20 @@
 
 - name: "Parsing operator versions"
   set_fact:
-    iv_index_operator_versions: "{{ iv_index_operator_versions | default([]) | union( [{'name': op_ver_item, 'versions': iv_index_versions | select('search', op_ver_item) | list | join(',') | replace(op_ver_item+':','') | split(',') | sort_versions }]) }}"
-    iv_index_operator_ana: "{{ iv_index_operator_ana | default({}) | combine({op_ver_item: iv_index_operator_ana[op_ver_item] | default([]) + [ iv_index_versions | select('search', op_ver_item) | length ]}) }}"
+    # iv_index_operator_versions: "{{ iv_index_operator_versions | default([]) | union( [{'name': op_ver_item, 'versions': iv_index_versions | select('search', op_ver_item) | list | join(',') | replace(op_ver_item+':','') | split(',') | sort_versions }]) }}"
+    iv_index_operator_ana: "{{ iv_index_operator_ana | default({}) | combine({op_ver_item: { 'versions' : iv_index_operator_ana[op_ver_item].versions | default([]) + [ iv_index_versions | select('search', op_ver_item) | length ], 'indexes': iv_index_operator_ana[op_ver_item].indexes | default([]) + [ iv_index_item ] }}) }}"
   loop: "{{ iv_index_operators }}"
   loop_control:
     loop_var: op_ver_item
   when: (iv_index_operators | length > 0)
 
-- name: "Print 'iv_index_operator_versions'"
-  ansible.builtin.debug:
-    var: iv_index_operator_versions
+# - name: "Print 'iv_index_operator_versions'"
+#   ansible.builtin.debug:
+#     var: iv_index_operator_versions
 
-- name: "Print 'iv_index_operator_ana'"
-  ansible.builtin.debug:
-    var: iv_index_operator_ana
+# - name: "Print 'iv_index_operator_ana'"
+#   ansible.builtin.debug:
+#     var: iv_index_operator_ana
 
 # - pause:
 
@@ -84,7 +86,7 @@
 
 
 
-- name: "Parsing operator versions"
-  set_fact:
-    iv_index_all: "{{ iv_index_all | default([]) | union( [{'name': iv_index_item, 'operators': iv_index_operator_versions }]) }}"
+# - name: "Parsing operator versions"
+#   set_fact:
+#     iv_index_all: "{{ iv_index_all | default([]) | union( [{'name': iv_index_item, 'operators': iv_index_operator_versions }]) }}"
 
