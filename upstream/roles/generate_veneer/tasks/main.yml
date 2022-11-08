@@ -1,0 +1,17 @@
+---
+# ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=generate_veneer -e gv_package_name=mongodb-atlas-kubernetes
+
+- name: "Load operator info from file"
+  include_role:
+    name: operator_info_load
+  vars:
+    operator_info_file: "/tmp/op_info.yaml"
+    skip_operator_info_consistency: true
+    fast_op_info: true
+
+- name: "Generate olm.package for veneer"
+  set_fact:
+    gv_veneer: "{{ lookup('template', './package.yml.j2') }}"
+
+- debug:
+    var: gv_veneer
