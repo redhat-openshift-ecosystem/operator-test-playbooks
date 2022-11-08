@@ -122,12 +122,13 @@
                 var: tou_catlog_pod_log
 
             - name: "Get olm pod name"
-              shell: "{{ oc_bin_path }} get pods --all-namespaces|grep olm-operator| awk '{print $2}'"
+              shell: "{{ oc_bin_path }} get pods --all-namespaces|grep olm-operator| awk '{print $2}'|head -n 1"
               register: tou_olm_pod
 
             - name: "Logs"
               shell: "{{ oc_bin_path }} logs {{ tou_olm_pod.stdout }} -n {{ tou_olm_namespace }}"
               register: tou_olm_pod_log
+              ignore_errors: true
 
             - name: "Show logs"
               debug:
@@ -142,7 +143,7 @@
                 var: tou_pods
 
             - name: "Get pod name"
-              shell: "{{ oc_bin_path }} get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'"
+              shell: "{{ oc_bin_path }} get pods --all-namespaces|grep {{ bundle_registry_source_domain }}|grep {{ operator_package_name }}| awk '{print $2}'|head -n 1"
               register: tou_registry_pod
 
             - name: "Logs"
