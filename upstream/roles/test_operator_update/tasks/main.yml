@@ -122,7 +122,7 @@
                 var: tou_catlog_pod_log
 
             - name: "Get olm pod name"
-              shell: "{{ oc_bin_path }} get pods --all-namespaces|grep olm-operator| awk '{print $2}'|head -n 1"
+              shell: "{{ oc_bin_path }} get pods --all-namespaces|grep olm-operator| awk '{print $2}'|grep ^olm-operator|head -n 1"
               register: tou_olm_pod
 
             - name: "Logs"
