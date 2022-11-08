@@ -7,5 +7,5 @@ class FilterModule(object):
 
     def filters(self):
         return {
-            'version_sort': version_sort
+            'sort_versions': version_sort
         }
