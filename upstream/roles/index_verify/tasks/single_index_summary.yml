@@ -1,31 +1,33 @@
 ---
-- name: "Print"
-  ansible.builtin.debug:
-    var: iv_index_operator_ana[iv_index_item]
-
 - name: "Create header"
   block:
-    - name: "Test"
+    - name: "Remove '{{ iv_output_file }}'"
+      ansible.builtin.file:
+        path: "{{ iv_output_file }}"
+        state: "{{ item }}"
+      with_items:
+        - absent
+        - touch
+
+    - name: "Header 1"
       ansible.builtin.lineinfile:
-        # create: true
         path: "{{ iv_output_file }}"
         line: "| operator | {{ '[ %10s ]' | format(iv_indexes_versions | join(',')) }} | OK |"
 
-    - name: "Test"
+    - name: "Header 2"
       ansible.builtin.lineinfile:
-        # create: true
         path: "{{ iv_output_file }}"
         line: "| --- | --- | --- |"
   when: ansible_loop.index == 1
 
-- name: "Test"
+- name: "[{{ ansible_loop.index }}/{{ ansible_loop.length }}] Checking operator '{{ iv_index_item }}'"
   ansible.builtin.lineinfile:
-    # create: true
     path: "{{ iv_output_file }}"
-    line: "| {{ '%50s' | format(iv_index_item)  }} | {{ '[ %10s ]' | format(iv_index_operator_ana[iv_index_item].versions | join(',')) }} | {{ '%5s' | format(iv_index_operator_ana[iv_index_item].valid|bool and iv_indexes | length == iv_index_operator_ana[iv_index_item].size) }} | "
+    line: "| {{ '%50s' | format(iv_index_item)  }} | {{ '[ %10s ]' | format(iv_index_operator_ana[iv_index_item].versions | join(',')) }} | {{ '%5s' | format(iv_index_operator_ana[iv_index_item].valid|bool and iv_list_indexes | length == iv_index_operator_ana[iv_index_item].size) }} | "
 
-- name: "Parsing operator versions"
+- name: "[OUT OF SYNC] Operator '{{ iv_index_item }}' found"
   set_fact:
     iv_operators_failed: "{{ iv_operators_failed | default([]) + [ iv_index_item ] }}"
-  when: not (iv_index_operator_ana[iv_index_item].valid|bool and iv_indexes | length == iv_index_operator_ana[iv_index_item].size)
+  changed_when: true
+  when: not (iv_index_operator_ana[iv_index_item].valid|bool and iv_list_indexes | length == iv_index_operator_ana[iv_index_item].size)
 

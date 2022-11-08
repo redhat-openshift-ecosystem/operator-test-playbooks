@@ -2,11 +2,6 @@ container_tool: "docker"
 iv_container_name: "iv_index"
 iv_container_port: "50051"
 iv_output_file: "/tmp/iv_output.md"
-# iv_index_image: ""
-# iv_request_index_type: "" # db or fbc
-# iv_request_index_tag_type: "" # tag or sha
-# iv_index_type: ""
-# iv_index_tags: []
-# iv_index_shas: []
+iv_cleanup: true
 default_retries: 5
 default_delay: 10

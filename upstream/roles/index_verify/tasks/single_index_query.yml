@@ -1,24 +1,10 @@
 ---
-- name: "Processing single index '{{ iv_index_item }}'"
-  ansible.builtin.debug:
-    var: iv_index_item
-
-# - name: "Reseting values for iv_* variables"
-#   set_fact:
-#     iv_container_name: "iv_index"
-#     iv_container_port: "50051"
-#     ia_index_type: ""
-#     ia_index_tags: []
-#     ia_index_shas: []
-
 - name: "Pull index image '{{ iv_index_item }}'"
   shell: "{{ container_tool }} pull {{ iv_index_item }}"
   retries: "{{ default_retries }}"
   register: iv_pull_action_result
   until: iv_pull_action_result is not failed
   delay: "{{ default_delay }}"
-
-
 
 - name: "Delete previous container '{{ iv_container_name }}'"
   shell: "{{ container_tool }} rm -f {{ iv_container_name }}"
@@ -27,19 +13,14 @@
 - name: "Start index image '{{ iv_index_item }}' container '{{ iv_index_item }}'"
   shell: "{{ container_tool }} run -d -p {{ iv_container_port }}:50051 --name {{ iv_container_name }} {{ iv_index_item }}"
 
-
 - name: "Getting list of operators"
-  # shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -sd: -f 1 "
   shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
   register: iv_list_operators
 
 - name: "Set 'ia_index_tags_all'"
   set_fact:
     iv_index_operators: "{{ iv_list_operators.stdout.split('\n') | unique }}"
-
-- name: "Print 'iv_index_operators'"
-  ansible.builtin.debug:
-    var: iv_index_operators
+    iv_index_operators_all: "{{ iv_list_operators.stdout.split('\n') | unique | union(iv_index_operators_all | default([])) }}"
 
 - name: "Getting list of versions"
   shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3-"
@@ -49,44 +30,20 @@
   set_fact:
     iv_index_versions: "{{ iv_list_versions.stdout.split('\n') | unique }}"
 
-- name: "Print 'iv_index_versions'"
-  ansible.builtin.debug:
-    var: iv_index_versions
-
 - name: "Parsing operator versions"
   set_fact:
-    # iv_index_operator_versions: "{{ iv_index_operator_versions | default([]) | union( [{'name': op_ver_item, 'versions': iv_index_versions | select('search', op_ver_item) | list | join(',') | replace(op_ver_item+':','') | split(',') | sort_versions }]) }}"
     iv_index_operator_ana: "{{ iv_index_operator_ana | default({}) | combine({op_ver_item: { 'versions' : iv_index_operator_ana[op_ver_item].versions | default([]) + [ iv_index_versions | select('search', op_ver_item) | length ], 'indexes': iv_index_operator_ana[op_ver_item].indexes | default([]) + [ iv_index_item ] }}) }}"
-  loop: "{{ iv_index_operators }}"
+  loop: "{{ iv_index_operators_all }}"
   loop_control:
     loop_var: op_ver_item
-  when: (iv_index_operators | length > 0)
+  when: (iv_index_operators_all | length > 0)
 
-# - name: "Print 'iv_index_operator_versions'"
-#   ansible.builtin.debug:
-#     var: iv_index_operator_versions
-
-# - name: "Print 'iv_index_operator_ana'"
-#   ansible.builtin.debug:
-#     var: iv_index_operator_ana
-
-# - pause:
 
 - name: "Stop and remove container '{{ iv_container_name }}'"
   shell: "{{ container_tool }} rm -f {{ iv_container_name }}"
   failed_when: false
 
-# - name: "Delete image '{{ iv_index_item }}'"
-#   shell: "{{ container_tool }} rmi -f {{ iv_index_item }}"
-#   failed_when: false
-
-# - name: "Parsing operator versions"
-#   set_fact:
-#     io_index_dt: "{{ io_index_dt | default({}) | combine({ iv_index_item : oii_index_dt }) }}"
-
-
-
-# - name: "Parsing operator versions"
-#   set_fact:
-#     iv_index_all: "{{ iv_index_all | default([]) | union( [{'name': iv_index_item, 'operators': iv_index_operator_versions }]) }}"
-
+- name: "Delete image '{{ iv_index_item }}'"
+  shell: "{{ container_tool }} rmi -f {{ iv_index_item }}"
+  failed_when: false
+  when: iv_cleanup | bool
