@@ -1,0 +1,70 @@
+---
+
+- name: "Fail if 'iv_indexes' is undefined or empty"
+  ansible.builtin.fail:
+    msg: "Please specify list of indexes via 'iv_indexes' variable. Example : '-e iv_indexes=quay.io/openshift-community-operators/catalog_tmp:v4.11,quay.io/openshift-community-operators/catalog_tmp:v4.11s,quay.io/redhat/redhat----community-operator-index:v4.11'"
+  when:
+    - iv_indexes is undefined
+    - iv_indexes | length == 0
+
+- name: "Set list of indexes"
+  ansible.builtin.set_fact:
+    iv_list_indexes: "{{ iv_indexes.split(',') | select() | list }}"
+
+- name: "Seting list of versions"
+  ansible.builtin.set_fact:
+    iv_indexes_versions: "{{ iv_indexes_versions | default([]) + [ iv_index_item.split(':')[1] ] }}"
+  loop: "{{ iv_list_indexes }}"
+  loop_control:
+    loop_var: iv_index_item
+    index_var: iv_index_idx
+
+- name: "Reset operators"
+  set_fact:
+    iv_index_all: []
+    iv_index_ana_all: []
+
+- name: "Index query"
+  ansible.builtin.include_tasks:
+    file: single_index_query.yml
+  loop: "{{ iv_list_indexes }}"
+  loop_control:
+    loop_var: iv_index_item
+    index_var: iv_index_idx
+
+- name: "Analysis"
+  ansible.builtin.include_tasks:
+    file: single_index_ana.yml
+  loop: "{{ iv_index_operator_ana.keys() }}"
+  loop_control:
+    loop_var: iv_index_item
+    extended: yes
+
+- name: "Summary"
+  ansible.builtin.include_tasks:
+    file: single_index_summary.yml
+  loop: "{{ iv_index_operator_ana.keys() }}"
+  loop_control:
+    loop_var: iv_index_item
+    extended: yes
+
+- name: "Getting content from '{{ iv_output_file }}' "
+  ansible.builtin.command:
+    cmd: "cat {{ iv_output_file }}"
+  register: iv_output_file_result
+
+- name: "Print content of '{{ iv_output_file }}'"
+  ansible.builtin.debug:
+    msg: "{{ iv_output_file_result.stdout_lines }}"
+
+- name: "Fail with list of operators that are not in sync"
+  ansible.builtin.fail:
+    msg: "Operators not in sync: '{{ iv_operators_failed | join(',') }}' [{{ iv_operators_failed | length }}/{{ iv_index_operator_ana.keys() | length }}]!!! More info above or in '{{ iv_output_file }}' file"
+  when:
+    - iv_operators_failed is defined
+    - iv_operators_failed | length
+
+- name: "Fail with list of operators that are not in sync"
+  ansible.builtin.debug:
+    msg: "[OK] All operators in sync. More info above or in '{{ iv_output_file }}' file"
+  when: iv_operators_failed is undefined or iv_operators_failed | length == 0

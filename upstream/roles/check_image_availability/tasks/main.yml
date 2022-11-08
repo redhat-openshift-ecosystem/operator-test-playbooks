@@ -106,7 +106,7 @@
           when:
             - vob_pull_external_image_oc.rc|int!=0
 
-      when: 
+      when:
         - not run_upstream|bool
         - current_openshift_run is defined and current_openshift_run != "4.12"
         - current_openshift_run is defined and current_openshift_run != "4.13"
