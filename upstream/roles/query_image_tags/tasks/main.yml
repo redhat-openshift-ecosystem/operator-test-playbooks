@@ -61,7 +61,7 @@
 
             - name: "Setting result to 'qit_result' variable"
               set_fact:
-                qit_result: "{{ qit_skopeo_inspect_json.RepoTags }}"
+                qit_result: "{{ qit_skopeo_inspect_json.RepoTags | list }}"
               when: qit_skopeo_inspect_json.RepoTags is defined
           when:
             - qit_rc == 0
