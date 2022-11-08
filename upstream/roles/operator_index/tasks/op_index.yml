@@ -62,6 +62,8 @@
         - quay_api_token|length > 0
         - boi_registry_versions_rc != 0
 
+    - debug:
+        var: boi_registry_versions_tags
     - name: "Setting all versions to 'index_versions_in_registry' variable"
       set_fact:
         index_versions_in_registry: "{{ boi_registry_versions_tags | sort_versions }}"
