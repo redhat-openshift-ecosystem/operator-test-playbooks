@@ -1,12 +1,11 @@
-from distutils.version import LooseVersion
+from packaging.version import Version
 
-def filter_sort_versions(l):
-    return sorted(l, key=LooseVersion)
+def version_sort(l):
+    return sorted(l, key=Version)
 
 class FilterModule(object):
-    filter_sort = {
-        'sort_versions': filter_sort_versions,
-    }
 
     def filters(self):
-        return self.filter_sort
+        return {
+            'version_sort': version_sort
+        }
