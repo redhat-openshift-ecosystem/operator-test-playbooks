@@ -1,9 +1,7 @@
-from pkg_resources import parse_version
+from distutils.version import LooseVersion
 
-def filter_sort_versions(value):
-    list = [item + '-z' for item in value]
-    list2 = sorted(list, key=parse_version)
-    return [x[:-2] for x in list2]
+def filter_sort_versions(l):
+    return sorted(l, key=LooseVersion)
 
 class FilterModule(object):
     filter_sort = {
