@@ -1,0 +1,25 @@
+---
+- name: "#2 SEMVER veneer"
+  block:
+    - name: "Process package"
+      include_tasks: process_template.yml
+      loop: "{{ gv_ordered_template_list }}"
+      loop_control: 
+        loop_var: gv_template
+
+   # - name: "Prepare list od valid bundles for {{ gv_index }} needed for 'entries' and 'olm.bundle'"
+
+
+
+
+
+
+    - name: "Loop channels"
+      include_tasks: loop_channels.yml
+      loop: "{{ op_info[gv_package_name].channels.keys() }}"
+      loop_control: 
+        loop_var: gv_channel
+
+    # - name: "Loop over bundles"
+
+  when: op_info[gv_package_name].mode == "replaces"

@@ -1,6 +1,6 @@
 ---
-# ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=generate_veneer -e gv_package_name=mongodb-atlas-kubernetes
-
+# ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=generate_veneer -e gv_package_name=keycloak-operator
+# TODO: loop over indexes
 - name: "Load operator info from file"
   include_role:
     name: operator_info_load
@@ -9,9 +9,8 @@
     skip_operator_info_consistency: true
     fast_op_info: true
 
-- name: "Generate olm.package for veneer"
-  set_fact:
-    gv_veneer: "{{ lookup('template', './package.yml.j2') }}"
-
-- debug:
-    var: gv_veneer
+- name: "Process indexes"
+  include_tasks: generate_for_index.yml
+  loop: "{{ veneers_from_indexes.split(',') | list }}"
+  loop_control: 
+    loop_var: gv_index

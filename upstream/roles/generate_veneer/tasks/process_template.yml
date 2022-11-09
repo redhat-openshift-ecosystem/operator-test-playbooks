@@ -1,0 +1,5 @@
+---
+  - name: "Process {{ gv_template }} for the veneer"
+    set_fact:
+      gv_veneer: "{{ lookup('template', './{{ gv_template }}.yml.j2') }}"
+

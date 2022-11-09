@@ -1,1 +1,4 @@
-gv_package_name: "not-defined"
+gv_package_name: "not-defined-please-define"
+veneers_from_indexes: "plese-define-comma-separated-list-without-v"
+gv_ordered_template_list:
+  - package
