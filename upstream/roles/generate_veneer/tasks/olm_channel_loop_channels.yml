@@ -1,0 +1,25 @@
+---
+# - name: "#3 Prepare channel 'entries'"
+# - name: "Generate a single channel"
+
+- name: "#3 Loop olm.channel 'entries'"
+  include_tasks: olm_channel_add_replaces.yml
+  loop: "{{ op_info[gv_package_name].channels[gv_channel] }}"
+  loop_control: 
+    loop_var: gv_operator_version
+  when: 
+    - gv_operator_version in op_info[gv_package_name].index[gv_index]
+    - gv_operator_version not in op_info[gv_package_name].index_dt[gv_index]
+
+
+- name: "Set olm.channel"
+  ansible.builtin.set_fact:
+    olm_channel:
+      schema: olm.channel
+      package: "{{ gv_package_name }}"
+      name: "{{ gv_channel }}"
+      entries: "{{ gv_olm_channel_entries }}"
+
+- name: "Reset"
+  ansible.builtin.set_fact:
+    gv_olm_channel_entries: []

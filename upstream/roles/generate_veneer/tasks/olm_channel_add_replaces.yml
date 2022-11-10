@@ -1,0 +1,18 @@
+---
+- name: "#4 Set 'gv_olm_channel_entries_name' without replaces"
+  ansible.builtin.set_fact:
+    gv_olm_channel_entries_name: "{{ 'name: '+op_info[gv_package_name].manifests[gv_operator_version].csv_name }}"
+    when: op_info[gv_package_name].manifests[gv_operator_version].replaces | length == 0
+    #add a variable regarding the first elemnt
+
+- name: "Set 'gv_olm_channel_entries_name' with replaces"
+  ansible.builtin.set_fact:
+    gv_olm_channel_entries_name: "{{ dict([['name: ',op_info[gv_package_name].manifests[gv_operator_version].csv_name], ['replaces: ',op_info[gv_package_name].manifests[gv_operator_version].replaces_name]]) }}"
+  when: op_info[gv_package_name].manifests[gv_operator_version].replaces | length > 0
+  #add a variable regarding the first elemnt
+
+- name: "Fill olm.channel 'entries'"
+  ansible.builtin.set_fact:
+    gv_olm_channel_entries: "{{ gv_olm_channel_entries | default([]) + [ gv_olm_channel_entries_name ] }}"
+
+

@@ -1,0 +1,5 @@
+input-files:
+  - concatenate/b.txt
+  - concatenate/a.txt
+
+

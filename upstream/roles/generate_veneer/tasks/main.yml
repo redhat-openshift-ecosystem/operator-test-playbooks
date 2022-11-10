@@ -10,7 +10,7 @@
     fast_op_info: true
 
 - name: "Process indexes"
-  include_tasks: generate_for_index.yml
+  include_tasks: loop_indexes.yml
   loop: "{{ veneers_from_indexes.split(',') | list }}"
   loop_control: 
     loop_var: gv_index
