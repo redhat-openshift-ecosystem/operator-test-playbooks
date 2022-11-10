@@ -1,4 +1,8 @@
 ---
+
+- debug:
+    var: operator_bundle_src_dir
+
 - name: "List operators in operators dir artifact"
   find:
     paths: "{{ operator_bundle_src_dir }}"
@@ -6,9 +10,12 @@
     file_type: directory
   register: oi_check_operators_artifact_raw
 
+- debug:
+    var: oi_check_operators_artifact_raw
+
 - name: "Setting list of versions from directory structre"
   set_fact:
-    oi_check_operators_artifact: "{{ oi_check_operators_artifact_raw.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+    oi_check_operators_artifact: "{{ oi_check_operators_artifact_raw.files | map(attribute='path' ) | map('basename') | list }}"
 
 - name: "Set operator list from operator_info"
   set_fact:

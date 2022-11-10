@@ -66,7 +66,7 @@
         var: boi_registry_versions_tags
     - name: "Setting all versions to 'index_versions_in_registry' variable"
       set_fact:
-        index_versions_in_registry: "{{ boi_registry_versions_tags | sort_versions }}"
+        index_versions_in_registry: "{{ boi_registry_versions_tags }}"
       when:
         - boi_registry_versions_tags.0 is defined
 

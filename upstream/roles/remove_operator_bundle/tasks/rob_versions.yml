@@ -10,7 +10,7 @@
     - name: "Setting all current versions to 'rob_versions_rm_repo_curr' variable"
       set_fact:
         # rob_versions_rm_repo_curr: "{{ (rob_versions_rm.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
-        rob_versions_rm_repo_curr: "{{ (rob_versions_rm.json.tags | sort_versions) }}"
+        rob_versions_rm_repo_curr: "{{ (rob_versions_rm.json.tags ) }}"
       when:
         - rob_versions_rm.status is defined
         - rob_versions_rm.status == 200

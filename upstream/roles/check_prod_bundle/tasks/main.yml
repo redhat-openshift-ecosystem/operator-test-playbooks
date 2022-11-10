@@ -35,7 +35,7 @@
 
 - name: "Setting all versions to 'cpb_versions' variable"
   set_fact:
-    cpb_versions: "{{ (cpb_prod_registry_versions_tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+    cpb_versions: "{{ (cpb_prod_registry_versions_tags | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
   when:
     - cpb_prod_registry_versions_tags.0 is defined
 
