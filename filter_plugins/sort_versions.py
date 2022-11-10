@@ -1,6 +1,6 @@
 from packaging.version import Version
 def filter_sort_versions(l):
-    ls = map(str, l)
+    ls = [str(x) for x in l]
     return sorted(ls, key=Version)
 class FilterModule(object):
     def filters(self):
