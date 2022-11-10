@@ -76,7 +76,7 @@
 
 - name: "Setting all versions to 'index_versions_in_registry' variable"
   set_fact:
-    index_versions_in_registry: "{{ boi_registry_versions.json.tags | sort_versions }}"
+    index_versions_in_registry: "{{ boi_registry_versions.json.tags }}"
   when:
     - (openshift_robot_hash_array.2 is undefined or openshift_robot_hash_array.2|length == 0)
     - boi_registry_versions.status == 200

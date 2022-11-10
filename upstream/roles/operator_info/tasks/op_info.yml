@@ -97,7 +97,7 @@
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
       set_fact:
-        versions_in_prod_registry: "{{ versions_in_prod_registry_full_tags | reject('search', ignore_image_string) | list | sort_versions }}"
+        versions_in_prod_registry: "{{ versions_in_prod_registry_full_tags | reject('search', ignore_image_string) | list }}"
       when:
         - versions_in_prod_registry_full_tags.0 is defined
 

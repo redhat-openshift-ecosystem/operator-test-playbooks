@@ -206,11 +206,11 @@
 
     - name: "Setting all versions to 'versions_in_registry' variable"
       set_fact:
-        versions_in_registry: "{{ (bob_registry_versions_tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        versions_in_registry: "{{ (bob_registry_versions_tags | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
 
     - name: "Setting all versions to 'versions_in_prod_registry_full' variable"
       set_fact:
-        versions_in_prod_registry_full: "{{ (bob_prod_registry_versions_tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        versions_in_prod_registry_full: "{{ (bob_prod_registry_versions_tags | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
 
     - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
       set_fact:
