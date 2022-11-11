@@ -3,4 +3,5 @@ veneers_from_indexes: "plese-define-comma-separated-list-without-v"
 gv_veneer_output: "/tmp/venner.yml"
 gv_ordered_template_list:
   - package
+output_veneer_path: "/tmp/veneer-v{{ veneers_from_indexes }}.yaml"
 # production_registry_namespace: quay.io/openshift-community-operators

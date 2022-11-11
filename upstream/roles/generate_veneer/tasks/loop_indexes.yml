@@ -1,4 +1,8 @@
 ---
+- name: "Initial final_veneer_var reset"
+  ansible.builtin.set_fact:
+    final_veneer_var: []
+
 - name: "#2 SEMVER veneer"
   block:
     - name: "Set olm.package"
@@ -7,6 +11,10 @@
           schema: olm.package
           name: "{{ gv_package_name }}"
           defaultChannel: NOT-DETECTED
+
+    - name: "Add 'olm_package' variable to 'final_veneer_var'"
+      set_fact: 
+        final_veneer_var: "{{ final_veneer_var | default([]) + [olm_package] }}"
 
     - name: "Loop channels"
       include_tasks: olm_channel_loop_channels.yml
@@ -20,18 +28,13 @@
 
     - name: "Loop over bundles"
       set_fact: 
-        olm_bundle: "{{ olm_bundle | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
+        # olm_bundle: "{{ olm_bundle | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
+          final_veneer_var: "{{ final_veneer_var | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
       loop: "{{ op_info[gv_package_name].index[gv_index] }}"
       loop_control: 
         loop_var: gv_bundle_in_index
       when: 
         - gv_bundle_in_index not in op_info[gv_package_name].index_dt[gv_index]
-
-
-
-
-
-
 
 # - name: "Include file list"
 #   include_vars:
@@ -44,3 +47,13 @@
 #     dest: "{{ gv_veneer_output }}"
 
   when: op_info[gv_package_name].mode == "replaces"
+
+- name: "Show final veneer variable"
+  debug:
+    var: final_veneer_var
+
+- name: "Convert list of yamls to a file"  
+  template:  
+    src: veneer_templating.yml.j2  
+    dest: "{{ output_veneer_path }}"
+

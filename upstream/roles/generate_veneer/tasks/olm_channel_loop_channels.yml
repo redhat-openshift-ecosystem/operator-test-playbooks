@@ -1,7 +1,4 @@
 ---
-# - name: "#3 Prepare channel 'entries'"
-# - name: "Generate a single channel"
-
 - name: "#3 Loop olm.channel 'entries'"
   include_tasks: olm_channel_loop_op_version.yml
   loop: "{{ op_info[gv_package_name].channels[gv_channel] }}"
@@ -20,6 +17,10 @@
       package: "{{ gv_package_name }}"
       name: "{{ gv_channel }}"
       entries: "{{ gv_olm_channel_entries }}"
+
+- name: "Add 'olm_channel' variable to 'final_veneer_var'"
+  set_fact: 
+    final_veneer_var: "{{ final_veneer_var | default([]) + [olm_channel] }}"
 
 - name: "Reset"
   ansible.builtin.set_fact:
