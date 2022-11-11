@@ -8,15 +8,30 @@
           name: "{{ gv_package_name }}"
           defaultChannel: NOT-DETECTED
 
-   # - name: "Prepare list od valid bundles for {{ gv_index }} needed for 'entries' and 'olm.bundle'" NETREBA
-
     - name: "Loop channels"
       include_tasks: olm_channel_loop_channels.yml
       loop: "{{ op_info[gv_package_name].channels.keys() }}"
       loop_control: 
         loop_var: gv_channel
 
-    # - name: "Loop over bundles"
+    - name: "Set 'gv_bundle_path'"
+      ansible.builtin.set_fact:
+        gv_bundle_path: "{{ production_registry_namespace }}/{{ gv_package_name }}"
+
+    - name: "Loop over bundles"
+      set_fact: 
+        olm_bundle: "{{ olm_bundle | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
+      loop: "{{ op_info[gv_package_name].index[gv_index] }}"
+      loop_control: 
+        loop_var: gv_bundle_in_index
+      when: 
+        - gv_bundle_in_index not in op_info[gv_package_name].index_dt[gv_index]
+
+
+
+
+
+
 
 # - name: "Include file list"
 #   include_vars:
