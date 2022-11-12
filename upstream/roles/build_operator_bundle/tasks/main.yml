@@ -52,7 +52,7 @@
 
     - name: "Setting list of versions from directory structre"
       set_fact:
-        versions_in_dir: "{{ bob_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+        versions_in_dir: "{{ bob_versions_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
         operator_dir_name: "{{ bob_opname }}"
       when: op_info is undefined
 

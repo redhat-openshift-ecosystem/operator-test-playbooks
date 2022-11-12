@@ -83,7 +83,7 @@
 
         - name: "Setting list of operators and operator base dir"
           set_fact:
-            operators: "{{ operators_recreate_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+            operators: "{{ operators_recreate_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
             operator_base_dir: "{{ regenerate_operators_path }}"
 
         - name: "Get list of all repositories in {{ bundle_image_namespace }}"

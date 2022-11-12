@@ -467,8 +467,8 @@
 
         - name: "Setting list of operator versions from git and index"
           set_fact:
-            bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
-            bio_versions_git: "{{ ba_versions | sort_versions }}"
+            bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
+            bio_versions_git: "{{ ba_versions | community.general.version_sort }}"
 
         - name: "Setting list version diff list"
           set_fact:

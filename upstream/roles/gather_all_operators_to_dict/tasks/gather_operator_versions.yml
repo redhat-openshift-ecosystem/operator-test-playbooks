@@ -9,7 +9,7 @@
 - name: "Setting list of all versions"
   set_fact:
     gaotd_operator_name: "{{ gaotd_dir | basename }}"
-    gaotd_operator_versions: "{{ gaotd_operator_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+    gaotd_operator_versions: "{{ gaotd_operator_versions_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
 
 - name: "Setting 'all_operators_with_versions' variable"
   set_fact:
