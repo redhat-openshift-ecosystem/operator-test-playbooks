@@ -309,7 +309,7 @@
 
     - name: "Filling bundle versions from prod for operator '{{ operator_package_name }}'"
       set_fact:
-        bob_bundles_arr: "{{ bob_bundles_arr | default([]) }} + [ '{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ item }}' ]"
+        bob_bundles_arr: "{{ (bob_bundles_arr | default([])) + [ production_registry_namespace + '/' + operator_package_name + ':v' + item ] }}"
       with_items: "{{ versions_in_prod_registry }}"
       when:
         - production_registry_namespace is defined
@@ -317,7 +317,7 @@
 
     - name: "Filling bundle versions for operator '{{ operator_package_name }}'"
       set_fact:
-        bob_bundles_arr: "{{ bob_bundles_arr | default([]) }} + [ '{{ bundle_registry }}/{{ bundle_image_namespace }}/{{ operator_package_name }}:v{{ item }}' ]"
+        bob_bundles_arr: "{{ (bob_bundles_arr | default([])) + [ bundle_registry + '/' + bundle_image_namespace + '/' + operator_package_name + ':v' + item ] }}"
       with_items: "{{ bob_versions_tmp }}"
 
     - name: "Filling bundle versions for operator '{{ operator_package_name }}' for openshift robot case"

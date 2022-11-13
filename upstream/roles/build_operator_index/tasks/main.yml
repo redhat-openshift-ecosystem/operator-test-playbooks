@@ -423,7 +423,7 @@
 
 - name: "Add failed operators when creating index from bundle"
   set_fact:
-    bundle_index_add_failed: "{{ bundle_index_add_failed | default([]) }} + [ '{{ ba_name }}' ]"
+    bundle_index_add_failed: "{{ (bundle_index_add_failed | default([])) + [ ba_name ] }}"
   when: boi_ia_rc.rc is defined and boi_ia_rc.rc != 0
 
 - name: "Running courier test on operator '{{ ba_name }}'"

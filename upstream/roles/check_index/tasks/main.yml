@@ -91,7 +91,7 @@
 
     - name: "Setting list of incomplete packages"
       set_fact:
-        chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
+        chi_uncomplete_packages: "{{ (chi_uncomplete_packages | default([])) + [ item | dirname ] }}"
       with_items: "{{ chi_uncomplete_packages_list }}"
 
     - name: "Get list of  bundles in quay in {{ bundle_image_namespace }}"
@@ -127,7 +127,7 @@
 
         - name: "Setting list of incomplete packages from missing bundles"
           set_fact:
-            chi_uncomplete_packages: "{{ chi_uncomplete_packages }} + [ '{{ item | dirname }}' ]"
+            chi_uncomplete_packages: "{{ (chi_uncomplete_packages | default([])) + [ item | dirname ] }}"
           with_items: "{{ chi_quay_bundles_not_index_operators }}"
 
         - name: "Check if number of missing operators is very high that manual check is needed"

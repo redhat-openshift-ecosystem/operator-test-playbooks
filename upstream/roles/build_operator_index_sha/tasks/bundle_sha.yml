@@ -22,7 +22,7 @@
 - name: "Adding sha as version for {{ item }} "
   set_fact:
     # bob_bundles_sha_arr: "{{ bob_bundles_sha_arr | default([]) }} + [ '{{ bs_bundle[0] }}@{{ bs_skopeo_inspect_info.Digest }}' ]"
-    bob_bundles_sha_arr: "{{ bob_bundles_sha_arr | default([]) + [ bs_bundle[0]+'@'+bs_skopeo_inspect_info.Digest ] }}"
+    bob_bundles_sha_arr: "{{ (bob_bundles_sha_arr | default([])) + [ bs_bundle[0]+'@'+bs_skopeo_inspect_info.Digest ] }}"
   when:
     - bs_skopeo_inspect_info.Digest is defined
     - bs_skopeo_inspect_info.Digest|length > 0
@@ -31,7 +31,7 @@
 - name: "Adding sha as version for {{ item }} when registry with port "
   set_fact:
     # bob_bundles_sha_arr: "{{ bob_bundles_sha_arr | default([]) }} + [ '{{ bs_bundle[0] }}:{{ bs_bundle[1] }}@{{ bs_skopeo_inspect_info.Digest }}' ]"
-    bob_bundles_sha_arr: "{{ bob_bundles_sha_arr | default([]) + [ bs_bundle[0]+':'+bs_bundle[1]+'@'+bs_skopeo_inspect_info.Digest ] }}"
+    bob_bundles_sha_arr: "{{ (bob_bundles_sha_arr | default([])) + [ bs_bundle[0]+':'+bs_bundle[1]+'@'+bs_skopeo_inspect_info.Digest ] }}"
   when:
     - bs_skopeo_inspect_info.Digest is defined
     - bs_skopeo_inspect_info.Digest|length > 0
