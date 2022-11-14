@@ -1,5 +1,5 @@
 ---
-- name: "#4 Set 'gv_olm_channel_entries_name' without replaces"
+- name: "#5 Set 'gv_olm_channel_entries_name' without replaces"
   ansible.builtin.set_fact:
     gv_olm_channel_entries_name: "{{ dict([['name',op_info[gv_package_name].manifests[gv_operator_version].csv_name]]) }}"
   when: (op_info[gv_package_name].manifests[gv_operator_version].replaces | length == 0) or (gv_olm_channel_entries is undefined or gv_olm_channel_entries|length ==0)

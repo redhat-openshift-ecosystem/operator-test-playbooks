@@ -1,5 +1,5 @@
 ---
-- name: "#3 Loop olm.channel 'entries'"
+- name: "#4 Loop olm.channel 'entries'"
   include_tasks: olm_channel_loop_op_version.yml
   loop: "{{ op_info[gv_package_name].channels[gv_channel] }}"
   loop_control: 
