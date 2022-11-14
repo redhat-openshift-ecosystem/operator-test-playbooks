@@ -13,7 +13,7 @@
 
 - name: "Seting list of versions"
   ansible.builtin.set_fact:
-    iv_indexes_versions: "{{ iv_indexes_versions | default([]) + [ iv_index_item.split(':')[1] ] }}"
+    iv_indexes_versions: "{{ (iv_indexes_versions | default([])) + [ iv_index_item.split(':')[1] ] }}"
   loop: "{{ iv_list_indexes }}"
   loop_control:
     loop_var: iv_index_item

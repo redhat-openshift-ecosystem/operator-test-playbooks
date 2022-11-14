@@ -526,6 +526,6 @@
 
     - name: "Add failed operators when creating bundle"
       set_fact:
-        bundle_add_failed: "{{ bundle_add_failed | default([]) }} + [ '{{ operator_package_name }}' ]"
-        bundle_add_failed_name_version: "{{ bundle_add_failed_name_version | default([]) }} + [ '{{ bundle_image }}' ]"
+        bundle_add_failed: "{{ (bundle_add_failed | default([])) + [ operator_package_name ] }}"
+        bundle_add_failed_name_version: "{{ (bundle_add_failed_name_version | default([])) + [ bundle_image ] }}"
       when: (bb_rc.rc is defined and bb_rc.rc != 0) or (mb_rc.rc is defined and mb_rc.rc != 0)

@@ -41,14 +41,14 @@
       block:
         - name: "Loop over returned pyxis data"
           set_fact:
-            p_index_paths: "{{ p_index_paths | default([]) + [p_supported_index_json_data_loop.ocp_version] }}"
+            p_index_paths: "{{ (p_index_paths) | default([]) + [p_supported_index_json_data_loop.ocp_version] }}"
           loop: "{{ doic_supported_indexes_json.data }}"
           loop_control:
             loop_var: p_supported_index_json_data_loop
 
         - name: "Loop over index paths"
           set_fact:
-            p_indexes_by_pyxis: "{{ p_indexes_by_pyxis | default([]) + [p_supported_index_paths_loop] }}"
+            p_indexes_by_pyxis: "{{ (p_indexes_by_pyxis | default([])) + [p_supported_index_paths_loop] }}"
           loop: "{{ p_index_paths }}"
           loop_control:
             loop_var: p_supported_index_paths_loop

@@ -113,7 +113,7 @@
 
     - name: "Handle permissive mode when operator is failing to deploy on kind cluster"
       set_fact:
-        test_all_add_failed_name_version_validation: "{{ test_all_add_failed_name_version_validation | default([]) }} + [ '{{ operator_name }}:{{ operator_version }}' ]"
+        test_all_add_failed_name_version_validation: "{{ (test_all_add_failed_name_version_validation | default([])) + [ operator_name + ':' + operator_version ] }}"
       when:
         - permisive is defined
         - permisive|bool

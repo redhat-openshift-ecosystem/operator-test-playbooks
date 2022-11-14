@@ -423,7 +423,7 @@
 
 - name: "Add failed operators when creating index from bundle"
   set_fact:
-    bundle_index_add_failed: "{{ bundle_index_add_failed | default([]) }} + [ '{{ ba_name }}' ]"
+    bundle_index_add_failed: "{{ (bundle_index_add_failed | default([])) + [ ba_name ] }}"
   when: boi_ia_rc.rc is defined and boi_ia_rc.rc != 0
 
 - name: "Running courier test on operator '{{ ba_name }}'"
@@ -467,8 +467,8 @@
 
         - name: "Setting list of operator versions from git and index"
           set_fact:
-            bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
-            bio_versions_git: "{{ ba_versions | sort_versions }}"
+            bio_versions_index: "{{ boi_operators_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
+            bio_versions_git: "{{ ba_versions | community.general.version_sort }}"
 
         - name: "Setting list version diff list"
           set_fact:

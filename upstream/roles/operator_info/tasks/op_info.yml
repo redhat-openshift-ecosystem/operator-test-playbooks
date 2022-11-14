@@ -23,7 +23,7 @@
 
 - name: "Setting list of versions from directory structre"
   set_fact:
-    oi_versions_in_dir: "{{ oi_versions_find.files | map(attribute='path' ) | map('basename') | list | sort_versions }}"
+    oi_versions_in_dir: "{{ oi_versions_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
 
 - name: "Print versions found for '{{ oi_operator_name }}'"
   debug:
@@ -70,7 +70,7 @@
 
     # - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
     #   set_fact:
-    #     versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list | sort_versions }}"
+    #     versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list | community.general.version_sort }}"
     #   when:
     #     - versions_in_prod_registry_full.0 is defined
 

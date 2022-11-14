@@ -37,7 +37,7 @@
 
         # - name: "Setting all versions to 'rob_versions_rm_repo' variable without '{{ ignore_image_string }}' to avoid adding to an index"
         #   set_fact:
-        #     rob_versions_rm_repo: "{{ rob_versions_rm_repo_full | reject('search', ignore_image_string) | list | sort_versions }}"
+        #     rob_versions_rm_repo: "{{ rob_versions_rm_repo_full | reject('search', ignore_image_string) | list | community.general.version_sort }}"
         #   when:
         #     - rob_versions_rm_repo_full.0 is defined
 
@@ -55,7 +55,7 @@
 
         - name: "Setting all versions to 'rob_versions_rm_repo' variable without '{{ ignore_image_string }}' to avoid adding to an index"
           set_fact:
-            rob_versions_rm_repo: "{{ rob_versions_rm_repo_tags | reject('search', ignore_image_string) | list | sort_versions }}"
+            rob_versions_rm_repo: "{{ rob_versions_rm_repo_tags | reject('search', ignore_image_string) | list | community.general.version_sort }}"
           when:
             - rob_versions_rm_repo_tags.0 is defined
 

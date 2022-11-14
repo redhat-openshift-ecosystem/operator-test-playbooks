@@ -12,7 +12,7 @@
 
     - name: "Setting all current versions to 'versions_in_prod_registry_curr' variable"
       set_fact:
-        # versions_in_prod_registry_curr: "{{ (bob_prod_registry_versions.json.tags | sort_versions | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        # versions_in_prod_registry_curr: "{{ (bob_prod_registry_versions.json.tags | community.general.version_sort | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
         versions_in_prod_registry_curr: "{{ (bob_prod_registry_versions.json.tags }}"
       when:
         - bob_prod_registry_versions.status is defined
