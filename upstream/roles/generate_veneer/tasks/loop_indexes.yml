@@ -16,11 +16,11 @@
       set_fact: 
         final_veneer_var: "{{ final_veneer_var | default([]) + [olm_package] }}"
 
-    - name: "Loop channels"
-      include_tasks: olm_channel_loop_channels.yml
-      loop: "{{ op_info[gv_package_name].channels.keys() }}"
+    - name: "Loop packages"
+      include_tasks: loop_packages.yml
+      loop: "{{ op_info.keys() }}"
       loop_control: 
-        loop_var: gv_channel
+        loop_var: gv_package_name
 
     - name: "Set 'gv_bundle_path'"
       ansible.builtin.set_fact:
@@ -29,22 +29,12 @@
     - name: "Loop over bundles"
       set_fact: 
         # olm_bundle: "{{ olm_bundle | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
-          final_veneer_var: "{{ final_veneer_var | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
+        final_veneer_var: "{{ final_veneer_var | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
       loop: "{{ op_info[gv_package_name].index[gv_index] }}"
       loop_control: 
         loop_var: gv_bundle_in_index
       when: 
         - gv_bundle_in_index not in op_info[gv_package_name].index_dt[gv_index]
-
-# - name: "Include file list"
-#   include_vars:
-#     file: "defaults/concatenate_list.yml"
-#     name: files
-
-# - name: "Concatenate"
-#   ansible.builtin.template:
-#     src: templates/concatenate.j2
-#     dest: "{{ gv_veneer_output }}"
 
   when: op_info[gv_package_name].mode == "replaces"
 
@@ -57,3 +47,6 @@
     src: veneer_templating.yml.j2  
     dest: "{{ output_veneer_path }}"
 
+- name: "Show"
+  debug:
+    var: output_veneer_path

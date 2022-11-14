@@ -7,7 +7,10 @@
 - name: "Set 'gv_olm_channel_entries_name' with replaces"
   ansible.builtin.set_fact:
     gv_olm_channel_entries_name: "{{ dict([['name',op_info[gv_package_name].manifests[gv_operator_version].csv_name], ['replaces',op_info[gv_package_name].manifests[gv_operator_version].replaces_name]]) }}"
-  when: op_info[gv_package_name].manifests[gv_operator_version].replaces | length > 0 or gv_operator_version_order > 0
+  when: 
+    - op_info[gv_package_name].manifests[gv_operator_version].replaces | length > 0
+    - gv_olm_channel_entries is defined
+    -  gv_olm_channel_entries|length > 0
 
 - name: "Fill olm.channel 'entries'"
   ansible.builtin.set_fact:

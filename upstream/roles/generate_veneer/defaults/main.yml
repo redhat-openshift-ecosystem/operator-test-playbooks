@@ -1,7 +1,5 @@
 gv_package_name: "not-defined-please-define"
 veneers_from_indexes: "plese-define-comma-separated-list-without-v"
-gv_veneer_output: "/tmp/venner.yml"
-gv_ordered_template_list:
-  - package
-output_veneer_path: "/tmp/veneer-v{{ veneers_from_indexes }}.yaml"
+output_veneer_dir: "/tmp/veneer-dir/{{ gv_package_name }}/veneers/"
+output_veneer_path: "/{{ output_veneer_dir }}/{{ gv_index }}.yaml"
 # production_registry_namespace: quay.io/openshift-community-operators

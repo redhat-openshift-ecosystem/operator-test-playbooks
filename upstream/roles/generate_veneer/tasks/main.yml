@@ -1,5 +1,5 @@
 ---
-# ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=generate_veneer -e gv_package_name=keycloak-operator -e veneers_from_indexes=4.10 -e production_registry_namespace=quay.io/openshift-community-operators
+# ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=generate_veneer -e gv_package_name=keycloak-operator -e veneers_from_indexes=4.10,4.11 -e production_registry_namespace=quay.io/openshift-community-operators; cat /tmp/veneers/4.10.yaml; ls /tmp/veneers/
 
 - name: "Load operator info from file"
   include_role:

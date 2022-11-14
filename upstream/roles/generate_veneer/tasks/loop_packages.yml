@@ -1,0 +1,14 @@
+---
+- name: "Create output dir"
+  file:
+    state: "{{ item }}"
+    path: "/{{ output_veneer_dir }}"
+  with_items:
+    - absent
+    - directory
+
+- name: "Loop channels"
+  include_tasks: olm_channel_loop_channels.yml
+  loop: "{{ op_info[gv_package_name].channels.keys() }}"
+  loop_control: 
+    loop_var: gv_channel
