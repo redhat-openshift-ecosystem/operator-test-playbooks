@@ -1,0 +1,19 @@
+---
+# rm -rf /tmp/veneer-dir/||true ;ANSIBLE_STDOUT_CALLBACK=yaml ansible -vv localhost -m import_role -a name=generate_veneer -e gv_package_name=keycloak-operator -e veneers_from_indexes=4.10,4.11 -e production_registry_namespace=quay.io/openshift-community-operators; cat /tmp/veneer-dir/keycloak-operator/veneers/4.10.yaml; ls /tmp/veneer-dir/
+
+- name: "Load operator info from file"
+  include_role:
+    name: operator_info_load
+  vars:
+    skip_operator_info_consistency: true
+    fast_op_info: true
+
+- name: "Trim 'v' from indexes"
+  set_fact:
+    veneers_from_indexes_trimmed: "{{ veneers_from_indexes | replace('v','')}}"
+
+- name: "Process indexes"
+  include_tasks: loop_indexes.yml
+  loop: "{{ veneers_from_indexes_trimmed.split(',') | list }}"
+  loop_control:
+    loop_var: gv_index
