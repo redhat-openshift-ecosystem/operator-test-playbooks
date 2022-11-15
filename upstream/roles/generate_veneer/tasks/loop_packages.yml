@@ -12,7 +12,7 @@
       defaultChannel: NOT-DETECTED
 
 - name: "Add 'olm_package' variable to 'final_veneer_var'"
-  set_fact: 
+  set_fact:
     final_veneer_var: "{{ final_veneer_var | default([]) + [olm_package] }}"
 
 - name: "Create output dir"
@@ -25,7 +25,7 @@
 - name: "Loop channels"
   include_tasks: olm_channel_loop_channels.yml
   loop: "{{ op_info[gv_package_name].channels.keys() }}"
-  loop_control: 
+  loop_control:
     loop_var: gv_channel
 
 - name: "Set 'gv_bundle_path'"
@@ -33,21 +33,21 @@
     gv_bundle_path: "{{ production_registry_namespace }}/{{ gv_package_name }}"
 
 - name: "Loop over bundles"
-  set_fact: 
+  set_fact:
     final_veneer_var: "{{ final_veneer_var | default([]) | union( [{'schema': 'olm.bundle', 'image': gv_bundle_path+':v'+gv_bundle_in_index }]) }}"
   loop: "{{ op_info[gv_package_name].index[gv_index] }}"
-  loop_control: 
+  loop_control:
     loop_var: gv_bundle_in_index
-  when: 
+  when:
     - gv_bundle_in_index not in op_info[gv_package_name].index_dt[gv_index]
 
 - name: "Show final veneer variable"
   debug:
     var: output_veneer_path
 
-- name: "Convert list of yamls to a file"  
-  template:  
-    src: veneer_templating.yml.j2  
+- name: "Convert list of yamls to a file"
+  template:
+    src: veneer_templating.yml.j2
     dest: "{{ output_veneer_path }}"
 
 - name: "Show"

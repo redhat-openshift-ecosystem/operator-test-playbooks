@@ -15,5 +15,5 @@
 - name: "Process indexes"
   include_tasks: loop_indexes.yml
   loop: "{{ veneers_from_indexes_trimmed.split(',') | list }}"
-  loop_control: 
+  loop_control:
     loop_var: gv_index

@@ -2,10 +2,10 @@
 - name: "#4 Loop olm.channel 'entries'"
   include_tasks: olm_channel_loop_op_version.yml
   loop: "{{ op_info[gv_package_name].channels[gv_channel] }}"
-  loop_control: 
+  loop_control:
     loop_var: gv_operator_version
     index_var: gv_operator_version_order
-  when: 
+  when:
     - gv_operator_version in op_info[gv_package_name].index[gv_index]
     - gv_operator_version not in op_info[gv_package_name].index_dt[gv_index]
 
@@ -19,7 +19,7 @@
       entries: "{{ gv_olm_channel_entries }}"
 
 - name: "Add 'olm_channel' variable to 'final_veneer_var'"
-  set_fact: 
+  set_fact:
     final_veneer_var: "{{ final_veneer_var | default([]) + [olm_channel] }}"
 
 - name: "Reset"
