@@ -1,5 +1,5 @@
 gv_package_name: "not-defined-please-define"
-veneers_from_indexes: "plese-define-comma-separated-list-without-v"
+veneers_from_indexes: "plese-define-comma-separated-list-with-v"
 output_veneer_dir_root: "/tmp/veneer-dir/"
 output_veneer_path: "/{{ output_veneer_dir }}/{{ gv_index }}.yaml"
 operator_info_file: "/tmp/op_info.yaml"
