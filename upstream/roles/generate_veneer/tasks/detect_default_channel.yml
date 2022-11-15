@@ -1,0 +1,4 @@
+---
+- name: "Load bundle version list"
+  set_fact:
+    gv_bundle_versions: "{{ op_info.versions }}"
