@@ -1,4 +1,42 @@
 ---
 - name: "Load bundle version list"
   set_fact:
-    gv_bundle_versions: "{{ op_info.versions }}"
+    gv_bundle_versions: "{{ op_info[gv_package_name].versions| list | community.general.version_sort | reverse }}"
+    gv_default_channel: ""
+
+- name: "Set highest semver"
+  set_fact:
+    gv_version_for_semver: "{{ gv_bundle_versions[0]  }}"
+
+- name: "Set registry path for {{ gv_version_for_semver }} version."
+  set_fact:
+    gv_operator_for_semver_registry_path: "{{ production_registry_namespace }}/{{ gv_package_name }}:v{{ gv_version_for_semver }}"
+
+- name: "Parse default channel from {{ gv_operator_for_semver_registry_path }}"
+  shell:
+    cmd: "skopeo inspect docker://{{ gv_operator_for_semver_registry_path }}"
+  register: gv_skopeo_output
+
+- name: "Find default channel"
+  set_fact:
+    gv_skopeo_output_info: "{{ gv_skopeo_output.stdout | from_json }}"
+
+- name: "Find default channel directly"
+  set_fact:
+    gv_default_channel: "{{ gv_skopeo_output_info.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
+  when: gv_skopeo_output_info.Labels['operators.operatorframework.io.bundle.channel.default.v1'] is defined
+
+- name: "Guess default channel"
+  set_fact:
+    gv_channels: "{{ gv_skopeo_output_info.Labels['operators.operatorframework.io.bundle.channels.v1'] }}"
+  when: gv_skopeo_output_info.Labels['operators.operatorframework.io.bundle.channel.default.v1'] is not defined
+
+- name: "Guess default channel"
+  set_fact:
+    gv_default_channel: "{{ gv_channels.split(',')[0] }}"
+  when: gv_skopeo_output_info.Labels['operators.operatorframework.io.bundle.channel.default.v1'] is not defined
+
+- name: "Fail if unable to find a default channel"
+  fail:
+    msg: "Unable to find a default channel from {{ gv_operator_for_semver_registry_path }}"
+  when: gv_default_channel == ""

@@ -4,12 +4,15 @@
     final_veneer_var: []
     output_veneer_dir: "{{ output_veneer_dir_root }}/{{ gv_package_name }}/veneers/"
 
+- name: "Detect default channel"
+  include_tasks: detect_default_channel.yml
+
 - name: "Set olm.package"
   ansible.builtin.set_fact:
     olm_package:
       schema: olm.package
       name: "{{ gv_package_name }}"
-      defaultChannel: NOT-DETECTED
+      defaultChannel: "{{ gv_default_channel }}"
 
 - name: "Add 'olm_package' variable to 'final_veneer_var'"
   set_fact:
