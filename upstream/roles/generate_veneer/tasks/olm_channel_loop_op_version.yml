@@ -1,17 +1,33 @@
 ---
-- name: "#5 Set 'gv_olm_channel_entries_name' without replaces"
-  ansible.builtin.set_fact:
-    gv_olm_channel_entries_name: "{{ dict([['name',op_info[gv_package_name].manifests[gv_operator_version].csv_name]]) }}"
-  when: (op_info[gv_package_name].manifests[gv_operator_version].replaces | length == 0) or (gv_olm_channel_entries is undefined or gv_olm_channel_entries|length ==0)
+- name: "Basic veneer - entries"
+  block:
+    - name: "#5 Set 'gv_olm_channel_entries_name' without replaces"
+      ansible.builtin.set_fact:
+        gv_olm_channel_entries_name: "{{ dict([['name',op_info[gv_package_name].manifests[gv_operator_version].csv_name]]) }}"
+      when: (op_info[gv_package_name].manifests[gv_operator_version].replaces | length == 0) or (gv_olm_channel_entries is undefined or gv_olm_channel_entries|length ==0)
 
-- name: "Set 'gv_olm_channel_entries_name' with replaces"
-  ansible.builtin.set_fact:
-    gv_olm_channel_entries_name: "{{ dict([['name',op_info[gv_package_name].manifests[gv_operator_version].csv_name], ['replaces',op_info[gv_package_name].manifests[gv_operator_version].replaces_name]]) }}"
-  when:
-    - op_info[gv_package_name].manifests[gv_operator_version].replaces | length > 0
-    - gv_olm_channel_entries is defined
-    - gv_olm_channel_entries|length > 0
+    - name: "Set 'gv_olm_channel_entries_name' with replaces"
+      ansible.builtin.set_fact:
+        gv_olm_channel_entries_name: "{{ dict([['name',op_info[gv_package_name].manifests[gv_operator_version].csv_name], ['replaces',op_info[gv_package_name].manifests[gv_operator_version].replaces_name]]) }}"
+      when:
+        - op_info[gv_package_name].manifests[gv_operator_version].replaces | length > 0
+        - gv_olm_channel_entries is defined
+        - gv_olm_channel_entries|length > 0
 
-- name: "Fill olm.channel 'entries'"
-  ansible.builtin.set_fact:
-    gv_olm_channel_entries: "{{ gv_olm_channel_entries | default([]) + [ gv_olm_channel_entries_name ] }}"
+    - name: "Fill olm.channel 'entries'"
+      ansible.builtin.set_fact:
+        gv_olm_channel_entries: "{{ gv_olm_channel_entries | default([]) + [ gv_olm_channel_entries_name ] }}"
+  when: op_info[gv_package_name].mode == "replaces"
+
+- name: "Semver veneer"
+  block:
+    - name: "Set {{ gv_package_name }} single image entry for {{ gv_operator_version }} "
+      ansible.builtin.set_fact:
+        gv_semver_bundles_lines: "{{ dict([['image',gv_bundle_path/op_info[gv_package_name].manifests[gv_operator_version].csv_name]]) }}"
+
+    - name: "Fill 'gv_semver_bundles_list'"
+      ansible.builtin.set_fact:
+        gv_semver_bundles_list: "{{ gv_semver_bundles_list | default([]) + [ gv_semver_bundles_lines ] }}"
+
+
+  when: op_info[gv_package_name].mode == "semver"

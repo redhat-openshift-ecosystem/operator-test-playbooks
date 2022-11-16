@@ -4,19 +4,22 @@
     final_veneer_var: []
     output_veneer_dir: "{{ output_veneer_dir_root }}/{{ gv_package_name }}/veneers/"
 
-- name: "Detect default channel"
-  include_tasks: detect_default_channel.yml
+- name: "Basic veneer - default channel"
+  block:
+    - name: "Detect default channel"
+      include_tasks: detect_default_channel.yml
 
-- name: "Set olm.package"
-  ansible.builtin.set_fact:
-    olm_package:
-      schema: olm.package
-      name: "{{ gv_package_name }}"
-      defaultChannel: "{{ gv_default_channel }}"
+    - name: "Set olm.package"
+      ansible.builtin.set_fact:
+        olm_package:
+          schema: olm.package
+          name: "{{ gv_package_name }}"
+          defaultChannel: "{{ gv_default_channel }}"
 
-- name: "Add 'olm_package' variable to 'final_veneer_var'"
-  set_fact:
-    final_veneer_var: "{{ final_veneer_var | default([]) + [olm_package] }}"
+    - name: "Add 'olm_package' variable to 'final_veneer_var'"
+      set_fact:
+        final_veneer_var: "{{ final_veneer_var | default([]) + [olm_package] }}"
+  when: op_info[gv_package_name].mode == "replaces"
 
 - name: "Create output dir"
   file:
@@ -25,15 +28,15 @@
   with_items:
     - directory
 
+- name: "Set 'gv_bundle_path'"
+  ansible.builtin.set_fact:
+    gv_bundle_path: "{{ production_registry_namespace }}/{{ gv_package_name }}"
+
 - name: "Loop channels"
   include_tasks: olm_channel_loop_channels.yml
   loop: "{{ op_info[gv_package_name].channels.keys() }}"
   loop_control:
     loop_var: gv_channel
-
-- name: "Set 'gv_bundle_path'"
-  ansible.builtin.set_fact:
-    gv_bundle_path: "{{ production_registry_namespace }}/{{ gv_package_name }}"
 
 - name: "Loop over bundles"
   set_fact:
@@ -42,17 +45,33 @@
   loop_control:
     loop_var: gv_bundle_in_index
   when:
+    - op_info[gv_package_name].mode == "replaces"
     - gv_bundle_in_index not in op_info[gv_package_name].index_dt[gv_index]
 
-- name: "Show final veneer variable"
-  debug:
-    var: output_veneer_path
+- name: "TODO"
+  block:
+
+    - name: "Init olm.semver"
+      ansible.builtin.set_fact:
+        final_veneer_var:
+          Schema: "olm.semver"
+          GenerateMajorChannels: true
+          GenerateMinorChannels: true
+
+    # - name: "Add all channels to olm.semver"
+    #   ansible.builtin.set_fact:
+    #     final_veneer_var: "{{ olm_semver | default([]) | combine ( gv_semver_all_channels ) }}"
+    #     # final_veneer_var: "{{ final_veneer_var | default([]) | combine ({ p_range: p_indexes_by_pyxis }) }}"
+
+
+  when:  op_info[gv_package_name].mode == "semver"
 
 - name: "Convert list of yamls to a file"
   template:
     src: veneer_templating.yml.j2
     dest: "{{ output_veneer_path }}"
+  when:  op_info[gv_package_name].mode == "replaces"
 
 - name: "Show"
   debug:
-    var: output_veneer_path
+    var: final_veneer_var
