@@ -1,0 +1,24 @@
+FROM quay.io/ansible/ansible-runner:stable-2.12-latest
+
+ARG USER_UID=65532
+ARG GROUP_UID=65532
+ARG ARCH=amd64
+USER root
+RUN dnf install -y git podman buildah python3-libselinux && dnf clean all
+
+RUN rm -rf /home/runner
+RUN groupadd -g "${GROUP_UID}" runner
+RUN useradd -ms /bin/bash -u "${USER_UID}" -g runner runner
+RUN echo runner:10000:5000 >> /etc/subuid; \
+    echo runner:10000:5000 >> /etc/subgid;
+RUN chown -R runner:runner /runner
+
+COPY entrypoint.sh /usr/bin/entrypoint
+RUN chmod +x /usr/bin/entrypoint
+
+USER "${USER_UID}"
+
+RUN mkdir -p $HOME/.config/containers
+COPY storage.conf $HOME/.config/containers/storage.conf
+# ENTRYPOINT ["entrypoint"]
+# CMD ["ansible-runner", "run", "/runner"]
