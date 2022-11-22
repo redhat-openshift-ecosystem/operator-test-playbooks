@@ -38,7 +38,7 @@
       Schema: "olm.semver"
       GenerateMajorChannels: true
       GenerateMinorChannels: true
-  when:  op_info[gv_package_name].mode == "semver"
+  when: op_info[gv_package_name].mode == "semver"
 
 - name: "Loop channels"
   include_tasks: olm_channel_loop_channels.yml
@@ -60,12 +60,12 @@
   template:
     src: veneer_templating.yml.j2
     dest: "{{ output_veneer_path }}"
-  when:  op_info[gv_package_name].mode == "replaces"
+  when: op_info[gv_package_name].mode == "replaces"
 
 - name: "Genrate veneer file for semver"
   ansible.builtin.copy:
     dest: "{{ output_veneer_path }}"
-    content:  "{{ final_veneer_var | to_nice_yaml }}"
+    content: "{{ final_veneer_var | to_nice_yaml }}"
 
 - name: "Show"
   debug:

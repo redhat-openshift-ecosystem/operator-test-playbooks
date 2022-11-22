@@ -30,4 +30,3 @@
     iv_operators_failed: "{{ (iv_operators_failed | default([])) + [ iv_index_item ] }}"
   changed_when: true
   when: not (iv_index_operator_ana[iv_index_item].valid|bool and iv_list_indexes | length == iv_index_operator_ana[iv_index_item].size)
-
