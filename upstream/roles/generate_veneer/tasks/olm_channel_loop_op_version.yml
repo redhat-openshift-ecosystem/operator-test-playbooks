@@ -21,9 +21,10 @@
 
 - name: "Semver veneer"
   block:
+
     - name: "Set {{ gv_package_name }} single image entry for {{ gv_operator_version }} "
       ansible.builtin.set_fact:
-        gv_semver_bundles_lines: "{{ dict([['image',gv_bundle_path/op_info[gv_package_name].manifests[gv_operator_version].csv_name]]) }}"
+        gv_semver_bundles_lines: "{{ {'image': gv_bundle_path+'/'+op_info[gv_package_name].manifests[gv_operator_version].csv_name} }}"
 
     - name: "Fill 'gv_semver_bundles_list'"
       ansible.builtin.set_fact:

@@ -32,7 +32,7 @@
   block:
     - name: ""
       set_fact:
-        gv_semver_single_channel: "{{ dict([['bundles',gv_semver_bundles_list) }}"
+        gv_semver_single_channel: "{{ {'bundles': gv_semver_bundles_list} }}"
 
     - name: ""
       set_fact:

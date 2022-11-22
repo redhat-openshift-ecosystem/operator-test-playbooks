@@ -32,6 +32,14 @@
   ansible.builtin.set_fact:
     gv_bundle_path: "{{ production_registry_namespace }}/{{ gv_package_name }}"
 
+- name: "Init olm.semver"
+  ansible.builtin.set_fact:
+    final_veneer_var:
+      Schema: "olm.semver"
+      GenerateMajorChannels: true
+      GenerateMinorChannels: true
+  when:  op_info[gv_package_name].mode == "semver"
+
 - name: "Loop channels"
   include_tasks: olm_channel_loop_channels.yml
   loop: "{{ op_info[gv_package_name].channels.keys() }}"
@@ -48,29 +56,16 @@
     - op_info[gv_package_name].mode == "replaces"
     - gv_bundle_in_index not in op_info[gv_package_name].index_dt[gv_index]
 
-- name: "TODO"
-  block:
-
-    - name: "Init olm.semver"
-      ansible.builtin.set_fact:
-        final_veneer_var:
-          Schema: "olm.semver"
-          GenerateMajorChannels: true
-          GenerateMinorChannels: true
-
-    # - name: "Add all channels to olm.semver"
-    #   ansible.builtin.set_fact:
-    #     final_veneer_var: "{{ olm_semver | default([]) | combine ( gv_semver_all_channels ) }}"
-    #     # final_veneer_var: "{{ final_veneer_var | default([]) | combine ({ p_range: p_indexes_by_pyxis }) }}"
-
-
-  when:  op_info[gv_package_name].mode == "semver"
-
-- name: "Convert list of yamls to a file"
+- name: "Convert list of yamls to a file for replaces"
   template:
     src: veneer_templating.yml.j2
     dest: "{{ output_veneer_path }}"
   when:  op_info[gv_package_name].mode == "replaces"
+
+- name: "Genrate veneer file for semver"
+  ansible.builtin.copy:
+    dest: "{{ output_veneer_path }}"
+    content:  "{{ final_veneer_var | to_nice_yaml }}"
 
 - name: "Show"
   debug:
