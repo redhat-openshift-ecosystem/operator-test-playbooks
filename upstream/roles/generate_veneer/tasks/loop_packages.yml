@@ -66,6 +66,7 @@
   ansible.builtin.copy:
     dest: "{{ output_veneer_path }}"
     content: "{{ final_veneer_var | to_nice_yaml }}"
+  when: op_info[gv_package_name].mode == "semver"
 
 - name: "Show"
   debug:
