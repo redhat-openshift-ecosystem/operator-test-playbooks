@@ -10,7 +10,7 @@
   set_fact:
     mfbc_actual_fbc_arch_image: "{{ mfbc_multi_arch_output_image }}-{{ mfbc_architecture }}"
 
-- name: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }}/ ."
+- name: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }} ."
   shell: "{{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ mfbc_actual_fbc_arch_image }} --build-arg ARCH={{ mfbc_architecture }} ."
   args:
     chdir: "{{ mfbc_extracted_fbc_location }}"

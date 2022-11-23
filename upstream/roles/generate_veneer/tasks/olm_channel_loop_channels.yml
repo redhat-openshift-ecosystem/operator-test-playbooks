@@ -9,19 +9,36 @@
     - gv_operator_version in op_info[gv_package_name].index[gv_index]
     - gv_operator_version not in op_info[gv_package_name].index_dt[gv_index]
 
+- name: "Basic veneer - olm.channel"
+  block:
+    - name: "Set olm.channel"
+      ansible.builtin.set_fact:
+        olm_channel:
+          schema: olm.channel
+          package: "{{ gv_package_name }}"
+          name: "{{ gv_channel }}"
+          entries: "{{ gv_olm_channel_entries }}"
 
-- name: "Set olm.channel"
-  ansible.builtin.set_fact:
-    olm_channel:
-      schema: olm.channel
-      package: "{{ gv_package_name }}"
-      name: "{{ gv_channel }}"
-      entries: "{{ gv_olm_channel_entries }}"
+    - name: "Add 'olm_channel' variable to 'final_veneer_var'"
+      set_fact:
+        final_veneer_var: "{{ final_veneer_var | default([]) + [olm_channel] }}"
 
-- name: "Add 'olm_channel' variable to 'final_veneer_var'"
-  set_fact:
-    final_veneer_var: "{{ final_veneer_var | default([]) + [olm_channel] }}"
+    - name: "Reset"
+      ansible.builtin.set_fact:
+        gv_olm_channel_entries: []
+  when: op_info[gv_package_name].mode == "replaces"
 
-- name: "Reset"
-  ansible.builtin.set_fact:
-    gv_olm_channel_entries: []
+- name: "Semver veneer - channels"
+  block:
+    - name: ""
+      set_fact:
+        gv_semver_single_channel: "{{ {'bundles': gv_semver_bundles_list} }}"
+
+    - name: ""
+      set_fact:
+        final_veneer_var: "{{ final_veneer_var | default([]) | combine ({ gv_channel: gv_semver_single_channel }) }}"
+
+    - name: "Reset"
+      ansible.builtin.set_fact:
+        gv_semver_bundles_list: []
+  when: op_info[gv_package_name].mode == "semver"

@@ -1,15 +1,6 @@
 ---
-# - name: "Initial final_veneer_var reset"
-#   ansible.builtin.set_fact:
-#     final_veneer_var: []
-
-- name: "#2 SEMVER veneer"
-  block:
-
-    - name: "Loop packages"
-      include_tasks: loop_packages.yml
-      loop: "{{ op_info.keys() }}"
-      loop_control:
-        loop_var: gv_package_name
-
-  when: op_info[gv_package_name].mode == "replaces"
+- name: "#2 Loop packages"
+  include_tasks: loop_packages.yml
+  loop: "{{ op_info.keys() }}"
+  loop_control:
+    loop_var: gv_package_name
