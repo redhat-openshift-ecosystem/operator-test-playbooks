@@ -1,210 +1,213 @@
 ---
-- name: "Resetting 'operator' values"
-  set_fact:
-    oi_operator_format: ""
-    annotations_vars: ""
-    op_manifest_pkg_vars: ""
-    io_versions_manifests: []
-    io_versions_replaces: {}
-    io_channels: []
-
-- name: "Check operator format consistency"
-  include_role:
-    name: check_operator_format_consistency
-  vars:
-    cofc_operator_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
-
-- name: "Search for all versions for operator '{{ operator_base_dir }}/{{ oi_operator_name }}'"
-  find:
-    paths: "{{ operator_base_dir }}/{{ oi_operator_name }}"
-    recurse: false
-    file_type: directory
-  register: oi_versions_find
-
-- name: "Setting list of versions from directory structre"
-  set_fact:
-    oi_versions_in_dir: "{{ oi_versions_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
-
-- name: "Print versions found for '{{ oi_operator_name }}'"
-  debug:
-    var: oi_versions_in_dir
-
-- name: "Continue when some versions were found"
+- name: "Opertator info for operator '{{ oi_operator_name }}'"
   block:
-    - name: "Search for annotations.yml"
-      find:
-        paths: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_versions_in_dir[0] }}/metadata"
-        patterns: "annotations.yaml"
-      register: annotations_presence
+  - name: "Resetting 'operator' values"
+    set_fact:
+      oi_operator_format: ""
+      annotations_vars: ""
+      op_manifest_pkg_vars: ""
+      io_versions_manifests: []
+      io_versions_replaces: {}
+      io_channels: []
 
-    - name: "Set operator_format to package manifest or bundle"
-      set_fact:
-        oi_operator_format: "{{ 'bundle' if annotations_presence.files else 'manifest' }}"
+  - name: "Check operator format consistency"
+    include_role:
+      name: check_operator_format_consistency
+    vars:
+      cofc_operator_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
 
-    - name: "Export Package variables"
-      include_role:
-        name: export_manifest_package_info
-      vars:
-        op_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
-      when: oi_operator_format == "manifest"
+  - name: "Search for all versions for operator '{{ operator_base_dir }}/{{ oi_operator_name }}'"
+    find:
+      paths: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+      recurse: false
+      file_type: directory
+    register: oi_versions_find
 
-    - name: "Export ci.yaml info"
-      include_role:
-        name: export_ci_yaml
-      vars:
-        ecy_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+  - name: "Setting list of versions from directory structre"
+    set_fact:
+      oi_versions_in_dir: "{{ oi_versions_find.files | map(attribute='path' ) | map('basename') | list | community.general.version_sort }}"
 
-    - name: "Index mode"
-      set_fact:
-        oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
-        oi_invalid_labels: []
-        # versions_in_prod_registry_full: []
+  - name: "Print versions found for '{{ oi_operator_name }}'"
+    debug:
+      var: oi_versions_in_dir
 
-    # - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
-    #   include_tasks: op_info_prod_versions.yml
-    #   vars:
-    #     oipv_url: "/v2/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}/tags/list"
-    #   when:
-    #     - production_registry_namespace is defined
-    #     - production_registry_namespace|length > 0
+  - name: "Continue when some versions were found"
+    block:
+      - name: "Search for annotations.yml"
+        find:
+          paths: "{{ operator_base_dir }}/{{ oi_operator_name }}/{{ oi_versions_in_dir[0] }}/metadata"
+          patterns: "annotations.yaml"
+        register: annotations_presence
 
-    # - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
-    #   set_fact:
-    #     versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list | community.general.version_sort }}"
-    #   when:
-    #     - versions_in_prod_registry_full.0 is defined
+      - name: "Set operator_format to package manifest or bundle"
+        set_fact:
+          oi_operator_format: "{{ 'bundle' if annotations_presence.files else 'manifest' }}"
 
-    - name: "Reset before 'query_image_tags'"
-      set_fact:
-        versions_in_prod_registry_full_rc: 0
-        versions_in_prod_registry_full_tags: []
+      - name: "Export Package variables"
+        include_role:
+          name: export_manifest_package_info
+        vars:
+          op_dir: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+        when: oi_operator_format == "manifest"
 
-    - name: "Query tags from prod"
-      block:
-        - name: "Query tags from '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}'"
-          include_role:
-            name: query_image_tags
-          vars:
-            qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}"
+      - name: "Export ci.yaml info"
+        include_role:
+          name: export_ci_yaml
+        vars:
+          ecy_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
 
-        - name: "Set results from 'query_image_tags'"
-          set_fact:
-            versions_in_prod_registry_full_rc: "{{ qit_rc }}"
-            versions_in_prod_registry_full_tags: "{{ qit_result }}"
-      when:
-        - production_registry_namespace is defined
-        - production_registry_namespace|length > 0
+      - name: "Index mode"
+        set_fact:
+          oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
+          oi_invalid_labels: []
+          # versions_in_prod_registry_full: []
 
-    - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
-      set_fact:
-        versions_in_prod_registry: "{{ versions_in_prod_registry_full_tags | reject('search', ignore_image_string) | list }}"
-      when:
-        - versions_in_prod_registry_full_tags.0 is defined
+      # - name: "Get list of versions_in_prod from bundle production registry ('{{ production_registry_namespace }}')"
+      #   include_tasks: op_info_prod_versions.yml
+      #   vars:
+      #     oipv_url: "/v2/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}/tags/list"
+      #   when:
+      #     - production_registry_namespace is defined
+      #     - production_registry_namespace|length > 0
 
-    - name: "Print 'versions_in_prod_registrys [0]'"
-      debug:
-        var: versions_in_prod_registry
-    - name: "Setting all versions to 'versions_in_prod_registry' variable"
-      set_fact:
-        versions_in_prod_registry: "{{ (versions_in_prod_registry | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
-      when: versions_in_prod_registry.0 is defined
+      # - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
+      #   set_fact:
+      #     versions_in_prod_registry: "{{ versions_in_prod_registry_full | reject('search', ignore_image_string) | list | community.general.version_sort }}"
+      #   when:
+      #     - versions_in_prod_registry_full.0 is defined
 
-    - name: "Print 'versions_in_prod_registrys'"
-      debug:
-        var: versions_in_prod_registry
+      - name: "Reset before 'query_image_tags'"
+        set_fact:
+          versions_in_prod_registry_full_rc: 0
+          versions_in_prod_registry_full_tags: []
 
-    - name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
-      file:
-        path: "{{ oi_auto_labels_output_file }}"
-        state: absent
+      - name: "Query tags from prod"
+        block:
+          - name: "Query tags from '{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}'"
+            include_role:
+              name: query_image_tags
+            vars:
+              qit_image: "{{ production_registry_namespace.split('/')[0] }}/{{ production_registry_namespace.split('/')[1] }}/{{ oi_operator_name }}"
 
-    - name: "Loop over all versions"
-      include_tasks: op_info_ver.yml
-      loop: "{{ oi_versions_in_dir }}"
-      loop_control:
-        loop_var: oi_operator_ver
+          - name: "Set results from 'query_image_tags'"
+            set_fact:
+              versions_in_prod_registry_full_rc: "{{ qit_rc }}"
+              versions_in_prod_registry_full_tags: "{{ qit_result }}"
+        when:
+          - production_registry_namespace is defined
+          - production_registry_namespace|length > 0
 
-    - name: "Print auto labels"
-      debug:
-        var: oi_auto_labels
-      when:
-        - not automatic_cluster_version_label|bool
-        - oi_auto_labels.0 is defined
+      - name: "Setting all versions to 'versions_in_prod_registry' variable without '{{ ignore_image_string }}' to avoid adding to an index"
+        set_fact:
+          versions_in_prod_registry: "{{ versions_in_prod_registry_full_tags | reject('search', ignore_image_string) | list }}"
+        when:
+          - versions_in_prod_registry_full_tags.0 is defined
 
-    - name: "Check if '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' exits"
-      stat:
-        path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
-      register: oi_ci_yaml_exists
-    - name: "Copy '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' to '{{ operator_bundle_src_dir }}/{{ oi_operator_name }}'"
-      copy:
-        src: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
-        dest: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}"
-        remote_src: true
-      when: oi_ci_yaml_exists.stat.exists|bool
+      - name: "Print 'versions_in_prod_registrys [0]'"
+        debug:
+          var: versions_in_prod_registry
+      - name: "Setting all versions to 'versions_in_prod_registry' variable"
+        set_fact:
+          versions_in_prod_registry: "{{ (versions_in_prod_registry | join(',') | regex_replace('^v') | regex_replace(',v',',')).split(',') }}"
+        when: versions_in_prod_registry.0 is defined
 
-    - name: "Handle package file for packagemanifest format"
-      block:
-        - name: "Set operator_format to package manifest or bundle"
-          set_fact:
-            io_pkg_channels: []
+      - name: "Print 'versions_in_prod_registrys'"
+        debug:
+          var: versions_in_prod_registry
 
-        - name: "Loop over all versions"
-          include_tasks: op_info_pkg_channels.yml
-          loop: "{{ op_manifest_pkg_vars.channels }}"
-          loop_control:
-            loop_var: oi_pkg_channel
+      - name: "Ensure that '{{ oi_auto_labels_output_file }}' is removed"
+        file:
+          path: "{{ oi_auto_labels_output_file }}"
+          state: absent
 
-        - name: "Set operator_format to package manifest or bundle"
-          set_fact:
-            io_channels: "{{ io_pkg_channels }}"
-      when: oi_operator_format == "manifest"
+      - name: "Loop over all versions"
+        include_tasks: op_info_ver.yml
+        loop: "{{ oi_versions_in_dir }}"
+        loop_control:
+          loop_var: oi_operator_ver
 
-    - name: "Print 'io_versions_manifests'"
-      debug:
-        var: io_versions_manifests
+      - name: "Print auto labels"
+        debug:
+          var: oi_auto_labels
+        when:
+          - not automatic_cluster_version_label|bool
+          - oi_auto_labels.0 is defined
 
-    - name: "Reset indexes"
-      set_fact:
-        io_index: []
-        io_index_dt: []
-        io_versions_in_dir: "{{ oi_versions_in_dir }}"
+      - name: "Check if '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' exits"
+        stat:
+          path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+        register: oi_ci_yaml_exists
+      - name: "Copy '{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml' to '{{ operator_bundle_src_dir }}/{{ oi_operator_name }}'"
+        copy:
+          src: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
+          dest: "{{ operator_bundle_src_dir }}/{{ oi_operator_name }}"
+          remote_src: true
+        when: oi_ci_yaml_exists.stat.exists|bool
 
-    - name: "Reset indexes"
-      set_fact:
-        io_versions_in_dir: "[ '{{ operator_version }}' ]"
-      when:
-        - operator_version is defined
-        - operator_version|length > 0
-        - operator_channel_force is defined
-        - operator_channel_force|length > 0
+      - name: "Handle package file for packagemanifest format"
+        block:
+          - name: "Set operator_format to package manifest or bundle"
+            set_fact:
+              io_pkg_channels: []
 
-    - name: "Print 'oi_supported_cluster_versions'"
-      debug:
-        var: oi_supported_cluster_versions
+          - name: "Loop over all versions"
+            include_tasks: op_info_pkg_channels.yml
+            loop: "{{ op_manifest_pkg_vars.channels }}"
+            loop_control:
+              loop_var: oi_pkg_channel
 
-    - name: "Build operator index"
-      block:
-        - name: "Loop over all supported index versions"
-          include_tasks: op_info_index.yml
-          loop: "{{ oi_supported_cluster_versions }}"
-          loop_control:
-            loop_var: oii_index_version
-      when: oi_supported_cluster_versions.0 is defined
+          - name: "Set operator_format to package manifest or bundle"
+            set_fact:
+              io_channels: "{{ io_pkg_channels }}"
+        when: oi_operator_format == "manifest"
 
-    - name: "Setting 'io_index' and 'io_index_dt'"
-      set_fact:
-        io_index: "{{ io_index | default({}) | combine({ supported_cluster_versions : io_versions_in_dir }) }}"
-        io_index_dt: "{{ io_index_dt | default({}) | combine({ supported_cluster_versions : io_index_dt }) }}"
-      when: oi_supported_cluster_versions.0 is undefined
+      - name: "Print 'io_versions_manifests'"
+        debug:
+          var: io_versions_manifests
 
-    - name: "Print 'io_index'"
-      debug:
-        var: io_index
-      when: oi_supported_cluster_versions.0 is undefined
+      - name: "Reset indexes"
+        set_fact:
+          io_index: []
+          io_index_dt: []
+          io_versions_in_dir: "{{ oi_versions_in_dir }}"
 
-    - name: "Adding current operator to the 'op_info'"
-      set_fact:
-        # op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }]) }}"
-        op_info: "{{ op_info | default({}) | combine( { oi_operator_name : {'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }}) }}"
+      - name: "Reset indexes"
+        set_fact:
+          io_versions_in_dir: "[ '{{ operator_version }}' ]"
+        when:
+          - operator_version is defined
+          - operator_version|length > 0
+          - operator_channel_force is defined
+          - operator_channel_force|length > 0
 
-  when: oi_versions_in_dir.0 is defined
+      - name: "Print 'oi_supported_cluster_versions'"
+        debug:
+          var: oi_supported_cluster_versions
+
+      - name: "Build operator index"
+        block:
+          - name: "Loop over all supported index versions"
+            include_tasks: op_info_index.yml
+            loop: "{{ oi_supported_cluster_versions }}"
+            loop_control:
+              loop_var: oii_index_version
+        when: oi_supported_cluster_versions.0 is defined
+
+      - name: "Setting 'io_index' and 'io_index_dt'"
+        set_fact:
+          io_index: "{{ io_index | default({}) | combine({ supported_cluster_versions : io_versions_in_dir }) }}"
+          io_index_dt: "{{ io_index_dt | default({}) | combine({ supported_cluster_versions : io_index_dt }) }}"
+        when: oi_supported_cluster_versions.0 is undefined
+
+      - name: "Print 'io_index'"
+        debug:
+          var: io_index
+        when: oi_supported_cluster_versions.0 is undefined
+
+      - name: "Adding current operator to the 'op_info'"
+        set_fact:
+          # op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }]) }}"
+          op_info: "{{ op_info | default({}) | combine( { oi_operator_name : {'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }}) }}"
+
+    when: oi_versions_in_dir.0 is defined
+  when: oi_operator_name | length > 0
