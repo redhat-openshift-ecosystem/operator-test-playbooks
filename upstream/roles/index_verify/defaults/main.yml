@@ -1,5 +1,6 @@
 container_tool: "docker"
 container_run_mode: "container"
+kubeconfig_path: "{{ ansible_env.HOME | default('/home/runner')}}/.kube/config"
 iv_container_name: "index"
 iv_container_port: "50051"
 iv_output_dir: "/tmp"
