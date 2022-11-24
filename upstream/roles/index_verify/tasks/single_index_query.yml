@@ -10,14 +10,34 @@
   shell: "{{ container_tool }} rm -f {{ iv_container_name }}"
   failed_when: false
 
-- name: "Start index image '{{ iv_index_item }}' container '{{ iv_index_item }}'"
+- name: "Start index image '{{ iv_index_item }}' container '{{ iv_container_name }}' via container"
   shell: "{{ container_tool }} run -d -p {{ iv_container_port }}:50051 --name {{ iv_container_name }} {{ iv_index_item }}"
+  when: container_run_mode == "container"
+
+- name: "Start index image '{{ iv_index_item }}' container '{{ iv_index_item }}' via pod"
+  block:
+    - name: "Generate pod template file to '{{ iv_pod_file }}'"
+      template:
+        src: "index_run.yaml.js2"
+        dest: "{{ iv_pod_file }}"
+
+    - name: "Start index image '{{ iv_index_item }}' container '{{ iv_container_name }}'"
+      shell: "{{ oc_bin_path }} apply -f {{ iv_pod_file }}"
+
+    - name: "Wait for the '{{ iv_container_name }}' pod to start up"
+      shell: "{{ oc_bin_path }} get pods | grep {{ iv_container_name }} | grep Running"
+      register: iv_pod_started
+      retries: 60
+      delay: 10
+      until: iv_pod_started.rc == 0
+      ignore_errors: true
+  when: container_run_mode == "pod"
 
 - name: "Getting list of operators"
   shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
   register: iv_list_operators
 
-- name: "Set 'ia_index_tags_all'"
+- name: "Set 'iv_index_operators' and 'iv_index_operators_all'"
   set_fact:
     iv_index_operators: "{{ iv_list_operators.stdout.split('\n') | unique }}"
     iv_index_operators_all: "{{ iv_list_operators.stdout.split('\n') | unique | union(iv_index_operators_all | default([])) }}"
@@ -26,7 +46,7 @@
   shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3-"
   register: iv_list_versions
 
-- name: "Set 'ia_index_tags_all'"
+- name: "Set 'iv_index_versions'"
   set_fact:
     iv_index_versions: "{{ iv_list_versions.stdout.split('\n') | unique }}"
 
@@ -38,10 +58,14 @@
     loop_var: op_ver_item
   when: (iv_index_operators_all | length > 0)
 
-
 - name: "Stop and remove container '{{ iv_container_name }}'"
   shell: "{{ container_tool }} rm -f {{ iv_container_name }}"
   failed_when: false
+  when: container_run_mode == "container"
+
+- name: "Stop and remove pod '{{ iv_container_name }}'"
+  shell: "{{ oc_bin_path }} delete -f {{ iv_pod_file }}"
+  when: container_run_mode == "pod"
 
 - name: "Delete image '{{ iv_index_item }}'"
   shell: "{{ container_tool }} rmi -f {{ iv_index_item }}"
