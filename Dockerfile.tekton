@@ -4,7 +4,11 @@ ARG USER_UID=65532
 ARG GROUP_UID=65532
 ARG ARCH=amd64
 USER root
-RUN dnf install -y git podman buildah python3-libselinux && dnf clean all
+RUN dnf install -y git openssl podman make python3-libselinux && dnf clean all
+RUN pip3 install podman-compose
+RUN ansible-pull -U https://github.com/redhat-openshift-ecosystem/operator-pipelines -C upstream-community \
+    -i localhost, -e ansible_connection=local ansible/playbooks/upstream-community.yaml --tags prerequisites -e op_bin_dir=/usr/local/bin && \
+    rm -rf $HOME/.ansible/pull/
 
 RUN rm -rf /home/runner
 RUN groupadd -g "${GROUP_UID}" runner

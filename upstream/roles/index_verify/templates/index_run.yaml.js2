@@ -1,0 +1,26 @@
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: {{ iv_container_name }}
+  labels:
+    app: index
+spec:
+  containers:
+  - name: index
+    image: {{ iv_index_item }}
+    ports:
+    - containerPort: 50051
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ iv_container_name }}-srv
+spec:
+  type: NodePort
+  ports:
+  - name: idx
+    nodePort: 31000
+    port: 50051
+  selector:
+    app: index

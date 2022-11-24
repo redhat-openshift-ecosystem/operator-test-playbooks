@@ -1,7 +1,10 @@
 container_tool: "docker"
-iv_container_name: "iv_index"
+container_run_mode: "container"
+iv_container_name: "index"
 iv_container_port: "50051"
+iv_output_dir: "/tmp"
 iv_output_file: "/tmp/iv_output.md"
+iv_pod_file: "{{ iv_output_dir }}/pod.yaml"
 iv_cleanup: true
 default_retries: 5
 default_delay: 10
