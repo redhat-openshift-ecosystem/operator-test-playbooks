@@ -39,11 +39,11 @@
   when: container_run_mode == "pod"
 
 - debug:
-    msg: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
+    msg: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 {{ iv_container_host }}:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
 # - pause:
 
 - name: "Getting list of operators"
-  shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
+  shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 {{ iv_container_host }}:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
   register: iv_list_operators
 
 - name: "Set 'iv_index_operators' and 'iv_index_operators_all'"
@@ -52,7 +52,7 @@
     iv_index_operators_all: "{{ iv_list_operators.stdout.split('\n') | unique | union(iv_index_operators_all | default([])) }}"
 
 - name: "Getting list of versions"
-  shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3-"
+  shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 {{ iv_container_host }}:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3-"
   register: iv_list_versions
 
 - name: "Set 'iv_index_versions'"
@@ -65,7 +65,7 @@
 - name: "Fail if empty list of operators"
   fail:
     msg: "No operators found in index '{{ iv_index_item }}'"
-  when: iv_index_versions | length == 0
+  when: iv_index_versions | length == 0 or iv_index_versions.0 == ""
 
 - name: "Parsing operator versions"
   set_fact:
