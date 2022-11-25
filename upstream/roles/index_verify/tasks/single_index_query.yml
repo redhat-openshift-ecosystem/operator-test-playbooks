@@ -38,6 +38,10 @@
 
   when: container_run_mode == "pod"
 
+- debug:
+    msg: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
+# - pause:
+
 - name: "Getting list of operators"
   shell: "{{ testing_bin_path }}/grpcurl -plaintext -connect-timeout 120 localhost:{{ iv_container_port }} api.Registry.ListBundles | {{ jq_bin_path }} -r '.bundlePath' | cut -sd / -f 3- | cut -d@ -f 1 | cut -d: -f 1"
   register: iv_list_operators
