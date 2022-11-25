@@ -48,7 +48,7 @@
 
 - name: "Set 'iv_index_operators' and 'iv_index_operators_all'"
   set_fact:
-    iv_index_operators: "{{ iv_list_operators.stdout.split('\n') | unique }}"
+    iv_index_operators: "{{ iv_list_operators.stdout.split('\n') | unique | default([]) }}"
     iv_index_operators_all: "{{ iv_list_operators.stdout.split('\n') | unique | union(iv_index_operators_all | default([])) }}"
 
 - name: "Getting list of versions"
@@ -58,6 +58,14 @@
 - name: "Set 'iv_index_versions'"
   set_fact:
     iv_index_versions: "{{ iv_list_versions.stdout.split('\n') | unique }}"
+
+- debug:
+    var: iv_index_versions
+
+- name: "Fail if empty list of operators"
+  fail:
+    msg: "No operators found in index '{{ iv_index_item }}'"
+  when: iv_index_versions | length == 0
 
 - name: "Parsing operator versions"
   set_fact:
