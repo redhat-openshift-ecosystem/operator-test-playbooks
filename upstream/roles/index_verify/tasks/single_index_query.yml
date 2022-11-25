@@ -59,9 +59,6 @@
   set_fact:
     iv_index_versions: "{{ iv_list_versions.stdout.split('\n') | unique }}"
 
-- debug:
-    var: iv_index_versions
-
 - name: "Fail if empty list of operators"
   fail:
     msg: "No operators found in index '{{ iv_index_item }}'"
