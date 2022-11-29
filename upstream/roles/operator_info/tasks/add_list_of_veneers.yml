@@ -1,28 +1,46 @@
 ---
-- name: "Reset veneer lst"
+- name: "Reset veneer list"
   set_fact:
     oi_veneer_list: []
 
+- name: "Check for a forbidden {{ oi_single_veneer_file_name_forbidden }} file"
+  stat:
+    path: "{{ oi_operator_path }}/{{ oi_single_veneer_file_name_forbidden }}"
+  register: oi_single_veneer_file_forbidden
+  when: oi_single_veneer_file_name_forbidden is defined and oi_single_veneer_file_name_forbidden|length != 0
+
+- name: "Fail when {{ oi_single_veneer_file_name_forbidden }} is present instead of {{ oi_single_veneer_file_name }}"
+  fail:
+    msg: "File name '{{ oi_single_veneer_file_name_forbidden }}' is not allowed use '{{ oi_single_veneer_file_name }}' instead"
+  when: oi_single_veneer_file_forbidden.stat.exists
+
 - name: "Check for a single veneer.yaml file"
   stat:
-    path: "{{ alov_operator_path }}/{{ alov_single_veneer_file_name }}"
-  register: alov_single_veneer_file
+    path: "{{ oi_operator_path }}/{{ oi_single_veneer_file_name }}"
+  register: oi_single_veneer_file
 
 - name: "Set single value list of veneers ude to a top level main veneer file found"
   set_fact:
-    oi_veneer_list: "{{ [alov_single_veneer_file_name] }}"
-  when: alov_single_veneer_file.stat.exists
+    oi_veneer_list: "{{ [oi_single_veneer_file_name] }}"
+  when: oi_single_veneer_file.stat.exists
 
 - name: "Check for multiple veneers"
   block:
     - name: "Check for veneer folder"
       stat:
-        path: "{{ alov_operator_path }}/{{ alov_veneers_dir_name }}"
-      register: alov_veneers_dir
+        path: "{{ oi_operator_path }}/{{ oi_veneers_dir_name }}"
+      register: oi_veneers_dir
 
-  when: not alov_single_veneer_file.stat.exists
+    - name: "Get veneer files"
+      ansible.builtin.find:
+        paths: "{{ oi_operator_path }}/{{ oi_veneers_dir_name }}"
+        recurse: false
+      register: oi_veneer_files
+      when: oi_veneers_dir.stat.exists and oi_veneers_dir.stat.isdir
 
+    - name: "Set veneer list from multiple veneer files"
+      set_fact:
+        oi_veneer_list: "{{ oi_veneer_files.files | map(attribute='path' ) | map('basename') | list }}"
+      when: oi_veneers_dir.stat.exists and oi_veneers_dir.stat.isdir
 
-
-#   when: register_name.stat.exists and register_name.stat.isdir
-#  oi_veneer_list: "{{ doic_final_list | default([]) + [doic_versions_from_bundle] }}"
+  when: not oi_single_veneer_file.stat.exists

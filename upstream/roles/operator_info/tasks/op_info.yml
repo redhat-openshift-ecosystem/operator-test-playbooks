@@ -59,7 +59,7 @@
       - name: "Prepare list of veneers"
         include_tasks: add_list_of_veneers.yml
         vars:
-          alov_operator_path: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+          oi_operator_path: "{{ operator_base_dir }}/{{ oi_operator_name }}"
 
       - name: "Index mode"
         set_fact:
@@ -212,7 +212,7 @@
       - name: "Adding current operator to the 'op_info'"
         set_fact:
           # op_info: "{{ op_info | default([]) | union( [{'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }]) }}"
-          op_info: "{{ op_info | default({}) | combine( { oi_operator_name : {'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }}) }}"
+          op_info: "{{ op_info | default({}) | combine( { oi_operator_name : {'name': oi_operator_name, 'format': oi_operator_format, 'mode': oi_operator_updateGraph, 'veneers': oi_veneer_list , 'versions': oi_versions_in_dir, 'manifests': io_versions_manifests , 'channels': io_channels, 'index': io_index, 'index_dt': io_index_dt }}) }}"
 
     when: oi_versions_in_dir.0 is defined
   when: oi_operator_name | length > 0

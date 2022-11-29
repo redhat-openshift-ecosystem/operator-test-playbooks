@@ -29,5 +29,6 @@ oi_supported_cluster_versions:
   - "4.10"
   - "4.11"
   - "4.12"
-alov_single_veneer_file_name: "veneer.yaml"
-alov_veneers_dir_name: "veneers"
+oi_single_veneer_file_name: "veneer.yaml"
+oi_single_veneer_file_name_forbidden: "veneer.yml"
+oi_veneers_dir_name: "veneers"
