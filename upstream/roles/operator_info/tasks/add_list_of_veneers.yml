@@ -1,0 +1,28 @@
+---
+- name: "Reset veneer lst"
+  set_fact:
+    oi_veneer_list: []
+
+- name: "Check for a single veneer.yaml file"
+  stat:
+    path: "{{ alov_operator_path }}/{{ alov_single_veneer_file_name }}"
+  register: alov_single_veneer_file
+
+- name: "Set single value list of veneers ude to a top level main veneer file found"
+  set_fact:
+    oi_veneer_list: "{{ [alov_single_veneer_file_name] }}"
+  when: alov_single_veneer_file.stat.exists
+
+- name: "Check for multiple veneers"
+  block:
+    - name: "Check for veneer folder"
+      stat:
+        path: "{{ alov_operator_path }}/{{ alov_veneers_dir_name }}"
+      register: alov_veneers_dir
+
+  when: not alov_single_veneer_file.stat.exists
+
+
+
+#   when: register_name.stat.exists and register_name.stat.isdir
+#  oi_veneer_list: "{{ doic_final_list | default([]) + [doic_versions_from_bundle] }}"

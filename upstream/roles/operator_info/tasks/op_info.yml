@@ -56,6 +56,11 @@
         vars:
           ecy_path: "{{ operator_base_dir }}/{{ oi_operator_name }}/ci.yaml"
 
+      - name: "Prepare list of veneers"
+        include_tasks: add_list_of_veneers.yml
+        vars:
+          alov_operator_path: "{{ operator_base_dir }}/{{ oi_operator_name }}"
+
       - name: "Index mode"
         set_fact:
           oi_operator_updateGraph: "{{ ci_yaml_vars.updateGraph | replace('-mode','') }}"
