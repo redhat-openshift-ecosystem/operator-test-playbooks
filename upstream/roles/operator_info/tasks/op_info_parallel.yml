@@ -43,6 +43,11 @@
   debug:
     var: op_info_failed
 
+- name: "Faile if op_info_failed is nonepmpty"
+  ansible.builtin.fail:
+    msg: "Some operators failed {{ op_info_failed | join(',') }}"
+  when: op_info_failed.0 is defined
+
 - name: "Ensure that the '{{ operator_info_output_file }}' is empty"
   file:
     state: absent
