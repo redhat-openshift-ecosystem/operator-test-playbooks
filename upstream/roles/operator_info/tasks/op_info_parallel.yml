@@ -1,0 +1,81 @@
+---
+- name: "Run single operator"
+  command:
+    cmd: "ansible-playbook -i localhost, upstream/local.yml --tags operator_info -e ansible_connection=local -e work_dir={{ work_dir }} -e run_upstream={{ run_upstream }} -e run_prepare_catalog_repo_upstream=false -e operator_base_dir={{ operator_base_dir }} -e operators={{ item  }} -e cluster_type={{ cluster_type }} -e strict_cluster_version_labels={{ strict_cluster_version_labels }} -e stream_kind={{ stream_kind }} -e production_registry_namespace={{ production_registry_namespace }} -e operator_bundle_src_dir={{ work_dir }}/op_info/{{ item }}/operators -e operator_info_output_file={{ work_dir }}/op_info/{{ item }}/operators/op_info.yaml -e run_remove_operator_bundle_src_dir=false"
+    chdir: "{{ lookup('env', 'PWD') }}"
+  async: 100000
+  poll: 0
+  register: result
+  with_items: "{{ operators.split(',') }}"
+
+- name: "Check sync status"
+  async_status:
+    jid: "{{ async_result_item.ansible_job_id }}"
+  loop: "{{ result.results }}"
+  loop_control:
+    loop_var: "async_result_item"
+  register: async_poll_results
+  until: async_poll_results.finished
+  retries: 10000
+  ignore_errors: true
+
+- name: "Getting all operators"
+  ansible.builtin.set_fact:
+    op_info_ok: "{{ op_info_ok | default([]) +  [ op_item.async_result_item.item ] }}"
+  loop: "{{ async_poll_results.results }}"
+  loop_control:
+    loop_var: "op_item"
+  when: op_item.rc == 0
+
+- name: "Getting all operators failed"
+  ansible.builtin.set_fact:
+    op_info_failed: "{{ op_info_failed | default([]) +  [ op_item.async_result_item.item ] }}"
+  loop: "{{ async_poll_results.results }}"
+  loop_control:
+    loop_var: "op_item"
+  when: op_item.rc > 0
+
+- name: "Print 'op_info_ok'"
+  debug:
+    var: op_info_ok
+
+- name: "Print 'op_info_failed'"
+  debug:
+    var: op_info_failed
+
+- name: "Ensure that the '{{ operator_info_output_file }}' is empty"
+  file:
+    state: absent
+    path: "{{ operator_info_output_file }}"
+
+- name: "Ensure that the '{{ work_dir }}/operators/' is empty"
+  file:
+    state: absent
+    path: "{{ work_dir }}/operators/"
+
+- name: "Adding single op_info to final file '{{ operator_info_output_file }}'"
+  ansible.builtin.shell: "cat {{ work_dir }}/op_info/{{ op_item }}/operators/op_info.yaml >> {{ operator_info_output_file }}"
+  loop: "{{ op_info_ok }}"
+  loop_control:
+    loop_var: "op_item"
+  when: op_info_ok is defined
+
+- name: "Adding single op_info to final file '{{ operator_info_output_file }}'"
+  ansible.builtin.copy:
+    src: "{{ work_dir }}/op_info/{{ op_item }}/operators/{{ op_item }}"
+    dest: "{{ work_dir }}/operators/"
+    remote_src: true
+  loop: "{{ op_info_ok }}"
+  loop_control:
+    loop_var: "op_item"
+  when: op_info_ok is defined
+
+- name: "Getting content from '{{ operator_info_output_file }}'"
+  shell: "cat {{ operator_info_output_file }}"
+  register: operator_info_data
+  ignore_errors: true
+
+- name: "Sets operator info variables from '{{ operator_info_output_file }}'"
+  set_fact:
+    op_info: "{{ operator_info_data.stdout | from_yaml }}"
+  when: operator_info_data.rc == 0
