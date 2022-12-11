@@ -51,14 +51,16 @@
           when: operator_base_dir|length == 0
       when: operators_config is defined
 
-    - name: "Ensure that the 'operator_bundle_src_dir' directory exists and is empty"
+    - name: "Ensure that the 'operator_bundle_src_dir' is empty"
       file:
-        state: "{{ item }}"
+        state: absent
         path: "{{ operator_bundle_src_dir }}"
-      with_items:
-        - absent
-        - directory
       when: run_remove_operator_bundle_src_dir is undefined or run_remove_operator_bundle_src_dir|bool
+
+    - name: "Ensure that the 'operator_bundle_src_dir' directory exists"
+      file:
+        state: directory
+        path: "{{ operator_bundle_src_dir }}"
 
     - name: "Resetting 'op_info' object"
       set_fact:
@@ -74,6 +76,15 @@
       loop: "{{ operators.split(',') }}"
       loop_control:
         loop_var: oi_operator_name
+      when: op_info_parallel is undefined or not op_info_parallel | bool
+
+
+    - name: "Loop over operators"
+      include_tasks: op_info_parallel.yml
+      when:
+        - op_info_parallel is defined
+        - op_info_parallel | bool
+
 
     # - name: "Print 'op_info'"
     #   debug:

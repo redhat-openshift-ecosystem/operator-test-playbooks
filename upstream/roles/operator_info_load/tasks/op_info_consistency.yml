@@ -19,7 +19,7 @@
 
 - name: "Set operator list from operator_info"
   set_fact:
-    oi_check_operator_info_keys: "{{ op_info.keys()|list }}"
+    oi_check_operator_info_keys: "{{ op_info.keys() | list }}"
 
 - name: "Show difference if failing"
   debug:
