@@ -16,9 +16,13 @@
   loop_control:
     loop_var: oiiv_version_item
 
+- name: "Set 'oii_index_tmp'"
+  set_fact:
+    oii_index_tmp: "{{ oii_index | reverse | list  }}"
+
 - name: "Add missing replaces versions"
   include_tasks: op_info_index_replaces_loop.yml
-  loop: "{{ oii_index | reverse | list  }}"
+  loop: "{{ oii_index_tmp }}"
   loop_control:
     loop_var: oi_index_replaces_ver_current
 
