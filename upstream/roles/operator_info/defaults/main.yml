@@ -1,4 +1,5 @@
 operator_info_output_file: "{{ work_dir }}/op_info.yaml"
+op_info_parallel_batch: 10
 oi_auto_labels_output_file: "{{ work_dir }}/op_auto_labels.yaml"
 operator_bundle_src_dir: "{{ work_dir }}/operators"
 oi_failed_labels_output_file: "{{ work_dir }}/op_failed_labels.yaml"
