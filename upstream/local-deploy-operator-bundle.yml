@@ -171,6 +171,7 @@
     - name: "Setting 'operators_for_index' variable"
       set_fact:
         operators_for_index: "{{ operators_for_index }}"
+        operator_removed: false
 
     - name: "Test 'force_skip_mirror' to true"
       set_fact:
@@ -212,7 +213,7 @@
         loop_var: op_item
       when:
         - run_upstream|bool
-        - not force_skip_mirror|bool
+        - bundles_skip is undefined or not bundles_skip|bool
 
     - name: Handle index changes
       block:
