@@ -2,7 +2,7 @@
 - name: "Validation"
   block:
   - name: "Validate {{ bundle_to_validate }} against {{ validate_api_cluster_version }}"
-    shell: "{{ operator_sdk_bin_path }} bundle validate {{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_cluster_version }} | grep 'using APIs which were deprecated and removed in v{{ validate_api_cluster_version }}'"
+    shell: "{{ operator_sdk_bin_path }} bundle validate {{ bundle_to_validate }} --select-optional suite=operatorframework --optional-values=k8s-version={{ validate_api_cluster_version }} | grep 'using APIs which were deprecated and removed in v{{ validate_api_cluster_version }}' | grep -v 'level=warning'"
     register: bvf_validate_result
     ignore_errors: true
 
