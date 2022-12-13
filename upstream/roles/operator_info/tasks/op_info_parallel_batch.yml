@@ -30,6 +30,7 @@
   loop: "{{ async_poll_results.results }}"
   loop_control:
     loop_var: "op_item"
+    label: "{{ op_item.async_result_item.item }}"
   when: op_item.rc == 0
 
 - name: "Getting all operators failed"
@@ -38,4 +39,5 @@
   loop: "{{ async_poll_results.results }}"
   loop_control:
     loop_var: "op_item"
+    label: "{{ op_item.async_result_item.item }}"
   when: op_item.rc > 0
