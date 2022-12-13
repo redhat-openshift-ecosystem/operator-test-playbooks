@@ -212,7 +212,7 @@
         loop_var: op_item
       when:
         - run_upstream|bool
-        - not force_skip_mirror|bool
+        - bundles_skip is undefined or not bundles_skip|bool
 
     - name: Handle index changes
       block:
