@@ -32,7 +32,6 @@
     bundle_index_image_namespace: test-operator
     bundle_index_image_name: "catalog"
     app_registry_push: false
-    operator_removed: false
 
   tasks:
     - name: "Setting basic variables for deploy tasks"
@@ -172,6 +171,7 @@
     - name: "Setting 'operators_for_index' variable"
       set_fact:
         operators_for_index: "{{ operators_for_index }}"
+        operator_removed: false
 
     - name: "Test 'force_skip_mirror' to true"
       set_fact:
