@@ -61,7 +61,7 @@
 
   - name: "Set default_channel according to the operators.operatorframework.io.bundle.channel.default.v1 label if present."
     set_fact:
-      default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
+      default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] | string }}"
     when: skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] is defined
 
   - name: "Determine paths with kind ClusterServiceVersion"
