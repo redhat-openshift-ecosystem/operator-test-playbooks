@@ -6,7 +6,7 @@
 
 - name: "Run single operator"
   command:
-    cmd: "ansible-playbook -i localhost, upstream/local.yml --tags operator_info -e ansible_connection=local -e work_dir={{ work_dir }} -e run_upstream={{ run_upstream }} -e run_prepare_catalog_repo_upstream=false -e operator_base_dir={{ operator_base_dir }} -e operators={{ item  }} -e cluster_type={{ cluster_type }} -e automatic_cluster_version_label={{ automatic_cluster_version_label }} -e strict_cluster_version_labels={{ strict_cluster_version_labels }} -e stream_kind={{ stream_kind }} -e production_registry_namespace={{ production_registry_namespace }} -e operator_bundle_src_dir={{ work_dir }}/op_info/{{ item }}/operators -e operator_info_output_file={{ work_dir }}/op_info/{{ item }}/operators/op_info.yaml -e run_remove_operator_bundle_src_dir=false"
+    cmd: "ansible-playbook -i localhost, upstream/local.yml --tags operator_info -e ansible_connection=local -e work_dir={{ work_dir }} -e run_upstream={{ run_upstream }} -e run_prepare_catalog_repo_upstream=false -e operator_base_dir={{ operator_base_dir }} -e operators={{ item  }} -e cluster_type={{ cluster_type }} -e automatic_cluster_version_label={{ automatic_cluster_version_label }} -e strict_cluster_version_labels={{ strict_cluster_version_labels }} -e stream_kind={{ stream_kind | default('') }} -e production_registry_namespace={{ production_registry_namespace }} -e operator_bundle_src_dir={{ work_dir }}/op_info/{{ item }}/operators -e operator_info_output_file={{ work_dir }}/op_info/{{ item }}/operators/op_info.yaml -e run_remove_operator_bundle_src_dir=false"
     chdir: "{{ lookup('env', 'PWD') }}"
   async: 100000
   poll: 0
