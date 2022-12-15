@@ -8,5 +8,5 @@ container_tool: docker
 versions_in_registry: []
 puct_custom_var: ""
 operators_pipeline_organization_name: community-operators
-
-pu_from_index: quay.io/operator_testing/index_empty:latest
+# pu_from_index: "quay.io/operator_testing/index_empty:latest"
+pu_from_index: ""
