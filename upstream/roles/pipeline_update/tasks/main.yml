@@ -116,9 +116,9 @@
       debug:
         var: versions
 
-    - name: "Loop over all versions"
+    - name: "Loop over all index versions from config"
       include_tasks: push_empty_index.yml
-      loop: "{{ versions }}"
+      loop: "{{ versions_in_config }}"
       loop_control:
         loop_var: pu_item
 

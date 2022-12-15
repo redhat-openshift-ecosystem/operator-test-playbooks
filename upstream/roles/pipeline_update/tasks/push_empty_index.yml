@@ -5,8 +5,15 @@
     pei_version: "{{ pu_item.split('-') }}"
     # pu_from_index: "{{ empty_index }}"
 
-- debug:
-    msg: "Upgrading '{{ pei_version[0] }}' from '{{ pu_from_index }}' index"
+
+- name: "Check if version '{{ pei_version[0] }}' is in 'versions_in_registry'"
+  block:
+
+    - debug:
+        msg: "Upgrading '{{ pei_version[0] }}' from '{{ pu_from_index }}' index"
+  when: pei_version[0] in versions_in_registry
+
+
 
 # - name: "Pull {{ pu_from_index }}"
 #   shell: "{{ container_tool }} pull {{ pu_from_index }}"
