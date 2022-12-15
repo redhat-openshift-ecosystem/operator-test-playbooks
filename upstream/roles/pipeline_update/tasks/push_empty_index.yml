@@ -15,15 +15,15 @@
         pei_version_i: "{{ pei_version[0] }}i"
 
 
-    - name: "Copu {{ pu_from_index }} to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
-      shell: "skopeo copy docker://{{ pu_from_index }} docker://{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
+    - name: "Copy {{ pu_from_index }} to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
+      shell: "echo skopeo copy docker://{{ pu_from_index }} docker://{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
 
     - name: "Copy {{ pu_from_index }}{{ pu_postfix }} to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version_s }}"
-      shell: "skopeo copy docker://{{ pu_from_index }}{{ pu_postfix }} docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version_s }}"
+      shell: "echo skopeo copy docker://{{ pu_from_index }}{{ pu_postfix }} docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version_s }}"
       when: pei_version_s not in versions_in_registry
 
     - name: "Copy {{ pu_from_index }}i to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}id"
-      shell: "skopeo copy docker://{{ pu_from_index }}i docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}i"
+      shell: "echo skopeo copy docker://{{ pu_from_index }}i docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}i"
       when: pei_version_i not in versions_in_registry
 
   when: pei_version[0] not in versions_in_registry
