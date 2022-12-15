@@ -14,16 +14,15 @@
         pei_version_s: "{{ pei_version }}{{ pu_postfix | default('')}}"
         pei_version_i: "{{ pei_version }}i"
 
-
     - name: "Copy {{ pu_from_index }} to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
-      shell: "echo skopeo copy docker://{{ pu_from_index }} docker://{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
+      shell: "skopeo copy docker://{{ pu_from_index }} docker://{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
 
     - name: "Copy {{ pu_from_index }}{{ pu_postfix }} to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version_s }}"
-      shell: "echo skopeo copy docker://{{ pu_from_index }}{{ pu_postfix }} docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version_s }}"
+      shell: "skopeo copy docker://{{ pu_from_index }}{{ pu_postfix }} docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version_s }}"
       when: pei_version_s not in versions_in_registry
 
     - name: "Copy {{ pu_from_index }}i to {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}i"
-      shell: "echo skopeo copy docker://{{ pu_from_index }}i docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}i"
+      shell: "skopeo copy docker://{{ pu_from_index }}i docker:// {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}i"
       when: pei_version_i not in versions_in_registry
 
   when: pei_version not in versions_in_registry
@@ -33,18 +32,3 @@
     - debug:
         msg: "Index '{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}' already exists"
   when: pei_version in versions_in_registry
-
-# - name: "Pull {{ pu_from_index }}"
-#   shell: "{{ container_tool }} pull {{ pu_from_index }}"
-
-# - name: "Tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
-#   shell: "{{ container_tool }} tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
-
-# - name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
-#   shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}"
-
-# - name: "Tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}{{ pu_postfix }}"
-#   shell: "{{ container_tool }} tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}{{ pu_postfix }}"
-
-# - name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}{{ pu_postfix }}"
-#   shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version }}{{ pu_postfix }}"
