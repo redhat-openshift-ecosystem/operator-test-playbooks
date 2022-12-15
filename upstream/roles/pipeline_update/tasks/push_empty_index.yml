@@ -3,18 +3,22 @@
 - name: "Remove postifx"
   set_fact:
     pei_version: "{{ pu_item.split('-') }}"
+    # pu_from_index: "{{ empty_index }}"
 
-- name: "Pull {{ empty_index }}:latest"
-  shell: "{{ container_tool }} pull {{ empty_index }}:latest"
+- debug:
+    msg: "Upgrading '{{ pei_version[0] }}' from '{{ pu_from_index }}' index"
 
-- name: "Tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
-  shell: "{{ container_tool }} tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
+# - name: "Pull {{ pu_from_index }}"
+#   shell: "{{ container_tool }} pull {{ pu_from_index }}"
 
-- name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
-  shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
+# - name: "Tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
+#   shell: "{{ container_tool }} tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
 
-- name: "Tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
-  shell: "{{ container_tool }} tag {{ empty_index }}:latest {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
+# - name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
+#   shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}"
 
-- name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
-  shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
+# - name: "Tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
+#   shell: "{{ container_tool }} tag {{ pu_from_index }} {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
+
+# - name: "Push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"
+#   shell: "{{ container_tool }} push {{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}:{{ pei_version[0] }}{{ pu_postfix }}"

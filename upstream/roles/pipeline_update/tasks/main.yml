@@ -104,7 +104,6 @@
     - name: "Debug"
       debug:
         var: versions_in_config
-    # empty_index
 
     - name: "Debug"
       debug:
@@ -121,5 +120,5 @@
         loop_var: pu_item
 
   when:
-    - empty_index is defined
-    - empty_index|length > 0
+    - pu_from_index is defined
+    - pu_from_index | length > 0
