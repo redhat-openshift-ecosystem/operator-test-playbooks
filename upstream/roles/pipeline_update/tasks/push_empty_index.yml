@@ -3,6 +3,8 @@
 - name: "Remove postifx from index version"
   set_fact:
     pei_version: "{{ pu_item.split('-')[0] }}"
+- debug:
+    var: pei_version
 
 - name: "Check if version '{{ pei_version }}' is in 'versions_in_registry'"
   block:
