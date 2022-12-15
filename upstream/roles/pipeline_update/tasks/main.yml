@@ -76,9 +76,6 @@
     - debug:
         var: qit_rc
 
-    - debug:
-        var: qit_result
-
     - name: "Set results from 'query_image_tags'"
       set_fact:
         versions_in_registry: "{{ qit_result }}"
@@ -87,13 +84,6 @@
     - name: "Setting all versions to 'versions_in_config' variable"
       set_fact:
         versions_in_config: "{{ default_config.production.index.tags | from_yaml }}"
-
-    # - name: "Setting all versions to 'versions_in_registry' variable"
-    #   set_fact:
-    #     versions_in_registry: "{{ pu_prod_registry_versions.json.tags }}"
-    #   when:
-    #     - pu_prod_registry_versions.status is defined
-    #     - pu_prod_registry_versions.status == 200
 
     - name: "Debug"
       debug:
