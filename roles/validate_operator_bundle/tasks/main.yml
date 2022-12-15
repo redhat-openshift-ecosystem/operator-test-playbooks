@@ -54,7 +54,11 @@
         status_code: 200
         return_content: true
       register: supported_indices_json
+      delay: 10
       retries: 10
+      until:
+        - supported_indices_json.status is defined
+        - supported_indices_json.status == 200
       ignore_errors: true
 
     - name: "Fail if Pyxis response is not 200"
