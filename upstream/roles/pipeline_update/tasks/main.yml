@@ -100,10 +100,6 @@
         - pu_prod_registry_versions.status is defined
         - pu_prod_registry_versions.status == 200
 
-    - name: "Setting all versions to 'versions_in_config' variable"
-      set_fact:
-        versions: "{{ versions_in_config | difference(versions_in_registry) }}"
-
     - name: "Debug"
       debug:
         var: versions_in_config
@@ -112,15 +108,12 @@
       debug:
         var: versions_in_registry
 
-    - name: "Debug"
-      debug:
-        var: versions
-
     - name: "Loop over all index versions from config"
       include_tasks: push_empty_index.yml
       loop: "{{ versions_in_config }}"
       loop_control:
         loop_var: pu_item
+      when: versions_in_registry.0 is defined
 
   when:
     - pu_from_index is defined
