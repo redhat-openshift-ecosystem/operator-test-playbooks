@@ -57,6 +57,9 @@
     - workflow_extra_scripts is defined
     - workflow_extra_scripts|length > 0
 
+- debug:
+    var: pu_from_index
+
 - name: "Init missing repos"
   block:
     - name: "Login to quay"
