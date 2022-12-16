@@ -1,7 +1,4 @@
 ---
-- debug:
-    var: pu_from_index
-
 - name: "Getting index version"
   set_fact:
     pu_index_version_1: "={{ pu_from_index.split(':')[1] }}"
@@ -20,9 +17,6 @@
     - name: "Getting list of annotations files"
       set_fact:
         cofc_annotations_manifest_failed: "{{ cofc_annotation_files_find_manifest.files | map(attribute='path' ) | list }}"
-    - name: "Printing list of failed format files"
-      debug:
-        var: cofc_annotations_manifest_failed
 
     - name: "Loop over all index versions from config"
       include_tasks: single_annotation.yml

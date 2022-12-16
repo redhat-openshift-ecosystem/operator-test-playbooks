@@ -66,7 +66,6 @@
       include_role:
         name: quay_login
 
-
     - name: "Get list of versions_in_dir from bundle production registry '{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}'"
       include_role:
         name: query_image_tags
@@ -110,11 +109,12 @@
 
     - debug:
         var: pu_recreate_operators_versions
+
     - debug:
         var: pu_recreate_operators
 
     - name: "Generate operators info config file"
-      copy: content="{{ pu_recreate_operators | to_nice_yaml }}" dest="{{ pu_output_file }}"
+      copy: content="{{ pu_recreate_operators | join(' ') }}" dest="{{ pu_output_file }}"
       when:
         - pu_recreate_operators.0 is defined
 
