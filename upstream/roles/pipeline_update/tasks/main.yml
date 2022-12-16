@@ -113,6 +113,10 @@
     - debug:
         var: pu_recreate_operators
 
+    - name: "Generate operators info config file"
+      copy: content="{{ pu_recreate_operators | to_nice_yaml }}" dest="{{ pu_output_file }}"
+      when:
+        - pu_recreate_operators.0 is defined
 
   when:
     - pu_from_index is defined

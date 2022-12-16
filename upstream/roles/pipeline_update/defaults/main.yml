@@ -4,6 +4,7 @@ workflow_output_path: "/tmp"
 workflow_config_path: ""
 pipeline_config_name: pipeline-config.yaml
 operators_pipeline_config_name: config.yaml
+pu_output_file: "/tmp/operators_to_recreate.yaml"
 container_tool: docker
 versions_in_registry: []
 puct_custom_var: ""
