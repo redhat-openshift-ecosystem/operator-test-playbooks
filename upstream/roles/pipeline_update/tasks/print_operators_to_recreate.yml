@@ -1,7 +1,12 @@
 ---
-
 - debug:
-    var: output_project_directory  
+    var: output_project_directory
+
+- name: "Getting index version"
+  set_fact:
+    pu_index_version_1: "={{ pu_from_index.split('/')[3] }}"
+    pu_index_version_2: "-{{ pu_from_index.split('/')[3] }}"
+
 - name: "Serching for annotations files"
   find:
     paths: "{{ output_project_directory }}"
@@ -24,6 +29,5 @@
       loop: "{{ cofc_annotations_manifest_failed }}"
       loop_control:
         loop_var: an_item
-
 
   when: cofc_annotation_files_find_manifest.files|length > 0
