@@ -25,9 +25,7 @@ podman run -it -v $PWD:/project/operator-test-playbooks -v ./Dockerfiles/ci/exam
 
 ---
 ** NOTE **
-
-currently there is only one test inside the container image i.e., test_for_report_failed_empty_alm_examples
-In order to add more tests please add more functions to run_tests.py inside the Dockerfiles/ci folder in operator-test-playbooks
+New tests can be created by adding functions to `Dockerfiles/ci/run_tests.py`.
 
 ---
 

@@ -5,6 +5,7 @@ import sys
 import json
 import unittest
 import subprocess
+import yaml
 from os import path
 
 
@@ -219,6 +220,33 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
             print(parsed_output)
             self.assertIn('operator_valid_subscription:\n  - "Test Subscription One"\n  - "Test Subscription Two"', parsed_output)
 
+    def test_current_and_default_channel_parsing(self):
+        operator_work_dir = "{}/test_current_and_default_channel_parsing".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:parse-channel"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = yaml.safe_load(fd)
+            print(parsed_output)
+            self.assertEqual(parsed_output["current_channel"], "4.10")
+            self.assertEqual(parsed_output["default_channel"], "4.10")
 
 if __name__ == '__main__':
     unittest.main()
