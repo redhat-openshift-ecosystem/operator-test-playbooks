@@ -94,11 +94,15 @@
         var: versions_in_registry
 
     - name: "Loop over all index versions from config"
-      include_tasks: push_empty_index.yml
+      include_tasks: push_from_index.yml
       loop: "{{ versions_in_config }}"
       loop_control:
         loop_var: pu_item
       when: versions_in_registry.0 is defined
+
+    - name: "Print list of operators to be recreated"
+      include_tasks: print_operators_to_recreate.yml
+      when: not pu_from_index | search('index_empty')
 
   when:
     - pu_from_index is defined

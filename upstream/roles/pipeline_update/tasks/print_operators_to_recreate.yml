@@ -1,0 +1,22 @@
+---
+
+- debug:
+    var: output_project_directory  
+- name: "Serching for annotations files"
+  find:
+    paths: "{{ output_project_directory }}"
+    patterns: "annotations.yaml"
+    recurse: true
+  register: cofc_annotation_files_find_manifest
+  no_log: true
+
+- name: "Handling operator format inconsistecy"
+  block:
+    - name: "Getting list of annotations files"
+      set_fact:
+        cofc_annotations_manifest_failed: "{{ cofc_annotation_files_find_manifest.files | map(attribute='path' ) | list }}"
+    - name: "Printing list of failed format files"
+      debug:
+        var: cofc_annotations_manifest_failed
+
+  when: cofc_annotation_files_find_manifest.files|length > 0
