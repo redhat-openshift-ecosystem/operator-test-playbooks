@@ -16,7 +16,7 @@
     pu_recreate_operators_versions: "{{ (pu_recreate_operators_versions | default([])) + [ an_item.split('/')[-4] + ':' + an_item.split('/')[-3] ] }}"
   when:
     - op_label | length > 0
-    - op_label is search("=v4.8") or op_label is search("-v4.8")
+    - op_label is search(pu_index_version_1) or op_label is search(pu_index_version_2)
 
 - name: "Adding operator '{{ an_item.split('/')[-4] }} {{ an_item.split('/')[-3] }}' "
   set_fact:
