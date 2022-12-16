@@ -104,6 +104,16 @@
       include_tasks: print_operators_to_recreate.yml
       when: not pu_from_index is search("index_empty")
 
+    - name: "Remove duplicates from 'pu_recreate_operators'"
+      set_fact:
+        pu_recreate_operators: "{{ pu_recreate_operators | unique }}"
+
+    - debug:
+        var: pu_recreate_operators_versions
+    - debug:
+        var: pu_recreate_operators
+
+
   when:
     - pu_from_index is defined
     - pu_from_index | length > 0
