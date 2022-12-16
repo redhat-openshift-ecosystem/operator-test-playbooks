@@ -19,4 +19,11 @@
       debug:
         var: cofc_annotations_manifest_failed
 
+    - name: "Loop over all index versions from config"
+      include_tasks: push_from_index.yml
+      loop: "{{ cofc_annotations_manifest_failed }}"
+      loop_control:
+        loop_var: an_item
+
+
   when: cofc_annotation_files_find_manifest.files|length > 0
