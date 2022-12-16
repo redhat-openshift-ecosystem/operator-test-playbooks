@@ -1,7 +1,6 @@
 ---
-
 - debug:
-    var: an_item  
+    var: an_item
 
 - name: "Getting content of '{{ an_item }}' file"
   shell: "cat {{ an_item }}"
@@ -10,13 +9,13 @@
 - name: "Sets `annotations_vars` from yaml file"
   set_fact:
     annotations_vars: "{{ annotation_data.stdout | from_yaml }}"
-- name: "Sets `annotations_vars` from yaml file"
+
+- name: "Getting label 'com.redhat.openshift.versions'"
   set_fact:
     op_label: "{{ annotations_vars.annotations['com.redhat.openshift.versions'] | default('')}}"
 
 - debug:
-    msg: "{{ an_item.split('/')[-4] }}"
+    msg: "{{ an_item.split('/')[-4] }} {{ an_item.split('/')[-3] }}"
   when:
     - op_label | length > 0
-    - op_label is search("=v4.8") or op_label is search("-v4.8") 
-
+    - op_label is search("=v4.8") or op_label is search("-v4.8")
