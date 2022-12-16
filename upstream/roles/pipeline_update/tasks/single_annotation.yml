@@ -18,5 +18,5 @@
     msg: "{{ an_item.split('/')[-4] }}"
   when:
     - op_label | length > 0
-    - op_label is search("=v4.6") or op_label is search("-v4.6") 
+    - op_label is search("=v4.8") or op_label is search("-v4.8") 
 
