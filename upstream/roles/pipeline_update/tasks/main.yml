@@ -102,8 +102,7 @@
 
     - name: "Print list of operators to be recreated"
       include_tasks: print_operators_to_recreate.yml
-      when: not pu_from_index | search('index_empty')
-
+      when: '"index_empty" not in pu_from_index'
   when:
     - pu_from_index is defined
     - pu_from_index | length > 0
