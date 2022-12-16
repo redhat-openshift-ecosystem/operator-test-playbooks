@@ -20,7 +20,7 @@
         var: cofc_annotations_manifest_failed
 
     - name: "Loop over all index versions from config"
-      include_tasks: push_from_index.yml
+      include_tasks: single_annotation.yml
       loop: "{{ cofc_annotations_manifest_failed }}"
       loop_control:
         loop_var: an_item
