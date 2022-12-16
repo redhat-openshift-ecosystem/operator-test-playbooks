@@ -4,8 +4,8 @@
 
 - name: "Getting index version"
   set_fact:
-    pu_index_version_1: "={{ pu_from_index.split('/')[2] }}"
-    pu_index_version_2: "-{{ pu_from_index.split('/')[2] }}"
+    pu_index_version_1: "={{ pu_from_index.split(':')[1] }}"
+    pu_index_version_2: "-{{ pu_from_index.split(':')[1] }}"
 
 - name: "Serching for annotations files"
   find:
