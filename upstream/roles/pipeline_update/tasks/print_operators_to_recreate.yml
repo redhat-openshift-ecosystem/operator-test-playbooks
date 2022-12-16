@@ -1,11 +1,11 @@
 ---
 - debug:
-    var: output_project_directory
+    var: pu_from_index
 
 - name: "Getting index version"
   set_fact:
-    pu_index_version_1: "={{ pu_from_index.split('/')[3] }}"
-    pu_index_version_2: "-{{ pu_from_index.split('/')[3] }}"
+    pu_index_version_1: "={{ pu_from_index.split('/')[2] }}"
+    pu_index_version_2: "-{{ pu_from_index.split('/')[2] }}"
 
 - name: "Serching for annotations files"
   find:
