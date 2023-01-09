@@ -84,7 +84,7 @@
 
     - name: "Fail if the operator didn't satisfy the operator-sdk validation test"
       fail:
-        msg: 'Operator sdk validation test failed for more details'
+        msg: 'Error: Operator sdk validation test !!! Look for more details from previous output. '
       when:
         - permisive is not defined or not permisive|bool
         - check_validation_result|bool
