@@ -23,7 +23,9 @@
 - name: "Set 'hobvo_bundle_validate_error_outputs"
   set_fact:
     hobvo_bundle_validate_error_outputs: "{{ hobvo_bundle_validate_error.outputs }}"
-  when: hobvo_bundle_validate_error.outputs|type_debug != "NoneType"
+  when: 
+    - hobvo_bundle_validate_error.outputs is defined
+    - hobvo_bundle_validate_error.outputs|type_debug != "NoneType"
 
 - name: "Print bundle validate errors"
   debug:
