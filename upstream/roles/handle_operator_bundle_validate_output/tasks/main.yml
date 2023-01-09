@@ -1,10 +1,16 @@
 ---
-- debug:
+- name: "Print 'hobvo_result'"
+  debug:
     var: hobvo_result
 
-- name: "Get output"
+- name: "Reset 'hobvo_bundle_validate_error'"
+  set_fact:
+    hobvo_bundle_validate_error: ""
+
+- name: "Get output from 'hobvo_result'"
   set_fact:
     hobvo_bundle_validate_error: "{{ hobvo_result.stdout | from_json }}"
+  when: hobvo_result.stdout | length > 0
 
 - name: "Print 'hobvo_bundle_validate_error.outputs'"
   debug:
