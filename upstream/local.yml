@@ -48,7 +48,6 @@
     yq_version: 2.2.1
     umoci_version: v0.4.5
     iib_version: v6.3.0
-    opm_cache_host_bug_line: 'RUN ["/bin/opm", "serve", "/configs", "--cache-dir=/tmp/cache", "--cache-only"]'
 
   environment:
     PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
@@ -62,6 +61,7 @@
 
     - name: "Setting basic task variables"
       set_fact:
+        opm_cache_host_bug_line: 'RUN ["/bin/opm", "serve", "/configs", "--cache-dir=/tmp/cache", "--cache-only"]'
         dc_changes_allowed:
           - spec.description
           - spec.displayName
