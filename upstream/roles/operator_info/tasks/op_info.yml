@@ -211,3 +211,4 @@
 
     when: oi_versions_in_dir.0 is defined
   when: oi_operator_name | length > 0
+  
