@@ -65,6 +65,29 @@
     chdir: "{{ pfbc_extracted_fbc_location }}"
   register: pfbc_rc
 
-#- name: "Build FBC"
-#  shell: "cd {{ pfbc_extracted_fbc_location }}; {{ container_tool }} build -f {{ pfbc_dockerfile_path }} -t {{ pfbc_file_index }}"
-#  register: pfbc_rc
+- name: "Detect if opm cache issue line is present"
+  lineinfile:
+    path: "{{ pfbc_fbc_config_path }}"
+    regexp: "{{ opm_cache_host_bug_line }}"
+    state: absent
+  check_mode: yes
+  changed_when: false
+  register: pfbc_opm_bug_line
+
+- name: "Workaround for opm cache issue on a host machine"
+  block:
+
+    - name: "Replace run command with a copy command"
+      ansible.builtin.lineinfile:
+        path: "{{ pfbc_fbc_config_path }}"
+        regexp: "{{ opm_cache_host_bug_line }}"
+        line: 'COPY --chown=1001:0 cache {{ pfbc_local_cache_dir }}'
+
+    - name: "Generate cache locally"
+      shell: "{{ opm_bin_path }} serve {{ pfbc_fbc_config_path }} --cache-dir={{ pfbc_local_cache_dir }} --cache-only --termination-log /dev/null"
+
+  when: pfbc_opm_bug_line.found
+
+- debug:
+    msg: "Warning: Cannot find a line to be replaced due to CLOUDDST-15194. May not work as expected, the following line not found: {{ opm_cache_host_bug_line }}"
+  when: not pfbc_opm_bug_line.found
