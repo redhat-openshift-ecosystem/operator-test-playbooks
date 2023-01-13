@@ -61,7 +61,7 @@
 
     - name: "Setting basic task variables"
       set_fact:
-        opm_cache_host_bug_line: 'RUN ["/bin/opm", "serve", "/configs", "--cache-dir=/tmp/cache", "--cache-only"]'
+        opm_cache_host_bug_line: 'RUN \["/bin/opm", "serve", "/configs", "--cache-dir=/tmp/cache", "--cache-only"\]'
         dc_changes_allowed:
           - spec.description
           - spec.displayName
