@@ -40,7 +40,7 @@
     operator_sdk_version: v1.25.2
     operator_courier_version: 2.1.11
     olm_version: 0.20.0
-    opm_version: v1.21.0
+    opm_version: v1.26.2
     k8s_community_bundle_validator_version: v0.1.0
     oc_version: 4.3.5
     go_version: 1.13.7
@@ -61,6 +61,7 @@
 
     - name: "Setting basic task variables"
       set_fact:
+        opm_cache_host_bug_line: 'RUN \["/bin/opm", "serve", "/configs", "--cache-dir=/tmp/cache", "--cache-only"\]'
         dc_changes_allowed:
           - spec.description
           - spec.displayName
