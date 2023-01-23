@@ -83,13 +83,33 @@
         regexp: "{{ opm_cache_host_bug_line }}"
         line: 'COPY --chown=1001:0 cache {{ pfbc_local_cache_dir }}'
 
-    - name: "Generate cache locally"
-      shell: "{{ opm_bin_path }} serve {{ pfbc_fbc_config_path }} --cache-dir={{ pfbc_local_cache_dir }} --cache-only --termination-log /dev/null"
+    - name: "Create cache directory"
+      file:
+        path: "{{ pfbc_extracted_fbc_location }}/cache"
+        state: directory
+        mode: 01777
 
-    - name: "Copy cache"
-      synchronize:
-        src: "{{ pfbc_local_cache_dir }}/"
-        dest: "{{ pfbc_extracted_fbc_location }}/cache/"
+    - name: "Fail on registry.redhat.io login "
+      fail:
+        msg: "Unable to login to registry.redhat.io with user '{{ registry_redhat_io_user }}'"
+      when:
+        - (registry_redhat_io_user is undefined and registry_redhat_io_token is undefined) or (registry_redhat_io_user|length == 0 or registry_redhat_io_token|length == 0)
+
+    - name: "Login to registry.redhat.io"
+      shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
+      # no_log: true
+      when:
+        - registry_redhat_io_user is defined and registry_redhat_io_token is defined
+        - registry_redhat_io_user|length > 0 or registry_redhat_io_token|length > 0
+
+    - name: "Generate cache locally"
+      # shell: "{{ opm_bin_path }} serve {{ pfbc_fbc_config_path }} --cache-dir={{ pfbc_local_cache_dir }} --cache-only --termination-log /dev/null"
+      shell: "{{ container_tool }} run -it --rm --entrypoint /bin/opm -v {{ pfbc_extracted_fbc_location }}:/conf -u 1001:0 {{ mirror_multiarch_image }} serve /conf/configs --cache-dir=/conf/cache --cache-only --termination-log /dev/null"
+
+    # - name: "Copy cache"
+    #   synchronize:
+    #     src: "{{ pfbc_local_cache_dir }}/"
+    #     dest: "{{ pfbc_extracted_fbc_location }}/cache/"
 
   when: pfbc_opm_bug_line.found
 
