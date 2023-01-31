@@ -56,6 +56,9 @@ class Testing(unittest.TestCase):
     # Set env variable to custom made image that makes validation fails with following error:
     # ERRO[0003] error validating format in /tmp/bundle-688328851: Bundle validation errors: couldn't
     # parse dependency of type olm.crd
+    # This function is commented out as a temporary workaround due to the operator-sdk bug: https://github.com/operator-framework/operator-sdk/issues/6247
+    # It will be fixed in operator-sdk v1.28.0 which is addressed in CVP-3518
+    '''
     def test_negative_image_bundle_validation(self):
         self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:invalid-dependencies-v1"
         result = subprocess.run(self.exec_cmd,
@@ -67,6 +70,7 @@ class Testing(unittest.TestCase):
         self.assertIn("Bundle validation errors: couldn't parse dependency of type olm.crd", message, "Result code not found in .erroremessage")
         self.assertEqual(70, result.returncode)
         self.assertTrue(os.path.exists(OUTPUT_DIR+".errormessage"))
+    '''
 
     # Don't set env variable IMAGE_TO_TEST case
     def test_negative_image_to_test_not_set(self):
@@ -83,6 +87,9 @@ class Testing(unittest.TestCase):
 
     # Run with a test-operator which fails the deprecated image check in the
     # bundle image validation job
+    # This function is commented out as a temporary workaround due to the operator-sdk bug: https://github.com/operator-framework/operator-sdk/issues/6247
+    # It will be fixed in operator-sdk v1.28.0 which is addressed in CVP-3518
+    '''
     def test_default_negative(self):
         self.env["IMAGE_TO_TEST"] = "quay.io/cvpops/test-operator:test-default-negative-v1"
         result = subprocess.run(self.exec_cmd,
@@ -97,6 +104,7 @@ class Testing(unittest.TestCase):
         message = self.get_error_message_content()
         self.assertIn("this bundle is using APIs which were deprecated and removed in v1.22", message,
                       "Deprecated APIs error not found in '%s'" % message)
+    '''
 
     # Run with a test-operator which passes the bundle image validation job
     def test_default_positive(self):

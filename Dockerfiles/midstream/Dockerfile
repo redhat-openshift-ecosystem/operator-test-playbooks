@@ -1,5 +1,5 @@
 FROM registry.fedoraproject.org/fedora:33
-ARG OPERATOR_SDK_VERSION=v1.16.0
+ARG OPERATOR_SDK_VERSION=v1.26.0
 ARG UMOCI_VERSION=v0.4.5
 ENV ANSIBLE_CONFIG=/project/operator-test-playbooks/Dockerfiles/midstream/
 ENV ANSIBLE_LOCAL_TEMP=/tmp/
