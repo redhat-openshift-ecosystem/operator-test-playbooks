@@ -191,7 +191,9 @@
             loop: "{{ oi_supported_cluster_versions }}"
             loop_control:
               loop_var: oii_index_version
-        when: oi_supported_cluster_versions.0 is defined
+        when: 
+          - oi_supported_cluster_versions.0 is defined
+          - oi_index_skip is undefined or not oi_index_skip|bool
 
       - name: "Setting 'io_index' and 'io_index_dt'"
         set_fact:
