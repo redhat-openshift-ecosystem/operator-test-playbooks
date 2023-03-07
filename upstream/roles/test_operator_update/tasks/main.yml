@@ -169,8 +169,8 @@
           when: tou_upgrade_rc.rc == 0
 
         - name: "Update status if wrong"
-          # fail:
-          debug:
+          fail:
+          # debug:
             msg: "Operator upgrade failed, you can debug locally by 2 commands: 'operator sdk run bundle BUNDLE_N-1; operator-sdk run bundle-upgrade BUNDLE_N'  [FAIL]"
           when: tou_upgrade_rc.rc != 0
 
