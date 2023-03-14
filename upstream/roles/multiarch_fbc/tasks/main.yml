@@ -34,7 +34,7 @@
     - (registry_redhat_io_user is undefined and registry_redhat_io_token is undefined) or (registry_redhat_io_user|length == 0 or registry_redhat_io_token|length == 0)
 
 - name: "Login to registry.redhat.io"
-  shell: "{{ container_tool }} login -u={{ registry_redhat_io_user }} -p='{{ registry_redhat_io_token }}' registry.redhat.io"
+  shell: "{{ container_tool }} login -u='{{ registry_redhat_io_user }}' -p='{{ registry_redhat_io_token }}' registry.redhat.io"
   # no_log: true
   when:
     - registry_redhat_io_user is defined and registry_redhat_io_token is defined
