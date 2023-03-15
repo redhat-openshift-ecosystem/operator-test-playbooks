@@ -101,6 +101,7 @@
       when:
         - registry_redhat_io_user is defined and registry_redhat_io_token is defined
         - registry_redhat_io_user|length > 0 or registry_redhat_io_token|length > 0
+        - mirror_multiarch_image.startswith('registry.redhat.io')
 
     - name: "Generate cache locally"
       # shell: "{{ opm_bin_path }} serve {{ pfbc_fbc_config_path }} --cache-dir={{ pfbc_local_cache_dir }} --cache-only --termination-log /dev/null"
