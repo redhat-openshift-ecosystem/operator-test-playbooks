@@ -118,6 +118,11 @@
           var: operator_vars
           verbosity: 2
 
+      - name: "Fail task if no elements found in deployments"
+        fail:
+          msg: "No elements found in `spec.install.spec.deployments`. Please check."
+        when: operator_vars.spec.install.spec.deployments | length == 0
+
       - name: "Determine and set fact for operator specific information - name, pod name, container name and capabilities"
         set_fact:
           current_csv: "{{ operator_vars.metadata.name }}"
