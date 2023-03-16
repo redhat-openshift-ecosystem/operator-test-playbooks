@@ -15,7 +15,7 @@
   loop_control:
     loop_var: owned_crd_path
 
-- name: "Delete all processed resources in the deploy directory"
+- name: "Delete all processed resources in the deploy directory except namespace.yml"
   shell: "{{ oc_bin_path }} delete -f {{ cor_all_yml_item }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
