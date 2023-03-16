@@ -30,6 +30,7 @@
   with_items: "{{ cor_all_yml.files | default([]) | map(attribute='path') | list | select('search', 'namespace.yml') }}"
   loop_control:
     loop_var: cor_namespace_yml_item
+  ignore_errors: true
 
 - block:
     - name: "Verify if {{ openshift_namespace }} project exists"
