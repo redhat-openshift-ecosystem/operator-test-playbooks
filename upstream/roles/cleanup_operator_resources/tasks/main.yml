@@ -19,14 +19,17 @@
   shell: "{{ oc_bin_path }} delete -f {{ cor_all_yml_item }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  with_items: "{{ cor_all_yml.files | default([]) | map(attribute='path' ) | list | difference(['namespace.yml']) }}"
+  with_items: "{{ cor_all_yml.files | default([]) | map(attribute='path' ) | list | reject('search', 'namespace.yml') }}"
   loop_control:
     loop_var: cor_all_yml_item
 
 - name: "Delete operator namespace as the last resouce"
-  shell: "{{ oc_bin_path }} delete -f namespace.yml --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
+  shell: "{{ oc_bin_path }} delete -f {{ cor_namespace_yml_item }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  with_items: "{{ cor_all_yml.files | default([]) | map(attribute='path') | list | select('search', 'namespace.yml') }}"
+  loop_control:
+    loop_var: cor_namespace_yml_item
 
 - block:
     - name: "Verify if {{ openshift_namespace }} project exists"
