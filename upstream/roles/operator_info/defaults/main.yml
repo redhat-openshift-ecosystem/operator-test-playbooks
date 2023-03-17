@@ -8,6 +8,7 @@ automatic_cluster_version_label: false
 strict_k8s_bundles: false
 strict_cluster_version_labels: false
 ignore_image_string: "--"
+format_failed_file: "{{ work_dir }}/format_failed"
 ocp2k8s:
   "4.0": "1.13"
   "4.1": "1.14"
