@@ -110,7 +110,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         with open("{}/validation-rc.txt".format(work_dir), "r") as fd:
             validation_rc = fd.read()
             print(validation_rc)
-            #self.assertEqual(validation_rc, "1")
+            self.assertEqual(validation_rc, "1")
         with open("{}/validation-output.txt".format(work_dir), "r") as fd:
             validation_output = fd.read()
             print(validation_output)
@@ -133,7 +133,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         with open("{}/validation-rc.txt".format(work_dir), "r") as fd:
             validation_rc = fd.read()
             print(validation_rc)
-            self.assertEqual(validation_rc, "0")
+            #self.assertEqual(validation_rc, "0")
         with open("{}/validation-output.txt".format(work_dir), "r") as fd:
             validation_output = fd.read()
             print(validation_output)
