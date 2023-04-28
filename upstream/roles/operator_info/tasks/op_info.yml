@@ -43,6 +43,21 @@
         set_fact:
           oi_operator_format: "{{ 'bundle' if annotations_presence.files else 'manifest' }}"
 
+      - name: "Fail if manifest format is disabled"
+        block:
+          - name: "Make file {{ format_failed_file }} ..."
+            file:
+              path: "{{ format_failed_file }}"
+              state: touch
+              mode: u=rw,g=r,o=r
+          - name: "Fail message about disabled package manifesft format"
+            fail:
+              msg: "Error: Package manifest fomrat is disabled !!! Please convert operator to bundle format ..."
+        when:
+          - oi_operator_format == "manifest"
+          - manifest_format_disabled is defined
+          - manifest_format_disabled | bool
+
       - name: "Export Package variables"
         include_role:
           name: export_manifest_package_info
