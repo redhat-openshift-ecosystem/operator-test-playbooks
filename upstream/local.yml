@@ -34,9 +34,8 @@
     opm_bin_path: "{{ testing_bin_path }}/opm"
     k8s_community_bundle_validator_path: "{{ testing_bin_path }}/k8s-community-bundle-validator"
     offline_cataloger_bin_path: "offline-cataloger"
-    kind_version: v0.12.0
-    kind_kube_version: v1.21.1
-    # kind_kube_version: v1.23.4
+    kind_version: v0.18.0
+    kind_kube_version: v1.26.3
     operator_sdk_version: v1.26.1
     operator_courier_version: 2.1.11
     olm_version: 0.20.0
