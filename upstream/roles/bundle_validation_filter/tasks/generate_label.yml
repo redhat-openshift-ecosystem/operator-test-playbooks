@@ -94,4 +94,3 @@
 - name: "Set fact"
   set_fact:
     cl_artificial_label: "{{ bvf_label }}"
-  when: bvf_label is defined
