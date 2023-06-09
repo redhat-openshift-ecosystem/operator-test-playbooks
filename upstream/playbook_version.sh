@@ -13,6 +13,6 @@ else
     exit 1
 fi
 
-echo "VERSION=${VERSION}"
-echo "::set-output name=image_version::${VERSION}"
-echo "::set-output name=image_tag::${TAG}"
+echo "VERSION=${VERSION} TAG=${TAG}"
+echo "image_version=${VERSION}" >> $GITHUB_OUTPUT
+echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
