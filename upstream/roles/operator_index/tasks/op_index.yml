@@ -236,7 +236,7 @@
       failed_when: false
 
     - name: "Add '{{ oi_op_name }}' operator to index image {{ oi_index }}"
-      shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} {{ opm_index_add_extra_args }}"
+      shell: "{{ opm_bin_path }} index add -c {{ opm_container_tool }} --bundles {{ oi_bundles_str }} --tag {{ oi_index }} --mode {{ oi_mode }} --permissive {{ opm_index_add_extra_args }}"
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: oi_index_add
