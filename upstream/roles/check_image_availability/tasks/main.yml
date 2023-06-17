@@ -90,7 +90,7 @@
 
     - name: "Openshift"
       block:
-        - name: "Namespace"
+        - name: "Create namespace"
           shell: "{{ oc_bin_path }} create namespace testimagepull"
           register: vob_pull_external_image_oc
           ignore_errors: true
@@ -108,8 +108,7 @@
 
       when:
         - not run_upstream|bool
-        - current_openshift_run is defined and current_openshift_run != "4.12"
-        - current_openshift_run is defined and current_openshift_run != "4.13"
+        - current_openshift_run is defined and current_openshift_run not in ["4.12", "4.13", "4.14"]
 
   when:
     - operator_external_image is defined
