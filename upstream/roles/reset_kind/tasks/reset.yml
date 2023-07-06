@@ -68,6 +68,10 @@
         - not rkr_osdk.stat.exists
         - run_upstream|bool
 
+    - name: "Uninstalling any existing OLM version"
+      shell: "{{ operator_sdk_bin_path }} olm uninstall --timeout 5m0s"
+      ignore_errors: true
+
     - name: "Installing OLM ({{ olm_version }})"
       shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
       register: olm_install_rc
