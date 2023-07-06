@@ -38,7 +38,7 @@
     kind_kube_version: v1.26.3
     operator_sdk_version: v1.30.0
     operator_courier_version: 2.1.11
-    olm_version: 0.20.0
+    olm_version: 0.25.0
     opm_version: v1.26.2
     k8s_community_bundle_validator_version: v0.1.0
     oc_version: 4.3.5
