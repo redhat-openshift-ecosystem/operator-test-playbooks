@@ -68,12 +68,21 @@
         - not rkr_osdk.stat.exists
         - run_upstream|bool
 
-    - name: "Uninstalling any existing OLM version"
-      shell: "{{ operator_sdk_bin_path }} olm uninstall --timeout 5m0s"
-      ignore_errors: true
+    - name: "Download OLM {{ olm_version }} installer"
+      get_url:
+        url: "https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v{{ olm_version }}/install.sh"
+        dest: /tmp/olm-install.sh
+        mode: "0755"
+      register: olm_install_download_result
+      until: olm_install_download_result.status_code is defined and olm_install_download_result.status_code == 200
+      retries: "{{ default_retries }}"
+      delay: "{{ default_delay }}"
+      failed_when: olm_install_download_result is failure
 
     - name: "Installing OLM ({{ olm_version }})"
-      shell: "{{ operator_sdk_bin_path }} olm install --version {{ olm_version }} --timeout 5m0s"
+      # Install olm using the install script instead of `operator-sdk olm install`
+      # to work around operator-sdk bug https://github.com/operator-framework/operator-lifecycle-manager/issues/2968
+      shell: "/tmp/olm-install.sh v{{ olm_version }}"
       register: olm_install_rc
   tags:
     - always
