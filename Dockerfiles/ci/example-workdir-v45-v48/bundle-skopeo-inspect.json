@@ -11,7 +11,7 @@
     "com.redhat.delivery.backport": "true",
     "com.redhat.delivery.operator.bundle": "true",
     "com.redhat.license_terms": "https://www.redhat.com/agreements",
-    "com.redhat.openshift.versions": "v4.5-v4.8",
+    "com.redhat.openshift.versions": "v4.5-v4.14",
     "description": "This is a testing operator used by Vital",
     "distribution-scope": "private",
     "io.k8s.description": "This is a testing operator used by Vital",
