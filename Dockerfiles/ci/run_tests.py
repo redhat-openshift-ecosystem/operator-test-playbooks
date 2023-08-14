@@ -248,6 +248,78 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
             self.assertEqual(parsed_output["current_channel"], "4.10")
             self.assertEqual(parsed_output["default_channel"], "4.10")
 
+    def test_extract_operator_bundle_no_infrastructure_features(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_no_infrastructure_features".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:test-430-channel-positive-v1"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertNotIn("operator_feature_disconnected", parsed_output)
+            self.assertNotIn("operator_feature_fipsmode", parsed_output)
+            self.assertNotIn("operator_feature_proxy_aware", parsed_output)
+            self.assertNotIn("operator_feature_cnf", parsed_output)
+            self.assertNotIn("operator_feature_cni", parsed_output)
+            self.assertNotIn("operator_feature_csi", parsed_output)
+            self.assertNotIn("operator_feature_tls_profiles", parsed_output)
+            self.assertNotIn("operator_feature_token_auth_aws", parsed_output)
+            self.assertNotIn("operator_feature_token_auth_azure", parsed_output)
+            self.assertNotIn("operator_feature_token_auth_gcp", parsed_output)
+
+    def test_extract_operator_bundle_with_infrastructure_features(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_with_infrastructure_features".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:with-infrastructure-features"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertIn('operator_feature_disconnected: False', parsed_output)
+            self.assertIn('operator_feature_fipsmode: True', parsed_output)
+            self.assertIn('operator_feature_proxy_aware: False', parsed_output)
+            self.assertIn('operator_feature_cnf: False', parsed_output)
+            self.assertIn('operator_feature_cni: True', parsed_output)
+            self.assertIn('operator_feature_csi: True', parsed_output)
+            self.assertIn('operator_feature_tls_profiles: True', parsed_output)
+            self.assertIn('operator_feature_token_auth_aws: False', parsed_output)
+            self.assertIn('operator_feature_token_auth_azure: False', parsed_output)
+            self.assertIn('operator_feature_token_auth_gcp: False', parsed_output)
+
 if __name__ == '__main__':
     unittest.main()
 
