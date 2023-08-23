@@ -112,6 +112,20 @@
       operator_capabilities: "{{ (csv_vars | from_yaml).metadata.annotations.capabilities }}"
       operator_valid_subscription: "{{ ((csv_vars | from_yaml).metadata.annotations['operators.openshift.io/valid-subscription'] | default('[]')) | from_json }}"
 
+  - name: "Determine and set fact for infrastructure-related annotations"
+    set_fact:
+      operator_feature_disconnected: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/disconnected'] | default(omit) }}"
+      operator_feature_fipsmode: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/fipsmode'] | default(omit) }}"
+      operator_feature_proxy_aware: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/proxy-aware'] | default(omit) }}"
+      operator_feature_cnf: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/cnf'] | default(omit) }}"
+      operator_feature_cni: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/cni'] | default(omit) }}"
+      operator_feature_csi: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/csi'] | default(omit) }}"
+      operator_feature_tls_profiles: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/tls-profiles'] | default(omit) }}"
+      operator_feature_token_auth_aws: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/token-auth-aws'] | default(omit) }}"
+      operator_feature_token_auth_azure: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/token-auth-azure'] | default(omit) }}"
+      operator_feature_token_auth_gcp: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/token-auth-gcp'] | default(omit) }}"
+    ignore_errors: true
+
   - name: "Determine operator_allnamespaces_support"
     set_fact:
       operator_allnamespaces_support: "{{ (csv_vars | from_yaml).spec.installModes | json_query(query) }}"

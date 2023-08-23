@@ -30,3 +30,33 @@ crd_paths:
 {% endfor %}
 {% endif %}
 ocp_versions: "{{ ocp_versions }}"
+{% if operator_feature_disconnected is defined %}
+    operator_feature_disconnected: {{ operator_feature_disconnected }}
+{% endif %}
+{% if operator_feature_fipsmode is defined %}
+    operator_feature_fipsmode: {{ operator_feature_fipsmode }}
+{% endif %}
+{% if operator_feature_proxy_aware is defined %}
+    operator_feature_proxy_aware: {{ operator_feature_proxy_aware }}
+{% endif %}
+{% if operator_feature_cnf is defined %}
+    operator_feature_cnf: {{ operator_feature_cnf }}
+{% endif %}
+{% if operator_feature_cni is defined %}
+    operator_feature_cni: {{ operator_feature_cni }}
+{% endif %}
+{% if operator_feature_csi is defined %}
+    operator_feature_csi: {{ operator_feature_csi }}
+{% endif %}
+{% if operator_feature_tls_profiles is defined %}
+    operator_feature_tls_profiles: {{ operator_feature_tls_profiles }}
+{% endif %}
+{% if operator_feature_token_auth_aws is defined %}
+    operator_feature_token_auth_aws: {{ operator_feature_token_auth_aws }}
+{% endif %}
+{% if operator_feature_token_auth_azure is defined %}
+    operator_feature_token_auth_azure: {{ operator_feature_token_auth_azure }}
+{% endif %}
+{% if operator_feature_token_auth_gcp is defined %}
+    operator_feature_token_auth_gcp: {{ operator_feature_token_auth_gcp }}
+{% endif %}
