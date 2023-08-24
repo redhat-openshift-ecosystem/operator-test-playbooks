@@ -7,6 +7,7 @@ bvf_supported_cluster_versions:
   - "4.12"
   - "4.13"
   - "4.14"
+  - "4.15"
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
 testable_k8s_clusters:
   # This is the list of k8s versions that deprecate old apis
@@ -27,6 +28,7 @@ k8s2ocp:
   "1.25": "4.12"
   "1.26": "4.13"
   "1.27": "4.14"
+  "1.28": "4.15"
 ocp2k8s:
   "4.0": "1.13"
   "4.1": "1.14"
@@ -43,3 +45,4 @@ ocp2k8s:
   "4.12": "1.25"
   "4.13": "1.26"
   "4.14": "1.27"
+  "4.15": "1.28"
