@@ -115,7 +115,7 @@
   - name: "Determine and set fact for infrastructure-related annotations"
     set_fact:
       operator_feature_disconnected: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/disconnected'] | default(omit) }}"
-      operator_feature_fipsmode: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/fipsmode'] | default(omit) }}"
+      operator_feature_fips_compliant: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/fips-compliant'] | default(omit) }}"
       operator_feature_proxy_aware: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/proxy-aware'] | default(omit) }}"
       operator_feature_cnf: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/cnf'] | default(omit) }}"
       operator_feature_cni: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/cni'] | default(omit) }}"
