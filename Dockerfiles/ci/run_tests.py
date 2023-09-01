@@ -274,7 +274,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
             parsed_output = fd.read()
             print(parsed_output)
             self.assertNotIn("operator_feature_disconnected", parsed_output)
-            self.assertNotIn("operator_feature_fipsmode", parsed_output)
+            self.assertNotIn("operator_feature_fips_compliant", parsed_output)
             self.assertNotIn("operator_feature_proxy_aware", parsed_output)
             self.assertNotIn("operator_feature_cnf", parsed_output)
             self.assertNotIn("operator_feature_cni", parsed_output)
@@ -289,7 +289,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         work_dir = operator_work_dir
         operator_dir = "{}/test-operator".format(operator_work_dir)
         operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
-        bundle_image = "quay.io/cvpops/test-operator:with-infrastructure-features"
+        bundle_image = "quay.io/cvpops/test-operator:with-infrastructure-features-as-strings"
         exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
                     operator-test-playbooks/extract-operator-bundle.yml \
                     -e 'operator_dir={operator_dir}' \
@@ -309,16 +309,16 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
             parsed_output = fd.read()
             print(parsed_output)
-            self.assertIn('operator_feature_disconnected: False', parsed_output)
-            self.assertIn('operator_feature_fipsmode: True', parsed_output)
-            self.assertIn('operator_feature_proxy_aware: False', parsed_output)
-            self.assertIn('operator_feature_cnf: False', parsed_output)
-            self.assertIn('operator_feature_cni: True', parsed_output)
-            self.assertIn('operator_feature_csi: True', parsed_output)
-            self.assertIn('operator_feature_tls_profiles: True', parsed_output)
-            self.assertIn('operator_feature_token_auth_aws: False', parsed_output)
-            self.assertIn('operator_feature_token_auth_azure: False', parsed_output)
-            self.assertIn('operator_feature_token_auth_gcp: False', parsed_output)
+            self.assertIn('operator_feature_disconnected: "False"', parsed_output)
+            self.assertIn('operator_feature_fips_compliant: "True"', parsed_output)
+            self.assertIn('operator_feature_proxy_aware: "False"', parsed_output)
+            self.assertIn('operator_feature_cnf: "False"', parsed_output)
+            self.assertIn('operator_feature_cni: "True"', parsed_output)
+            self.assertIn('operator_feature_csi: "True"', parsed_output)
+            self.assertIn('operator_feature_tls_profiles: "True"', parsed_output)
+            self.assertIn('operator_feature_token_auth_aws: "False"', parsed_output)
+            self.assertIn('operator_feature_token_auth_azure: "False"', parsed_output)
+            self.assertIn('operator_feature_token_auth_gcp: "False"', parsed_output)
 
 if __name__ == '__main__':
     unittest.main()
