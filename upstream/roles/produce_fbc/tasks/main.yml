@@ -50,6 +50,15 @@
     loop_var: rf_render_target
   when: pfbc_render_from == "index"
 
+- name: "Extract /database/index.db from the index"
+  include_role:
+    name: extract_files_from_image
+  vars:
+    effi_image: "{{ pfbc_sql_index }}"
+    effi_copy_source_path: "/database/index.db"
+    effi_target_copy_path: "{{ pfbc_extracted_fbc_location }}/index.db"
+  when: pfbc_render_from == "index"
+
 - name: "Set Dockerfile path to {{ pfbc_fbc_config_path }}.Dockerfile"
   set_fact:
     pfbc_dockerfile_path: "{{ pfbc_fbc_config_path }}.Dockerfile"
@@ -64,6 +73,13 @@
     cmd: "{{ opm_bin_path }} generate dockerfile {{ pfbc_fbc_config_path }}"
     chdir: "{{ pfbc_extracted_fbc_location }}"
   register: pfbc_rc
+
+- name: Copy /database/index.db to a hidden IIB directory
+  lineinfile:
+    dest: "{{ pfbc_fbc_config_path }}.Dockerfile"
+    line: "\nADD index.db /var/lib/iib/_hidden/do.not.edit.db\n"
+    state: present
+    insertafter: EOF
 
 - name: "Detect if the following opm cache issue line is present '{{ opm_cache_host_bug_line }}'"
   lineinfile:
