@@ -108,7 +108,7 @@
 
       when:
         - not run_upstream|bool
-        - current_openshift_run is defined and current_openshift_run not in ["4.12", "4.13", "4.14"]
+        - current_openshift_run is defined and current_openshift_run is version("4.12", "<")
 
   when:
     - operator_external_image is defined
