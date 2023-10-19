@@ -52,6 +52,7 @@
       set_fact:
         tou_operator_bundle_for_install: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
         tou_operator_bundle_for_upgrade: "{{ tou_local_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
+        tou_operator_bundle_for_upgrade_external: "{{ production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
       when:
         - cluster_type is defined
         - cluster_type == "k8s"
@@ -60,6 +61,7 @@
       set_fact:
         tou_operator_bundle_for_install: "{{ external_production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_from }}"
         tou_operator_bundle_for_upgrade: "quay.io/{{ test_quay_namespace }}/{{ operator_package_name }}:{{ commit_tag }}"
+        tou_operator_bundle_for_upgrade_external: "{{ external_production_registry_namespace }}/{{ operator_package_name }}:v{{ tou_upgrade_to }}"
       when: (cluster_type is not defined) or (cluster_type != "k8s")
 
     - name: "Check if OLM is needed"
@@ -88,6 +90,16 @@
 
     - name: "Create namespace for upgrade tests"
       shell: "{{ oc_bin_path }} create ns {{ tou_namespace_for_upgrades }}"
+
+    - name: "Check if {{ tou_operator_bundle_for_upgrade }} exists"
+      shell: "skopeo inspect docker://{{ tou_operator_bundle_for_upgrade }}"
+      register: inspect_bundle_for_upgrade
+      ignore_errors: true
+
+    - name: "Import {{ tou_operator_bundle_for_upgrade }}"
+      shell: "skopeo copy docker://{{ tou_operator_bundle_for_upgrade_external }} docker://{{ tou_operator_bundle_for_upgrade }}"
+      when:
+        - inspect_bundle_for_upgrade is failed
 
     - name: "Installing {{ tou_operator_bundle_for_install }} with {{ sdk_version_for_upgrade.stdout }}"
       shell: "{{ operator_sdk_bin_path }} run bundle {{ tou_operator_bundle_for_install }} -n {{ tou_namespace_for_upgrades }} --skip-tls-verify"
