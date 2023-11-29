@@ -320,6 +320,62 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
             self.assertIn('operator_feature_token_auth_azure: "False"', parsed_output)
             self.assertIn('operator_feature_token_auth_gcp: "False"', parsed_output)
 
+    def test_extract_operator_bundle_with_skiprange_and_replaces(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_with_skiprange_and_replaces".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:with-skiprange-and-replaces"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertIn('olm_replaces: "gatekeeper-operator-product.v0.2.6"', parsed_output)
+            self.assertIn('olm_skipRange: "<3.11.0"', parsed_output)
+
+
+    def test_extract_operator_bundle_with_skiprange_and_without_replaces(self):
+        operator_work_dir = "{}/test_extract_operator_bundle_with_skiprange_and_without_replaces".format(self.test_dir)
+        work_dir = operator_work_dir
+        operator_dir = "{}/test-operator".format(operator_work_dir)
+        operator_bundle_dir = "{}/operator-bundle".format(operator_work_dir)
+        bundle_image = "quay.io/cvpops/test-operator:with-skiprange-and-without-replaces"
+        exec_cmd = "ansible-playbook -vvv -i localhost, --connection local \
+                    operator-test-playbooks/extract-operator-bundle.yml \
+                    -e 'operator_dir={operator_dir}' \
+                    -e 'bundle_image={bundle_image}' \
+                    -e 'operator_work_dir={operator_work_dir}' \
+                    -e 'operator_bundle_dir={operator_bundle_dir}' \
+                    -e 'work_dir={work_dir}'".format(operator_dir=operator_dir,
+                                                     operator_work_dir=operator_work_dir,
+                                                     operator_bundle_dir=operator_bundle_dir,
+                                                     bundle_image=bundle_image,
+                                                     work_dir=work_dir)
+        playbook_command = subprocess.run(exec_cmd, shell=True)
+
+        print(playbook_command.returncode)
+        self.assertTrue(playbook_command.returncode == 0)
+        self.assertTrue(path.exists("{}/parsed_operator_data.yml".format(work_dir)))
+        with open("{}/parsed_operator_data.yml".format(work_dir), "r") as fd:
+            parsed_output = fd.read()
+            print(parsed_output)
+            self.assertNotIn('olm_replaces', parsed_output)
+
 if __name__ == '__main__':
     unittest.main()
 
