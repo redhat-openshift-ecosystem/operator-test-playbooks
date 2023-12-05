@@ -30,6 +30,12 @@ crd_paths:
 {% endfor %}
 {% endif %}
 ocp_versions: "{{ ocp_versions }}"
+{% if olm_skipRange is defined %}
+olm_skipRange: "{{ olm_skipRange }}"
+{% endif %}
+{% if olm_replaces is defined %}
+olm_replaces: "{{ olm_replaces }}"
+{% endif %}
 {% if operator_feature_disconnected is defined %}
 operator_feature_disconnected: "{{ operator_feature_disconnected }}"
 {% endif %}
