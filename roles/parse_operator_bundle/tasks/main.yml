@@ -126,10 +126,11 @@
       operator_feature_token_auth_gcp: "{{ (csv_vars | from_yaml).metadata.annotations['features.operators.openshift.io/token-auth-gcp'] | default(omit) }}"
     ignore_errors: true
 
-  - name: "Determine olm.skipRange and olm.replaces values"
+  - name: "Determine olm.skipRange, spec.replaces and spec.skips values"
     set_fact:
       olm_skipRange: "{{ (csv_vars | from_yaml).metadata.annotations['olm.skipRange'] | default(omit) }}"
       olm_replaces: "{{ (csv_vars | from_yaml).spec['replaces'] | default(omit) }}"
+      olm_skips: "{{ (csv_vars | from_yaml).spec['skips'] | default(omit) }}"
     ignore_errors: true
 
   - name: "Determine operator_allnamespaces_support"
