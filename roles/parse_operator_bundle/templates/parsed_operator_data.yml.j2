@@ -72,3 +72,9 @@ operator_feature_token_auth_azure: "{{ operator_feature_token_auth_azure }}"
 {% if operator_feature_token_auth_gcp is defined %}
 operator_feature_token_auth_gcp: "{{ operator_feature_token_auth_gcp }}"
 {% endif %}
+{% if channels is defined %}
+target_channels:
+{% for channel in channels %}
+  - "{{ channel }}"
+{% endfor %}
+{% endif %}
