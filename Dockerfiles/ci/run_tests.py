@@ -163,7 +163,7 @@ class RunOperatorTestPlaybookTests(unittest.TestCase):
         playbook_command = subprocess.run(exec_cmd, shell=True, capture_output=True)
         print(playbook_command.returncode)
         self.assertTrue(playbook_command.returncode == 2)
-        self.assertIn("Invalid semver in ocpfournine", playbook_command.stdout.decode("utf-8"))
+        self.assertIn("Invalid OCP version: ocpfournine", playbook_command.stdout.decode("utf-8"))
         self.assertIn("Error collecting OCP version range from Pyxis", playbook_command.stdout.decode("utf-8"))
 
     def test_extract_operator_bundle_no_subscription(self):
