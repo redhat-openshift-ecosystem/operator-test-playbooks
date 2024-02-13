@@ -36,6 +36,12 @@ olm_skipRange: "{{ olm_skipRange }}"
 {% if olm_replaces is defined %}
 olm_replaces: "{{ olm_replaces }}"
 {% endif %}
+{% if olm_skips is defined %}
+olm_skips:
+{% for olm_skip in olm_skips %}
+  - "{{ olm_skip }}"
+{% endfor %}
+{% endif %}
 {% if operator_feature_disconnected is defined %}
 operator_feature_disconnected: "{{ operator_feature_disconnected }}"
 {% endif %}
