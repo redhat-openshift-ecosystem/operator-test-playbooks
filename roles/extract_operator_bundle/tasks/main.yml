@@ -23,6 +23,9 @@
 - name: "Copy the bundle image layers into a local directory using skopeo"
   shell: "skopeo copy {{ image_protocol }}{{ bundle_image }} oci:{{ operator_bundle_dir }}:latest"
   register: skopeo_copy_result
+  retries: 5
+  delay: 30
+  until: skopeo_copy_result.rc == 0
 
 - name: "Inspect the copied image directory"
   shell: "skopeo inspect --raw oci://{{ operator_bundle_dir }}"
