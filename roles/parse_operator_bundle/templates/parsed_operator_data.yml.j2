@@ -13,6 +13,9 @@ operator_allnamespaces_support: {{ operator_allnamespaces_support }}
 operator_ownnamespace_support: {{ operator_ownnamespace_support }}
 operator_singlenamespace_support: {{ operator_singlenamespace_support }}
 operator_multinamespace_support: {{ operator_multinamespace_support }}
+{% if operator_minkube_version is defined %}
+operator_minkube_version: "{{ operator_minkube_version }}"
+{% endif %}
 {% if operator_valid_subscription|length < 1 %}
 operator_valid_subscription: []
 {% else %}
