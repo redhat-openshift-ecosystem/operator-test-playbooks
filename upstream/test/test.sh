@@ -6,7 +6,7 @@ TESTS=$1
 
 [[ $TESTS == all* ]] && TESTS="kiwi,lemon,orange"
 TESTS=${TESTS//,/ }
-OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/WhkV76k"}
+OP_SCRIPT_URL=${OP_SCRIPT_URL-"https://cutt.ly/AEeucaw"}
 
 OP_TEST_BASE_DEP="ansible curl openssl git"
 KIND_KUBE_VERSION=${KIND_KUBE_VERSION-"v1.19.11"}
@@ -18,7 +18,7 @@ OP_TEST_CERT_DIR=${OP_TEST_CERT_DIR-"$HOME/.optest/certs"}
 OP_TEST_CONTAINER_TOOL=${OP_TEST_CONTAINER_TOOL-"docker"}
 OP_TEST_CONTAINER_OPT=${OP_TEST_CONTAINER_OPT-"-it"}
 OP_TEST_NAME=${OPT_TEST_NAME-"op-test"}
-OP_TEST_ANSIBLE_PULL_REPO=${OP_TEST_ANSIBLE_PULL_REPO-"https://github.com/operator-framework/operator-test-playbooks"}
+OP_TEST_ANSIBLE_PULL_REPO=${OP_TEST_ANSIBLE_PULL_REPO-"https://github.com/redhat-openshift-ecosystem/operator-test-playbooks"}
 OP_TEST_ANSIBLE_PULL_BRANCH=${OP_TEST_ANSIBLE_PULL_BRANCH-"master"}
 OP_TEST_ANSIBLE_DEFAULT_ARGS=${OP_TEST_ANSIBLE_DEFAULT_ARGS-"-i localhost, -e ansible_connection=local -e run_upstream=true -e run_remove_catalog_repo=false upstream/local.yml"}
 OP_TEST_ANSIBLE_EXTRA_ARGS=${OP_TEST_ANSIBLE_EXTRA_ARGS-"--tags kubectl,install_kind"}
@@ -72,9 +72,9 @@ function help() {
     echo ""
     echo -e "Examples:\n"
     echo -e "\top-test all upstream-community-operators/aqua/1.0.2\n"
-    echo -e "\top-test all upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
-    echo -e "\top-test kiwi upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
-    echo -e "\top-test lemon,orange upstream-community-operators/aqua/1.0.2 https://github.com/operator-framework/community-operators master\n"
+    echo -e "\top-test all upstream-community-operators/aqua/1.0.2 https://github.com/k8s-operatorhub/community-operators master\n"
+    echo -e "\top-test kiwi upstream-community-operators/aqua/1.0.2 https://github.com/k8s-operatorhub/community-operators master\n"
+    echo -e "\top-test lemon,orange upstream-community-operators/aqua/1.0.2 https://github.com/k8s-operatorhub/community-operators master\n"
     exit 1
 }
 
@@ -482,5 +482,5 @@ done
 echo "Done"
 
 # For playbook developers
-# OP_TEST_DEBUG=2 bash <(curl -sL https://raw.githubusercontent.com/operator-framework/operator-test-playbooks/master/upstream/test/test.sh) orange community-operators/aqua/5.3.0 https://github.com/operator-framework/community-operators master
+# OP_TEST_DEBUG=2 bash <(curl -sL https://raw.githubusercontent.com/redhat-openshift-ecosystem/operator-test-playbooks/master/upstream/test/test.sh) orange community-operators/aqua/5.3.0 https://github.com/k8s-operatorhub/community-operators master
 # export CURLOPT_FRESH_CONNECT=true
