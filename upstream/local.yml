@@ -53,7 +53,7 @@
         - always
       when: run_upstream|bool
 
-    - name: "Setting basic task variables"
+    - name: "Setting basic task variables (!)"
       set_fact:
         dc_changes_allowed:
           - spec.description

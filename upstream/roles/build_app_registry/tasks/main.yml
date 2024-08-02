@@ -58,8 +58,8 @@
 
 - name: "Building and pushing app registry"
   block:
-    - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}'"
-      shell: "{{ container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
+    - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}' (tweaked)"
+      shell: "{{ container_tool }} build --no-cache --log-level=debug -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
 
     - name: "Push app registry image '{{ app_registry_image }}'"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
