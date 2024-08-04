@@ -58,8 +58,29 @@
 
 - name: "Building and pushing app registry"
   block:
+    - name: "Setting up optimized container tool storage configuration"
+      shell: |
+        sudo mkdir -p /mnt/storage /mnt/rundir /mnt/tmp
+        sudo chown "$(id -u):$(id -g)" /mnt/storage /mnt/rundir
+        sudo chmod 1777 /mnt/tmp
+        sudo chmod 1777 /mnt/rundir
+        sudo chmod 1777 /mnt/storage
+        export TMPDIR=/mnt/tmp
+        export STORAGE_DRIVER=overlay
+        cat <<__EOF__ >/usr/share/containers/storage.conf
+        [storage]
+        graphroot = "/mnt/storage"
+        driver = "overlay"
+        runroot = "/mnt/rundir"
+        __EOF__
+        cat <<__EOF__ | sudo tee /etc/containers/containers.conf
+        [engine]
+        env = ["TMPDIR=/mnt/tmp"]
+        __EOF__
+      when: optimize_build_storage|bool == true
+
     - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}'"
-      shell: "{{ container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
+      shell: "{{ container_tool }} build {{ container_tool_extra_params }} --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
 
     - name: "Push app registry image '{{ app_registry_image }}'"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
