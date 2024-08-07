@@ -3,6 +3,7 @@ testing_bin_path: "{{ work_dir }}/bin"
 opm_bin_path: "{{ testing_bin_path }}/opm"
 bundle_export_dir_app_registry: "{{ work_dir }}/app_registry/upstream-community-operators"
 container_tool: "docker"
+container_tool_extra_params: ""
 opm_container_tool: "docker"
 opm_container_tool_index: "docker"
 container_push_extra: ""
@@ -12,3 +13,4 @@ app_registry_build_dir: "{{ catalog_repo_dir }}"
 app_registry_build_file: "upstream.Dockerfile"
 default_retries: 5
 default_delay: 10
+optimize_build_storage: false

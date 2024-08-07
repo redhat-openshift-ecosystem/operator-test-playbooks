@@ -58,8 +58,46 @@
 
 - name: "Building and pushing app registry"
   block:
+    - name: "Setting up optimized container tool storage configuration (/mnt/storage)"
+      become: true
+      file:
+        path: "/mnt/storage"
+        state: "directory"
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+    - name: "Setting up optimized container tool storage configuration (/mnt/rundir)"
+      become: true
+      file:
+        path: "/mnt/rundir"
+        state: "directory"
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+    - name: "Setting up optimized container tool storage configuration (/mnt/tmp)"
+      become: true
+      file:
+        path: "/mnt/tmp"
+        state: "directory"
+        mode: "1777"
+    - name: "Setting up optimized container tool storage configuration (storage.conf)"
+      become: true
+      copy:
+        content: |
+          [storage]
+          graphroot = "/mnt/storage"
+          driver = "overlay"
+          runroot = "/mnt/rundir"
+        dest: "/usr/share/containers/storage.conf"
+    - name: "Setting up optimized container tool storage configuration (containers.conf)"
+      become: true
+      copy:
+        content: |
+          [engine]
+          env = ["TMPDIR=/mnt/tmp"]
+        dest: "/etc/containers/containers.conf"
+      when: optimize_build_storage|bool == true
+
     - name: "Build app registry image '{{ app_registry_image }}' using '{{ app_registry_build_file }}'"
-      shell: "{{ container_tool }} build --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
+      shell: "{{ container_tool }} build {{ container_tool_extra_params }} --no-cache -t {{ app_registry_image }} -f {{ app_registry_build_dir }}/{{ app_registry_build_file }} {{ bundle_export_dir_app_registry | dirname }}"
 
     - name: "Push app registry image '{{ app_registry_image }}'"
       shell: "{{ container_tool }} push {{ container_push_extra }} {{ app_registry_image }}"
