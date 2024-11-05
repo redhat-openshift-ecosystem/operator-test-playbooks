@@ -283,7 +283,7 @@
 
             - name: "Create scorecard directory"
               ansible.builtin.file:
-                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
+                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] | default('tests/scorecard/', true) }}"
                 state: directory
                 recurse: true
 
