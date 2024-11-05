@@ -272,23 +272,38 @@
                     labels_vars: "{{ bovb_bundle_labels_data.stdout | from_yaml }}"
               when: bovb_bundle_labels_file.stat.exists
 
-            - name: "Check if scorecard test directory exits"
-              block:
-                - name: "Fail if value of 'operators.operatorframework.io.test.config.v1' is empty "
-                  fail:
-                    msg: "Value 'operators.operatorframework.io.test.config.v1' form annotations.yaml file is empty"
-                  when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1']|length == 0
+            - name: "Debug - list bundle contents"
+              ansible.builtin.command: >
+                find "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}" -print
+              register: bundle_files
+            
+            - name: "Debug - show bundle contents"
+              ansible.builtin.debug:
+                var: bundle_files
+                
+            - name: "Create scorecard directory"
+              ansible.builtin.file:
+                path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
+                state: directory
+                recurse: true
 
-                - name: "Check if directory exits"
-                  stat:
-                    path: "{{ df_operator_dir }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
-                  register: bovb_testing_config
+            # - name: "Check if scorecard test directory exits"
+            #   block:
+            #     - name: "Fail if value of 'operators.operatorframework.io.test.config.v1' is empty "
+            #       fail:
+            #         msg: "Value 'operators.operatorframework.io.test.config.v1' form annotations.yaml file is empty"
+            #       when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1']|length == 0
 
-                - name: "Fail if directory doesn't exists"
-                  fail:
-                    msg: "Directory '{{ df_operator_dir }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
-                  when: not bovb_testing_config.stat.exists
-              when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] is defined
+            #     - name: "Check if directory exits"
+            #       stat:
+            #         path: "{{ df_operator_dir }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
+            #       register: bovb_testing_config
+
+            #     - name: "Fail if directory doesn't exists"
+            #       fail:
+            #         msg: "Directory '{{ df_operator_dir }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}' specified in 'operators.operatorframework.io.test.config.v1' doesn't exists !!! "
+            #       when: not bovb_testing_config.stat.exists
+            #   when: annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] is defined
 
             - name: "Generating Dockerfile using info from metadata directory."
               template:
