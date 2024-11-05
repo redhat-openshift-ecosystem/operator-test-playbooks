@@ -276,11 +276,11 @@
               ansible.builtin.command: >
                 find "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}" -print
               register: bundle_files
-            
+
             - name: "Debug - show bundle contents"
               ansible.builtin.debug:
                 var: bundle_files
-                
+
             - name: "Create scorecard directory"
               ansible.builtin.file:
                 path: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}/{{ op_version }}/{{ annotations_vars.annotations['operators.operatorframework.io.test.config.v1'] }}"
