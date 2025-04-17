@@ -8,7 +8,7 @@
   register: cor_all_yml
 
 - name: "Delete the operator owned CRDs if any"
-  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
+  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s --force --grace-period=0"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   with_items: "{{ crd_paths|default([]) }}"
