@@ -7,13 +7,37 @@
     patterns: "*.yml"
   register: cor_all_yml
 
-- name: "Delete the operator owned CRDs if any"
-  shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
+- name: "Debug print - all processed resources in the deploy directory"
+  debug:
+    var: cor_all_yml
+
+- name: "Get all CRDs from cluster"
+  shell: "{{ oc_bin_path }} get crd"
+  register: cor_crds
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  with_items: "{{ crd_paths|default([]) }}"
-  loop_control:
-    loop_var: owned_crd_path
+
+- name: "Debug print - all CRDs from cluster"
+  debug:
+    var: cor_crds.stdout_lines
+
+- name: "Get all from cluster"
+  shell: "{{ oc_bin_path }} get all "
+  register: cor_all
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: "Debug print - all from cluster"
+  debug:
+    var: cor_all.stdout_lines
+
+# - name: "Delete the operator owned CRDs if any"
+#   shell: "{{ oc_bin_path }} delete -f {{ owned_crd_path }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s --force --grace-period=0"
+#   environment:
+#     KUBECONFIG: "{{ kubeconfig_path }}"
+#   with_items: "{{ crd_paths|default([]) }}"
+#   loop_control:
+#     loop_var: owned_crd_path
 
 - name: "Delete all processed resources in the deploy directory except namespace.yml"
   shell: "{{ oc_bin_path }} delete -f {{ cor_all_yml_item }} --ignore-not-found=true --timeout={{ cor_cleanup_timeout }}s"
