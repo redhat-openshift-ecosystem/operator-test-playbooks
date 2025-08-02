@@ -138,17 +138,20 @@ function run() {
                 echo "#${v#*--}"
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
-                [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
+                exit_code=$?
+                if [ $exit_code -ne 0 ]; then echo -e "\nFailed with rc=$exit_code !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $exit_code; fi
                 set +o pipefail
         elif [[ $OP_TEST_DEBUG -ge 1 ]] ; then
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out
-                [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
+                exit_code=$?
+                if [ $exit_code -ne 0 ]; then echo -e "\nFailed with rc=$exit_code !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $exit_code; fi
                 set +o pipefail
         else
                 set -o pipefail
                 "$@" | tee -a $OP_TEST_LOG_DIR/log.out >/dev/null 2>&1
-                [[ $? -eq 0 ]] || { echo -e "\nFailed with rc=$? !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $?; }
+                exit_code=$?
+                if [ $exit_code -ne 0 ]; then echo -e "\nFailed with rc=$exit_code !!!\nLogs are in '$OP_TEST_LOG_DIR/log.out'."; exit $exit_code; fi
                 set +o pipefail
         fi
 }
