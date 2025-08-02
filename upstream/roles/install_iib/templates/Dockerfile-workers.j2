@@ -75,6 +75,6 @@ RUN sed -i -e 's|^#mount_program|mount_program|g' /etc/containers/storage.conf
 COPY docker/libpod.conf /usr/share/containers/libpod.conf
 
 COPY . .
-RUN pip3 install -r requirements.txt --no-deps --require-hashes
-RUN pip3 install . --no-deps
+RUN pip3 install --no-cache-dir -r requirements.txt --no-deps --require-hashes && \
+    pip3 install --no-cache-dir . --no-deps
 CMD ["/bin/celery-3", "-A", "iib.workers.tasks", "worker", "--loglevel=info"]
