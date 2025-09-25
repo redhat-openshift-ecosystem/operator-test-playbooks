@@ -24,14 +24,14 @@
 - name: "Show difference if failing"
   debug:
     var: oi_check_operators_artifact
-  when: oi_check_operators_artifact|difference(oi_check_operator_info_keys)
+  when: (oi_check_operators_artifact|difference(oi_check_operator_info_keys))|length > 0
 
 - name: "Show difference if failing II"
   debug:
     var: oi_check_operator_info_keys
-  when: oi_check_operators_artifact|difference(oi_check_operator_info_keys)
+  when: (oi_check_operators_artifact|difference(oi_check_operator_info_keys))|length > 0
 
 - name: "Failing"
   fail:
     msg: "Found a difference between operators artifact and operator_info [FAIL]"
-  when: oi_check_operators_artifact|difference(oi_check_operator_info_keys)
+  when: (oi_check_operators_artifact|difference(oi_check_operator_info_keys))|length > 0
