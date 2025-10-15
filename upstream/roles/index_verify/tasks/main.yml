@@ -62,7 +62,7 @@
     msg: "Operators not in sync: '{{ iv_operators_failed | join(',') }}' [{{ iv_operators_failed | length }}/{{ iv_index_operator_ana.keys() | length }}]!!! More info above or in '{{ iv_output_file }}' file"
   when:
     - iv_operators_failed is defined
-    - iv_operators_failed | length
+    - iv_operators_failed | length > 0
 
 - name: "Fail with list of operators that are not in sync"
   ansible.builtin.debug:
