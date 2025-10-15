@@ -32,7 +32,7 @@
 
 - name: "Read yaml file content to get the namespace"
   set_fact:
-    content="{{ lookup('file', '{{ kube_objects_dir }}/kube_objects.yaml') | from_yaml }}"
+    content: "{{ lookup('file', kube_objects_dir + '/kube_objects.yaml') | from_yaml }}"
   no_log: true
   ignore_errors: true
 

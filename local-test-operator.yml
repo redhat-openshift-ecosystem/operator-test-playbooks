@@ -39,7 +39,7 @@
         scorecard_cr_dir: "{{ work_dir }}/scorecard-cr-files"
         kube_objects_dir: "{{ work_dir }}/kube_objects"
         testing_bin_path: "{{ work_dir }}/bin"
-        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+        oc_bin_path: "{{ 'kubectl' if run_upstream else testing_bin_path + '/oc' }}"
         jq_bin_path: "{{ testing_bin_path }}/jq"
         yq_bin_path: "{{ testing_bin_path }}/yq"
         go_bin_path: "{{ testing_bin_path }}/go/bin/go"

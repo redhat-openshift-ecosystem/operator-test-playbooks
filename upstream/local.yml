@@ -170,7 +170,7 @@
         run_manifest_test: "{{ run_manifest_test | default(false) }}"
         run_bundle_test: "{{ run_bundle_test | default(true) }}"
         image_protocol: "{{ image_protocol | default('docker://') }}"
-        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+        oc_bin_path: "{{ 'kubectl' if run_upstream else testing_bin_path + '/oc' }}"
       tags:
         - always
         - test

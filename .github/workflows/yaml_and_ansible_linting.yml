@@ -22,16 +22,12 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: "Ansible-lint"
-      # Install ansible-lint(5.0.6) together with yamllint(1.26.0) and run the linting on the whole repo
+      # Install ansible-lint(25.9.2) together with yamllint(1.34.0) and run the linting on the whole repo
         run: |
+          set -e
           python -m pip install ansible
-          pip install ansible-lint==5.0.6 yamllint==1.26.0
-          ansible-lint -c ansible-lint.yml *.yml |& tee lint-output.txt
-          if  egrep -i '^(warning.*listing.*violation\(s)\)' lint-output.txt; then
-              exit 1
-          else
-              exit 0
-          fi
+          pip install ansible-lint==25.9.2 yamllint==1.34.0
+          ansible-lint -c .ansible-lint *.yml
 
 
       - name: "Yaml-lint"
