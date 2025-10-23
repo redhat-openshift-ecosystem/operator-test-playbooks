@@ -24,7 +24,7 @@
         umoci_bin_path: "{{ testing_bin_path }}/umoci"
         opm_bin_path: "{{ testing_bin_path }}/opm"
         operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
-        oc_bin_path: '{{ ''kubectl'' if run_upstream else "{{ testing_bin_path }}/oc" }}'
+        oc_bin_path: "{{ 'kubectl' if run_upstream else testing_bin_path + '/oc' }}"
 
 
     - name: "Install operator testing prerequisites"
