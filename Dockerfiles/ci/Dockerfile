@@ -13,6 +13,6 @@ RUN export ARCH=$(case $(arch) in x86_64) echo -n amd64 ;; aarch64) echo -n arm6
     mkdir /project/output && \
     dnf install --setopt=install_weak_deps=False -y git-core ansible python3-pip mlocate jq skopeo && \
     dnf clean all && \
-    pip3 install operator-courier
+    pip3 install --no-cache-dir operator-courier
 ADD ./run_tests.py /run_tests.py
 CMD ["/run_tests.py"]
