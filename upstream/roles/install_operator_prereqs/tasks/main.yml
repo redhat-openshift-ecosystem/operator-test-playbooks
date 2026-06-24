@@ -35,7 +35,7 @@
 
 - name: "Download and extract go binary to {{ testing_bin_path }}"
   unarchive:
-    src: "https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz"
+    src: "https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: true
   register: download_and_unpack_go
