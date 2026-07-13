@@ -52,13 +52,6 @@
   set_fact:
     multiarch_fbc_architectures: "{{ mfbc_archs_inspect_result.stdout_lines | list }}"
 
-- name: "Filter unsupported architectures"
-  set_fact:
-    multiarch_fbc_architectures: >-
-      {{ multiarch_fbc_architectures
-         | reject('equalto', '')
-         | list }}
-
 - name: "Print archs list'"
   debug:
     var: multiarch_fbc_architectures
