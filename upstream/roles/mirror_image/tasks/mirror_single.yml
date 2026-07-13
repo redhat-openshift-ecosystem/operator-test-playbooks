@@ -124,7 +124,10 @@
         mi_actual_architectures: []
 
     - name: "Detect architectures from image '{{ mirror_input_image_final }}'"
-      shell: "{{ container_tool }} manifest inspect {{ mirror_input_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+      shell: >-
+        {{ container_tool }} manifest inspect {{ mirror_input_image_final }}
+        | {{ jq_bin_path }} -r
+        '.manifests[] | select(.platform.architecture != null and .platform.architecture != "unknown") | .platform.architecture'
       retries: "{{ default_retries }}"
       delay: "{{ default_delay }}"
       register: mi_archs_inspect_result
@@ -232,7 +235,10 @@
                 - quay_arch_input_host|length > 0
 
             - name: "Get list of arch from image '{{ mirror_multiarch_image_final }}'"
-              shell: "{{ container_tool }} manifest inspect {{ mirror_multiarch_image_final }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+              shell: >-
+                {{ container_tool }} manifest inspect {{ mirror_multiarch_image_final }}
+                | {{ jq_bin_path }} -r
+                '.manifests[] | select(.platform.architecture != null and .platform.architecture != "unknown") | .platform.architecture'
               retries: "{{ default_retries }}"
               delay: "{{ default_delay }}"
               until: archs_inspect_result is not failed
