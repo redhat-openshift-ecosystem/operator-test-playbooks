@@ -42,7 +42,10 @@
     - mfbc_list_architectures_from.startswith('registry.redhat.io')
 
 - name: "Detect needed architectures from image '{{ mfbc_list_architectures_from }}'"
-  shell: "{{ container_tool }} manifest inspect {{ mfbc_list_architectures_from }} | {{ jq_bin_path }} '.manifests[].platform.architecture' -r"
+  shell: >-
+    {{ container_tool }} manifest inspect {{ mfbc_list_architectures_from }}
+    | {{ jq_bin_path }} -r
+    '.manifests[] | select(.platform.architecture != null and .platform.architecture != "unknown") | .platform.architecture'
   register: mfbc_archs_inspect_result
 
 - name: "Parse archs to list"
