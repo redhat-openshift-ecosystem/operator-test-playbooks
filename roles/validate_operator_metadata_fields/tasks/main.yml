@@ -1,0 +1,52 @@
+---
+- name: "Validate operator metadata fields against allowlist pattern"
+  block:
+    - name: "Validate package_name against allowlist"
+      assert:
+        that:
+          - package_name is match('^[a-z0-9][a-z0-9.\-]*$')
+        fail_msg: >-
+          Security validation failed: package_name '{{ package_name }}' contains
+          characters not matching the allowed pattern ^[a-z0-9][a-z0-9.-]*$.
+          This may indicate malicious metadata.
+      when: package_name is defined
+
+    - name: "Validate current_csv against allowlist"
+      assert:
+        that:
+          - current_csv is match('^[a-zA-Z0-9][a-zA-Z0-9.\-]*$')
+        fail_msg: >-
+          Security validation failed: current_csv '{{ current_csv }}' contains
+          characters not matching the allowed pattern ^[a-zA-Z0-9][a-zA-Z0-9.-]*$.
+          This may indicate malicious metadata.
+      when: current_csv is defined
+
+    - name: "Validate operator_pod_name against allowlist"
+      assert:
+        that:
+          - operator_pod_name is match('^[a-zA-Z0-9][a-zA-Z0-9.\-]*$')
+        fail_msg: >-
+          Security validation failed: operator_pod_name '{{ operator_pod_name }}' contains
+          characters not matching the allowed pattern ^[a-zA-Z0-9][a-zA-Z0-9.-]*$.
+          This may indicate malicious metadata.
+      when: operator_pod_name is defined
+
+    - name: "Validate operator_container_name against allowlist"
+      assert:
+        that:
+          - operator_container_name is match('^[a-zA-Z0-9][a-zA-Z0-9.\-]*$')
+        fail_msg: >-
+          Security validation failed: operator_container_name '{{ operator_container_name }}' contains
+          characters not matching the allowed pattern ^[a-zA-Z0-9][a-zA-Z0-9.-]*$.
+          This may indicate malicious metadata.
+      when: operator_container_name is defined
+
+    - name: "Validate current_channel against allowlist"
+      assert:
+        that:
+          - current_channel is match('^[a-zA-Z0-9][a-zA-Z0-9.\-]*$')
+        fail_msg: >-
+          Security validation failed: current_channel '{{ current_channel }}' contains
+          characters not matching the allowed pattern ^[a-zA-Z0-9][a-zA-Z0-9.-]*$.
+          This may indicate malicious metadata.
+      when: current_channel is defined and current_channel | length > 0

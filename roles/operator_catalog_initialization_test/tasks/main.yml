@@ -37,7 +37,7 @@
     mode: o+rwx
 
 - name: "Copy the testing operator metadata to the production catalog bundle"
-  shell: "cp -R {{ operator_dir }}/* {{ catalog_manifests_dir }}/{{ package_name }}"
+  command: "cp -R {{ operator_dir }}/. {{ catalog_manifests_dir }}/{{ package_name }}"
 
 - name: "Run the catalog initializer on the modified production catalog bundle"
   shell: "{{ go_bin_path }} run -mod=vendor -tags=json1 ./cmd/initializer/main.go --manifests {{ catalog_manifests_dir }} --output local.db 2>&1"

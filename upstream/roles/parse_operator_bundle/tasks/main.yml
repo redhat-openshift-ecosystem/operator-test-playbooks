@@ -60,6 +60,10 @@
       current_channel: "{{ channels[0] }}"
       default_channel: "{{ channels[0] }}"
 
+  - name: "Validate parsed bundle metadata fields"
+    include_role:
+      name: validate_operator_metadata_fields
+
   - name: "Set the default channel if defined in from the operators.operatorframework.io.bundle.channel.default.v1 label"
     set_fact:
       default_channel: "{{ skopeo_inspect_json.Labels['operators.operatorframework.io.bundle.channel.default.v1'] }}"
@@ -129,6 +133,10 @@
           operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
           operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
           operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities | default('Basic Install') }}"
+
+      - name: "Validate deployment metadata fields"
+        include_role:
+          name: validate_operator_metadata_fields
 
       - name: "Determine operator_allnamespaces_support"
         set_fact:

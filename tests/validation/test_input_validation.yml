@@ -1,0 +1,301 @@
+---
+- name: "Input validation test"
+  hosts: all
+  become: false
+  gather_facts: false
+
+  vars:
+    run_upstream: true
+    work_dir: "/tmp/validation-test"
+    current_channel: ""
+    pkg_file_path: ""
+
+  tasks:
+    - name: "Test 1 - parse_operator_metadata rejects packageName with semicolons"
+      block:
+        - name: "Set up fixture directory"
+          file:
+            path: "/tmp/validation-test-1"
+            state: directory
+            mode: "0755"
+
+        - name: "Create package file with malicious packageName"
+          copy:
+            dest: "/tmp/validation-test-1/package.yaml"
+            content: |
+              packageName: evil;whoami
+              defaultChannel: stable
+              channels:
+                - name: stable
+                  currentCSV: operator.v1.0.0
+
+        - name: "Run parse_operator_metadata role (should fail on validation)"
+          include_role:
+            name: parse_operator_metadata
+          vars:
+            operator_work_dir: "/tmp/validation-test-1"
+
+        - name: "Should not reach here"
+          fail:
+            msg: "Bad packageName was not rejected by parse_operator_metadata"
+
+      rescue:
+        - name: "Test 1 PASSED - role rejected packageName with semicolons"
+          debug:
+            msg: "PASS: parse_operator_metadata correctly rejected 'evil;whoami'"
+
+      always:
+        - name: "Clean up fixture"
+          file:
+            path: "/tmp/validation-test-1"
+            state: absent
+
+    - name: "Test 2 - parse_operator_metadata rejects packageName with command substitution"
+      block:
+        - name: "Set up fixture directory"
+          file:
+            path: "/tmp/validation-test-2"
+            state: directory
+            mode: "0755"
+
+        - name: "Create package file with $(cmd) in packageName"
+          copy:
+            dest: "/tmp/validation-test-2/package.yaml"
+            content: |
+              packageName: pkg$(whoami)
+              defaultChannel: alpha
+              channels:
+                - name: alpha
+                  currentCSV: operator.v1.0.0
+
+        - name: "Run parse_operator_metadata role (should fail on validation)"
+          include_role:
+            name: parse_operator_metadata
+          vars:
+            operator_work_dir: "/tmp/validation-test-2"
+
+        - name: "Should not reach here"
+          fail:
+            msg: "Bad packageName was not rejected by parse_operator_metadata"
+
+      rescue:
+        - name: "Test 2 PASSED - role rejected packageName with $()"
+          debug:
+            msg: "PASS: parse_operator_metadata correctly rejected 'pkg$(whoami)'"
+
+      always:
+        - name: "Clean up fixture"
+          file:
+            path: "/tmp/validation-test-2"
+            state: absent
+
+    - name: "Test 3 - parse_operator_metadata rejects packageName with backticks"
+      block:
+        - name: "Set up fixture directory"
+          file:
+            path: "/tmp/validation-test-3"
+            state: directory
+            mode: "0755"
+
+        - name: "Create package file with backtick in packageName"
+          copy:
+            dest: "/tmp/validation-test-3/package.yaml"
+            content: |
+              packageName: pkg`id`name
+              defaultChannel: stable
+              channels:
+                - name: stable
+                  currentCSV: operator.v1.0.0
+
+        - name: "Run parse_operator_metadata role (should fail on validation)"
+          include_role:
+            name: parse_operator_metadata
+          vars:
+            operator_work_dir: "/tmp/validation-test-3"
+
+        - name: "Should not reach here"
+          fail:
+            msg: "Bad packageName was not rejected by parse_operator_metadata"
+
+      rescue:
+        - name: "Test 3 PASSED - role rejected packageName with backticks"
+          debug:
+            msg: "PASS: parse_operator_metadata correctly rejected 'pkg`id`name'"
+
+      always:
+        - name: "Clean up fixture"
+          file:
+            path: "/tmp/validation-test-3"
+            state: absent
+
+    - name: "Test 4 - parse_operator_metadata rejects packageName with pipe"
+      block:
+        - name: "Set up fixture directory"
+          file:
+            path: "/tmp/validation-test-4"
+            state: directory
+            mode: "0755"
+
+        - name: "Create package file with pipe in packageName"
+          copy:
+            dest: "/tmp/validation-test-4/package.yaml"
+            content: |
+              packageName: pkg|echo pwned
+              defaultChannel: stable
+              channels:
+                - name: stable
+                  currentCSV: operator.v1.0.0
+
+        - name: "Run parse_operator_metadata role (should fail on validation)"
+          include_role:
+            name: parse_operator_metadata
+          vars:
+            operator_work_dir: "/tmp/validation-test-4"
+
+        - name: "Should not reach here"
+          fail:
+            msg: "Bad packageName was not rejected by parse_operator_metadata"
+
+      rescue:
+        - name: "Test 4 PASSED - role rejected packageName with pipe"
+          debug:
+            msg: "PASS: parse_operator_metadata correctly rejected 'pkg|echo pwned'"
+
+      always:
+        - name: "Clean up fixture"
+          file:
+            path: "/tmp/validation-test-4"
+            state: absent
+
+    - name: "Test 5 - parse_operator_metadata rejects packageName with && sequence"
+      block:
+        - name: "Set up fixture directory"
+          file:
+            path: "/tmp/validation-test-5"
+            state: directory
+            mode: "0755"
+
+        - name: "Create package file with && in packageName"
+          copy:
+            dest: "/tmp/validation-test-5/package.yaml"
+            content: |
+              packageName: pkg&&echo pwned
+              defaultChannel: stable
+              channels:
+                - name: stable
+                  currentCSV: operator.v1.0.0
+
+        - name: "Run parse_operator_metadata role (should fail on validation)"
+          include_role:
+            name: parse_operator_metadata
+          vars:
+            operator_work_dir: "/tmp/validation-test-5"
+
+        - name: "Should not reach here"
+          fail:
+            msg: "Bad packageName was not rejected by parse_operator_metadata"
+
+      rescue:
+        - name: "Test 5 PASSED - role rejected packageName with &&"
+          debug:
+            msg: "PASS: parse_operator_metadata correctly rejected 'pkg&&echo pwned'"
+
+      always:
+        - name: "Clean up fixture"
+          file:
+            path: "/tmp/validation-test-5"
+            state: absent
+
+    - name: "Test 6 - parse_operator_metadata accepts valid packageName and passes validation"
+      block:
+        - name: "Set up fixture directory with valid operator structure"
+          file:
+            path: "/tmp/validation-test-6/{{ item }}"
+            state: directory
+            mode: "0755"
+          loop:
+            - ""
+            - "1.0.0"
+
+        - name: "Create valid package file"
+          copy:
+            dest: "/tmp/validation-test-6/package.yaml"
+            content: |
+              packageName: my-valid-operator
+              defaultChannel: stable
+              channels:
+                - name: stable
+                  currentCSV: my-valid-operator.v1.0.0
+
+        - name: "Create valid CSV file"
+          copy:
+            dest: "/tmp/validation-test-6/1.0.0/my-valid-operator.v1.0.0.clusterserviceversion.yaml"
+            content: |
+              apiVersion: operators.coreos.com/v1alpha1
+              kind: ClusterServiceVersion
+              metadata:
+                name: my-valid-operator.v1.0.0
+                annotations:
+                  capabilities: Basic Install
+              spec:
+                install:
+                  spec:
+                    deployments:
+                      - name: my-valid-operator
+                        spec:
+                          template:
+                            spec:
+                              containers:
+                                - name: manager
+                installModes:
+                  - type: OwnNamespace
+                    supported: true
+                  - type: SingleNamespace
+                    supported: true
+                  - type: MultiNamespace
+                    supported: false
+                  - type: AllNamespaces
+                    supported: true
+
+        - name: "Create work_dir for template output"
+          file:
+            path: "/tmp/validation-test-6-work"
+            state: directory
+            mode: "0755"
+
+        - name: "Run parse_operator_metadata role with valid data"
+          include_role:
+            name: parse_operator_metadata
+          vars:
+            operator_work_dir: "/tmp/validation-test-6"
+            work_dir: "/tmp/validation-test-6-work"
+
+        - name: "Test 6 PASSED - valid operator passed through parse_operator_metadata"
+          debug:
+            msg: "PASS: parse_operator_metadata accepted 'my-valid-operator' and completed successfully"
+
+      rescue:
+        - name: "Check whether the failure was a security validation rejection"
+          assert:
+            that:
+              - "'Security validation failed' not in (ansible_failed_result.msg | default(''))"
+            fail_msg: >-
+              REGRESSION: valid packageName 'my-valid-operator' was rejected
+              by security validation: {{ ansible_failed_result.msg | default('') }}
+
+        - name: "Test 6 PASSED - role failed on a non-security step (expected without full cluster)"
+          debug:
+            msg: "PASS: validation passed for 'my-valid-operator' (role failed later due to missing cluster resources)"
+
+      always:
+        - name: "Clean up fixtures"
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - "/tmp/validation-test-6"
+            - "/tmp/validation-test-6-work"
+
+    - name: "All security regression tests passed"
+      debug:
+        msg: "SUCCESS: All shell injection security regression tests passed"

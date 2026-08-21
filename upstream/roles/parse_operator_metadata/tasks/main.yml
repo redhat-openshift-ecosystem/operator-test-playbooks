@@ -30,7 +30,7 @@
         when: not package_file_st.stat.exists
 
       - name: "Getting content of package file '{{ pkg_file_path }}'"
-        shell: "cat {{ package_path }}"
+        command: "cat {{ package_path }}"
         register: package_data
 
       - name: "Set package vars"
@@ -41,6 +41,10 @@
   - name: "GET package_name variable from loaded package_vars"
     set_fact:
       package_name: "{{ package_vars['packageName'] }}"
+
+  - name: "Validate parsed operator metadata fields"
+    include_role:
+      name: validate_operator_metadata_fields
 
   # Note:
   # current logic will check the length of current_channel
@@ -76,6 +80,10 @@
     set_fact:
       current_csv: "{{ current_csv[0] }}"
 
+  - name: "Validate current_channel and current_csv before shell interpolation"
+    include_role:
+      name: validate_operator_metadata_fields
+
   - name: "Determine paths with kind ClusterServiceVersion"
     find:
       paths: "{{ operator_work_dir }}"
@@ -85,7 +93,7 @@
     register: kind_custerserviceversion_file_paths
 
   - name: "Grep paths with current_csv ClusterServiceVersion"
-    shell: "grep -l 'name: {{ current_csv }}' {{ item.path }}"
+    shell: "grep -l {{ ('name: ' ~ current_csv) | quote }} {{ item.path | quote }}"
     with_items: "{{ kind_custerserviceversion_file_paths['files'] }}"
     register: grep_output_current_csv
     ignore_errors: true
@@ -128,6 +136,10 @@
       operator_pod_name: "{{ operator_vars.spec.install.spec.deployments[0].name }}"
       operator_container_name: "{{ operator_vars.spec.install.spec.deployments[0].spec.template.spec.containers[0].name }}"
       operator_capabilities: "{{ operator_vars.metadata.annotations.capabilities | default('Basic Install') }}"
+
+  - name: "Validate deployment metadata fields"
+    include_role:
+      name: validate_operator_metadata_fields
 
   - name: "Determine operator_allnamespaces_support"
     set_fact:

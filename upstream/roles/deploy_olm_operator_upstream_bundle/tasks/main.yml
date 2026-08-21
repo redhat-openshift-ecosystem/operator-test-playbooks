@@ -93,7 +93,7 @@
   when: not run_upstream|bool
 
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
-  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n {{ operator_suggested_namespace }}"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name | quote }} -n {{ operator_suggested_namespace | quote }}"
   register: packagemanifest_presence
   retries: "{{ packagemanifest_retries }}"
   delay: "{{ packagemanifest_delay }}"
@@ -117,7 +117,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
-  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running"
+  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | grep Running"
   register: operator_result
   retries: "{{ pod_start_retries }}"
   delay: "{{ pod_start_delay }}"
@@ -185,7 +185,7 @@
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod status of the deployed operator"
-  shell: '{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - "status"'
+  shell: '{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - "status"'
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -211,7 +211,7 @@
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name | quote }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:

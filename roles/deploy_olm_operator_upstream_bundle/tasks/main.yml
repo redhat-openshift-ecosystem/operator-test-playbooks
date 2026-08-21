@@ -64,7 +64,7 @@
   when: not run_upstream|bool
 
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
-  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name | quote }} -n test-operators"
   register: packagemanifest_presence
   retries: 60
   delay: 5
@@ -79,7 +79,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
-  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running"
+  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | grep Running"
   register: operator_result
   retries: 90
   delay: 10
@@ -89,7 +89,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
-  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
   register: operator_uptime
   retries: 15
   delay: 5
@@ -113,7 +113,7 @@
   when: csv_describe_result.stdout != ""
 
 - name: "Get the pod status of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -130,7 +130,7 @@
     - operator_pod_result.stdout != ""
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name | quote }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:

@@ -32,7 +32,7 @@
     no_log: true
 
   - name: "Increment testing quay app release if exists"
-    shell: "echo {{ quay_release_result.stdout }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
+    shell: "echo {{ quay_release_result.stdout | quote }} | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf(\"%0*d\", length($NF), ($NF+1)%(10^length($NF))); print}'"
     register: quay_increment_release_result
     when:
       - quay_release_result is defined
@@ -49,14 +49,14 @@
       - quay_increment_release_result.stdout != ""
 
   - name: "Append the -test suffix to the packageName"
-    shell: "{{ yq_bin_path }} w -i {{ package_path }} 'packageName' '{{ package_name }}-test'"
+    shell: "{{ yq_bin_path }} w -i {{ package_path | quote }} 'packageName' {{ (package_name ~ '-test') | quote }}"
 
   - name: "Push the operator metadata to the private quay.io repository"
-    shell: "operator-courier push {{ operator_work_dir }} {{ quay_namespace }} {{ package_name }}-test {{ quay_release }} \"basic {{ quay_token }}\""
+    shell: "operator-courier push {{ operator_work_dir | quote }} {{ quay_namespace | quote }} {{ (package_name ~ '-test') | quote }} {{ quay_release | quote }} \"basic {{ quay_token }}\""
     no_log: true
 
   - name: "Create {{ openshift_namespace }} project"
-    shell: "{{ oc_bin_path }} new-project {{ openshift_namespace }}"
+    shell: "{{ oc_bin_path }} new-project {{ openshift_namespace | quote }}"
     register: openshift_namespace_result
     environment:
       KUBECONFIG: "{{ kubeconfig_path }}"
@@ -168,7 +168,7 @@
   when: not run_upstream|bool
 
 - name: "Wait for the operator {{ package_name }} to be in packagemanifests"
-  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name }} -n test-operators"
+  shell: "{{ oc_bin_path }} get packagemanifests {{ package_name | quote }} -n test-operators"
   register: packagemanifest_presence
   retries: 25
   delay: 5
@@ -184,7 +184,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to start up"
-  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running"
+  shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | grep Running"
   register: operator_result
   retries: 90
   delay: 10
@@ -194,7 +194,7 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for specific time (upstream only)"
-  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
+  shell: "[ $(echo `{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | grep Running| rev | cut -d' ' -f 1 | rev|sed 's/.$//'`) -ge 60 ]"
   register: operator_uptime
   retries: 15
   delay: 5
@@ -219,7 +219,7 @@
   when: csv_describe_result.stdout != ""
 
 - name: "Get the pod status of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -236,7 +236,7 @@
     - operator_pod_result.stdout != ""
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name }} {{ upstream_namespace_param }}"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name | quote }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:
