@@ -1,0 +1,4 @@
+organization: {{ operators_pipeline_organization_name }}
+{% if default_config.production.type == 'k8s' %}
+cluster: {{ default_config.production.type }}
+{% endif %}

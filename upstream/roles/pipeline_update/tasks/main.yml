@@ -1,0 +1,123 @@
+---
+- name: "Check if file '{{ workflow_config_path }}/{{ pipeline_config_name }}' exists"
+  stat:
+    path: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
+  register: pu_config_file
+
+- name: "Fail if config file '{{ workflow_config_path }}/{{ pipeline_config_name }}' is not found"
+  fail:
+    msg: "Config file '{{ workflow_config_path }}/{{ pipeline_config_name }}' doesn't exist !!!"
+  when: not pu_config_file.stat.exists|bool
+
+- name: "Recreate workflow directory '{{ workflow_output_path }}' "
+  file:
+    state: "{{ item }}"
+    path: "{{ workflow_output_path }}"
+  with_items:
+    - absent
+    - directory
+
+- name: "Load the pipeline config"
+  include_vars:
+    file: "{{ workflow_config_path }}/{{ pipeline_config_name }}"
+    name: default_config
+
+- name: "Generate file '{{ output_project_directory }}/{{ operators_pipeline_config_name }}'"
+  template:
+    src: "{{ operators_pipeline_config_name }}.j2"
+    dest: "{{ output_project_directory }}/{{ operators_pipeline_config_name }}"
+
+- name: "Find template files"
+  find:
+    paths: "{{ workflow_templates_path }}/"
+    file_type: file
+    recurse: false
+    patterns: "*.js2"
+  register: template_files
+
+- name: "Copy operator test file"
+  template:
+    src: "{{ item.path }}"
+    dest: "{{ workflow_output_path }}/{{ item.path.split('/')[-1].split('.js2')[0] }}"
+  loop: "{{ template_files.files|flatten(levels=1) }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: "Handle extra workflow scripts"
+  block:
+    - name: "Handle custom workflows"
+      set_fact:
+        pu_workflow_extra_scripts: "{{ workflow_extra_scripts.split(',') }}"
+    - name: "Loop over all versions"
+      include_tasks: custom_template.yml
+      loop: "{{ pu_workflow_extra_scripts }}"
+      loop_control:
+        loop_var: puwes_item
+  when:
+    - workflow_extra_scripts is defined
+    - workflow_extra_scripts|length > 0
+
+- debug:
+    var: pu_from_index
+
+- name: "Init missing repos"
+  block:
+    - name: "Login to quay"
+      include_role:
+        name: quay_login
+
+    - name: "Get list of versions_in_dir from bundle production registry '{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}'"
+      include_role:
+        name: query_image_tags
+      vars:
+        qit_image: "{{ default_config.production.index.registry }}/{{ default_config.production.index.organization }}/{{ default_config.production.index.name }}"
+
+    - debug:
+        var: qit_rc
+
+    - name: "Set results from 'query_image_tags'"
+      set_fact:
+        versions_in_registry: "{{ qit_result }}"
+      when: qit_rc == 0
+
+    - name: "Setting all versions to 'versions_in_config' variable"
+      set_fact:
+        versions_in_config: "{{ default_config.production.index.tags | from_yaml }}"
+
+    - name: "Debug"
+      debug:
+        var: versions_in_config
+
+    - name: "Debug"
+      debug:
+        var: versions_in_registry
+
+    - name: "Loop over all index versions from config"
+      include_tasks: push_from_index.yml
+      loop: "{{ versions_in_config }}"
+      loop_control:
+        loop_var: pu_item
+      when: versions_in_registry.0 is defined
+
+    - name: "Print list of operators to be recreated"
+      include_tasks: print_operators_to_recreate.yml
+      when: not pu_from_index is search("index_empty")
+
+    - name: "Remove duplicates from 'pu_recreate_operators'"
+      set_fact:
+        pu_recreate_operators: "{{ pu_recreate_operators | unique }}"
+
+    - debug:
+        var: pu_recreate_operators_versions
+
+    - debug:
+        var: pu_recreate_operators
+
+    - name: "Generate operators info config file"
+      copy: content="{{ pu_recreate_operators | join(' ') }}" dest="{{ pu_output_file }}"
+      when:
+        - pu_recreate_operators.0 is defined
+
+  when:
+    - pu_from_index is defined
+    - pu_from_index | length > 0

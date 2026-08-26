@@ -1,0 +1,27 @@
+---
+- name: "Getting index version"
+  set_fact:
+    pu_index_version_1: "={{ pu_from_index.split(':')[1] }}"
+    pu_index_version_2: "-{{ pu_from_index.split(':')[1] }}"
+
+- name: "Serching for annotations files"
+  find:
+    paths: "{{ output_project_directory }}"
+    patterns: "annotations.yaml"
+    recurse: true
+  register: cofc_annotation_files_find_manifest
+  no_log: true
+
+- name: "Handling operator format inconsistecy"
+  block:
+    - name: "Getting list of annotations files"
+      set_fact:
+        cofc_annotations_manifest_failed: "{{ cofc_annotation_files_find_manifest.files | map(attribute='path' ) | list }}"
+
+    - name: "Loop over all index versions from config"
+      include_tasks: single_annotation.yml
+      loop: "{{ cofc_annotations_manifest_failed }}"
+      loop_control:
+        loop_var: an_item
+
+  when: cofc_annotation_files_find_manifest.files|length > 0
