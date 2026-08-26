@@ -2,7 +2,7 @@
 - name: "Run health check"
   block:
   - name: "Wait for the operator {{ operator_pod_name }} pod to stay healthy for a specific time (upstream only)"
-    shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep {{ operator_pod_name }} | grep Running | head -n 1 | rev | cut -d' ' -f 1 | rev"
+    shell: "{{ oc_bin_path }} get pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | grep Running | head -n 1 | rev | cut -d' ' -f 1 | rev"
     register: operator_uptime_raw
     ignore_errors: true
     environment:

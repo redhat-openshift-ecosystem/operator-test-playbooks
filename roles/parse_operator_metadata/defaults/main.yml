@@ -1,4 +1,0 @@
----
-jq_bin_path: jq
-yq_bin_path: yq
-operator_work_dir: /home/jenkins/agent/test-operator
