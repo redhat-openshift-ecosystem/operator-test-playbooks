@@ -1,6 +1,6 @@
 FROM quay.io/fedora/fedora:44
 RUN dnf install -y git-core podman buildah python3-pip rsync
-RUN pip3 install setuptools ansible==6.5.0 jmespath ansible-runner
+RUN pip3 install setuptools ansible==14.3.1 jmespath ansible-runner
 RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
