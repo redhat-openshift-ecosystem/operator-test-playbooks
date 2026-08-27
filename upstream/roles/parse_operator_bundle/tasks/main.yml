@@ -187,14 +187,14 @@
     ignore_errors: true
     when:
       - operator_suggested_namespace_raw is defined
-      - operator_suggested_namespace_raw.stdout|length > 0
+      - operator_suggested_namespace_raw.stdout|default("", true)|length > 0
 
   - name: "Sets operator suggested-namespace from default'"
     set_fact:
       operator_suggested_namespace: "{{ operator_suggested_namespace_default }}"
     when:
       - operator_suggested_namespace is defined
-      - operator_suggested_namespace|length == 0
+      - operator_suggested_namespace|default("", true)|length == 0
 
   - name: "Sanity check the operator bundle's information"
     include_tasks: "bundle_sanity_checks.yml"
