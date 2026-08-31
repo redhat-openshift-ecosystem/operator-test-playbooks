@@ -103,7 +103,7 @@
 
 - name: "Sets 'oi_versions' when 'operator_version' and 'operator_channel_force' is defined"
   set_fact:
-    oi_versions: "[ '{{ operator_version }}' ]"
+    oi_versions: "{{ [ operator_version ] }}"
     oi_versions_dt: []
   when:
     - operator_version is defined

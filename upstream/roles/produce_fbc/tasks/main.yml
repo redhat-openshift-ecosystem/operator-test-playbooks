@@ -108,8 +108,8 @@
     - name: "Generate cache locally using host opm to solve arch issues"
       shell: "{{ opm_bin_path }} serve {{ pfbc_fbc_config_path }} --cache-dir={{ pfbc_extracted_fbc_location }}/cache --cache-only --termination-log /dev/null"
 
-  when: pfbc_opm_bug_line.found
+  when: pfbc_opm_bug_line.found > 0
 
 - debug:
     msg: "Warning: Cannot find a line to be replaced due to CLOUDDST-15194. May not work as expected, the following line not found: {{ opm_cache_host_bug_line }}"
-  when: not pfbc_opm_bug_line.found
+  when: pfbc_opm_bug_line.found == 0

@@ -1,7 +1,6 @@
-FROM fedora:37
-RUN dnf install -y git podman buildah crun-0:1.6-2.fc37 python3-libselinux python3-pip rsync python3-dnf-plugin-versionlock
-RUN dnf versionlock crun-*
-RUN pip3 install ansible==6.5.0 jmespath ansible-runner
+FROM quay.io/fedora/fedora:44
+RUN dnf install -y git-core podman buildah python3-pip rsync
+RUN pip3 install setuptools ansible==14.3.1 jmespath ansible-runner
 RUN mkdir -p /playbooks
 COPY roles/ /playbooks/roles/
 COPY filter_plugins/ /playbooks/filter_plugins/
