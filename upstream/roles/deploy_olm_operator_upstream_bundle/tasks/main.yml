@@ -185,7 +185,7 @@
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod status of the deployed operator"
-  shell: '{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -f1 | xargs -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - "status"'
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -F {{ operator_pod_name | quote }} | tr '\\n' '\\0' | xargs -0 -I{} {{ oc_bin_path }} get {} {{ upstream_namespace_param }} -o yaml | {{ yq_bin_path }} r - \"status\""
   register: operator_pod_result
   ignore_errors: true
   environment:
@@ -211,7 +211,7 @@
     - operator_result.rc != 0 or operator_uptime_raw_rc|int != 0 or operator_uptime_raw_rc is not defined
 
 - name: "Get the pod container logs of the deployed operator"
-  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -- {{ operator_pod_name | quote }} | cut -d' ' -f1 | xargs -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name | quote }} {{ upstream_namespace_param }}"
+  shell: "{{ oc_bin_path }} get --output=name pods {{ upstream_namespace_param }}| grep -F {{ operator_pod_name | quote }} | cut -d' ' -f1 | tr '\\n' '\\0' | xargs -0 -I{} {{ oc_bin_path }} logs {} -c {{ operator_container_name | quote }} {{ upstream_namespace_param }}"
   register: operator_container_result
   ignore_errors: true
   environment:
