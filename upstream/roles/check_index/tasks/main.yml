@@ -83,7 +83,7 @@
 
     - name: "Setting list of incomplete packages"
       set_fact:
-        chi_uncomplete_packages_list: "{{ chi_missing_operators | replace(':v','/') }}"
+        chi_uncomplete_packages_list: "{{ chi_missing_operators | map('replace', ':v', '/') | list }}"
 
     - name: "Resetting incomplete packages"
       set_fact:

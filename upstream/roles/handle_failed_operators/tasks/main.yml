@@ -5,7 +5,7 @@
 
 - name: "Adding bundle_failed from 'bundle_index_add_failed' without duplicates"
   set_fact:
-    bundle_failed: "{{ bundle_failed | default([]) }} + {{ bundle_index_add_failed | unique }}"
+    bundle_failed: "{{ (bundle_failed | default([])) + (bundle_index_add_failed | unique | list) }}"
   when: bundle_index_add_failed is defined
 
 - name: "Removing duplicates from 'bundle_failed'"
