@@ -1,0 +1,4 @@
+---
+voc_opm_version: "v1.72.0"
+voc_opm_bin: "{{ testing_bin_path }}/opm-validate"
+voc_catalog_dir: "/tmp/voc-catalog"

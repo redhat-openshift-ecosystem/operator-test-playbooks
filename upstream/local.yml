@@ -17,6 +17,11 @@
     run_manifest_test: false
     run_bundle_test: true
     run_prepare_catalog_repo_upstream: true
+    # FBC release variables (k8s/operatorhub.io).  Set run_fbc_release: true
+    # when the operator has fbc.enabled: true in its ci.yaml.  The produce_fbc
+    # and build_fbc_multiarch roles render and push the FBC catalog image.
+    run_fbc_release: false
+    fbc_catalog_dir: "catalogs/latest"
     default_retries: 5
     default_delay: 10
     work_dir: "/tmp/operator-test"
@@ -157,6 +162,32 @@
     - {role: operator_index, tags: ["never", "operator_index"], when: run_upstream|bool}
 
     - {role: sync_index_sha, tags: ["sync_index_sha"], when: run_upstream|bool}
+
+    # FBC release roles — k8s/operatorhub.io only.
+    # Triggered by the fbc_release tag when run_fbc_release is true (operator
+    # has fbc.enabled: true in its ci.yaml, detected by opp-fbc.sh in opp.sh).
+    # These roles were already present in the upstream-community branch but were
+    # not connected to the standard release flow.
+    #
+    # produce_fbc: renders the FBC from the bundle/index and writes
+    #   catalogs/latest/<operator>/catalog.yaml in the cloned repo.
+    # build_fbc_multiarch: builds and pushes the multiarch FBC catalog image
+    #   (quay.io/operatorhubio/catalog:latest and :latests) from the rendered tree.
+    - role: produce_fbc
+      tags: ["never", "fbc_release"]
+      vars:
+        pfbc_render_from: "bundle"
+        pfbc_fbc_config_path: "{{ fbc_catalog_dir }}/{{ operator_package_name | default(operator_dir | basename) }}"
+        pfbc_index_update: false
+      when:
+        - run_upstream|bool
+        - run_fbc_release|bool
+
+    - role: build_fbc_multiarch
+      tags: ["never", "fbc_release"]
+      when:
+        - run_upstream|bool
+        - run_fbc_release|bool
 
   tasks:
     - name: "Setting input variables for testing"
