@@ -114,7 +114,7 @@
 
             - name: "Status in case of a bigger change"
               fail:
-                msg: "Only minor (cosmetic) change to {{ dc_csv_file_end }} is allowed. Detected following changes: {{ dc_changes_forbidden }}. Consider bumping your operator version. In exceptional cases, it could be overridden by setting 'allow/serious-changes-to-existing' label"
+                msg: "Only minor (cosmetic) change to {{ dc_csv_file_end }} is allowed. Detected following changes: {{ dc_changes_forbidden | join(', ') }}. Consider bumping your operator version. In exceptional cases, it could be overridden by setting 'allow/serious-changes-to-existing' label"
               when:
                 - dc_changes_forbidden|length>0
 
