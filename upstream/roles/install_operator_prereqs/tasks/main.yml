@@ -59,6 +59,7 @@
   get_url:
     url: https://github.com/operator-framework/operator-registry/releases/download/{{ opm_version }}/linux-amd64-opm
     dest: "{{ opm_bin_path }}"
+    checksum: "{{ opm_checksum }}"
     mode: "0755"
   register: opm_install_result
   until: opm_install_result.status_code is undefined or opm_install_result.status_code == 200
@@ -76,6 +77,7 @@
   get_url:
     url: https://github.com/k8s-operatorhub/bundle-validator/releases/download/{{ k8s_community_bundle_validator_version }}/linux-amd64-k8s-community-bundle-validator
     dest: "{{ k8s_community_bundle_validator_path }}"
+    checksum: "{{ k8s_community_bundle_validator_checksum }}"
     mode: "0755"
   register: k8s_community_bundle_validator_install_result
   until: k8s_community_bundle_validator_install_result.status_code is undefined or k8s_community_bundle_validator_install_result.status_code == 200
@@ -122,6 +124,7 @@
   get_url:
     url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64"
     dest: "{{ jq_bin_path }}"
+    checksum: "{{ jq_checksum }}"
     mode: "0755"
   register: jq_install_result
   until: jq_install_result.status_code is undefined or jq_install_result.status_code == 200
@@ -148,6 +151,7 @@
   get_url:
     url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
     dest: "{{ yq_bin_path }}"
+    checksum: "{{ yq_checksum }}"
     mode: "0755"
   register: yq_install_result
   until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
@@ -290,6 +294,7 @@
           get_url:
             url: "https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
             dest: "{{ umoci_bin_path }}"
+            checksum: "{{ umoci_checksum }}"
             mode: "0755"
           register: umoci_install_result
           until: umoci_install_result.status_code is undefined or umoci_install_result.status_code == 200
