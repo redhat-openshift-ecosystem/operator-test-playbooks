@@ -1,14 +1,24 @@
 ---
 testing_bin_path: /tmp/cvp/bin
+tmp_dir: "/tmp"
 operator_sdk_version: v0.15.1
 oc_version: 4.3.5
+oc_checksum: "sha256:b78be3dc31442c9cd22e44e676d04cef487d3cca0409f59264c7671d3818d028"
 operator_courier_version: 2.1.7
+operator_courier_wheel_url: "https://files.pythonhosted.org/packages/8a/3b/c8f3d95ee79a2d4992895b715095fcadeca7145f0b8fd7e5b9dd0ceecf24/operator_courier-2.1.7-py3-none-any.whl"
+operator_courier_checksum: "sha256:06924ef57a12ac43e86f6dd3dd6ac2b896a36809a8e7c906128d78ffb07da98c"
 go_version: 1.13.7
+go_checksum: "sha256:b3dd4bd781a0271b33168e627f7f43886b4c5d1c794a4015abf34e99c6526ca3"
 jq_version: 1.6
+jq_checksum: "sha256:af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
 yq_version: 2.2.1
+yq_checksum: "sha256:54443f0e9796dfb8423a6e33b8175a0f77b8bb0eb55db820ecb84098db2c0ed4"
 umoci_version: v0.4.5
+umoci_checksum: "sha256:1d9d3be0abc7a9fc4eb7d522e73794c561b740b1386ab7febaf69d58092b7af6"
 opm_version: v1.14.2
+opm_checksum: "sha256:6df05bff3d7237986328ee7e50ad74da6cca68fbcdfcf614d50e0166c9f106d6"
 k8s_community_bundle_validator_version: v0.1.0
+k8s_community_bundle_validator_checksum: "sha256:1441717fd7301dadfbf455468c71d974b553876b26c2de1ebe24057b683cd797"
 grpcurl_version: 1.8.6
 dyff_version: 1.5.1
 operator_sdk_bin_path: "{{ testing_bin_path }}/operator-sdk"
