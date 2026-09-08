@@ -26,6 +26,7 @@
       get_url:
         url: "https://github.com/kubernetes-sigs/kind/releases/download/{{ kind_version }}/kind-linux-amd64"
         dest: "{{ kind_bin_path }}"
+        checksum: "{{ kind_checksum }}"
         mode: '0755'
       register: kind_install_result
       until: kind_install_result.status_code is undefined or kind_install_result.status_code == 200
@@ -64,6 +65,7 @@
       get_url:
         url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk-{{ operator_sdk_version }}-x86_64-linux-gnu
         dest: "{{ operator_sdk_bin_path }}"
+        checksum: "{{ operator_sdk_checksum }}"
         mode: "0755"
       register: operator_sdk_install_result
       until: operator_sdk_install_result.status_code is defined and operator_sdk_install_result.status_code == 200
@@ -80,6 +82,7 @@
       get_url:
         url: https://github.com/operator-framework/operator-sdk/releases/download/{{ operator_sdk_version }}/operator-sdk_linux_amd64
         dest: "{{ operator_sdk_bin_path }}"
+        checksum: "{{ operator_sdk_checksum }}"
         mode: "0755"
       register: operator_sdk_install_result
       until: operator_sdk_install_result.status_code is defined and operator_sdk_install_result.status_code == 200

@@ -15,6 +15,19 @@
 - name: "Copy from {{ opm_container_name }}:/{{ opm_bin_source_path }}"
   shell: "{{ container_tool }} cp {{ opm_container_name }}:/{{ opm_bin_source_path }} {{ opm_bin_path }}"
 
+- name: "Compute checksum of extracted opm binary"
+  stat:
+    path: "{{ opm_bin_path }}"
+    checksum_algorithm: sha256
+  register: rf_opm_binary_stat
+
+- name: "Verify opm binary checksum"
+  assert:
+    that:
+      - "'sha256:' + rf_opm_binary_stat.stat.checksum == opm_checksum"
+    fail_msg: "Checksum mismatch for {{ opm_bin_path }}: expected {{ opm_checksum }}, got sha256:{{ rf_opm_binary_stat.stat.checksum }}"
+    success_msg: "opm binary checksum verified: {{ opm_checksum }}"
+
 - name: "Make opm executable"
   shell: "chmod +x {{ opm_bin_path }}"
   failed_when: false
