@@ -30,6 +30,7 @@
       get_url:
         url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
         dest: /usr/local/bin/kubectl
+        checksum: "sha256:https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl.sha256"
         mode: '0755'
       register: kubectl_install_result
       until: kubectl_install_result.status_code is undefined or kubectl_install_result.status_code == 200

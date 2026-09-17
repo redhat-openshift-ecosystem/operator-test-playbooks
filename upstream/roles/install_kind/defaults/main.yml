@@ -1,5 +1,8 @@
 kind_version: v0.9.0
+kind_checksum: "sha256:35a640e0ca479192d86a51b6fd31c657403d2cf7338368d62223938771500dc8"
 kind_kube_version: v1.19.1
+operator_sdk_version: v1.25.0
+operator_sdk_checksum: "sha256:35fcbc4d20b98c2d52ae4645254cec18060992530f406ac839e62a984f1a049a"
 work_dir: "/tmp/operator-test"
 testing_bin_path: "{{ work_dir }}/bin"
 kind_bin_path: "{{ testing_bin_path }}/kind"

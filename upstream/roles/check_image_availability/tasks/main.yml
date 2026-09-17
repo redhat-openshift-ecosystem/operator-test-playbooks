@@ -18,6 +18,7 @@
       get_url:
         url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
         dest: "{{ yq_bin_path }}"
+        checksum: "{{ yq_checksum }}"
         mode: "0755"
       register: yq_install_result
       until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
