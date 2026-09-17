@@ -64,7 +64,7 @@
 
     - name: "Resetting 'op_info' object"
       set_fact:
-        op_info: []
+        op_info: {}
         oi_failed_labels: []
         oi_failed_k8s_bundles: []
         oi_auto_labels: []
