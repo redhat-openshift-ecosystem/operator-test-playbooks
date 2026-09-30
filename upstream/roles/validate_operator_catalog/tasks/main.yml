@@ -1,0 +1,74 @@
+---
+- name: "Download opm {{ voc_opm_version }} for catalog validation"
+  get_url:
+    url: "https://github.com/operator-framework/operator-registry/releases/download/{{ voc_opm_version }}/linux-amd64-opm"
+    dest: "{{ voc_opm_bin }}"
+    mode: "0755"
+
+- name: "Prepare catalog output directory for {{ operator_package_name }}"
+  file:
+    path: "{{ voc_catalog_dir }}/{{ operator_package_name }}"
+    state: "{{ item }}"
+  loop:
+    - absent
+    - directory
+
+- name: "Find all bundle version directories for {{ operator_package_name }}"
+  find:
+    paths: "{{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+    file_type: directory
+    mindepth: 1
+    maxdepth: 1
+  register: voc_bundle_dirs
+
+- name: "Fail if no bundle directories found"
+  fail:
+    msg: "No bundle directories found under {{ operator_bundle_src_dir }}/{{ operator_package_name }}"
+  when: voc_bundle_dirs.files | length == 0
+
+- name: "Render each bundle directory into catalog (olm.bundle blobs)"
+  shell: >
+    {{ voc_opm_bin }} render {{ item.path }}
+    --output=yaml
+    >> {{ voc_catalog_dir }}/{{ operator_package_name }}/catalog.yaml
+  loop: "{{ voc_bundle_dirs.files | sort(attribute='path') }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: "Append olm.package and olm.channel entries from bundle metadata"
+  script:
+    cmd: >
+      {{ role_path }}/files/build_catalog_metadata.py
+      {{ operator_bundle_src_dir }}/{{ operator_package_name }}
+      >> {{ voc_catalog_dir }}/{{ operator_package_name }}/catalog.yaml
+    executable: python3
+  register: voc_metadata_result
+  failed_when: voc_metadata_result.rc != 0
+
+- name: "Run opm validate on full catalog for {{ operator_package_name }}"
+  shell: "{{ voc_opm_bin }} validate {{ voc_catalog_dir }}/{{ operator_package_name }}"
+  register: voc_validate_result
+  failed_when: false
+
+- name: "Show validation errors"
+  debug:
+    msg: "{{ voc_validate_result.stderr_lines }}"
+  when:
+    - voc_validate_result.rc is defined
+    - voc_validate_result.rc != 0
+
+- name: "Fail on catalog validation errors"
+  fail:
+    msg: >-
+      opm catalog validation failed for {{ operator_package_name }}.
+      See stderr above for details.
+  when:
+    - voc_validate_result.rc is defined
+    - voc_validate_result.rc != 0
+
+- name: "Catalog validation passed for {{ operator_package_name }}"
+  debug:
+    msg: "opm validate passed for {{ operator_package_name }}"
+  when:
+    - voc_validate_result.rc is defined
+    - voc_validate_result.rc == 0
