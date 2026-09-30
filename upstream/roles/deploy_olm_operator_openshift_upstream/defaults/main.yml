@@ -11,11 +11,16 @@ umoci_bin_path: "{{ testing_bin_path }}/umoci"
 opm_bin_path: "{{ testing_bin_path }}/opm"
 offline_cataloger_bin_path: "offline-cataloger"
 kind_version: v0.9.0
+kind_checksum: "sha256:35a640e0ca479192d86a51b6fd31c657403d2cf7338368d62223938771500dc8"
 kind_kube_version: v1.19.1
 operator_sdk_version: v1.25.0
+operator_sdk_checksum: "sha256:35fcbc4d20b98c2d52ae4645254cec18060992530f406ac839e62a984f1a049a"
 olm_version: 0.20.0
+olm_checksum: "sha256:4e700234a76267a3a6918493af18be624ee44d8bd734ad9cf924d73b0673a7ca"
 opm_version: v1.21.0
+opm_checksum: "sha256:fa4efe23d2e951c2540f7fe57c58264b69b1d396d5ab54b454c612a69c338514"
 yq_version: 2.2.1
+yq_checksum: "sha256:54443f0e9796dfb8423a6e33b8175a0f77b8bb0eb55db820ecb84098db2c0ed4"
 operator_allnamespaces_support: false
 operator_ownnamespace_support: false
 operator_singlenamespace_support: true

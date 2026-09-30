@@ -20,28 +20,50 @@
     offline_cataloger_bin_path: "offline-cataloger"
 
 # Install the oc client to talk to any Openshift cluster
-- name: "Download and extract OpenShift client binary 'oc' ({{ oc_version }}) to {{ testing_bin_path }}"
-  unarchive:
-    src: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
-    dest: "{{ testing_bin_path }}"
-    remote_src: true
-  register: download_and_unpack_oc
-  until: download_and_unpack_oc is succeeded
+- name: "Download OpenShift client binary 'oc' ({{ oc_version }}) to {{ tmp_dir }}"
+  get_url:
+    url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ oc_version }}/openshift-client-linux-{{ oc_version }}.tar.gz"
+    dest: "{{ tmp_dir }}/openshift-client-linux-{{ oc_version }}.tar.gz"
+    checksum: "{{ oc_checksum }}"
+    mode: "0644"
+  register: download_oc_archive
+  until: download_oc_archive.status_code is undefined or download_oc_archive.status_code == 200
   retries: 10
   delay: 15
+  failed_when: download_oc_archive is failure
   tags:
     - install
     - image_build
 
-- name: "Download and extract go binary to {{ testing_bin_path }}"
+- name: "Extract OpenShift client binary 'oc' to {{ testing_bin_path }}"
   unarchive:
-    src: "https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz"
+    src: "{{ tmp_dir }}/openshift-client-linux-{{ oc_version }}.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: true
-  register: download_and_unpack_go
-  until: download_and_unpack_go is succeeded
+  tags:
+    - install
+    - image_build
+
+- name: "Download go binary ({{ go_version }}) to {{ tmp_dir }}"
+  get_url:
+    url: "https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "{{ tmp_dir }}/go{{ go_version }}.linux-amd64.tar.gz"
+    checksum: "{{ go_checksum }}"
+    mode: "0644"
+  register: download_go_archive
+  until: download_go_archive.status_code is undefined or download_go_archive.status_code == 200
   retries: 10
   delay: 15
+  failed_when: download_go_archive is failure
+  tags:
+    - install
+    - image_build
+
+- name: "Extract go binary to {{ testing_bin_path }}"
+  unarchive:
+    src: "{{ tmp_dir }}/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "{{ testing_bin_path }}"
+    remote_src: true
   tags:
     - install
     - image_build
@@ -59,6 +81,7 @@
   get_url:
     url: https://github.com/operator-framework/operator-registry/releases/download/{{ opm_version }}/linux-amd64-opm
     dest: "{{ opm_bin_path }}"
+    checksum: "{{ opm_checksum }}"
     mode: "0755"
   register: opm_install_result
   until: opm_install_result.status_code is undefined or opm_install_result.status_code == 200
@@ -76,6 +99,7 @@
   get_url:
     url: https://github.com/k8s-operatorhub/bundle-validator/releases/download/{{ k8s_community_bundle_validator_version }}/linux-amd64-k8s-community-bundle-validator
     dest: "{{ k8s_community_bundle_validator_path }}"
+    checksum: "{{ k8s_community_bundle_validator_checksum }}"
     mode: "0755"
   register: k8s_community_bundle_validator_install_result
   until: k8s_community_bundle_validator_install_result.status_code is undefined or k8s_community_bundle_validator_install_result.status_code == 200
@@ -88,13 +112,27 @@
     - reset_tools
 
 
-- name: "Install grpcurl {{ grpcurl_version }}"
-  unarchive:
-    src: "https://github.com/fullstorydev/grpcurl/releases/download/v{{ grpcurl_version }}/grpcurl_{{ grpcurl_version }}_linux_x86_64.tar.gz"
-    dest: "{{ testing_bin_path }}"
-    remote_src: true
+- name: "Download grpcurl ({{ grpcurl_version }}) to {{ tmp_dir }}"
+  get_url:
+    url: "https://github.com/fullstorydev/grpcurl/releases/download/v{{ grpcurl_version }}/grpcurl_{{ grpcurl_version }}_linux_x86_64.tar.gz"
+    dest: "{{ tmp_dir }}/grpcurl_{{ grpcurl_version }}_linux_x86_64.tar.gz"
+    checksum: "{{ grpcurl_checksum }}"
+    mode: "0644"
+  register: download_grpcurl_archive
+  until: download_grpcurl_archive.status_code is undefined or download_grpcurl_archive.status_code == 200
   retries: 10
   delay: 15
+  failed_when: download_grpcurl_archive is failure
+  tags:
+    - install
+    - host_build
+    - reset_tools
+
+- name: "Install grpcurl {{ grpcurl_version }}"
+  unarchive:
+    src: "{{ tmp_dir }}/grpcurl_{{ grpcurl_version }}_linux_x86_64.tar.gz"
+    dest: "{{ testing_bin_path }}"
+    remote_src: true
   tags:
     - install
     - host_build
@@ -122,6 +160,7 @@
   get_url:
     url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64"
     dest: "{{ jq_bin_path }}"
+    checksum: "{{ jq_checksum }}"
     mode: "0755"
   register: jq_install_result
   until: jq_install_result.status_code is undefined or jq_install_result.status_code == 200
@@ -148,6 +187,7 @@
   get_url:
     url: "https://github.com/mikefarah/yq/releases/download/{{ yq_version }}/yq_linux_amd64"
     dest: "{{ yq_bin_path }}"
+    checksum: "{{ yq_checksum }}"
     mode: "0755"
   register: yq_install_result
   until: yq_install_result.status_code is undefined or yq_install_result.status_code == 200
@@ -170,9 +210,25 @@
     - reset_tools
     - cosmetics_install
 
-- name: "Download dyff"
+- name: "Download dyff ({{ dyff_version }}) to {{ tmp_dir }}"
+  get_url:
+    url: "https://github.com/homeport/dyff/releases/download/v{{ dyff_version }}/dyff_{{ dyff_version }}_linux_amd64.tar.gz"
+    dest: "{{ tmp_dir }}/dyff_{{ dyff_version }}_linux_amd64.tar.gz"
+    checksum: "{{ dyff_checksum }}"
+    mode: "0644"
+  register: download_dyff_archive
+  until: download_dyff_archive.status_code is undefined or download_dyff_archive.status_code == 200
+  retries: 10
+  delay: 15
+  failed_when: download_dyff_archive is failure
+  tags:
+    - install
+    - reset_tools
+    - cosmetics_install
+
+- name: "Extract dyff to {{ testing_bin_path }}"
   unarchive:
-    src: "https://github.com/homeport/dyff/releases/download/v{{ dyff_version }}/dyff_{{ dyff_version }}_linux_amd64.tar.gz"
+    src: "{{ tmp_dir }}/dyff_{{ dyff_version }}_linux_amd64.tar.gz"
     dest: "{{ testing_bin_path }}"
     remote_src: true
   register: dyff_install_result
@@ -199,8 +255,24 @@
       failed_when: false
       when: not run_upstream|bool
 
+    - name: "Download operator-courier wheel ({{ operator_courier_version }}) to {{ tmp_dir }}"
+      get_url:
+        url: "{{ operator_courier_wheel_url }}"
+        dest: "{{ tmp_dir }}/{{ operator_courier_wheel_url | basename }}"
+        checksum: "{{ operator_courier_checksum }}"
+        mode: "0644"
+      register: download_operator_courier_wheel
+      until: download_operator_courier_wheel.status_code is undefined or download_operator_courier_wheel.status_code == 200
+      retries: 10
+      delay: 15
+      failed_when: download_operator_courier_wheel is failure
+      when:
+        - operator_courier_version_result.rc is defined
+        - operator_courier_version_result.rc != 0
+        - not run_upstream|bool
+
     - name: "Install operator-courier ({{ operator_courier_version }}) if not already installed"
-      shell: "pip3 install --upgrade operator-courier=={{ operator_courier_version }}"
+      shell: "pip3 install --upgrade {{ tmp_dir }}/{{ operator_courier_wheel_url | basename }}"
       when:
         - operator_courier_version_result.rc is defined
         - operator_courier_version_result.rc != 0
@@ -216,7 +288,7 @@
       git:
         repo: "https://github.com/kevinrizza/offline-cataloger.git"
         dest: /tmp/offline-cataloger
-        version: "master"
+        version: "01b5cc5bd60bbcbb0c499b005632925752ec89e9"
         force: true
       when:
         - offline_cataloger_help_result.rc is defined
@@ -290,6 +362,7 @@
           get_url:
             url: "https://github.com/opencontainers/umoci/releases/download/{{ umoci_version }}/umoci.amd64"
             dest: "{{ umoci_bin_path }}"
+            checksum: "{{ umoci_checksum }}"
             mode: "0755"
           register: umoci_install_result
           until: umoci_install_result.status_code is undefined or umoci_install_result.status_code == 200
