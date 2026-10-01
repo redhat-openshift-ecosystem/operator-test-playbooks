@@ -67,6 +67,11 @@
   include_role:
     name: validate_operator_bundle
 
+- name: "Validate full operator catalog graph with opm (SkipRange, channel graph)"
+  include_role:
+    name: validate_operator_catalog
+  when: run_upstream|bool
+
 - name: "Check operator external image availability"
   include_role:
     name: check_image_availability
